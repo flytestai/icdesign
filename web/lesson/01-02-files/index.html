@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>文件操作与权限：为什么你的脚本"跑不了" · 03 | IC 后端学院</title>
-<meta name="description" content="复制、移动、删除、查看文件；搞懂 rwx 权限和 755/644 这两个天天见的数字，从此不再被 "Permission denied" 卡住。">
+<meta name="description" content="复制移动删除、cat/less/head/tail 看报告、rwx 三段权限与 755 的 4/2/1 加法、属主属组、umask，以及脚本跑不了的三个检查点（权限位、shebang、CRLF）。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -29,7 +29,7 @@
       <div class="hero-no">03</div>
       <h1>文件操作与权限：为什么你的脚本"跑不了"</h1>
       <p class="hero-en">Files & Permissions</p>
-      <p class="hero-sum">复制、移动、删除、查看文件；搞懂 rwx 权限和 755/644 这两个天天见的数字，从此不再被 "Permission denied" 卡住。</p>
+      <p class="hero-sum">复制移动删除、cat/less/head/tail 看报告、rwx 三段权限与 755 的 4/2/1 加法、属主属组、umask，以及脚本跑不了的三个检查点（权限位、shebang、CRLF）。</p>
       <div class="hero-meta">
         <span class="pill">约 40 分钟</span>
         <span class="pill">课表学时 3</span>
@@ -38,30 +38,43 @@
     </div>
     <article id="article"><section class="ch" id="types" data-ch="types">
   <div class="ch-h"><span class="ch-n">01</span><h2>文件不止一种</h2></div>
-  <p><code>ls -l</code> 输出的第一列看着像乱码，其实第一位就告诉你这是什么：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">drwxr-xr-x   2 weizhen weizhen  4096 Nov 22 10:12 scripts</span><span class="ln ">-rw-r--r--   1 weizhen weizhen  1820 Nov 22 10:12 run.tcl</span><span class="ln ">lrwxrwxrwx   1 weizhen weizhen    18 Nov 22 10:12 latest -&gt; runs/20261122</span></code></pre></div>
-<div class="tbl"><table><thead><tr><th>第一位</th><th>类型</th><th>说明</th></tr></thead><tbody><tr><td><code>-</code></td><td>普通文件</td><td>文本、网表、报告、压缩包</td></tr><tr><td><code>d</code></td><td>目录</td><td>directory，能进去的"文件夹"</td></tr><tr><td><code>l</code></td><td>符号链接</td><td>快捷方式，指向别处</td></tr></tbody></table></div>
-<p>后面那串 <code>rwxr-xr-x</code> 是权限，本节后半段专门讲。</p>
+  <div class="goal"><span>本章目标</span>学完这一课，你能用 <code>ls -l</code> 第一列判断文件类型和权限，独立算出任意 chmod 数字，并在脚本报 "Permission denied" 或 "bad interpreter" 时三分钟内定位原因。</div>
+<p><code>ls -l</code> 输出的第一列看着像乱码，其实第一位就告诉你这是什么：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">drwxr-xr-x   2 weizhen pdteam  4096 Nov 22 10:12 scripts</span><span class="ln ">-rw-r--r--   1 weizhen pdteam  1820 Nov 22 10:12 run.tcl</span><span class="ln ">lrwxrwxrwx   1 weizhen pdteam    18 Nov 22 10:12 latest -&gt; runs/20261122</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>第一位</th><th>类型</th><th>说明</th><th>工程里的例子</th></tr></thead><tbody><tr><td><code>-</code></td><td>普通文件</td><td>文本、网表、报告、压缩包</td><td><code>timing.rpt</code>、<code>soc.v</code>、<code>.db</code></td></tr><tr><td><code>d</code></td><td>目录</td><td>directory，能进去的"文件夹"</td><td><code>pnr/</code>、<code>scripts/</code></td></tr><tr><td><code>l</code></td><td>符号链接</td><td>快捷方式，指向别处</td><td><code>latest -&gt; runs/20261122</code></td></tr></tbody></table></div>
+<p>Linux 里"一切皆文件"，所以还会见到 <code>c</code>（字符设备，如 <code>/dev/tty</code>）、<code>b</code>（块设备，如硬盘）、<code>s</code>（socket）、<code>p</code>（管道）。<strong>这四个你不用记，只要认得前三个就够干活了。</strong></p>
+<p>一个实用技巧：<code>ls -F</code> 会在目录名后加 <code>/</code>、可执行文件后加 <code>*</code>、符号链接后加 <code>@</code>，一眼分清：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：用后缀区分类型；在任意目录下执行</span><span class="ln ">ls -F                    # pnr/  scripts/  run.sh*  latest@</span><span class="ln ">ls -lF                   # 长格式 + 类型后缀，两个信息一起看</span></code></pre></div>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Symlink</span><span class="term-zh">符号链接</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>一个"指向另一个文件的文件"，类似 Windows 的快捷方式。删掉链接不会删掉原文件。<br>工程里常用来做"最新版本"指针：<code>latest -&gt; runs/20261122</code>，脚本永远读 <code>latest/</code>，就不用每次改路径。</p></div>
+  <div class="term-h"><span class="term-en">Symlink（Symbolic Link）</span><span class="term-zh">符号链接</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一个"指向另一个文件的文件"，类似 Windows 的快捷方式。删掉链接不会删掉原文件；原文件被删，链接会变成"断链"（红色闪烁或 <code>ls -l</code> 显示目标不存在）。<br>工程里常用来做"最新版本"指针：<code>latest -&gt; runs/20261122</code>，脚本永远读 <code>latest/</code>，就不用每次改路径。</p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="types"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="cpmv" data-ch="cpmv">
   <div class="ch-h"><span class="ch-n">02</span><h2>复制、移动、重命名、删除</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cp run.tcl run_backup.tcl</span><span class="ln cmt"># copy：把 run.tcl 复制一份，命名 run_backup.tcl</span><span class="ln "> </span><span class="ln ">cp -r scripts/ scripts_bak/</span><span class="ln cmt"># -r = recursive，目录必须加 -r，否则报 "omitting directory"</span><span class="ln "> </span><span class="ln ">cp -p run.tcl /tmp/</span><span class="ln cmt"># -p = preserve，保留原文件的修改时间和权限（备份时很有用）</span><span class="ln "> </span><span class="ln ">mv run.tcl scripts/</span><span class="ln cmt"># move：把文件移到 scripts 目录下</span><span class="ln "> </span><span class="ln ">mv run.tcl run_v2.tcl</span><span class="ln cmt"># mv 同时承担"重命名"的职责（同一目录内移动就是改名）</span><span class="ln "> </span><span class="ln ">rm run_backup.tcl</span><span class="ln cmt"># remove：删除文件</span><span class="ln "> </span><span class="ln ">rm -r old_runs/</span><span class="ln cmt"># 删目录必须 -r</span><span class="ln "> </span><span class="ln ">rm -f *.log</span><span class="ln cmt"># -f = force，不询问直接删</span></code></pre></div>
+  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：文件的复制、移动、删除；在工程目录下执行，动手前先 ls 看一眼</span><span class="ln ">cp run.tcl run_backup.tcl       # copy：复制一份，命名 run_backup.tcl</span><span class="ln ">cp -r scripts/ scripts_bak/     # -r = recursive，目录必须加 -r，否则报 "omitting directory"</span><span class="ln ">cp -p run.tcl /tmp/             # -p = preserve，保留原文件的修改时间和权限（备份时有用）</span><span class="ln ">cp -a scripts/ scripts_bak2/    # -a = archive，等于 -rp 再加保留链接，整目录备份用这个</span><span class="ln ">cp run.tcl{,.bak}               # 花括号展开：等价于 cp run.tcl run.tcl.bak，改配置前必备份</span><span class="ln "> </span><span class="ln ">mv run.tcl scripts/             # move：把文件移到 scripts 目录下</span><span class="ln ">mv run.tcl run_v2.tcl           # mv 同时承担"重命名"（同一目录内移动就是改名）</span><span class="ln ">mv old_dir/ old_dir.bak/        # 比 rm -r 安全得多的"删除"：先改名，确认没用了再删</span><span class="ln "> </span><span class="ln ">rm run_backup.tcl               # remove：删除文件</span><span class="ln ">rm -r old_runs/                 # 删目录必须 -r</span><span class="ln ">rm -f *.log                     # -f = force，不询问直接删</span><span class="ln ">rm -i *.log                     # -i = interactive，逐个问你要不要删（批量删时先这么跑一遍）</span><span class="ln "> </span><span class="ln ">mkdir scripts2                  # 建目录</span><span class="ln ">mkdir -p a/b/c                  # -p：父目录不存在就一起建</span><span class="ln ">rmdir empty_dir                 # 只能删空目录，有文件会报 "Directory not empty"</span><span class="ln ">touch new.tcl                   # 建一个空文件；文件已存在则只更新修改时间</span></code></pre></div>
+<p><code>cp</code> 和 <code>mv</code> 有一个很多人不知道的语义差别：<strong><code>mv</code> 是同文件系统内的"改名"，不复制数据，瞬间完成；跨文件系统时它才真的复制再删除。</strong> 所以把 6GB 的数据库 <code>mv</code> 到另一个挂载点时，会等很久——这不是卡住了。</p>
 <div class="pit"><div class="pit-h">常见坑 · <code>rm -rf</code> 是这门课里最危险的命令</div><div class="pit-b"><p><code>rm -rf /path/to/dir</code> 会<strong>不问、不回收、不提示</strong>地删掉整个目录。Linux 没有回收站。</p>
 <p>三个保命习惯：</p>
-<ol><li><strong>删之前先 <code>ls</code> 看一眼</strong>。<code>ls old_runs/</code> 确认内容，再 <code>rm -r old_runs/</code>。</li><li><strong>变量要加引号</strong>。<code>rm -rf $DIR/</code> 如果 <code>$DIR</code> 是空的，就变成了 <code>rm -rf /</code>。</li><li><strong>路径用绝对路径，别用通配符</strong>。<code>rm -rf run/*</code> 手滑打成 <code>rm -rf run /*</code>，中间多一个空格，删的就是整个根目录。</li></ol></div></div>
-<div class="scene"><div class="scene-h">工作场景 · 为什么老工程师删文件前总要 ls 一下</div><div class="scene-b"><p>不是谨慎，是被坑过。芯片工程一个目录几十 GB、跑了三天的结果，删错了重跑要三天。所以行业里有个默认规矩：<strong>先看后删，能改后缀就别删</strong>（<code>mv old old.bak</code> 比 <code>rm -r old</code> 安全得多）。</p></div></div>
+<ol><li><strong>删之前先 <code>ls</code> 看一眼</strong>。<code>ls old_runs/</code> 确认内容，再 <code>rm -r old_runs/</code>。</li><li><strong>变量要加引号</strong>。<code>rm -rf $DIR/</code> 如果 <code>$DIR</code> 是空的，就变成了 <code>rm -rf /</code>。</li><li><strong>路径别用通配符</strong>。<code>rm -rf run/*</code> 手滑打成 <code>rm -rf run /*</code>，中间多一个空格，删的就是整个根目录。</li></ol>
+<p>再加一条工程习惯：<strong>能改名就别删</strong>。<code>mv old old.bak</code> 之后，你还有一次反悔的机会；<code>rm -r old</code> 之后没有。</p></div></div>
+<div class="scene"><div class="scene-h">工作场景 · 周五 18:40，一条 rm 让整个组加班</div><div class="scene-b"><p>你入职两个月，在 route 阶段负责清理磁盘。师傅说过"<code>run/</code> 下超过三天的都可以删"，于是你敲了：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">rm -rf run/2026111*</span></code></pre></div>
+<p>本来想删 <code>20261110</code>、<code>20261111</code> 这几天的旧目录，结果把当天的 <code>20261119_0930</code> 也匹配进去了——那个目录里是刚跑完、还没保存到 <code>pnr/db/</code> 的布线结果。</p>
+<p>Linux 没有回收站，也没有"撤销"。<strong>唯一的补救是重跑，7 小时。</strong></p>
+<p>老工程师删文件前总要先 <code>ls</code> 一眼，不是谨慎，是被这么坑过。所以行业里有个默认规矩：<strong>先看后删，能改后缀就别删</strong>（<code>mv old old.bak</code> 比 <code>rm -r old</code> 安全得多）。你会在很多老脚本里看到 <code>mv</code> 到 <code>trash/</code> 目录而不是 <code>rm</code>，那不是啰嗦，是工程成本算出来的。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="cpmv"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="view" data-ch="view">
   <div class="ch-h"><span class="ch-n">03</span><h2>看文件内容：cat / less / head / tail</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cat run.tcl</span><span class="ln cmt"># 把整个文件打到屏幕上。小文件用；几千行的报告会刷屏</span><span class="ln "> </span><span class="ln ">less timing.rpt</span><span class="ln cmt"># 分页查看大文件。空格往下翻，b 往上翻，/keyword 搜索，q 退出</span><span class="ln cmt"># 后端看报告基本都用 less，不用 cat</span><span class="ln "> </span><span class="ln ">head -20 timing.rpt</span><span class="ln cmt"># 只看前 20 行（默认 10 行）</span><span class="ln "> </span><span class="ln ">tail -50 run.log</span><span class="ln cmt"># 只看最后 50 行。跑批时最常用——最新日志永远在末尾</span><span class="ln "> </span><span class="ln ">tail -f run.log</span><span class="ln cmt"># -f = follow，实时盯着日志增长。命令还在跑的时候用这个</span><span class="ln cmt"># 退出按 Ctrl + C</span></code></pre></div>
+  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：查看文件内容；在报告所在目录执行</span><span class="ln ">cat run.tcl                     # 把整个文件打到屏幕上。小文件用；几万行的报告会刷屏</span><span class="ln ">cat -n run.tcl                  # -n 带行号，方便对照报错里的行号</span><span class="ln ">less timing.rpt                 # 分页查看大文件：空格下翻、b 上翻、/关键字 搜索、n 下一个、q 退出</span><span class="ln ">less +F run.log                 # 进入 less 后直接跟随末尾（等价于 tail -f，但能用 / 搜索）</span><span class="ln ">head -20 timing.rpt             # 只看前 20 行（默认 10 行）</span><span class="ln ">head -n 20 timing.rpt           # 同上，写法更明确</span><span class="ln ">tail -50 run.log                # 只看最后 50 行。跑批时最常用——最新日志永远在末尾</span><span class="ln ">tail -f run.log                 # -f = follow，实时盯着日志增长；Ctrl+C 退出</span><span class="ln ">tail -F run.log                 # -F = follow by name，日志被轮转（改名重建）后还能继续跟</span><span class="ln ">wc -l timing.rpt                # 数行数。判断"报告是不是空的"第一招</span><span class="ln ">wc -lc timing.rpt               # 行数 + 字节数</span></code></pre></div>
+<p><code>less</code> 里必须会的六个键：</p>
+<div class="tbl"><table><thead><tr><th>键</th><th>作用</th></tr></thead><tbody><tr><td><code>空格</code> / <code>b</code></td><td>下翻一页 / 上翻一页</td></tr><tr><td><code>g</code> / <code>G</code></td><td>跳到文件头 / 跳到文件尾</td></tr><tr><td><code>/关键字</code></td><td>向下搜索；<code>n</code> 下一个，<code>N</code> 上一个</td></tr><tr><td><code>q</code></td><td>退出</td></tr></tbody></table></div>
 <div class="tip"><div class="tip-h">小技巧</div><p>跑一个要 3 小时的流程，不要等 3 小时后再看。开两个终端：一个跑流程，一个 <code>tail -f run.log</code>。日志里出现 <code>Error</code> 就立刻停下排查，别浪费三小时。</p>
-<p>想只挑错误行：<code>grep -i error run.log</code>（下一课讲 grep）。</p></div>
+<p>只想挑错误行：<code>grep -i error run.log</code>（下一课讲 grep）。</p>
+<p>还有一个更省事的组合：<code>tail -f run.log | grep -i -E "error|warning"</code>，只让错误和警告滚出来，其余噪音全部过滤。</p></div>
+<p>下面的黑框是 basic 预设，起点在家目录。提示语里的 <code>cp pnr.tcl ...</code> 要先 <code>cd backend_lab/soc/pnr</code> 才能跑——<strong>这正是"相对路径依赖当前位置"的现场演示</strong>，直接在家目录敲会报 <code>No such file or directory</code>。</p>
 <div class="sbx" data-preset="basic">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>模拟终端</b><span class="sbx-tip">试：cp pnr.tcl pnr_bak.tcl、mv、rm、chmod 755、ls -l</span><button class="sbx-rst" type="button">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div>
@@ -74,44 +87,114 @@
 <section class="ch" id="perm" data-ch="perm">
   <div class="ch-h"><span class="ch-n">04</span><h2>权限：rwx 到底是什么</h2></div>
   <p><code>ls -l</code> 的那串 <code>-rw-r--r--</code> 拆成四段看：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">-      rw-        r--        r--</span><span class="ln ">类型   属主权限    属组权限    其他人权限</span></code></pre></div>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">-      rw-        r--        r--</span><span class="ln ">类型   属主权限    属组权限    其他人权限</span></code></pre></div>
 <p>三个字母对应三种动作：</p>
-<div class="tbl"><table><thead><tr><th>字母</th><th>含义</th><th>对文件</th><th>对目录</th></tr></thead><tbody><tr><td><code>r</code></td><td>read 读</td><td>能看内容</td><td>能列出里面有什么（<code>ls</code>）</td></tr><tr><td><code>w</code></td><td>write 写</td><td>能修改</td><td>能在里面新建/删除文件</td></tr><tr><td><code>x</code></td><td>execute 执行</td><td>能当程序运行</td><td>能进去（<code>cd</code>）</td></tr></tbody></table></div>
+<div class="tbl"><table><thead><tr><th>字母</th><th>含义</th><th>对文件</th><th>对目录</th></tr></thead><tbody><tr><td><code>r</code></td><td>read 读</td><td>能看内容（<code>cat</code>）</td><td>能列出里面有什么（<code>ls</code>）</td></tr><tr><td><code>w</code></td><td>write 写</td><td>能修改内容</td><td>能在里面新建/删除文件</td></tr><tr><td><code>x</code></td><td>execute 执行</td><td>能当程序运行</td><td>能进去（<code>cd</code>）、能穿过它访问子路径</td></tr></tbody></table></div>
 <p>所以 <code>-rw-r--r--</code> 的意思是：<strong>属主能读写，同组和其他人只能读。</strong></p>
+<p>注意目录那一列容易反直觉：<strong>目录的 <code>w</code> 不是"能改目录名"，而是"能在里面增删文件"</strong>。所以一个只有 <code>r</code> 没有 <code>w</code> 的目录，你能看列表但删不掉里面的东西；只有 <code>x</code> 没有 <code>r</code> 的目录，你能 <code>cd</code> 进去、能访问已知文件名，但 <code>ls</code> 会报 <code>Permission denied</code>。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Permission</span><span class="term-zh">权限</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>谁能对某个文件做什么。Linux 用三组 rwx 表示，分别对应"文件的主人 / 同组的同事 / 其他所有人"。<br>权限不对，工具就读不到库、脚本就跑不起来——这是新手最常遇到的"环境问题"，其实 90% 是权限问题。</p></div>
 </div>
-<h3>数字表示法：755 和 644</h3>
-<p>r=4，w=2，x=1，三个加起来就是一个数字：</p>
-<div class="tbl"><table><thead><tr><th>权限</th><th>数字</th><th>常见用途</th></tr></thead><tbody><tr><td><code>rwx</code></td><td>4+2+1 = <strong>7</strong></td><td>目录、可执行脚本</td></tr><tr><td><code>rw-</code></td><td>4+2 = <strong>6</strong></td><td>普通文本文件</td></tr><tr><td><code>r-x</code></td><td>4+1 = <strong>5</strong></td><td>只读可执行的目录</td></tr><tr><td><code>r--</code></td><td>4</td><td>只读文件（如 RTL、库文件）</td></tr></tbody></table></div>
-<p>于是：</p>
-<ul><li><strong>755</strong> = <code>rwxr-xr-x</code>：我能改，别人能进能读。<strong>目录和脚本的标准权限。</strong></li><li><strong>644</strong> = <code>rw-r--r--</code>：我能改，别人只能读。<strong>普通文件的标准权限。</strong></li></ul>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">chmod 755 run.sh</span><span class="ln cmt"># 把 run.sh 变成"可执行"——脚本跑不了的第一解法</span><span class="ln "> </span><span class="ln ">chmod 644 config.tcl</span><span class="ln cmt"># 普通配置文件</span><span class="ln "> </span><span class="ln ">chmod +x run.sh</span><span class="ln cmt"># 另一种写法：只加执行位，不动其他权限</span><span class="ln "> </span><span class="ln ">chmod -R 755 scripts/</span><span class="ln cmt"># -R = 递归，把整个目录下所有东西都改掉（慎用）</span></code></pre></div>
+<h3>数字表示法：755 和 644 是怎么加出来的</h3>
+<p>r=4，w=2，x=1，<strong>每一组内部把字母对应的数字加起来</strong>，就是一个 0~7 的数：</p>
+<div class="tbl"><table><thead><tr><th>权限</th><th>加法</th><th>数字</th></tr></thead><tbody><tr><td><code>rwx</code></td><td>4+2+1</td><td><strong>7</strong></td></tr><tr><td><code>rw-</code></td><td>4+2</td><td><strong>6</strong></td></tr><tr><td><code>r-x</code></td><td>4+1</td><td><strong>5</strong></td></tr><tr><td><code>r--</code></td><td>4</td><td><strong>4</strong></td></tr><tr><td><code>-wx</code></td><td>2+1</td><td><strong>3</strong></td></tr><tr><td><code>-w-</code></td><td>2</td><td><strong>2</strong></td></tr><tr><td><code>--x</code></td><td>1</td><td><strong>1</strong></td></tr><tr><td><code>---</code></td><td>0</td><td><strong>0</strong></td></tr></tbody></table></div>
+<p>三组数字连起来就是 <code>chmod</code> 的参数。手算三个例子：</p>
+<ul><li><strong>755</strong> = <code>rwx</code> + <code>r-x</code> + <code>r-x</code> = 7/5/5：我能读写执行，同组和其他人能读能执行。<strong>目录和脚本的标准权限。</strong></li><li><strong>644</strong> = <code>rw-</code> + <code>r--</code> + <code>r--</code> = 6/4/4：我能读写，别人只能读。<strong>普通文件的标准权限。</strong></li><li><strong>640</strong> = <code>rw-</code> + <code>r--</code> + <code>---</code> = 6/4/0：同组能读，<strong>其他人完全看不到</strong>。放敏感配置（含密钥、工艺参数）时用。</li></ul>
+<p>反过来算：<code>750</code> 是什么？7=<code>rwx</code>，5=<code>r-x</code>，0=<code>---</code>，即 <code>rwxr-x---</code>——属主全权限，同组能读能进，外人无权限。这是团队共享目录的常见配置。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：改权限；在文件所在目录执行，改完用 ls -l 验证</span><span class="ln ">chmod 755 run.sh                # 数字法：整体重设成 rwxr-xr-x</span><span class="ln ">chmod 644 config.tcl            # 普通配置文件</span><span class="ln ">chmod 640 soc.sdc               # 只让同组看，外人看不到</span><span class="ln ">chmod +x run.sh                 # 符号法：只给三组都加执行位，其他权限不动</span><span class="ln ">chmod u+x,go-w run.sh           # 符号法精确控制：属主加 x，同组和其他人去掉 w</span><span class="ln ">chmod -R 755 scripts/           # -R = 递归，把整个目录下所有东西都改掉（慎用）</span><span class="ln ">chmod -R u+rwX scripts/         # 大写 X 只给目录加 x，不给普通文件加（比 -R 755 安全）</span></code></pre></div>
+<p><strong><code>+x</code> 和 <code>755</code> 的区别</strong>：<code>+x</code> 是"在现有基础上加"，会保留原来的 6 或 4；<code>755</code> 是"整体覆盖"。所以 <code>chmod 755</code> 一个原本 600 的私钥文件，等于把它变成了所有人可读——<strong>这是安全事故</strong>。改权限前先 <code>ls -l</code> 看现状。</p>
 <div class="pit"><div class="pit-h">常见坑 · Permission denied：脚本明明在，为什么跑不了</div><div class="pit-b"><p>现象：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">$ ./run.sh</span><span class="ln ">-bash: ./run.sh: Permission denied</span></code></pre></div>
-<p>原因：文件没有 <code>x</code>（执行）权限。<code>ls -l run.sh</code> 会看到 <code>-rw-r--r--</code>，没有 x。</p>
-<p>解法：<code>chmod +x run.sh</code>，再 <code>ls -l</code> 确认变成 <code>-rwxr-xr-x</code>。</p>
-<p>顺带一个更隐蔽的版本：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">$ ./run.sh</span><span class="ln ">-bash: ./run.sh: /usr/bin/tcsh^M: bad interpreter</span></code></pre></div>
-<p>这是文件里混进了 Windows 的换行符（<code>^M</code>）。解法：<code>dos2unix run.sh</code>，或者 <code>sed -i 's/\r$//' run.sh</code>。<strong>从 Windows 传到 Linux 的脚本，十有八九要过这一道。</strong></p></div></div>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">$ ./run.sh</span><span class="ln ">-bash: ./run.sh: Permission denied</span></code></pre></div>
+<p>原因：文件没有 <code>x</code>（执行）权限。<code>ls -l run.sh</code> 会看到 <code>-rw-r--r--</code>，第三位是 <code>-</code> 不是 <code>x</code>。</p>
+<p>查法：<code>ls -l run.sh</code> 看第一列。<strong>注意报错说的是 <code>-bash:</code> 开头</strong>，说明 shell 读到了这个文件、只是不让执行——这和"文件不存在"是两回事，别去查路径。</p>
+<p>解法：<code>chmod +x run.sh</code>，再 <code>ls -l</code> 确认变成 <code>-rwxr-xr-x</code>。</p></div></div>
 <div class="scene"><div class="scene-h">工作场景 · EDA 工具报 "cannot open library"</div><div class="scene-b"><p>你跑综合，报错：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: Cannot open library file 'slow.db'. (LCSH-3)</span></code></pre></div>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: Cannot open library file 'slow.db'. (LCSH-3)</span></code></pre></div>
 <p>文件明明在啊？看权限：</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">ls -l lib/slow.db</span><span class="ln cmt"># ---------- 1 weizhen weizhen 1820000 ... slow.db</span></code></pre></div>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：排查"文件存在但读不到"；在库文件所在目录执行</span><span class="ln ">ls -l lib/slow.db               # 输出 ---------- 1 weizhen weizhen ... slow.db</span></code></pre></div>
 <p>权限是 <code>----------</code>（000），谁都读不了。<code>chmod 644 lib/slow.db</code> 之后正常。</p>
-<p>这类问题在跨团队拷库、从压缩包解压时特别常见——<strong>解压工具的 umask 设置不同，出来的文件权限就不一样</strong>。</p></div></div>
+<p>这类问题在跨团队拷库、从压缩包解压时特别常见——<strong>解压工具的 umask 设置不同，出来的文件权限就不一样</strong>（umask 在最后一章讲）。判断依据：报错里出现 "Cannot open" 而不是 "Cannot find"，八成是权限，不是路径。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="perm"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="owner" data-ch="owner">
   <div class="ch-h"><span class="ch-n">05</span><h2>小组：属主和属组</h2></div>
   <p><code>ls -l</code> 中间两列是属主（owner）和属组（group）：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">-rw-r--r-- 1 weizhen  pdteam  1820 Nov 22 10:12 run.tcl</span><span class="ln ">             属主      属组</span></code></pre></div>
-<p>多人协作时，同一组的同事需要能改你的文件，就会把文件属组设成 <code>pdteam</code> 并给组写权限（<code>664</code>）。</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">chown weizhen:pdteam run.tcl     # 改属主和属组（通常要 sudo）</span><span class="ln ">chgrp pdteam run.tcl             # 只改属组</span><span class="ln ">id                               # 看自己属于哪些组</span></code></pre></div>
-<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：亲手制造一次（再解决）Permission denied</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~/demo 2&gt;/dev/null || { mkdir -p ~/demo &amp;&amp; cd ~/demo; }</span><span class="ln "> </span><span class="ln cmt"># 1. 写一个最小脚本</span><span class="ln ">echo 'echo hello-from-script' &gt; hello.sh</span><span class="ln "> </span><span class="ln cmt"># 2. 看它的权限：应该是 -rw-r--r--</span><span class="ln ">ls -l hello.sh</span><span class="ln "> </span><span class="ln cmt"># 3. 直接跑，观察报错</span><span class="ln ">./hello.sh</span><span class="ln cmt"># 预期：-bash: ./hello.sh: Permission denied</span><span class="ln "> </span><span class="ln cmt"># 4. 加执行权限</span><span class="ln ">chmod +x hello.sh</span><span class="ln ">ls -l hello.sh</span><span class="ln cmt"># 预期：-rwxr-xr-x</span><span class="ln "> </span><span class="ln cmt"># 5. 再跑</span><span class="ln ">./hello.sh</span><span class="ln cmt"># 预期输出：hello-from-script</span></code></pre></div>
-<p>过关标准：能解释第 3 步为什么失败、第 4 步改了什么、为什么第 5 步就成功了。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用 <code>ls -l</code> 第一列判断文件类型和权限</li><li>能说出 755 / 644 对应的 rwx 组合，以及各自用在什么文件上</li><li>遇到过 <code>Permission denied</code> 时知道先 <code>ls -l</code> 再 <code>chmod +x</code></li><li>知道 <code>rm -rf</code> 的三个保命习惯</li><li>会用 <code>tail -f</code> 盯日志</li></ul></div>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">-rw-r--r-- 1 weizhen pdteam 1820 Nov 22 10:12 run.tcl</span><span class="ln ">             │        │</span><span class="ln ">            属主      属组</span></code></pre></div>
+<p>权限的三段就是按这两个身份划分的：<strong>你是属主，看你那段；你不是属主但在属组里，看中间那段；都不是，看最后一段。</strong></p>
+<p>多人协作时，同一组的同事需要能改你的文件，就会把文件属组设成 <code>pdteam</code> 并给组写权限（<code>664</code> 或 <code>775</code>）。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：查看和修改归属；改属主通常需要 sudo</span><span class="ln ">id                              # 看自己的 uid、gid、以及属于哪些组</span><span class="ln ">groups                          # 只看组名列表</span><span class="ln ">ls -ln                          # -n = numeric，把用户名显示成 uid，排查"同名不同号"时用</span><span class="ln ">chgrp pdteam run.tcl            # 只改属组（你要先是该组成员）</span><span class="ln ">chown weizhen:pdteam run.tcl    # 同时改属主和属组（一般要 sudo）</span><span class="ln ">chown -R weizhen:pdteam pnr/    # 递归改整个目录（跨团队交接时用）</span></code></pre></div>
+<p>为什么会有"文件明明可读，工具却说读不到"？一个常见原因：<strong>你的账号不在这个文件的属组里，而其他人权限是 <code>---</code></strong>。<code>id</code> 一看就知道。这在跨部门拿库、或者从别人目录里直接拷文件时特别常见。</p>
+<p>三个工作中真实的归属问题，每个都有对应的解法：</p>
+<p><strong>第一，"我拷过来的文件，属主还是他"。</strong> 用 <code>cp</code> 复制别人目录里的文件，新文件的属主是你（因为是你创建的），但<strong>如果你用 <code>cp -p</code> 保留了原属性，属主会试图保持原样——普通用户做不到，只有 root 能改属主</strong>。所以交接库文件时，正确做法是让对方把文件放进共享目录、由管理员统一 <code>chown</code>，而不是各自拷来拷去。</p>
+<p><strong>第二，"同组同事改不了我的文件"。</strong> 这是 <code>umask</code> 和属组共同决定的。共享目录的标准配置是：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：搭一个团队共享目录；目录属主执行，成员需先加入 pdteam 组</span><span class="ln ">mkdir -p /proj/share</span><span class="ln ">chgrp pdteam /proj/share          # 属组设成团队</span><span class="ln ">chmod 2775 /proj/share            # 2 = setgid：新建的子文件自动继承 pdteam 属组</span><span class="ln ">umask 002                         # 配合 775，同组才能写</span></code></pre></div>
+<p><code>2775</code> 里最前面那个 <code>2</code> 是 <strong>setgid（设置组 ID）</strong>：目录带上它以后，<strong>在里面新建的任何文件都自动属于 <code>pdteam</code> 组</strong>，而不是创建者自己的主组。没有它，每个人建的文件属组都不一样，权限规则就永远对不齐——这是团队共享目录必须加的一个位。</p>
+<p><strong>第三，"离职同事的文件谁都动不了"。</strong> 属主账号被删后，文件属主显示成 uid 数字（<code>ls -ln</code> 能看到），这时只能由 root <code>chown</code> 给接手的人。所以项目交接清单里，一定要有"目录属主改成接手人"这一条。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="owner"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="inode" data-ch="inode">
+  <div class="ch-h"><span class="ch-n">06</span><h2>一个文件在磁盘上是什么：inode、硬链接、软链接</h2></div>
+  <p>这一节解释一个困扰很多人的现象：<strong>为什么删了大文件，磁盘空间没释放？为什么"文件还在"却打不开？</strong></p>
+<p>先说结论：Linux 里文件名不是文件本身。文件的内容和元数据（权限、属主、大小、时间、数据块位置）存在一个叫 <strong>inode</strong> 的结构里，目录只是"文件名 → inode 编号"的一张映射表。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">inode（Index Node）</span><span class="term-zh">索引节点</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>文件系统里描述一个文件的"档案卡"：存权限、属主、大小、时间戳、数据块在哪，但<strong>不存文件名</strong>。文件名存在目录里，目录项指向 inode 编号。所以同一个 inode 可以有多个名字（硬链接），也可以有零个名字（文件被删但进程还开着）。</p></div>
+</div>
+<p><code>ls -l</code> 第二列那个数字（<code>-rw-r--r-- 1 ...</code> 里的 <code>1</code>）就是<strong>硬链接数</strong>，即"有多少个文件名指向这个 inode"。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：观察 inode 与链接；在自己的 demo 目录里执行</span><span class="ln ">ls -i run.tcl                   # -i 显示 inode 编号，比如 1318422 run.tcl</span><span class="ln ">ln run.tcl run_hard.tcl         # 硬链接：两个名字，同一个 inode</span><span class="ln ">ls -li run.tcl run_hard.tcl     # 两个文件的 inode 号相同，链接数变成 2</span><span class="ln ">ln -s run.tcl run_soft.tcl      # 软链接：新建一个 inode，内容是"指向 run.tcl"的路径</span><span class="ln ">ls -li run.tcl run_soft.tcl     # inode 号不同，软链接的类型位是 l</span><span class="ln ">rm run.tcl                      # 删掉原名</span><span class="ln ">cat run_hard.tcl                # 还能读：inode 还有 1 个名字</span><span class="ln ">cat run_soft.tcl                # 报错：No such file or directory（断链）</span></code></pre></div>
+<p>两者的差别，一张表说清：</p>
+<div class="tbl"><table><thead><tr><th></th><th>硬链接（hard link）</th><th>软链接（symlink）</th></tr></thead><tbody><tr><td>能否跨文件系统</td><td>不能</td><td>能</td></tr><tr><td>能否指向目录</td><td>不能（防止环）</td><td>能</td></tr><tr><td>删掉原文件后</td><td>仍可访问（链接数减一）</td><td>变成断链</td></tr><tr><td>占用 inode</td><td>不额外占</td><td>占一个</td></tr></tbody></table></div>
+<p><strong>"删了文件空间不释放"的真相</strong>：<code>rm</code> 只是把目录项去掉、链接数减一；只要还有进程开着这个文件（比如你 3 小时前启动、还在写日志的工具），inode 和数据块就不会回收。<code>df -h</code> 显示满了、<code>du -sh</code> 却算不出谁占的——就是这种情况。查法：<code>lsof | grep deleted</code>（真机命令），杀掉那个进程空间立刻回来。</p>
+<p><strong>"磁盘没满却写不进去"的真相</strong>：inode 用完了。文件系统在格式化时就把 inode 总数定死了。</p>
+<p>手算一次：一个 500GB 的盘，inode 总数 300 万。你的流程每天产生 20 万个 1KB 的小报告文件，30 天就是</p>
+<p><code>20万 × 30 = 600 万个文件 &gt; 300 万 inode</code></p>
+<p>于是第 15 天左右，<code>df -h</code> 还显示剩 400GB，但任何写入都报：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">-bash: echo: write error: No space left on device</span></code></pre></div>
+<p><code>df -h</code> 看空间、<code>df -i</code> 看 inode，<strong>两个都要看</strong>。这是后端服务器上真实发生过无数次的事故，根源是脚本把每一轮迭代都单独存了一个小文件。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="inode"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="script" data-ch="script">
+  <div class="ch-h"><span class="ch-n">07</span><h2>脚本为什么"跑不了"：三个检查点</h2></div>
+  <p>"跑不了"有三种完全不同的原因，报错也完全不同。分不清就会在错的方向上修半天。</p>
+<div class="tbl"><table><thead><tr><th>报错首行</th><th>原因</th><th>修法</th></tr></thead><tbody><tr><td><code>-bash: ./run.sh: Permission denied</code></td><td>没有 <code>x</code> 权限</td><td><code>chmod +x run.sh</code></td></tr><tr><td><code>-bash: ./run.sh: /bin/bash^M: bad interpreter: No such file or directory</code></td><td>文件里有 Windows 换行符（CRLF）</td><td><code>dos2unix run.sh</code></td></tr><tr><td><code>-bash: ./run.sh: /bin/tcsh: bad interpreter: No such file or directory</code></td><td>shebang 指向的解释器不存在（本机没装在 <code>/bin</code>）</td><td><code>which tcsh</code> 查真实路径，改 shebang</td></tr><tr><td><code>-bash: run.sh: command not found</code></td><td>只写了 <code>run.sh</code>，而当前目录不在 <code>PATH</code> 里</td><td>写成 <code>./run.sh</code></td></tr></tbody></table></div>
+<p>按这个顺序查，三步就能定位：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：脚本跑不了时的标准排查；在脚本所在目录执行</span><span class="ln ">ls -l run.sh                    # 第一步：看第一列有没有 x</span><span class="ln ">head -1 run.sh                  # 第二步：看 shebang 指向哪个解释器</span><span class="ln ">file run.sh                     # 第三步：看是不是 "with CRLF line terminators"（真机命令）</span></code></pre></div>
+<h3>检查点一：shebang</h3>
+<p>脚本第一行 <code>#!/bin/bash</code> 叫 <strong>shebang</strong>（读作"沙邦"），作用是指定"用哪个解释器来读这个文件"。<code>#!</code> 后面必须是<strong>解释器的绝对路径</strong>，因为内核要直接执行它。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">#!/bin/bash</span><span class="ln cmt"># ↑ shebang：必须是文件第一行、第一列，前面不能有空行、空格、注释</span><span class="ln cmt"># 作用：一个最小可用脚本；放在任意目录，chmod +x 后 ./脚本名 运行</span><span class="ln ">echo "hello from $(basename "$0")"     # $0 是脚本自己的名字，便于日志里区分是哪个脚本</span></code></pre></div>
+<p>三个常见错误：</p>
+<ol><li><strong>shebang 不在第一行</strong>。前面有空行、有注释，shebang 就失效，内核会当成 sh 脚本跑（很多 bash 语法会报错）。</li><li><strong>解释器路径不存在</strong>。<code>#!/usr/bin/tcsh</code> 但机器上 tcsh 装在 <code>/bin/tcsh</code>，就报 <code>bad interpreter: No such file or directory</code>。用 <code>which tcsh</code> 确认真实路径。</li><li><strong>写成相对路径</strong>。<code>#!bash</code> 不合法，必须 <code>/bin/bash</code> 这种绝对路径。</li></ol>
+<h3>检查点二：执行位</h3>
+<p><code>chmod +x</code> 只是"允许执行"，<strong>还需要 shebang 告诉系统用什么执行</strong>。两者缺一不可：</p>
+<ul><li>有 x、没 shebang：系统会用默认 shell 尝试执行，语法不兼容时报一堆莫名其妙的错。</li><li>有 shebang、没 x：<code>Permission denied</code>。</li></ul>
+<h3>检查点三：CRLF</h3>
+<p>Windows 的换行是 <code>\r\n</code>（CRLF），Linux 是 <code>\n</code>（LF）。把 Windows 上编辑的脚本传上去，shebang 行实际是 <code>#!/bin/bash\r</code>，内核会去找一个名字叫 <code>bash\r</code>（显示成 <code>bash^M</code>）的解释器——当然找不到。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：去掉 Windows 换行符；在脚本所在目录执行，先备份再改</span><span class="ln ">cat -A run.sh | head -3         # 看到行尾是 ^M$ 就是 CRLF，$ 是行尾标记</span><span class="ln ">sed -i.bak 's/\r$//' run.sh     # 去掉行尾的 \r，.bak 留一份原件（改坏了能回退）</span><span class="ln ">dos2unix run.sh                 # 专用工具，等价效果（装了 dos2unix 才有）</span></code></pre></div>
+<p><strong>判断依据</strong>：报错里出现 <code>^M</code> 或 <code>bad interpreter</code>，且这个脚本是从 Windows 传过来的、或者用 Windows 编辑器改过——直接按 CRLF 处理，不用怀疑别的。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Shebang</span><span class="term-zh">释伴（脚本首行的解释器声明）</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>脚本第一行的 <code>#!</code> 加上解释器绝对路径，例如 <code>#!/bin/bash</code>。内核执行脚本时先读这一行，决定用哪个程序来解释剩下的内容。写错或放错位置，脚本必然跑不起来。</p></div>
+</div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：亲手制造三种"跑不了"，再逐个修好</div><div class="lab-b"><p><strong>任务</strong>：在真机（或 WSL）上把三种失败各复现一次。只有自己制造过，下次看到报错才能立刻对上。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：复现权限、CRLF、解释器三种失败；在 ~/demo 下执行，不要在共享目录里跑</span><span class="ln ">mkdir -p ~/demo &amp;&amp; cd ~/demo</span><span class="ln "> </span><span class="ln cmt"># ---- 失败一：没有执行位 ----</span><span class="ln ">printf '#!/bin/bash\necho hello\n' &gt; a.sh   # 写一个最小脚本，默认权限 644</span><span class="ln ">./a.sh                                      # 预期：-bash: ./a.sh: Permission denied</span><span class="ln ">chmod +x a.sh                               # 加执行位</span><span class="ln ">./a.sh                                      # 预期输出 hello</span><span class="ln "> </span><span class="ln cmt"># ---- 失败二：CRLF 换行 ----</span><span class="ln ">printf '#!/bin/bash\r\necho hello\r\n' &gt; b.sh   # \r\n 模拟 Windows 换行</span><span class="ln ">chmod +x b.sh</span><span class="ln ">./b.sh                                      # 预期：-bash: ./b.sh: /bin/bash^M: bad interpreter</span><span class="ln ">cat -A b.sh | head -1                       # 确认行尾是 ^M$，这就是证据</span><span class="ln ">sed -i.bak 's/\r$//' b.sh                   # 去掉 \r</span><span class="ln ">./b.sh                                      # 预期输出 hello</span><span class="ln "> </span><span class="ln cmt"># ---- 失败三：shebang 指向不存在的解释器 ----</span><span class="ln ">printf '#!/bin/tcsh\necho hello\n' &gt; c.sh   # 假设本机 tcsh 不在 /bin 下</span><span class="ln ">chmod +x c.sh</span><span class="ln ">./c.sh                                      # 预期：bad interpreter: No such file or directory</span><span class="ln ">which tcsh || echo "本机没装 tcsh，这条正好复现了报错"</span></code></pre></div>
+<p><strong>说明</strong>：不同 bash 版本的措辞略有差异（<code>bad interpreter</code> 后面可能带 <code>: No such file or directory</code>），但<strong>首行关键词一致</strong>：<code>Permission denied</code> / <code>bad interpreter</code> / <code>^M</code>。</p>
+<p><strong>过关标准</strong>：三次失败都能复现，且能不看笔记说出"看到哪句话 → 对应哪个检查点 → 用哪条命令修"。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="script"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="umask" data-ch="umask">
+  <div class="ch-h"><span class="ch-n">08</span><h2>umask：新文件的权限从哪来</h2></div>
+  <p>你已经知道 <code>644</code> 和 <code>755</code> 是标准值。问题是：<strong>你 <code>touch</code> 一个文件、<code>mkdir</code> 一个目录，权限为什么自动就是这两个数？</strong> 答案是 umask。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">umask（User File-creation Mask）</span><span class="term-zh">权限掩码</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>新建文件/目录时，"从默认权限里扣掉哪些位"的掩码。规则是<strong>按位清除</strong>：新文件 = <code>666</code> 去掉 umask 里的位；新目录 = <code>777</code> 去掉 umask 里的位。<br>为什么文件默认是 666 而不是 777？因为新建的文本文件不该默认可执行——这是 Unix 很早以前就定下的安全默认值。</p></div>
+</div>
+<p>手算三个常见 umask：</p>
+<div class="tbl"><table><thead><tr><th>umask</th><th>新文件 = 666 去掉掩码</th><th>新目录 = 777 去掉掩码</th><th>用在什么环境</th></tr></thead><tbody><tr><td><code>022</code></td><td><strong>644</strong></td><td><strong>755</strong></td><td>最常见：自己写，别人读</td></tr><tr><td><code>002</code></td><td><strong>664</strong></td><td><strong>775</strong></td><td>团队共享：同组也能写</td></tr><tr><td><code>027</code></td><td><strong>640</strong></td><td><strong>750</strong></td><td>保密：外人完全看不到</td></tr></tbody></table></div>
+<p>验算 <code>022</code>：<code>666</code> 里每一位减去 2（去掉 w）→ <code>644</code>；<code>777</code> 每一位减去 2 → <code>755</code>。<strong>注意是"按位清除"不是"减法借位"</strong>，<code>6-2=4</code>、<code>7-2=5</code>，不会出现负数。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：查看和临时修改 umask；在任意目录执行</span><span class="ln ">umask                           # 输出 0022（前导 0 表示八进制）</span><span class="ln ">umask -S                        # 用符号显示：u=rwx,g=rx,o=rx</span><span class="ln ">umask 027                       # 只在当前 shell 生效，关掉窗口就恢复</span><span class="ln ">touch t1 &amp;&amp; mkdir d1 &amp;&amp; ls -ld t1 d1   # 验证：t1 是 640，d1 是 750</span></code></pre></div>
+<p>这个数字解释了前面那个"从压缩包解压出来的库文件权限是 000"的场景：<strong>打包时的 umask 和你在自己机器上的不一样</strong>，解压后权限就可能是任何值。所以拿到别人给的库，第一件事是 <code>ls -l</code> 看一眼，必要时统一 <code>chmod -R 644</code>。</p>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用 <code>ls -l</code> 第一列判断文件类型和权限，读出属主、属组、大小、时间</li><li>能说出 755 / 644 / 640 对应的 rwx 组合，并<strong>手算</strong>一个任意三位数</li><li>知道目录的 <code>x</code> 和 <code>r</code> 分别意味着什么，以及"能 ls 不能 cd"是哪种组合</li><li>遇到过 <code>Permission denied</code> 时知道先 <code>ls -l</code> 再 <code>chmod +x</code></li><li>能说出脚本跑不了的三种原因，并各给一条排查命令</li><li>知道 <code>rm -rf</code> 的三个保命习惯，以及为什么 <code>mv</code> 比 <code>rm</code> 安全</li><li>能算出 umask 022 下新建文件和目录的权限</li></ul></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span><code>-rw-r--r--</code> 里属主有什么权限？</div>
   <button class="q-show" type="button">看答案</button>
@@ -119,7 +202,7 @@
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>755 展开成 rwx 是什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">rwxr-xr-x：属主读写执行，同组读执行，其他人读执行。</div>
+  <div class="q-a">rwxr-xr-x：属主读写执行，同组读执行，其他人读执行。手算：7=4+2+1，5=4+1。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>为什么删目录必须加 <code>-r</code>？</div>
   <button class="q-show" type="button">看答案</button>
@@ -127,13 +210,29 @@
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>脚本报 <code>bad interpreter: ^M</code> 是什么原因？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">文件里混入了 Windows 换行符（CRLF）。用 dos2unix 或 sed 去掉 \r。</div>
+  <div class="q-a">文件里混入了 Windows 换行符（CRLF），shebang 变成 <code>#!/bin/bash\r</code>，内核找不到叫 <code>bash\r</code> 的解释器。用 dos2unix 或 <code>sed -i 's/\r$//'</code> 去掉。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span><code>chmod +x</code> 和 <code>chmod 755</code> 有什么区别？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a"><code>+x</code> 只给三组都加上执行位，其他权限不变；<code>755</code> 是把权限整体重设为 rwxr-xr-x。</div>
+  <div class="q-a"><code>+x</code> 只给三组都加上执行位，其他权限不变；<code>755</code> 是把权限整体重设为 rwxr-xr-x。对 600 的文件执行 <code>chmod 755</code> 会变成所有人可读。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>一个目录权限是 <code>--x</code>，你能做什么、不能做什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">能 <code>cd</code> 进去、能访问已知文件名（如 <code>cat d/file</code>），但不能 <code>ls</code> 列目录（需要 r）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>rm</code> 删了大文件，为什么 <code>df -h</code> 显示空间没释放？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">还有进程开着这个文件，inode 的链接数不为 0，数据块不会回收。用 <code>lsof</code> 配合 <code>grep deleted</code> 找到那个进程，结束它空间才回来。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>umask 是 027 时，新建文件和目录分别是什么权限？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">文件 640（666 去掉 027 的位）、目录 750（777 去掉 027 的位）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>硬链接和软链接最本质的区别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">硬链接是同一个 inode 的另一个名字（链接数加一，删原名仍可访问）；软链接是独立 inode，内容是一个路径，原文件删了就断链。</div>
 </div></div>
-  <label class="ch-done"><input type="checkbox" data-mark="owner"><span>这一章我学完了</span></label>
+  <label class="ch-done"><input type="checkbox" data-mark="umask"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">

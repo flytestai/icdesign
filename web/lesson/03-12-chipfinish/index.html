@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ChipFinish：收尾这一步，决定能不能送厂 · 23 | IC 后端学院</title>
-<meta name="description" content="布完线、时序过了，还差七件收尾事：填 filler、铺 metal fill、加 seal ring 与 pad、跑最终 DRC/LVS、出交付物、写报告、做一次"别人能接手"的交接。">
+<meta name="description" content="布完线、时序过了，版图还不是成品。ChipFinish 收四件事：填补（filler/tap/endcap）、铺平（metal fill）、包壳（seal ring 与 pad）、验证与交付（DRC/LVS 与文件包）。这一课逐项讲清为什么做、判据是什么，以及课程环境能做到哪一步。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -29,7 +29,7 @@
       <div class="hero-no">23</div>
       <h1>ChipFinish：收尾这一步，决定能不能送厂</h1>
       <p class="hero-en">Chip Finishing & Tapeout Handoff</p>
-      <p class="hero-sum">布完线、时序过了，还差七件收尾事：填 filler、铺 metal fill、加 seal ring 与 pad、跑最终 DRC/LVS、出交付物、写报告、做一次"别人能接手"的交接。</p>
+      <p class="hero-sum">布完线、时序过了，版图还不是成品。ChipFinish 收四件事：填补（filler/tap/endcap）、铺平（metal fill）、包壳（seal ring 与 pad）、验证与交付（DRC/LVS 与文件包）。这一课逐项讲清为什么做、判据是什么，以及课程环境能做到哪一步。</p>
       <div class="hero-meta">
         <span class="pill">约 28 分钟</span>
         <span class="pill">课表学时 2</span>
@@ -38,87 +38,166 @@
     </div>
     <article id="article"><section class="ch" id="what" data-ch="what">
   <div class="ch-h"><span class="ch-n">01</span><h2>ChipFinish 到底在收什么</h2></div>
-  <p><code>route_opt</code> 之后，版图上到处是空隙：单元之间有空位、金属层有大片空白、芯片边缘没有保护环。这些东西不影响时序，但<strong>会让工厂做不出来或者做出来就坏</strong>。</p>
-<div class="tbl"><table><thead><tr><th>收尾动作</th><th>为什么必须做</th><th>不做会怎样</th></tr></thead><tbody><tr><td>填 filler cell</td><td>标准单元行里不能留空，否则阱/衬底不连续</td><td>工艺厂拒收；LVS 报大量错误</td></tr><tr><td>铺 metal fill</td><td>金属密度不均会导致化学机械抛光（CMP）不平</td><td>芯片表面不平，后层光刻失焦</td></tr><tr><td>加 seal ring</td><td>芯片四周的保护环，防止切割时裂开</td><td>切割崩边、水汽进入，良率暴跌</td></tr><tr><td>加 bond pad</td><td>对外连接的焊盘</td><td>无法封装</td></tr><tr><td>最终 DRC/LVS</td><td>确认版图与网表都合法、且一致</td><td>送厂被拒，或做出来是错的</td></tr><tr><td>出交付物</td><td>给工厂的文件包</td><td>工厂没法开工</td></tr></tbody></table></div>
+  <div class="goal"><span>本章目标</span>学完这一课，你能列出送厂前的十项检查并说出每项的判据，说清 filler 为什么必须从大到小、metal fill 为什么影响时序，并分清给工厂和给同事的交付物差在哪。</div>
+<p>交房前有一道工序叫收尾：补墙缝、打磨地面、装门装锁、最后验房。这些活不改变户型，但不做就交不了房，或者交了也住不了。</p>
+<p>芯片也一样。<code>route_opt</code> 之后，版图上到处是空隙：标准单元行里有空位、金属层有大片空白、芯片边缘没有任何保护。这些东西不影响时序，但<strong>会让工厂做不出来，或者做出来就是坏的</strong>。</p>
+<p>收尾就四件事，按顺序做：</p>
+<div class="tbl"><table><thead><tr><th>#</th><th>收什么</th><th>具体动作</th><th>不做会怎样</th></tr></thead><tbody><tr><td>1</td><td>填补</td><td>插 filler cell 填空隙；补 well tap 和 endcap</td><td>阱/衬底不连续，LVS 报大量错误；工厂拒收</td></tr><tr><td>2</td><td>铺平</td><td>铺 metal fill（dummy），让每层金属密度达标</td><td>CMP 后表面不平，后层光刻失焦，良率暴跌</td></tr><tr><td>3</td><td>包壳</td><td>加 seal ring（密封环）和 bond pad（焊盘）</td><td>切割崩边、水汽进入；无法封装</td></tr><tr><td>4</td><td>验证与交付</td><td>签核级 DRC/LVS、出 GDS/OASIS、写交接说明</td><td>工厂没法开工；接手的人要重新摸两周</td></tr></tbody></table></div>
+<p>顺序不能乱：filler 会改局部电容，metal fill 会加耦合电容，两者都要在最终时序复查<strong>之前</strong>做完；DRC/LVS 必须在所有几何改动<strong>之后</strong>跑，否则你验证的是旧版图。</p>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Filler Cell</span><span class="term-zh">填充单元</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>没有逻辑功能的标准单元，只用来"占位"。填在标准单元行的空隙里，保证每行的阱、电源轨、衬底是连续的。<br>库里通常有 <code>FILL_X1/X2/X4/X8</code> 几种宽度，工具按空隙宽度自动选。</p></div>
+  <div class="term-h"><span class="term-en">ChipFinish</span><span class="term-zh">芯片收尾</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>布线优化完成之后、送厂（tapeout）之前的最后一组物理操作：填 filler、铺 metal fill、加 seal ring 与 pad、跑签核检查、打包交付物。<br>它不改逻辑、不改时序目标，只保证版图"造得出来、切得开、封得上、交得清"。</p></div>
 </div>
-<div class="scene"><div class="scene-h">工作场景 · 送厂前一周被退回</div><div class="scene-b"><p>你交了 GDS，工厂回邮件：<strong>"Metal density violation on Metal3: 18% (min 30%)"</strong>。</p>
-<p>意思是 metal3 这一层只铺了 18% 的金属，低于工艺要求的最低密度 30%。原因：你没铺 metal fill。补一遍要重跑 DRC + 重新出 GDS，一周没了。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Tapeout</span><span class="term-zh">流片/送厂</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把最终版图（GDSII 或 OASIS）交给工艺厂开始制造。这个词也常用来指"定版"这个动作——tapeout 之后再改，就要重做掩膜，费用以百万计。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 送厂前一周被退回</div><div class="scene-b"><p>你交了 GDS，工厂回邮件：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Metal density violation on Metal3: 18% (min 30%)</span></code></pre></div>
+<p>意思是 Metal3 这一层只铺了 18% 的金属，低于工艺要求的最低密度 30%。原因很简单：你没铺 metal fill。</p>
+<p>补救要重跑 metal fill → 重跑 DRC → 重新出 GDS → 重新走一遍交付流程，一周没了。而这条规则在工艺文档的第一页就写着——<strong>收尾的每一项都是"早就知道、就是忘了"的类型</strong>。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="filler" data-ch="filler">
   <div class="ch-h"><span class="ch-n">02</span><h2>填 filler：顺序错了会把时序搞坏</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># Innovus</span><span class="ln ">addFiller -cell {FILL_X8 FILL_X4 FILL_X2 FILL_X1} -prefix FILLER</span><span class="ln cmt"># 从大到小填：先大块填掉大部分空隙，小块补缝</span><span class="ln "> </span><span class="ln cmt"># ICC2</span><span class="ln ">create_stdcell_fillers -lib_cells {FILL_X8 FILL_X4 FILL_X2 FILL_X1}</span><span class="ln cmt"># 同样从大到小</span></code></pre></div>
-<div class="tbl"><table><thead><tr><th>顺序</th><th>结果</th></tr></thead><tbody><tr><td>大到小（X8 → X1）</td><td>空隙填得满，filler 数量少，正确</td></tr><tr><td>小到大（X1 → X8）</td><td>全是 X1，数量爆炸；或者大块空隙填不进 X8 留下缝</td></tr><tr><td>只填一种</td><td>缝隙填不满，阱不连续，LVS 报错</td></tr></tbody></table></div>
-<div class="pit"><div class="pit-h">常见坑 · 填完 filler 不重新检查时序</div><div class="pit-b"><p>filler 会改变局部电容，理论上影响很小，但<strong>如果 filler 用了带 decap 的单元（去耦电容），会影响电源网络的充放电行为</strong>。</p>
-<p>规矩：填完 filler 后重跑一次 <code>report_timing</code>，确认 WNS 没变。变了就查是不是 filler 引起的。</p></div></div>
+  <p>标准单元宽度不一样（X1、X2、X4……），摆完必然留下宽度不一的空隙。空隙不填，会出三个问题：</p>
+<ol><li><strong>阱和衬底不连续。</strong> 单元靠 well tie 连成一片，中间断开就没有衬底接触，LVS 会报错，电路也可能闩锁。</li><li><strong>CMP 不平。</strong> 有空隙的地方密度低，抛光时磨得更深，表面出现凹陷。</li><li><strong>电源轨不连续。</strong> 标准单元行的 VDD/VSS 轨道要靠单元拼接才连通，空隙会把它切断。</li></ol>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：Innovus 里填 filler，从大到小给清单</span><span class="ln cmt"># 用法：时序基本收敛之后执行；单元名按你的库改</span><span class="ln ">addFiller -cell {FILL_X8 FILL_X4 FILL_X2 FILL_X1} -prefix FILLER   ;# 清单顺序就是优先级，大的在前</span><span class="ln ">checkFiller                                                        ;# 检查是否还有未填的空隙</span><span class="ln cmt"># ICC2 的等价命令：create_stdcell_fillers -lib_cells {FILL_X8 FILL_X4 FILL_X2 FILL_X1}</span></code></pre></div>
+<p><strong>为什么必须从大到小</strong>，看一个具体例子就明白。假设行里有一段 5.0µm 的空隙，库里有 X4（4.0）、X2（2.0）、X1（1.0）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">从大到小（正确）：</span><span class="ln ">  [   X4   ][ X1 ]                  2 块，刚好 5.0，边界 1 条</span><span class="ln "> </span><span class="ln ">从小到大（错误）：</span><span class="ln ">  [X1][X1][X1][X1][X1]              5 块，边界 4 条</span><span class="ln ">  单元数 ×2.5，每个边界都要过一遍 LVS，还多占面积和漏电</span><span class="ln "> </span><span class="ln ">有障碍物时更糟：空隙 9.0µm，中间 4.2µm 处有一个不能挪的 decap</span><span class="ln ">  从大到小： 左段 4.2 放 X4，右段 4.8 放 X4 + 0.8（&lt; X1，留缝）</span><span class="ln ">  从小到大： 左段被 X1 逐个切碎，右段剩 4.6 → X4 放得下 → 剩 0.6 &lt; X1 → 留下 0.6µm 窄缝（notch）</span></code></pre></div>
+<p>那个 0.6µm 的窄缝就是灾难：填不进去，LVS 报"well 不连续"，CMP 在这一小块凹下去。<strong>先小后大等于把大空隙切碎，最后谁也填不满。</strong></p>
+<p>所以规矩是：<strong>清单从大到小，让工具优先用大块，小块只负责补最后那点缝。</strong></p>
+<p>除了 filler，还有两个容易漏的：</p>
+<div class="tbl"><table><thead><tr><th>结构</th><th>作用</th><th>命令</th><th>漏了会怎样</th></tr></thead><tbody><tr><td>Well tap（井接触）</td><td>给阱/衬底提供电位接触，防止闩锁</td><td><code>addWellTap -cellInterval 40</code></td><td>闩锁风险，ERC 报错</td></tr><tr><td>Endcap（端帽）</td><td>标准单元行两端的收边单元，保证边界处的阱和注入层完整</td><td><code>addEndCap</code></td><td>行两端边缘 DRC 违例</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 填完 filler 不重新检查时序</div><div class="pit-b"><p>现象：filler 填完直接出 GDS，签核时发现 WNS 从 +0.05 变成 −0.03。 原因：filler 会改变局部电容；如果用了带 decap 的 filler（去耦电容单元），还会改变电源网络的充放电行为，间接影响延迟。 处理：填完 filler、铺完 metal fill，各跑一次 <code>report_timing</code>，和基线比。变了就查是不是新加的单元引起的。<strong>收尾阶段的每一次几何改动，都要有一次时序复查。</strong></p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Filler Cell</span><span class="term-zh">填充单元</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>没有逻辑功能的标准单元，只用来占位。填在标准单元行的空隙里，保证阱、衬底、电源轨连续。<br>库里有 <code>FILL_X1/X2/X4/X8</code> 等不同宽度，工具按空隙宽度从大清单里挑。</p></div>
+</div>
   <label class="ch-done"><input type="checkbox" data-mark="filler"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="metalfill" data-ch="metalfill">
   <div class="ch-h"><span class="ch-n">03</span><h2>metal fill：为了抛光平整</h2></div>
-  <p>化学机械抛光（CMP）是把芯片表面磨平。如果某一层金属疏密不均，磨的时候软的地方磨得多、硬的地方磨得少，表面就不平，下一层光刻就会失焦。</p>
-<p>所以工艺厂规定：<strong>每一层金属的密度必须在某个范围内</strong>（比如 30%~70%），而且要分窗口检查（每 100×100um 一个窗口）。</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 铺之前先看密度</span><span class="ln ">check_metal_density            # 或 verifyMetalDensity</span><span class="ln cmt"># 铺（工具自动在空白处插不连接的金属块）</span><span class="ln ">addMetalFill -layer {metal1 metal2 metal3} -timingAware true</span></code></pre></div>
-<div class="note"><div class="note-h"><code>-timingAware</code> 是什么</div><p>普通 metal fill 会随便插金属块，可能插在关键路径旁边，<strong>增加耦合电容，把时序搞崩</strong>。</p>
-<p><code>-timingAware</code>（或 <code>-netAware</code>）让工具避开关键网络，代价是跑得慢、密度可能达不到，需要迭代。</p></div>
+  <p>化学机械抛光（CMP）是把芯片表面磨平的一道工艺。它的工作原理像砂纸：<strong>软的地方磨得多，硬的地方磨得少</strong>。</p>
+<p>如果某一层金属疏密不均（比如一块区域 80% 是金属、旁边只有 10%），磨完表面就是波浪形的。下一层光刻要在这种表面上曝光，焦距对不准，图形就糊了。</p>
+<p>所以工艺厂给每层定了密度窗口，而且不是全芯片平均，是<strong>按窗口检查</strong>（典型 100×100µm 一个窗口）：</p>
+<ul><li>每层密度要在 30%~70% 之间（典型值，看工艺文档）；</li><li>每个窗口都要达标，不能靠别处多铺来平均；</li><li>相邻层的密度也要接近，否则层间应力不均。</li></ul>
+<p>补密度的办法就是铺 metal fill（也叫 dummy metal）：在空白处插一堆<strong>不连接任何网络</strong>的金属块。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：Innovus 里先查密度，再铺 metal fill</span><span class="ln cmt"># 用法：filler 填完之后执行；层名按你的工艺改</span><span class="ln ">checkMetalDensity                                     ;# 先看哪一层、哪个窗口不达标</span><span class="ln ">addMetalFill -layer {M1 M2 M3 M4 M5} -timingAware true ;# 铺填充金属，避开关键网络</span><span class="ln ">checkMetalDensity                                     ;# 铺完复查，密度可能还不够，要迭代</span></code></pre></div>
+<p><code>-timingAware</code> 是这里最关键的取舍：</p>
+<div class="tbl"><table><thead><tr><th>做法</th><th>优点</th><th>缺点</th><th>什么时候用</th></tr></thead><tbody><tr><td>普通 dummy（不感知时序）</td><td>快，密度容易达标</td><td>可能贴在关键线旁边，加耦合电容，把 WNS 拖差 30~80ps</td><td>时序余量充足（&gt; 200ps）、非关键层</td></tr><tr><td>timing-aware dummy</td><td>避开关键网络和时钟，时序安全</td><td>跑得慢，密度可能不达标，要迭代几轮</td><td>时序紧（&lt; 100ps）、时钟网络附近</td></tr></tbody></table></div>
+<p>选错的代价很具体：一个时序只剩 30ps 余量的设计，被 dummy 加了 50ps 耦合，直接违例，而这时候你已经没有空间再改了——收尾阶段插不进 buffer。</p>
+<div class="pit"><div class="pit-h">常见坑 · 只查全芯片平均密度</div><div class="pit-b"><p>现象：<code>checkMetalDensity</code> 报"平均 42%，达标"，送厂被退回，说某个窗口只有 12%。 原因：CMP 关心的是<strong>局部</strong>平整度，全芯片平均没有意义。工艺厂的检查是逐窗口的。 处理：看报告里的<strong>最差窗口</strong>，不是平均值。铺完 fill 一定要按窗口复查，并且检查相邻层的密度差。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Metal Fill</span><span class="term-zh">金属填充（dummy）</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>为了满足密度规则，在空白区域插入的不连接任何网络的金属图形。它不参与电路功能，只影响制造工艺的平整度。<br>代价是引入额外的寄生电容，所以关键路径附近要用 timing-aware 模式避开。</p></div>
+</div>
   <label class="ch-done"><input type="checkbox" data-mark="metalfill"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="seal" data-ch="seal">
   <div class="ch-h"><span class="ch-n">04</span><h2>seal ring 与 pad：芯片的"外壳"</h2></div>
-  <div class="tbl"><table><thead><tr><th>结构</th><th>作用</th><th>谁提供</th></tr></thead><tbody><tr><td>Seal ring（密封环）</td><td>环绕芯片四周的金属/通孔墙，挡住切割裂纹和水汽</td><td>工艺厂提供模板，你按规则画</td></tr><tr><td>Bond pad（焊盘）</td><td>对外打线的金属块，通常 60~80um 见方</td><td>IO 库提供</td></tr><tr><td>Scribe line（划片道）</td><td>芯片之间的切割通道，放测试结构</td><td>工艺厂规定宽度</td></tr></tbody></table></div>
-<p>这些通常由<strong>顶层集成者</strong>负责，做 block 的人不用管。但你要知道它们存在——因为它们占了芯片边缘 30~50um 的空间，<strong>算 die 面积时不能算进去</strong>。</p>
+  <p>芯片从晶圆上切下来（die saw）的时候，刀片会产生微裂纹。裂纹如果延伸到电路区，芯片就废了；水汽也会从边缘渗进来，几年后腐蚀金属。</p>
+<p>所以芯片四周要围一圈"墙"：</p>
+<div class="tbl"><table><thead><tr><th>结构</th><th>作用</th><th>谁提供</th><th>注意</th></tr></thead><tbody><tr><td>Seal ring（密封环）</td><td>环绕芯片的金属/通孔墙，挡住切割裂纹和水汽</td><td>工艺厂给模板，你按规则画</td><td>通常 10~30µm 宽，不许走信号</td></tr><tr><td>Bond pad（焊盘）</td><td>对外打线的金属块，常见 60~80µm 见方</td><td>IO 库提供</td><td>下方不能有有源电路，要放 ESD</td></tr><tr><td>Scribe line（划片道）</td><td>芯片之间的切割通道，放测试结构</td><td>工艺厂规定宽度</td><td>算 die 面积时不算，但算晶圆片数时要算</td></tr></tbody></table></div>
+<p>这些通常由<strong>顶层集成者</strong>负责，做 block 的人不用画。但你必须知道它们存在，因为两个原因：</p>
+<ol><li><strong>它们占边缘空间。</strong> seal ring + pad 一圈通常吃掉 50~100µm 的边长，算可用面积时不能算进去。</li><li><strong>它们会影响 DRC。</strong> seal ring 的图形密度很高，如果它离信号线太近，会在边缘产生间距违例，这些违例在 block 级看不到，集成时才爆出来。</li></ol>
+<p>边缘空间值多少钱，算一次就清楚。一个 2mm × 2mm 的 die，面积 4.0mm²。四周各留 100µm 给 seal ring 和 pad，可用区变成 1.8mm × 1.8mm = 3.24mm²：</p>
+<p><code>面积损失 = (4.00 − 3.24) ÷ 4.00 = 19%</code></p>
+<p>将近五分之一的面积花在"外壳"上。这也是为什么 IO 数量和 pad 排布要在 floorplan 阶段就定下来——临时加两个 pad，可能要重排整个边缘。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Seal Ring</span><span class="term-zh">密封环</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>沿芯片四周布置的一圈多层金属与通孔结构，从衬底一直连到顶层，作用是阻止切割产生的裂纹进入电路区，并阻挡水汽。<br>它不是电路的一部分，但没有它，芯片的封装良率会明显下降。</p></div>
+</div>
   <label class="ch-done"><input type="checkbox" data-mark="seal"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="checklist" data-ch="checklist">
   <div class="ch-h"><span class="ch-n">05</span><h2>最终检查清单（送厂前必须全绿）</h2></div>
-  <p>这张表按顺序过，任何一项红都不能送：</p>
-<div class="tbl"><table><thead><tr><th>#</th><th>检查</th><th>命令（ICC2 / Innovus）</th><th>通过标准</th></tr></thead><tbody><tr><td>1</td><td>连接性</td><td><code>check_lvs</code> / <code>verifyConnectivity</code></td><td>无 open、无 floating</td></tr><tr><td>2</td><td>DRC</td><td><code>check_routes</code> / <code>verify_drc</code></td><td>0 条</td></tr><tr><td>3</td><td>金属密度</td><td><code>check_metal_density</code></td><td>每层在每个窗口内都达标</td></tr><tr><td>4</td><td>天线</td><td><code>check_antenna</code></td><td>0 条</td></tr><tr><td>5</td><td>时序 setup</td><td><code>report_qor</code></td><td>WNS ≥ 0</td></tr><tr><td>6</td><td>时序 hold</td><td><code>report_qor</code></td><td>WNS ≥ 0（或已 waiver）</td></tr><tr><td>7</td><td>功耗</td><td><code>report_power</code></td><td>在预算内</td></tr><tr><td>8</td><td>面积</td><td><code>report_area</code></td><td>在预算内</td></tr><tr><td>9</td><td>LVS（版图 vs 网表）</td><td>Calibre / PVS</td><td>完全一致</td></tr><tr><td>10</td><td>ERC（电气规则）</td><td>Calibre</td><td>无 latch-up / 无浮栅</td></tr></tbody></table></div>
+  <p>这张表按顺序过。任何一项红都不能送——不是"尽量修"，是"不能送"。</p>
+<div class="tbl"><table><thead><tr><th>#</th><th>检查项</th><th>命令（ICC2 / Innovus）</th><th>判据</th></tr></thead><tbody><tr><td>1</td><td>连接性</td><td><code>check_lvs</code> / <code>verifyConnectivity</code></td><td>opens = 0，floating = 0；有悬空引脚就是没连上</td></tr><tr><td>2</td><td>DRC</td><td><code>check_routes</code> / <code>verify_drc</code></td><td>总数 = 0；有 waiver 必须有签字清单和理由</td></tr><tr><td>3</td><td>金属密度</td><td><code>check_metal_density</code> / <code>checkMetalDensity</code></td><td>每层、每个 100×100µm 窗口都落在工艺给的 [min, max] 内</td></tr><tr><td>4</td><td>天线</td><td><code>check_antenna</code> / <code>verifyProcessAntenna</code></td><td>违例 net 数 = 0</td></tr><tr><td>5</td><td>setup</td><td><code>report_qor</code></td><td>WNS ≥ 0 且 TNS = 0；若 WNS 为负，必须有逐条 waiver</td></tr><tr><td>6</td><td>hold</td><td><code>report_qor</code></td><td>WNS ≥ 0；hold 负值不能靠"频率低所以没事"解释</td></tr><tr><td>7</td><td>功耗</td><td><code>report_power</code></td><td>总功耗 ≤ 预算，且留 5%~10% 余量（别卡在 99%）</td></tr><tr><td>8</td><td>面积</td><td><code>report_area</code></td><td>die 面积 ≤ 预算；利用率异常升高要查是不是优化插了太多 buffer</td></tr><tr><td>9</td><td>LVS</td><td>Calibre / PVS</td><td>0 mismatch、0 unmatched；器件数与网表完全一致</td></tr><tr><td>10</td><td>ERC</td><td>Calibre</td><td>无闩锁路径、无浮栅、无阱/衬底连接错误</td></tr></tbody></table></div>
+<p>前八项工具自带，后两项（LVS、ERC）通常要第三方工具加工艺厂提供的规则文件（deck）。<strong>这就是为什么"跑通了流程"和"能送厂"是两件事。</strong></p>
+<p>DRC 和 LVS 的区别，值得单独记住：</p>
+<div class="tbl"><table><thead><tr><th></th><th>DRC</th><th>LVS</th></tr></thead><tbody><tr><td>查什么</td><td>画得合不合法（间距、宽度、密度、via 规则）</td><td>版图提取出的电路，和网表是否一致</td></tr><tr><td>错了会怎样</td><td>工厂拒收，根本不制造</td><td>工厂收货，但做出来功能不对</td></tr><tr><td>谁更致命</td><td>制造不出来</td><td><strong>做出来是坏的，还查不出来</strong></td></tr><tr><td>工具</td><td>工具内置 DRC / Calibre</td><td>Calibre / PVS + LVS deck</td></tr></tbody></table></div>
+<p>一句话：<strong>DRC 错是"造不出来"，LVS 错是"造出来是废的"。</strong></p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">LVS</span><span class="term-zh">Layout Versus Schematic，版图与原理图一致性</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>从 GDS 里"提取"出电路（哪些器件、怎么连），再和网表对比。<strong>不一致就是做出来功能不对</strong>，比 DRC 更致命。<br>DRC 错了工厂不收货；LVS 错了工厂收货、但芯片是坏的。</p></div>
+  <div class="term-b"><p>从 GDS 里"提取"出版图对应的电路（有哪些器件、怎么连），再和原始网表逐器件、逐节点对比。<br>不一致意味着版图和设计意图不同——多连一根线、少一个接触孔、器件尺寸错了，都属于 LVS 错误。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">ERC</span><span class="term-zh">Electrical Rule Check，电气规则检查</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>检查版图上的电气连接是否安全：有没有闩锁路径（latch-up）、有没有浮空的栅极、阱和衬底有没有正确接电源地。<br>DRC 管几何，LVS 管连接关系，ERC 管电学安全性。三者都过，版图才算干净。</p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="checklist"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="deliver" data-ch="deliver">
   <div class="ch-h"><span class="ch-n">06</span><h2>交付物：给工厂和给下一个人</h2></div>
-  <div class="tbl"><table><thead><tr><th>交给谁</th><th>文件</th><th>说明</th></tr></thead><tbody><tr><td>工厂（foundry）</td><td>GDSII</td><td>最终版图，唯一必需的制造文件</td></tr><tr><td>工厂</td><td>层次化结构说明、密度报告</td><td>附带</td></tr><tr><td>封装厂</td><td>bond diagram、pad 坐标</td><td>打线用</td></tr><tr><td>测试</td><td>STIL / WGL（ATPG 向量）</td><td>量产测试用</td></tr><tr><td>项目组</td><td>DEF、网表、SPEF、SDF</td><td>后续 ECO、板级仿真用</td></tr><tr><td>项目组</td><td>签核报告（PT/PV/功耗）</td><td>证明"我们查过了"</td></tr><tr><td>项目组</td><td>README：版本、corner、已知问题</td><td><strong>最容易漏、最有用</strong></td></tr></tbody></table></div>
-<div class="note"><div class="note-h">那个 README 为什么最重要</div><p>半年后有人要在这个设计上做 ECO，他需要知道：用的是哪个库版本、哪个 corner 签的、有没有 waiver 掉的违例、哪些路径是 known issue。</p>
-<p>没有这份说明，他要花两周重新摸一遍；有的话，半天就能上手。<strong>写交接文档是工程师的基本功，不是额外工作。</strong></p></div>
+  <p>交付物分两类，很多人只准备了第一类。</p>
+<p><strong>给工厂（造芯片用的）</strong>：</p>
+<div class="tbl"><table><thead><tr><th>文件</th><th>说明</th><th>必需性</th></tr></thead><tbody><tr><td>GDSII 或 OASIS</td><td>最终版图。OASIS 体积小很多（常见压缩到 GDS 的 1/5~1/10），大设计首选</td><td>必需</td></tr><tr><td>layer map 文件</td><td>告诉工厂每个 GDS 层号对应哪一层物理层</td><td>必需</td></tr><tr><td>密度报告</td><td>每层每窗口的密度，证明满足 CMP 规则</td><td>必需</td></tr><tr><td>DRC / LVS 报告</td><td>证明查过了，附 waiver 清单</td><td>必需</td></tr><tr><td>天线报告</td><td>证明没有栅氧击穿风险</td><td>必需</td></tr><tr><td>pad 坐标 / bond diagram</td><td>给封装厂打线用</td><td>封装必需</td></tr></tbody></table></div>
+<p><strong>给下一个人（继续做 ECO、做板级、做测试的）</strong>：</p>
+<div class="tbl"><table><thead><tr><th>文件</th><th>谁要用</th><th>说明</th></tr></thead><tbody><tr><td>DEF</td><td>后端</td><td>布局布线信息，能重新打开继续改</td></tr><tr><td>网表（.v）</td><td>后端 / 前端</td><td>最终连接关系（含优化插入的 buffer）</td></tr><tr><td>SPEF</td><td>STA</td><td>真实寄生 RC，签核精度的基础</td></tr><tr><td>SDC</td><td>STA</td><td>约束，没它时序报告没法复现</td></tr><tr><td>SDF</td><td>板级 / 仿真</td><td>带延迟的反标网表，做后仿用</td></tr><tr><td>脚本 + 版本号</td><td>后端</td><td>能一键复现这次结果，比任何文档都有用</td></tr><tr><td>README</td><td>所有人</td><td><strong>最容易漏、最有用的一份</strong></td></tr></tbody></table></div>
+<p>README 里必须有的六项：库与工艺版本、工具版本、签核 corner 与模式、waiver 清单及理由、已知问题、复现命令。</p>
+<div class="note"><div class="note-h">那份 README 为什么最重要</div><p>半年后有人要在这个设计上做 ECO，他需要知道：用的是哪个库版本、哪个 corner 签的核、哪些违例被 waiver 了、哪条路径是已知问题。</p>
+<p>没有这份说明，他要花两周重新摸一遍；有的话，半天能上手。</p>
+<p>一个具体场景：ECO 时发现 hold 差 20ps，你插了一个 delay cell，结果时序更差——因为原设计在 ss corner 签核，而你按 tt 在算。README 里写了 corner，这个错就不会犯。</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="deliver"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="ourlimit" data-ch="ourlimit">
   <div class="ch-h"><span class="ch-n">07</span><h2>我们的环境能做到哪一步</h2></div>
-  <p>诚实说明（这套课程环境是 Synopsys 单工具链 + 开源 45nm 库）：</p>
-<div class="tbl"><table><thead><tr><th>环节</th><th>我们能做到</th><th>缺什么</th></tr></thead><tbody><tr><td>filler</td><td>✅ <code>create_stdcell_fillers</code> 可跑</td><td>—</td></tr><tr><td>metal fill</td><td>⚠️ 命令可跑，密度检查不完整</td><td>完整 deck 需工艺厂提供</td></tr><tr><td>seal ring / pad</td><td>❌ 不做</td><td>需要 IO 库与工艺厂模板</td></tr><tr><td>DRC</td><td>✅ 工具内部 DRC 可跑到 0</td><td>签核级需 Calibre + deck</td></tr><tr><td>LVS</td><td>❌ 做不了</td><td>需 Calibre/PVS + LVS deck</td></tr><tr><td>GDS 导出</td><td>⚠️ 可 <code>write_gds</code>，但无标准单元 GDS 合并</td><td>需完整库 GDS</td></tr></tbody></table></div>
-<p>所以这一课的目标是：<strong>知道收尾有哪七件事、每件事为什么做、检查清单长什么样</strong>。真正送厂那一步，你会在有完整 PDK 和 Calibre 的公司环境里做。</p>
-<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：把收尾清单变成一份可勾选的检查表</div><div class="lab-b"><p>在模拟终端里建一个自己的 checklist 文件（这是真实工作习惯）：</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~</span><span class="ln ">cat &gt; finish_checklist.txt &lt;&lt;'EOF'</span><span class="ln ">[ ] connectivity clean</span><span class="ln ">[ ] DRC 0</span><span class="ln ">[ ] metal density OK</span><span class="ln ">[ ] antenna 0</span><span class="ln ">[ ] setup WNS &gt;= 0</span><span class="ln ">[ ] hold WNS &gt;= 0</span><span class="ln ">[ ] power within budget</span><span class="ln ">[ ] LVS clean</span><span class="ln ">[ ] deliverables archived</span><span class="ln ">[ ] README written</span><span class="ln ">EOF</span><span class="ln ">cat finish_checklist.txt</span></code></pre></div>
-<p>过关标准：能解释清单里每一项"不做的后果"，而不是只知道要做。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 ChipFinish 的七件事</li><li>知道 filler 必须从大到小填，填完要复查时序</li><li>知道 metal fill 是为了 CMP 平整，<code>-timingAware</code> 是为了不破坏时序</li><li>能背出送厂前 10 项检查、以及 DRC 与 LVS 的区别</li><li>知道交付物里最容易漏、但最重要的是那份 README</li></ul></div>
+  <p>诚实说明。课程环境是 Synopsys 单工具链加开源 45nm 库，能做到的和真实项目差得很远：</p>
+<div class="tbl"><table><thead><tr><th>环节</th><th>我们能做到</th><th>缺什么</th></tr></thead><tbody><tr><td>filler / tap / endcap</td><td>命令可跑，能填满</td><td>—</td></tr><tr><td>metal fill</td><td>命令可跑，能铺</td><td>完整密度检查 deck 要工艺厂给</td></tr><tr><td>seal ring / pad</td><td>不做</td><td>需要 IO 库和工艺厂模板</td></tr><tr><td>DRC</td><td>工具内置 DRC 能跑到 0</td><td>签核级要 Calibre + 工艺 deck</td></tr><tr><td>LVS</td><td>做不了</td><td>需要 Calibre/PVS + LVS deck + 器件提取规则</td></tr><tr><td>GDS 导出</td><td>可 <code>write_gds</code></td><td>缺标准单元和 IO 的完整 GDS，合并出来的版图不完整</td></tr></tbody></table></div>
+<p>所以在课程环境里，你的目标是<strong>把流程和判据搞清楚</strong>：知道收尾有四件事、每件事为什么做、十项检查的判据是什么、交付物分几类。</p>
+<p>真实项目里你会看到的是：Calibre 跑一次 LVS 几十分钟、DRC 报告几万行、density 检查按窗口出热图、seal ring 由工艺厂的脚本生成。这些工具和数字，等你有完整 PDK 的环境再补。</p>
+<p>判断自己"会不会做收尾"，不看能不能跑命令，看两件事：拿到一份红色报告，能不能说出它属于十项里的哪一项、判据是什么、该找谁改。命令换个工具就变，判据是稳定的。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="ourlimit"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="in-work" data-ch="in-work">
+  <div class="ch-h"><span class="ch-n">08</span><h2>工作中怎么用：ChipFinish 在项目里的位置</h2></div>
+  <p><strong>谁做</strong>：顶层集成者或收尾专职工程师。做 block 的人一般只负责到自己 block 的 filler 和 DRC，seal ring、pad、全芯片 LVS 都在顶层做。</p>
+<p><strong>输入是什么</strong>：DRC 归零、时序过线的数据库，工艺厂给的 DRC/LVS deck、密度规则、seal ring 模板、IO 库。</p>
+<p><strong>输出交给谁</strong>：两个方向。给工厂的是 GDS/OASIS 加一堆报告，走商务和流片流程；给同事的是 DEF/网表/SPEF/SDC/脚本/README，走日常协作。</p>
+<p><strong>评审看什么</strong>：十项检查逐项签字，任何一项红都要有书面说明。评审最反感的一句话是"跑过了，没细看"——因为 LVS 不对的芯片会被造出来，钱照付。</p>
+<p><strong>做错会怎样</strong>：轻则返工一周（补 metal fill、重跑 DRC、重出 GDS），重则掩膜报废。一套 40nm 掩膜的价格在百万人民币量级，所以收尾阶段"慢一点、查两遍"是划算的。</p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：把收尾清单变成一份可勾选的检查表</div><div class="lab-b"><p><strong>任务</strong>：建一份自己的送厂检查表，并给每一项写上"判据"和"不做的后果"。</p>
+<p><strong>步骤</strong>：</p>
+<ol><li>建文件：</li></ol>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：生成一份个人用的送厂检查表，每项带判据和后果</span><span class="ln cmt"># 用法：在家目录执行；here-doc 一次写入多行，EOF 必须在行首</span><span class="ln ">cd ~                                   ;# 回到家目录，这份表是个人工作习惯，不放进项目库</span><span class="ln ">cat &gt; finish_checklist.txt &lt;&lt;'EOF'      ;# 用 here-doc 一次写入多行</span><span class="ln ">[ ] 1 connectivity: opens=0 floating=0       后果: 有悬空 = 功能错</span><span class="ln ">[ ] 2 DRC: total=0 或 waiver 有签字           后果: 工厂拒收</span><span class="ln ">[ ] 3 metal density: 每层每窗口达标           后果: CMP 不平, 光刻失焦</span><span class="ln ">[ ] 4 antenna: 违例 net=0                    后果: 栅氧击穿, 报废</span><span class="ln ">[ ] 5 setup: WNS&gt;=0 TNS=0                    后果: 频率上不去</span><span class="ln ">[ ] 6 hold: WNS&gt;=0                           后果: 偶发功能错</span><span class="ln ">[ ] 7 power: &lt;= 预算 95%                     后果: 发热/降频</span><span class="ln ">[ ] 8 area: &lt;= 预算                          后果: 成本超标</span><span class="ln ">[ ] 9 LVS: 0 mismatch                        后果: 做出来是废的</span><span class="ln ">[ ] 10 ERC: 无闩锁/浮栅                      后果: 上电即坏</span><span class="ln ">[ ] deliverables: GDS/OASIS + def/spef/sdc/脚本/README</span><span class="ln ">EOF</span><span class="ln ">cat finish_checklist.txt               ;# 打出来确认写对了</span></code></pre></div>
+<ol><li>在课程环境里跑能跑的那几项（<code>check_routes</code>、<code>check_metal_density</code>），把真实数字填进对应的行。</li><li>跑不了的项（LVS、ERC）在备注里写"课程环境缺 deck"，不要假装它是绿的。</li></ol>
+<p><strong>过关标准</strong>：能对清单里任意一项，说出"判据是什么、不做的后果是什么、这一项在课程环境能不能验"。三项都说得出，这一课就过了。</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>ChipFinish 收的是哪四件事？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">填补（filler/tap/endcap）、铺平（metal fill 密度）、包壳（seal ring 与 pad）、验证与交付（DRC/LVS 与文件包）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>filler 为什么必须从大到小填？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">先放小块会把大空隙切碎，大尺寸 filler 再也放不进去，单元数暴涨；遇到障碍物时还会留下小于最小 filler 宽度的窄缝，导致阱不连续。先大后小能一次填满、块数最少。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>metal fill 的作用是什么？为什么它会影响时序？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">让每层金属密度在每个窗口内达标，保证 CMP 后表面平整，否则后层光刻失焦。填充金属会引入额外耦合电容，靠近关键路径时会把延迟拖大，所以要用 timing-aware 模式避开。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>-timingAware</code> 的取舍是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">它避开关键网络和时钟，时序安全，但跑得慢、密度可能不达标要迭代；不感知的普通 dummy 快、密度容易达标，但可能把 WNS 拖差几十 ps。按剩余时序余量选。</div>
+</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>DRC 和 LVS 的区别是什么？哪个更致命？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">DRC 查"画得合不合法"，LVS 查"版图与网表是否一致"。DRC 错工厂不收货；LVS 错工厂收货但芯片是坏的，所以 LVS 错更致命。</div>
+  <div class="q-a">DRC 查"画得合不合法"，LVS 查"版图提取的电路与网表是否一致"。DRC 错工厂不收货；LVS 错工厂收货但芯片是坏的，所以 LVS 错更致命。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>filler cell 为什么必须从大到小填？</div>
+  <div class="q-q"><span class="q-no"></span>送厂前十项检查里，哪几项课程环境做不了？为什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">先用大块填掉大部分空隙，再用小块补缝；反过来会全是小块、数量爆炸，或者大空隙填不满导致阱不连续。</div>
+  <div class="q-a">LVS、ERC（缺 Calibre/PVS 和工艺 deck）、seal ring 与 pad（缺 IO 库与模板）、签核级 DRC（只有工具内置 DRC）。课程环境能做的是 filler、metal fill 命令、内置 DRC 和 GDS 导出。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>metal fill 的作用是什么？</div>
+  <div class="q-q"><span class="q-no"></span>交付物里给工厂和给同事的有什么不同？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">让每层金属密度均匀，保证化学机械抛光（CMP）后表面平整，否则后层光刻失焦。</div>
+  <div class="q-a">给工厂的是制造必需：GDS/OASIS、layer map、密度/DRC/LVS/天线报告、pad 坐标；给同事的是可继续工作的东西：DEF、网表、SPEF、SDC、SDF、脚本和 README。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span><code>-timingAware</code> 的 metal fill 解决什么问题？</div>
+  <div class="q-q"><span class="q-no"></span>为什么 README 是最重要又最容易漏的交付物？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">避免把填充金属插到关键网络旁边增加耦合电容，防止收尾阶段把时序搞崩。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>交付物里为什么需要一份 README？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">让接手的人知道库版本、签核 corner、waiver 项和已知问题，避免重新摸索两周。</div>
+  <div class="q-a">它记录库/工艺/工具版本、签核 corner、waiver 清单、已知问题和复现命令。没有它，接手的人要重新摸两周；有它，半天能上手，也能避免在错误 corner 上做 ECO。</div>
 </div></div>
-  <label class="ch-done"><input type="checkbox" data-mark="ourlimit"><span>这一章我学完了</span></label>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 ChipFinish 的四件事和执行顺序，并解释为什么 filler/metal fill 要在最终时序复查之前做完</li><li>能画/讲清"先小后大填不出大空隙"的示意，并说出从大到小的两个理由</li><li>知道 metal fill 是为了 CMP 平整，能说清 dummy 与 timing-aware 的取舍</li><li>能背出送厂前 10 项检查，并对每项说出判据</li><li>能说清 DRC 与 LVS 的区别，以及"哪个更致命、为什么"</li><li>能列出给工厂和给同事的两套交付物，尤其知道 README 该写什么</li><li>能诚实说明课程环境哪些环节做不了、缺什么</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="in-work"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -132,7 +211,7 @@
         <h3>这一课学完了吗？</h3>
         <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <button id="btn-done" class="pri">标记本课完成</button>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-11-optroute/">← OptRoute：把 DRC 从几千条磨到零</a><a class="nav-btn" href="/lesson/04-01-icc2/">ICC2：换一套工具，把同一件事再做一遍 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-11-optroute/">← OptRoute：把 DRC 从几千条磨到零</a><a class="nav-btn" href="/lesson/03-13-cts-advanced/">CTS（二）：约束、NDR、屏蔽与多时钟 →</a></div>
       </div>
     </div>
   </main>

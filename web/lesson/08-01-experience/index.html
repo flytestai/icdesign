@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>工程经验：新手最容易踩的 12 个坑 · 34 | IC 后端学院</title>
-<meta name="description" content="这一课不教新知识，只讲别人已经踩过的坑。每一条都能帮你省下半天到一周的时间。">
+<title>工程经验：新手最容易踩的 12 个坑 · 37 | IC 后端学院</title>
+<meta name="description" content="这一课不教新知识，只讲别人已经踩过的坑。12 个坑每个都给"现象 / 原因 / 怎么避免"，再讲排错的四种方法（二分、最小复现、对照实验、日志时间线）、review 的一页纸、交接的五要素，以及怎么用数字写周报。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -26,10 +26,10 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-8">阶段八 · 工程经验</a><span>/</span><b>工程经验：新手最容易踩的 12 个坑</b></div>
     <div class="hero">
-      <div class="hero-no">34</div>
+      <div class="hero-no">37</div>
       <h1>工程经验：新手最容易踩的 12 个坑</h1>
       <p class="hero-en">Field Notes</p>
-      <p class="hero-sum">这一课不教新知识，只讲别人已经踩过的坑。每一条都能帮你省下半天到一周的时间。</p>
+      <p class="hero-sum">这一课不教新知识，只讲别人已经踩过的坑。12 个坑每个都给"现象 / 原因 / 怎么避免"，再讲排错的四种方法（二分、最小复现、对照实验、日志时间线）、review 的一页纸、交接的五要素，以及怎么用数字写周报。</p>
       <div class="hero-meta">
         <span class="pill">约 45 分钟</span>
         <span class="pill">课表学时 4</span>
@@ -38,81 +38,186 @@
     </div>
     <article id="article"><section class="ch" id="twelve" data-ch="twelve">
   <div class="ch-h"><span class="ch-n">01</span><h2>十二个坑</h2></div>
-  <h3>1. 不存盘就跑下一步</h3>
-<p><code>.enc</code> / <code>save_block</code> 没做，崩溃或想回退时从零开始。<strong>每阶段必存，文件名带序号。</strong></p>
+  <div class="goal"><span>本章目标</span>学完这一章，你能在动手之前说出至少八个"这一步最容易错在哪"，并知道对应的一条命令或一个文件名。</div>
+<p>这些坑的共同点：<strong>代价都在半天到一周，而避免成本只有一分钟。</strong> 每条都按"现象 → 原因 → 怎么避免"写，避免方法都具体到命令或文件名。</p>
+<h3>1. 不存盘就跑下一步</h3>
+<p><strong>现象</strong>：跑完 placement 直接进 CTS（时钟树综合），工具崩了或者你想回退，发现上一个可用状态是四小时前。</p>
+<p><strong>原因</strong>：<code>saveDesign</code> / <code>save_block</code> 没执行，或者存了但被后一步覆盖。</p>
+<p><strong>怎么避免</strong>：每个阶段结束必须存，文件名带阶段和序号：<code>saveDesign db/03_place_01.enc</code>（Innovus）或 <code>save_block -as top db/03_place_01</code>（ICC2）。<strong>序号只增不改</strong>，出事能回退到任意一版。</p>
 <h3>2. 用 <code>rm -rf</code> 清目录</h3>
-<p><code>rm -rf run/*</code> 手滑成 <code>rm -rf run /*</code>，删的是根目录。<strong>先 <code>ls</code> 再删，变量加引号。</strong></p>
+<p><strong>现象</strong>：想清 <code>run/</code> 下的临时文件，手滑打成 <code>rm -rf run /*</code>，空格让命令变成"删 run 和根目录下所有东西"。</p>
+<p><strong>原因</strong>：路径里带空格、变量没加引号、没有先看再删。</p>
+<p><strong>怎么避免</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：安全清空一个目录的内容，防止变量为空或手滑</span><span class="ln cmt"># 用法：先注释掉 rm 那行跑一次 ls，确认清单对了再放开</span><span class="ln ">DIR=./run</span><span class="ln ">ls -la "${DIR}/"                    # 先看清楚要删什么</span><span class="ln ">rm -rf "${DIR:?}/"*                 # ${DIR:?} 在 DIR 为空时直接报错退出</span><span class="ln cmt"># 说明：${VAR:?} 是"变量为空就中止"，这是防手滑的最后一道闸</span><span class="ln cmt"># 说明：通配符放在引号外面，否则不会展开</span></code></pre></div>
 <h3>3. 约束没读对就开始优化</h3>
-<p>时钟周期写错、false path 漏设、库 corner 用错。跑 4 小时才发现方向全错。<strong>先 <code>report_clocks</code> + <code>check_timing</code>。</strong></p>
+<p><strong>现象</strong>：跑了四小时 <code>place_opt</code>，打开报告发现时钟周期是 2.0ns，而规格是 2.5ns；或者某个模块整片 unconstrained。</p>
+<p><strong>原因</strong>：SDC 版本不对、时钟名写错、SDC 读在 <code>link_design</code> 之前（约束静默失效，见 05-02）。</p>
+<p><strong>怎么避免</strong>：优化前固定跑两条，看输出再继续：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：优化前的两道闸，任何一条不对就停下来</span><span class="ln cmt"># 用法：读入 SDC 之后、place_opt 之前</span><span class="ln ">report_clocks                                    ;# 周期、名字、源端口逐个对规格书</span><span class="ln ">check_timing -include {unconstrained_endpoints no_clock}  ;# 两项都必须为 0</span><span class="ln cmt"># 说明：report_clocks 里少一个时钟，就有一整片逻辑没被约束</span><span class="ln cmt"># 说明：这一步花 30 秒，能省掉四小时白跑</span></code></pre></div>
 <h3>4. 利用率定太高</h3>
-<p>0.85 看起来很"省面积"，实际布不通。<strong>第一版 0.60~0.65，跑完看拥塞再调。</strong></p>
+<p><strong>现象</strong>：<code>setPlaceMode -place_global_util 0.85</code>，看起来"省面积"，结果 detail route 布不通，DRC（设计规则检查）几千条，越修越拥塞。</p>
+<p><strong>原因</strong>：利用率是"单元面积 / 核心面积"，但布线需要通道。0.85 意味着只剩 15% 给线和空隙，标准单元密集区根本挤不下。</p>
+<p><strong>怎么避免</strong>：第一版定 0.60~0.65，跑完看拥塞图和 pin density 再逐步加。<strong>面积是谈出来的，不是一次定死的。</strong></p>
 <h3>5. 宏单元通道没算</h3>
-<p>默认间距摆下去，布线阶段拥塞爆炸。<strong>按出线数算通道（03-03），留 halo。</strong></p>
+<p><strong>现象</strong>：两个 SRAM 之间按默认间距 5µm 摆，布线时那一带全是 DRC 和开路。</p>
+<p><strong>原因</strong>：通道宽度要按"出线数 × 间距"算（见 03-03），不是按"看起来够宽"。</p>
+<p><strong>怎么避免</strong>：先数每个 macro 边上有多少信号要出来，<code>通道宽度 = 出线数 × 线间距 × 层数系数</code>，再加 halo（<code>create_halo</code>）挡住标准单元。</p>
 <h3>6. 跳过 CTS 直接布线</h3>
-<p>hold 违例 −10ns 级别，怎么修都修不完。<strong>CTS 是 hold 收敛的前提。</strong></p>
+<p><strong>现象</strong>：place 之后直接 <code>routeDesign</code>，hold 违例 −10ns 级别，插了几千个 delay cell 还是收不掉。</p>
+<p><strong>原因</strong>：没有时钟树，时钟是理想的，skew 为 0；真实时钟一上来，hold 全线崩。</p>
+<p><strong>怎么避免</strong>：CTS 是 hold 收敛的前提，不能跳。顺序永远是 place → CTS → post-CTS opt → route。</p>
 <h3>7. 先修 hold 再修 setup</h3>
-<p>修 setup 时插的 buffer 会把 hold 又搞坏，来回两三轮。<strong>顺序：setup → hold → 复验。</strong></p>
+<p><strong>现象</strong>：先花两天修 hold，修完发现 setup 全崩；回头修 setup，插的 buffer 又把 hold 搞坏，来回两三轮。</p>
+<p><strong>原因</strong>：修 setup 的动作（upsize、插 buffer）会改变数据路径延迟，hold 跟着变；反过来修 hold 插的 delay cell 也会拖慢 setup。</p>
+<p><strong>怎么避免</strong>：<strong>setup → hold → 复验</strong>。setup 用面积换时间，hold 用时间换稳定，顺序反了就是互相拆台。</p>
 <h3>8. 网表和 SPEF 不同版本</h3>
-<p>PT 报找不到引脚，或时序离谱。<strong>同一条命令同时导出，文件名带同一时间戳。</strong></p>
+<p><strong>现象</strong>：PT 报 <code>Cannot find port</code>，或者时序结果和 PR 里差 0.3ns，怎么都对不上。</p>
+<p><strong>原因</strong>：netlist 是周三导的，SPEF 是周五提的，中间改过版图。两个文件的实例名对不上。</p>
+<p><strong>怎么避免</strong>：导出时用同一条命令、同一个时间戳：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把网表和 SPEF 绑成一对，文件名带同一个时间戳</span><span class="ln cmt"># 用法：在 PR 工具的 shell 里执行，两条命令不要隔夜</span><span class="ln ">set TS [clock format [clock seconds] -format %Y%m%d_%H%M]</span><span class="ln ">write_verilog netlist/top_${TS}.v        ;# 导出网表，文件名带时间戳</span><span class="ln ">write_spef    spef/top_${TS}.spef        ;# 紧接着导出 SPEF，同一时间戳</span><span class="ln cmt"># 说明：时间戳放文件名里，谁和谁是一对，一眼就能看出来</span><span class="ln cmt"># 说明：再算一次 md5 写进 README，防止文件被后续运行覆盖</span></code></pre></div>
 <h3>9. LVT 用太多</h3>
-<p>时序一好就全换 LVT，漏电涨 3~5 倍，功耗签核被打回。<strong>LVT 占比 10%~20%。</strong></p>
+<p><strong>现象</strong>：时序一紧就把单元全换 LVT（低阈值电压，low-Vt），WNS 好看了，漏电涨 3~5 倍，功耗签核被打回。</p>
+<p><strong>原因</strong>：LVT 靠降低阈值电压换速度，代价是亚阈值漏电指数上升。全芯片换等于把静态功耗翻几倍。</p>
+<p><strong>怎么避免</strong>：LVT 占比控制在 10%~20%，只给关键路径。换完跑一次 <code>report_power</code>，看 leakage 涨了多少。</p>
 <h3>10. DRC 卡在几百条就乱调参数</h3>
-<p>剩下的是孤例，批量调参数只会引入新问题。<strong>分类统计 + 按区域聚类，一类一类修。</strong></p>
+<p><strong>现象</strong>：DRC 从 6000 降到 800 之后卡住，于是开始调 spacing、调 density、调 route effort，结果涨回 2000。</p>
+<p><strong>原因</strong>：剩下的是孤例，批量调参数只会引入新问题。</p>
+<p><strong>怎么避免</strong>：先分类统计再动手：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把 DRC 按规则类型和区域聚类，找出主要矛盾</span><span class="ln cmt"># 用法：对 Calibre 的 results 文件做统计</span><span class="ln ">grep "^" drc.results | awk '{print $1}' | sort | uniq -c | sort -rn | head -10</span><span class="ln cmt"># 说明：第一列是规则名，先看哪条规则占大头</span><span class="ln ">grep "M1.S.1" drc.results | awk '{print $2, $3}' | cut -d. -f1 | sort | uniq -c | sort -rn | head</span><span class="ln cmt"># 说明：再按坐标聚类，看是不是集中在某个区域</span></code></pre></div>
 <h3>11. 报错只看最后一行</h3>
-<p><code>OPT-041</code> 那一行是结果，真正的病因在上五行（<code>NEX-018</code>）。<strong>往上翻，找第一条错误。</strong></p>
+<p><strong>现象</strong>：屏幕最后一行是 <code>OPT-041</code>，你顺着它查了两小时，没结果。</p>
+<p><strong>原因</strong>：最后一行是"结果"，真正的病因在前面。<code>OPT-041</code> 往往只是"优化失败"，上面五行的 <code>NEX-018 no valid parasitic</code> 才是原因。</p>
+<p><strong>怎么避免</strong>：<strong>往上翻，找第一条 ERROR。</strong> 第一条之后的错误多半是它的连锁反应。</p>
 <h3>12. 改完不记录</h3>
-<p>"我记得改过 utilization" —— 改到多少？哪一版？没有记录就等于没改过。<strong>每次运行写一个 <code>README.txt</code>：改了什么、为什么、结果如何。</strong></p>
+<p><strong>现象</strong>："我记得改过 utilization" —— 改成多少？哪一版？和谁比的？全想不起来。</p>
+<p><strong>原因</strong>：改动只存在脑子里，没有落到文件。</p>
+<p><strong>怎么避免</strong>：每次运行写一个 <code>README.txt</code>（不是随手记，是固定模板）：改了什么、为什么、结果如何。模板见"交接的习惯"一章。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Regression</span><span class="term-zh">回归</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>把一整套流程脚本化，每次改动后全量重跑一遍，对比指标有没有变差。<br>这是把"手工调参"变成"工程"的关键手段：<strong>没有回归，你永远不知道这次改动是变好还是变坏。</strong></p></div>
+  <div class="term-b"><p>把一整套流程脚本化，每次改动后全量重跑一遍，对比关键指标有没有变差。<br>这是把"手工调参"变成"工程"的关键手段：<strong>没有回归，你永远不知道这次改动是变好还是变坏，只知道"看起来好了"。</strong></p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="twelve"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="debug" data-ch="debug">
   <div class="ch-h"><span class="ch-n">02</span><h2>排错方法论</h2></div>
-  <p>遇到问题，按这个顺序走，不要跳：</p>
-<ol><li><strong>看第一条错误</strong>，不看最后一条。</li><li><strong>确认输入</strong>：网表、库、约束、脚本版本对不对。</li><li><strong>缩小范围</strong>：能不能用更小的设计复现？（counter 能不能跑？）</li><li><strong>对比基线</strong>：和上一次成功的运行比，改了什么？</li><li><strong>二分手动验证</strong>：把流程切一半跑（只到 place），看问题在哪一半出现。</li></ol>
+  <div class="goal"><span>本章目标</span>学完这一章，你能用四种方法把"不知道哪错了"缩小到"就是这一行"，而不是靠猜。</div>
+<p>遇到问题，按这个顺序走，不要跳：</p>
+<ol><li><strong>看第一条错误</strong>，不看最后一条。</li><li><strong>确认输入</strong>：网表、库、约束、脚本版本对不对。</li><li><strong>缩小范围</strong>：能不能用更小的设计复现？</li><li><strong>对比基线</strong>：和上一次成功的运行比，改了什么？</li><li><strong>二分验证</strong>：把流程切一半跑，看问题在哪一半出现。</li></ol>
+<h3>方法一：二分法</h3>
+<p>把流程按阶段切成两半：只跑到 place 就停，看问题是否出现。</p>
+<ul><li>出现了 → 问题在 place 之前（读库、读网表、约束）。</li><li>没出现 → 问题在 place 之后（CTS、route、opt）。</li></ul>
+<p>然后再把有问题的那一半切一半。<strong>一千行的流程，十次二分就能定位到一行。</strong></p>
+<p>同样的思路可以用在"设计规模"上：整个芯片跑不出来，就先跑一个模块；模块也不行，就跑一个 counter。</p>
+<h3>方法二：最小复现</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Minimal Reproducible Case</span><span class="term-zh">最小复现</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>用尽可能小的输入（最少的单元、最短的脚本）重现同一个错误。能复现，说明问题是环境/流程问题；不能复现，说明和规模或特定数据有关。</p></div>
+</div>
+<p>一个真实例子：某项目 <code>place_opt</code> 报 <code>OPT-041</code>。用公司自带的 counter 小设计（几十个单元）跑同一套脚本，同样报错——<strong>立刻排除"设计太大"这个方向</strong>，转向环境检查，最后发现是没读 TLU+ 寄生模型。</p>
+<p><strong>最小复现的价值在于：它把"可能性"从几十个砍到两三个。</strong></p>
+<h3>方法三：对照实验</h3>
+<p>只改一个变量，其他全部保持上一版不变。</p>
+<div class="tbl"><table><thead><tr><th>做法</th><th>结果</th><th>能得出什么</th></tr></thead><tbody><tr><td>只改 utilization 0.65→0.70</td><td>DRC 从 800 涨到 1500</td><td>利用率是主因</td></tr><tr><td>同时改 utilization、density、buffer 列表</td><td>DRC 从 800 涨到 1500</td><td>什么都得不出</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Baseline</span><span class="term-zh">基线</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一次"已知良好"的完整运行结果，包含脚本版本、输入文件、所有关键指标。任何新实验都要和它比。<br>没有基线，你说"变好了"没有依据；有基线，你能说出"WNS 好了 0.1，DRC 多了 20，净收益为正"。</p></div>
+</div>
+<h3>方法四：日志时间线</h3>
+<p>工具日志里每一行都有时间戳（或至少有序号）。把"最后一条开始"和"第一条 ERROR"之间的内容抽出来，就是案发现场。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：从一份几千行的日志里提取案发现场</span><span class="ln cmt"># 用法：在 run 目录下执行，log 是工具重定向出来的日志</span><span class="ln ">grep -n -m1 -E "^\*\*ERROR|^Error" run.log          # 第一条错误在第几行</span><span class="ln cmt"># 说明：-m1 只要第一条，-n 给行号；后面的错误多半是连锁反应</span><span class="ln ">sed -n "$(( $(grep -n -m1 -E '^\*\*ERROR|^Error' run.log | cut -d: -f1) - 10 )),+15p" run.log</span><span class="ln cmt"># 说明：打印第一条错误前后各十行，这就是案发现场</span><span class="ln ">grep -nE "^#|^##|Start|Finish|Elapsed" run.log | tail -20</span><span class="ln cmt"># 说明：看各阶段耗时，哪一步突然变慢，往往就是问题所在</span></code></pre></div>
+<p><strong>时间线还能回答"是不是卡住了"</strong>：某一步正常 3 分钟，这次跑了 40 分钟，说明它在反复迭代或死循环，不是"机器慢"。</p>
 <div class="scene"><div class="scene-h">工作场景 · 一个真实的排错过程</div><div class="scene-b"><p>现象：ICC2 <code>place_opt</code> 报 <code>OPT-041</code>。</p>
 <ul><li>第 1 步：往上翻日志，发现 <code>NEX-018 no valid parasitic</code>。</li><li>第 2 步：确认输入 —— NDM 有 timing view，但没读 TLU+。</li><li>第 3 步：缩小范围 —— 用 counter 小设计试，同样报错，说明是环境问题不是设计问题。</li><li>第 4 步：对比基线 —— 上一版流程没读寄生，也能跑（因为没开 place_opt）。</li><li>第 5 步：补 <code>read_parasitic_tech</code> + <code>set_parasitic_parameters</code>，通过。</li></ul>
 <p><strong>整个过程 40 分钟，其中 30 分钟花在"往上翻日志"和"缩小范围"。</strong></p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · 一上来就怀疑工具</div><div class="pit-b"><p>现象：结果不对，第一反应是"工具算错了"，于是换版本、重装 license、找 AE。</p>
+<p>原因：工具出错确实会发生，但概率远低于"输入不对"。而且一旦你认定是工具问题，就不会再去查脚本。</p>
+<p>怎么避免：先做三件事——确认输入版本、用最小复现跑一遍、和基线对比。三件都排除了，再怀疑工具。<strong>怀疑工具的成本很高（换版本要重跑全流程），排在最后。</strong></p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="debug"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="review" data-ch="review">
   <div class="ch-h"><span class="ch-n">03</span><h2>Review 该准备什么</h2></div>
-  <p>被 review 时，组长通常按这个顺序问：</p>
+  <div class="goal"><span>本章目标</span>学完这一章，你能用一页纸在五分钟内讲清"目标、现状、差异、下一步"，并接住五个必问。</div>
+<p>被 review 时，组长通常按这个顺序问：</p>
 <div class="tbl"><table><thead><tr><th>顺序</th><th>问题</th><th>你要能给出</th></tr></thead><tbody><tr><td>1</td><td>设计规模？</td><td>单元数、面积、利用率、macro 数量</td></tr><tr><td>2</td><td>现在什么状态？</td><td>做到哪个阶段，卡在哪</td></tr><tr><td>3</td><td>关键指标？</td><td>WNS/TNS、DRC 数、面积、功耗</td></tr><tr><td>4</td><td>最大的风险？</td><td>哪条路径最紧、哪个区域最拥塞</td></tr><tr><td>5</td><td>下一步计划？</td><td>具体动作 + 预计耗时</td></tr></tbody></table></div>
-<p><strong>准备一页纸</strong>：规模、状态、指标、风险、计划。比讲半小时流程有用。</p>
+<p><strong>准备一页纸，四块内容</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">【目标】本版要做到：WNS ≥ 0、DRC = 0、面积 ≤ 230×230µm</span><span class="ln ">【现状】WNS −0.12、TNS −0.8、DRC 42、面积 222.5×222.2µm</span><span class="ln ">【差异】离目标差：setup 两条路径（u_dp 41 级逻辑）、DRC 42 条（集中在 M4）</span><span class="ln ">【下一步】① 两条路径换 LVT，预计 +0.07（今天）</span><span class="ln ">          ② DRC 按区域聚类，先修 u_dsp 东侧（明天）</span><span class="ln ">          ③ 若仍差 0.05，走 waiver 并报风险评估（周四）</span></code></pre></div>
+<p>四块里最重要的是<strong>差异</strong>：目标和现状之间差什么、差多少、为什么。很多人只讲"我做了什么"，不讲"还差什么"，review 就变成了流水账。</p>
+<p>讲的时候<strong>结论先行</strong>：第一句话说"这版能过/不能过，差在哪"，然后再展开。不要从"我先做了 floorplan"讲起。</p>
+<p>一个对照：差的开场是"这周我主要做了三件事，第一是 floorplan 的宏单元调整，第二是电源规划……"；好的开场是"这版过不了，WNS 差 0.12，卡在 u_dp 的 41 级逻辑上，我需要前端帮忙拆流水"。<strong>后者三十秒就让人知道要不要介入。</strong></p>
   <label class="ch-done"><input type="checkbox" data-mark="review"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="handoff" data-ch="handoff">
   <div class="ch-h"><span class="ch-n">04</span><h2>交接的习惯</h2></div>
-  <p>给别人交东西时，至少包含：</p>
-<ol><li><strong>怎么跑</strong>：一条命令，或者一个 <code>run.sh</code>。</li><li><strong>输入在哪</strong>：网表、库、约束的路径。</li><li><strong>产物在哪</strong>：报告、def、gds。</li><li><strong>已知问题</strong>：哪些违例是已知的、为什么可以接受。</li><li><strong>上次运行结果</strong>：关键指标数字。</li></ol>
-<div class="tip"><div class="tip-h">小技巧</div><div class="code"><div class="code-h"><span class="code-lang">markdown</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ipa_top PR 交接</span><span class="ln ">- 脚本: pnr/scripts/01~07_*.tcl</span><span class="ln ">- 运行: cd pnr &amp;&amp; ./run_all.sh</span><span class="ln ">- 输入: syn/netlist/ipa_top.v, constraints/ipa.sdc</span><span class="ln ">- 结果: 单元 12026, 面积 222.5x222.2um, WNS +1.00ns, DRC 0</span><span class="ln ">- 已知问题: 3 条 max_transition 违例已 waiver（原因见 waiver.txt）</span><span class="ln ">- 复现: run/20261122_1400/</span></code></pre></div>
-<p><strong>五行字，能省对方两小时。</strong></p></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能背出至少 8 个坑及对应预防动作</li><li>掌握"看第一条错误 → 确认输入 → 缩小范围 → 对比基线"的排错顺序</li><li>知道 review 要准备哪五项</li><li>会写五行交接文档</li></ul></div>
+  <div class="goal"><span>本章目标</span>学完这一章，你能交出一份"别人照着能跑起来"的包，并说清哪三件事最容易漏。</div>
+<p>交接的本质是：<strong>让一个不认识你的人，在不问你的情况下，重现你的结果。</strong></p>
+<h3>README 五要素</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># top PR 交接（2026-11-22）</span><span class="ln ">1. 怎么跑：cd pnr &amp;&amp; ./run_all.sh        # 无参数，无交互，跑完在 run/ 下出结果</span><span class="ln ">2. 输入在哪：syn/netlist/top.v、constraints/top.sdc、lib/（版本见 versions.txt）</span><span class="ln ">3. 产物在哪：run/&lt;时间戳&gt;/ 下的 def、spef、rpt/</span><span class="ln ">4. 已知问题：3 条 max_transition 违例已 waiver，原因见 waiver.txt</span><span class="ln ">5. 上次结果：单元 12026、面积 222.5×222.2µm、WNS +0.12、DRC 0</span></code></pre></div>
+<p>五行字，能省对方两小时。缺任何一行，对方都要来问你一次。</p>
+<h3>脚本可重跑</h3>
+<p>三个条件，缺一个就不叫"可重跑"：</p>
+<ul><li><strong>无交互</strong>：不能有 <code>read -</code>、不能等用户输 y/n。所有参数从文件读或从命令行传。</li><li><strong>路径可控</strong>：输入用绝对路径或相对脚本位置的路径，不能依赖"我在哪个目录执行"。</li><li><strong>幂等</strong>：跑第二遍不会因为"目录已存在"或"文件已存在"而失败（该 <code>mkdir -p</code> 就 <code>mkdir -p</code>，该覆盖就覆盖）。</li></ul>
+<h3>数据可追溯</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Traceability</span><span class="term-zh">可追溯</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>任何一个结果，都能回答"用哪个脚本、哪版输入、什么时候、在哪台机器跑出来的"。<br>最小要求：脚本进版本管理（git）、输入文件带版本号或时间戳、每次运行的日志保留、关键产物算 checksum。</p></div>
+</div>
+<p>一个够用的目录结构：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">prj/</span><span class="ln ">├── scripts/         # 脚本，进 git；不放大文件</span><span class="ln ">├── constraints/     # SDC，进 git</span><span class="ln ">├── lib -&gt; /pdk/...  # 库用软链接，记录指向</span><span class="ln ">├── run/20261122_1400/   # 每次运行一个时间戳目录</span><span class="ln ">│   ├── run.log</span><span class="ln ">│   ├── rpt/</span><span class="ln ">│   └── README.txt   # 这次改了什么、为什么</span><span class="ln ">└── versions.txt     # 库、工具、PDK 的版本</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="handoff"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="weekly" data-ch="weekly">
+  <div class="ch-h"><span class="ch-n">05</span><h2>怎么写周报</h2></div>
+  <div class="goal"><span>本章目标</span>学完这一章，你能写出一份"全是数字、没有形容词"的周报，让组长三十秒看完。</div>
+<p>周报不是日记，是<strong>决策材料</strong>。组长看周报只想回答三个问题：进度到哪、有没有卡住、要不要我出手。</p>
+<h3>用数字说话</h3>
+<div class="tbl"><table><thead><tr><th>差</th><th>好</th></tr></thead><tbody><tr><td>本周继续优化时序，进展顺利</td><td>WNS 从 −0.35 收到 −0.12，TNS 从 −2.4 收到 −0.8，还剩 2 条</td></tr><tr><td>DRC 修了很多</td><td>DRC 从 812 降到 96，剩余集中在 M4，u_dsp 东侧占 71 条</td></tr><tr><td>和前端沟通了逻辑深度问题</td><td>已和前端确认：u_dp 的 41 级逻辑可拆成两级流水，下周三给新网表</td></tr><tr><td>功耗有点高</td><td>总功耗 1.82W（目标 1.70W），其中 leakage 0.41W，LVT 占比 28% 超标</td></tr></tbody></table></div>
+<p>差别在哪：<strong>数字能比较、能定决策、能追责；形容词不能。</strong></p>
+<h3>一个够用的模板</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">【本周目标】WNS ≥ −0.10，DRC ≤ 100</span><span class="ln ">【实际结果】WNS −0.12（差 0.02），DRC 96（达标）</span><span class="ln ">【做了什么】① 两条关键路径换 LVT，收益 +0.07</span><span class="ln ">            ② DRC 按区域聚类，修掉 u_dsp 东侧 640 条</span><span class="ln ">【卡在哪】u_dp 剩余 41 级逻辑，后端手段已用尽，需要前端拆流水</span><span class="ln ">【需要谁】前端 @张三，下周三前给新网表</span><span class="ln ">【下周计划】新网表到位后重跑；同时准备 waiver 材料（若仍差 0.02）</span></code></pre></div>
+<p>六行，包含目标、结果、动作、阻塞、求助、计划。<strong>"卡在哪"和"需要谁"这两行最容易被漏掉，也最值钱</strong>——它们让组长知道要不要介入。</p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：从一份日志走到一份 README</div><div class="lab-b"><p><strong>任务</strong>：用课程环境 <code>~/backend_lab/soc/pnr/run/</code> 下的 <code>run.log</code>（里面埋了一个真实的报错链），完成定位并写出交接文档。</p>
+<p><strong>步骤</strong>：</p>
+<ol><li><code>grep -n -m1 -E "ERROR|Error" run.log</code> 找第一条错误，记下行号。</li><li>打印它前后各十行，判断根因（是缺库、缺约束、还是路径错）。</li><li>往上找最近一次"开始某阶段"的日志，确认问题发生在哪个阶段。</li><li>用 <code>grep -c</code> 数同类错误出现了多少次，判断是单点还是批量。</li><li>按五要素写一份 <code>README.txt</code>，其中"已知问题"要写你刚定位到的这条。</li></ol>
+<p><strong>过关标准</strong>：README 能被另一个人直接照着跑；"已知问题"里写的是根因（比如"缺 TLU+ 模型"），不是现象（比如"报 OPT-041"）。</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>为什么排错要看第一条错误而不是最后一条？</div>
   <button class="q-show" type="button">看答案</button>
   <div class="q-a">后面的错误常常是第一条引起的连锁反应，修了第一条其余的往往自动消失。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>DRC 卡在几百条时应该怎么做？</div>
+  <div class="q-q"><span class="q-no"></span><code>rm -rf "${DIR:?}/"*</code> 里的 <code>:?</code> 是什么作用？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">按规则类型统计、按区域聚类，分类逐类修；批量调参数会引入新问题。</div>
+  <div class="q-a">变量为空时直接报错退出，防止 <code>DIR</code> 没设值时命令变成删除当前目录或根目录。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>网表和 SPEF 版本不一致会有什么现象？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">PT 报找不到引脚，或时序结果完全不合理。</div>
+  <div class="q-a">PT 报找不到端口/引脚，或时序结果完全不合理；必须同一次导出、文件名带同一时间戳。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>review 时被问"最大的风险是什么"，应该怎么答？</div>
+  <div class="q-q"><span class="q-no"></span>为什么第一版利用率不要定到 0.85？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">指出具体的最紧路径或最拥塞区域，并说明打算怎么处理、预计多久。</div>
+  <div class="q-a">布线需要通道，0.85 只剩 15% 给线和空隙，标准单元密集区布不通；先 0.60~0.65 再逐步加。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>交接文档最少要包含哪几项？</div>
+  <div class="q-q"><span class="q-no"></span>二分法和最小复现分别解决什么问题？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">怎么跑、输入在哪、产物在哪、已知问题、上次关键指标。</div>
+  <div class="q-a">二分法定位"问题在流程的哪一半"，最小复现定位"是不是环境/流程问题而非规模问题"。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>没有 baseline 会怎样？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">你无法判断一次改动是变好还是变坏，只能说"看起来好了"，也无法量化收益。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>review 一页纸的四块内容是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">目标、现状、差异、下一步；其中"差异"最重要，要说清差什么、差多少、为什么。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>交接的 README 五要素是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">怎么跑、输入在哪、产物在哪、已知问题（写根因）、上次关键指标。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>周报里"卡在哪"和"需要谁"为什么最值钱？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">它们让组长知道要不要介入、该找谁；没有这两行，周报只是汇报，不是决策材料。</div>
 </div></div>
-  <label class="ch-done"><input type="checkbox" data-mark="handoff"><span>这一章我学完了</span></label>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能背出至少 8 个坑，并说出每个坑对应的一条命令或一个文件名</li><li>会用 <code>${VAR:?}</code> 这类写法防止 <code>rm -rf</code> 手滑</li><li>能按"第一条错误 → 确认输入 → 缩小范围 → 对比基线 → 二分"的顺序排错</li><li>能手写一份五行 README，且"已知问题"写的是根因不是现象</li><li>能写出一页纸 review（目标/现状/差异/下一步），并做到结论先行</li><li>能写一份全是数字的周报，包含"卡在哪"和"需要谁"</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="weekly"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">

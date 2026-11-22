@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PrimeTime 签核：自己给自己签字不算数 · 28 | IC 后端学院</title>
-<meta name="description" content="布局布线工具自己算的时序不能作为签核依据。这一课讲 PT 怎么读设计、约束怎么写、报告怎么读、OCV 为什么要更悲观，以及违例怎么反馈回 PR。">
+<title>PrimeTime 签核：自己给自己签字不算数 · 31 | IC 后端学院</title>
+<meta name="description" content="布局布线工具自己算的时序只能算"边做边估"，不能作为流片依据。这一课从读入三件套讲到 SDC 五条核心约束、report_timing 逐列解读、OCV 手算、多 corner 场景表、假违例识别，最后给一份能照着跑的 PT 签核脚本和一套通过线。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -26,10 +26,10 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-5">阶段五 · 28nm 全流程</a><span>/</span><b>PrimeTime 签核：自己给自己签字不算数</b></div>
     <div class="hero">
-      <div class="hero-no">28</div>
+      <div class="hero-no">31</div>
       <h1>PrimeTime 签核：自己给自己签字不算数</h1>
       <p class="hero-en">PrimeTime Signoff</p>
-      <p class="hero-sum">布局布线工具自己算的时序不能作为签核依据。这一课讲 PT 怎么读设计、约束怎么写、报告怎么读、OCV 为什么要更悲观，以及违例怎么反馈回 PR。</p>
+      <p class="hero-sum">布局布线工具自己算的时序只能算"边做边估"，不能作为流片依据。这一课从读入三件套讲到 SDC 五条核心约束、report_timing 逐列解读、OCV 手算、多 corner 场景表、假违例识别，最后给一份能照着跑的 PT 签核脚本和一套通过线。</p>
       <div class="hero-meta">
         <span class="pill">约 65 分钟</span>
         <span class="pill">课表学时 14</span>
@@ -38,94 +38,428 @@
     </div>
     <article id="article"><section class="ch" id="why" data-ch="why">
   <div class="ch-h"><span class="ch-n">01</span><h2>为什么要用 PT 再算一遍</h2></div>
-  <p>布局布线工具内部也有时序引擎，为什么还要 PrimeTime？</p>
-<div class="tbl"><table><thead><tr><th>原因</th><th>说明</th></tr></thead><tbody><tr><td>独立性</td><td>自己检查自己不可信，同一套引擎的系统性偏差会被继承</td></tr><tr><td>精度</td><td>PT 的延迟计算模型更严格（尤其是 OCV、串扰）</td></tr><tr><td>行业标准</td><td>流片签字用的是 PT 报告，foundry 也认这个</td></tr><tr><td>约束解析</td><td>PT 对 SDC 的解析最严格，能暴露约束写法问题</td></tr></tbody></table></div>
+  <div class="goal"><span>本章目标</span>学完这一课，你能独立跑完一次 PrimeTime 签核：读进网表、库、SPEF、SDC，把 <code>check_timing</code> 清干净，读懂最差路径的每一列，说清 WNS 为什么是负的，并把违例整理成 PR 能执行的 ECO 清单。</div>
+<p>先说一个类比。</p>
+<p>装修队自己验收自己的活，你信吗？他们当然会说"平整度没问题"——因为他们量的时候用的是自己的靠尺，而且量完还要接着干活，不会主动给自己找麻烦。所以大工程都有第三方监理：监理不砌墙、不刷漆，只拿仪器量，量完签字。</p>
+<p>PrimeTime 就是时序上的"第三方监理"。它不优化设计、不改网表、不插缓冲器，只做一件事：<strong>拿一版冻结的输入，算出所有路径的 slack，然后出报告</strong>。</p>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">STA</span><span class="term-zh">静态时序分析</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>Static Timing Analysis。不跑仿真，靠遍历所有路径 + 计算延迟来判断时序是否满足。<br>优点是快（几分钟覆盖几百万条路径）、完备（不漏路径）；缺点是不能验证功能，只能验证时序。</p></div>
+  <div class="term-h"><span class="term-en">Signoff</span><span class="term-zh">签核</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>项目流片（tapeout）前必须完成的一系列"签字确认"动作。时序签核指用独立工具、固定输入、固定悲观度设置，证明设计在所有指定工况下都满足时序。签核报告是要归档的，出问题要能追溯。</p></div>
 </div>
+<h3>PR 工具里的时序引擎在干什么</h3>
+<p>布局布线工具（Innovus、ICC2）内部确实有时序引擎，而且算得不差。但它算出来的数，性质完全不同：</p>
+<div class="tbl"><table><thead><tr><th>维度</th><th>PR 工具内建 STA</th><th>PrimeTime 签核</th></tr></thead><tbody><tr><td>目的</td><td>为优化服务：告诉优化器"往哪改"</td><td>为判断服务：告诉项目"能不能流片"</td></tr><tr><td>输入</td><td>数据库里的当前状态（可能还在变）</td><td>冻结的 netlist + SPEF + SDC + 库</td></tr><tr><td>寄生参数</td><td>早期是估算 RC 或 trial route</td><td>必须读真实 SPEF（每个 corner 各一份）</td></tr><tr><td>时钟</td><td>常常先用 ideal clock 跑，快但乐观</td><td>propagated clock，走真实时钟树</td></tr><tr><td>OCV</td><td>默认可能只开一部分</td><td>按签核约定全套打开（derate / AOCV / POCV）</td></tr><tr><td>约束</td><td>为了好优化，可能加 margin 或临时放宽</td><td>冻结版 SDC，改动要留记录</td></tr><tr><td>可复现性</td><td>依赖数据库状态，别人重跑未必一样</td><td>同样四件输入，任何人跑出同一个数</td></tr></tbody></table></div>
+<p>一句话总结：<strong>PR 里的时序是"施工过程中的估算"，PT 里的时序是"竣工验收的测量"</strong>。施工队自己量出来的 3 毫米误差，监理用塞尺量可能是 5 毫米——不是谁撒谎，是量法不一样。</p>
+<h3>三个必须换工具的理由</h3>
+<p><strong>第一，立场冲突。</strong> PR 引擎的 KPI 是把设计优化到收敛。它一边算一边改，算出来的数会随优化动作漂移。你没法用一个"正在被修改的对象"的报告去证明这个对象合格。</p>
+<p><strong>第二，模型精度不同。</strong> PR 为了跑得快，会在很多地方简化：串扰用简化模型、时钟路径的 OCV 只算一部分、rc corner 只算当前场景。PT 的延迟计算是签核级实现，尤其在串扰（SI）和 OCV 上更严格。</p>
+<p><strong>第三，责任要可追溯。</strong> 签核报告要归档、要能被第三方复核。复核的人不会去打开你的 PR 数据库（版本、license、环境都对不上），他只会拿 netlist + SPEF + SDC + 库，在自己机器上跑一遍 PT，看 WNS 是否一致。</p>
+<div class="pit"><div class="pit-h">常见坑 · "PR 里 WNS 是正的，PT 一跑变负的 0.3ns"</div><div class="pit-b"><p>这是后端最常见的"惊喜"，原因通常只有四类，按出现频率排：</p>
+<ol><li><strong>PR 用的是估算 RC，PT 读的是真 SPEF。</strong> 布线后真实线延迟比估算差 10%~20%，长线更多。</li><li><strong>PR 里时钟是 ideal，PT 里是 propagated。</strong> ideal clock 假设所有触发器同时收到时钟，skew 被当成 0；真实时钟树有几十到几百 ps 的偏差，还要叠加 OCV。</li><li><strong>PR 没开 OCV 或只开了一半。</strong> 签核的 derate 一加，路径两端的延迟差被放大。</li><li><strong>约束版本不一致。</strong> PR 用的是两周前的 SDC，PT 用的是最新冻结版，时钟周期或 input delay 改了。</li></ol>
+<p>排查顺序就按这四条走：先比 SPEF 是不是同一版，再比时钟模式，再比 derate 设置，最后 diff 两份 SDC。<strong>不要一上来就怀疑工具算错了。</strong></p></div></div>
+<h3>工作中怎么用</h3>
+<p><strong>谁做</strong>：大公司里分工明确——PR 工程师负责"跑出干净的数据库并自检"，STA 工程师（或签核组）负责"用 PT 独立复算并签字"。小公司常常是同一个人做两遍，但<strong>必须换工具、换时间点、换心态</strong>，否则等于自己给自己改卷子。</p>
+<p><strong>输入从哪来</strong>：PR 导出 netlist（门级 verilog）、每个 corner 的 SPEF、冻结版 SDC、对应 corner 的库。四样东西要带版本号，缺一样报告就作废。</p>
+<p><strong>输出交给谁</strong>：签核报告进项目的 signoff checklist，是 tapeout review 的必过项。同时把违例清单交回 PR 做 ECO。</p>
+<p><strong>做错了会怎样</strong>：签核放过一条真违例，流片回来就是"某些芯片在高温低压下偶尔算错"。这种问题没法靠软件补丁修，只能改版——一次全掩膜（mask set）的钱，按工艺从几十万到上千万人民币。</p>
   <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="signoff" data-ch="signoff">
+  <div class="ch-h"><span class="ch-n">02</span><h2>签核到底签的是什么</h2></div>
+  <p>很多人以为签核是"看报告上有没有红字"。不是。签核签的是<strong>一组条件</strong>：在这些条件下，这版设计满足时序。</p>
+<p>所以一份合格的签核记录必须能回答六个问题：</p>
+<div class="tbl"><table><thead><tr><th>问题</th><th>记录在哪</th></tr></thead><tbody><tr><td>哪一版网表？</td><td>netlist 的文件名 + git commit / 版本号</td></tr><tr><td>哪一版约束？</td><td>SDC 文件名 + 修改记录</td></tr><tr><td>用了哪些库、什么 corner？</td><td><code>link_path</code> 里的 <code>.db</code> 清单，逐场景列出</td></tr><tr><td>寄生参数从哪来？</td><td>SPEF 文件名 + 提取工具 + 对应 rc corner</td></tr><tr><td>悲观度怎么设的？</td><td>derate 值 / AOCV 表 / POCV 的 sigma 设置</td></tr><tr><td>哪些违例被豁免了，谁批的？</td><td>waiver 清单，每条要有理由和批准人</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Corner</span><span class="term-zh">工艺角</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>芯片制造出来的参数会落在一定范围内。Corner 就是取范围的边界组合：工艺（process）快/慢、电压（voltage）高/低、温度（temperature）高/低。签核必须在最有代表性的几个角上都过。<br>常见的三档：<strong>SS</strong>（slow-slow，慢管）、<strong>TT</strong>（typical，典型）、<strong>FF</strong>（fast-fast，快管）。名字里的两个字母分别指 NMOS 和 PMOS 的快慢。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">PVT</span><span class="term-zh">工艺-电压-温度</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Process、Voltage、Temperature 三个字母。器件延迟对这三者都敏感：慢工艺 + 低电压 + 高温通常最慢（但先进工艺里温度反转，高温反而变快，见后文 corner 一节）。</p></div>
+</div>
+<p>先建立"多场景"的心智模型：签核不是跑一次，是跑一张表。表里每一行是一个场景（scenario），每行都要有自己的库、SPEF、约束和悲观度设置。这也是为什么 14 学时的课要花一整节讲 corner——<strong>跑错场景，报告再漂亮也没意义</strong>。</p>
+<div class="note"><div class="note-h">一个反直觉的点</div><p>签核报告"全绿"不等于芯片一定能工作。它只证明：在列出的场景下，按当前的模型和约束，时序满足。模型不准（库错了）、约束漏了（少写一个时钟）、功能有 bug（CDC 没做），签核都发现不了。</p>
+<p>所以签核是<strong>必要条件，不是充分条件</strong>。这句话在面试里说出来，比背十条命令更加分。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="signoff"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="read" data-ch="read">
-  <div class="ch-h"><span class="ch-n">02</span><h2>读入三件套</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># pt_shell 里执行</span><span class="ln ">set link_path "* /pdk/db/tsmc28_tt.db /pdk/db/sram_2048x64.db"</span><span class="ln cmt"># link_path 里必须包含所有用到的库，否则单元解析不出来</span><span class="ln "> </span><span class="ln ">read_verilog ./final.v</span><span class="ln ">link_design</span><span class="ln cmt"># 读网表并解析单元</span><span class="ln "> </span><span class="ln ">read_sdc ./ipa.sdc</span><span class="ln cmt"># 读约束</span><span class="ln "> </span><span class="ln ">read_parasitics -format SPEF ./final.spef</span><span class="ln cmt"># 读寄生参数（这一步决定时序精度）</span><span class="ln "> </span><span class="ln cmt"># 检查</span><span class="ln ">check_timing</span><span class="ln cmt"># 会报：没有时钟、没有输入延迟、未约束的路径…… 必须清干净</span></code></pre></div>
-<div class="pit"><div class="pit-h">常见坑 · link_path 漏库，时序全错</div><div class="pit-b"><p>现象：PT 报一堆 <code>Cannot find cell 'SRAM_2048x64'</code>，或者把这些单元当成黑盒（延迟按 0 算），时序看起来"特别好"。</p>
-<p><strong>时序看起来过于乐观，第一反应就该怀疑库没读全。</strong></p>
-<p>检查：<code>report_design -library</code> 看实际用了哪些库，和网表里的单元列表对比。</p></div></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>读入三件套：网表、库、SPEF</h2></div>
+  <div class="scene"><div class="scene-h">工作场景 · 周一早上，PT 一开就三行红字</div><div class="scene-b"><p>你拿到上周五 PR 导出的数据，在 <code>signoff/pt/</code> 下起了一个 <code>pt_shell</code>。按同事给的脚本改了路径，<code>source run.tcl</code>，屏幕立刻刷出：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: Cannot find the link library 'sram_2048x64_ss.db'. (LINK-5)</span><span class="ln ">Warning: Unable to resolve reference 'SRAM_2048X64' in 'u_mem/u_sram0'. (LINK-5)</span><span class="ln ">Warning: Linking design with 1 unresolved reference.</span></code></pre></div>
+<p>设计"link 成功"了，<code>report_timing</code> 也能出结果，WNS 还特别漂亮：+1.8ns。你隐约觉得不对——上周 PR 里 WNS 是 +0.05ns。</p>
+<p>问题就在这三行字里：<strong>存储器宏没解析出来，PT 把它当黑盒，延迟按 0 算</strong>。一条穿过 SRAM 的路径，凭空省掉了 1.5ns。这份报告如果交上去，等于给项目签了一张假条。</p>
+<p>（PT 的报错码在不同版本里略有差异，<code>LINK-5</code> 这类编号可能变，但关键字 <code>Cannot find the link library</code> / <code>unresolved reference</code> 是稳定的，排查时抓关键字。）</p></div></div>
+<p>做菜要有三样东西：菜谱（做什么）、食材规格表（每样食材多大火力多久）、厨房到餐桌的路况（菜端过去会不会凉）。PT 也一样：</p>
+<div class="tbl"><table><thead><tr><th>三件套</th><th>类比</th><th>文件</th><th>读入命令</th></tr></thead><tbody><tr><td>网表 netlist</td><td>菜谱：谁连谁</td><td><code>final.v</code>（门级 verilog）</td><td><code>read_verilog</code> + <code>link_design</code></td></tr><tr><td>库 library</td><td>食材规格：每个单元多快、多耗电</td><td><code>.db</code>（二进制）/ <code>.lib</code>（文本）</td><td><code>set link_path</code> 或 <code>read_db</code></td></tr><tr><td>寄生参数 SPEF</td><td>路况：每根线多长、多少电阻电容</td><td><code>final.spef</code></td><td><code>read_parasitics</code></td></tr></tbody></table></div>
+<h3>网表：只有连接关系，没有物理信息</h3>
+<p>门级网表长这样（示意）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">verilog</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">// 作用：门级网表的最小样子，让读者看清"网表里只有实例和连线"</span><span class="ln cmt">// 用法：PT 里用 read_verilog 读入，不需要综合库以外的东西</span><span class="ln ">module top (clk, rst_n, din, dout);</span><span class="ln ">  input clk, rst_n;          // 端口声明</span><span class="ln ">  input  [7:0] din;</span><span class="ln ">  output [7:0] dout;</span><span class="ln ">  wire   [7:0] n1;           // 内部连线，名字是综合工具起的</span><span class="ln ">  DFFX1  u_reg0 (.CK(clk), .D(din[0]), .Q(n1[0]));   // 一个触发器实例</span><span class="ln ">  BUFX2  u_b0   (.A(n1[0]),  .Y(dout[0]));           // 一个缓冲器实例</span><span class="ln cmt">  // ……其余位省略</span><span class="ln ">endmodule</span></code></pre></div>
+<p>要看出三件事：</p>
+<ol><li>网表里全是<strong>实例（instance）和连线（net）</strong>，没有"这条线多长"的信息。线长要靠 SPEF 补。</li><li>每个实例的类型（<code>DFFX1</code>、<code>BUFX2</code>）必须能在库里找到。找不到就是黑盒。</li><li>网表<strong>不含时钟周期、不含输入延迟</strong>。这些全靠 SDC。</li></ol>
+<h3>库：<code>.lib</code> 和 <code>.db</code> 的区别</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Liberty (.lib)</span><span class="term-zh">liberty 时序库</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>描述标准单元/宏的文本格式文件：每个单元有哪些引脚、每条时序弧（timing arc）的延迟表、setup/hold 约束、输入电容、内部功耗。人可读，但文件很大（几十到几百 MB）。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">.db</span><span class="term-zh">编译后的二进制库</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把 <code>.lib</code> 用 <code>lc_shell</code>（Library Compiler）编译成的二进制格式，PT 和 DC 读得快。<strong>内容等价，只是格式不同</strong>。签核时用 <code>.db</code>，改库参数时要回到 <code>.lib</code> 再重新编译。</p></div>
+</div>
+<p>库里最关键的三个概念，先用大白话说清：</p>
+<ul><li><strong>时序弧（timing arc）</strong>：信号从 A 引脚走到 Y 引脚要多久。这个"多久"不是常数，是一张二维表——输入 transition 和输出负载各一维。</li><li><strong>约束（constraint）</strong>：触发器要求数据在时钟沿前多久稳定（setup）、沿后多久不能变（hold）。</li><li><strong>条件（when）</strong>：同一条弧在不同条件下延迟不同，比如"当 A=1 时走这条，A=0 时走那条"。</li></ul>
+<p>所以库里一个触发器可能有几十条弧。<strong>库选错 corner，所有弧的数值全错</strong>——这不是精度问题，是系统性错误。</p>
+<h3>SPEF：每根线的电阻和电容</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">SPEF</span><span class="term-zh">标准寄生参数交换格式</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Standard Parasitic Exchange Format，IEEE 1481 标准。内容是一张表：每个 net 被切成若干段，每段给电阻、对地电容、对相邻线的耦合电容。提取工具（StarRC、QRC）从版图算出来，PT 读进去算真实线延迟。</p></div>
+</div>
+<p>SPEF 开头有一段单位声明，必须看：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">*SPEF "IEEE 1481-1998"</span><span class="ln cmt">*DESIGN "top"</span><span class="ln cmt">*DATE "Fri Nov 20 09:12:31 2026"</span><span class="ln cmt">*VENDOR "StarRC"</span><span class="ln cmt">*PROGRAM "StarRC"</span><span class="ln cmt">*VERSION "&lt;提取工具版本&gt;"   # 版本号随工具而变，这里不写死</span><span class="ln cmt">*DESIGN_FLOW "PIN_CAP NONE"</span><span class="ln cmt">*DIVIDER /</span><span class="ln cmt">*DELIMITER :</span><span class="ln cmt">*BUS_DELIMITER [ ]</span><span class="ln cmt">*T_UNIT 1 PS          # 时间单位：皮秒</span><span class="ln cmt">*C_UNIT 1 FF          # 电容单位：飞秒</span><span class="ln cmt">*R_UNIT 1 OHM         # 电阻单位：欧姆</span><span class="ln cmt">*L_UNIT 1 HENRY</span></code></pre></div>
+<p><code>*T_UNIT 1 PS</code> 这一行如果被改成 <code>1 NS</code>，同一份数字会被解读成慢 1000 倍——整份报告全废，而且工具不会报错。所以<strong>每次读 SPEF 都要扫一眼单位段</strong>，这也是 signoff checklist 里的一行。</p>
+<p>线延迟到底多大？手算一次：</p>
+<p>一根 M4 线长 1mm，单位电阻 0.2 Ω/µm，单位电容 0.2 fF/µm，驱动器输出电阻忽略。</p>
+<ul><li>总电阻 <code>R = 0.2 × 1000 = 200 Ω</code></li><li>总电容 <code>C = 0.2 × 1000 = 200 fF</code></li><li>分布式 RC 线的 Elmore 延迟约 <code>0.5 × R × C = 0.5 × 200 × 200f = 20 ps</code></li></ul>
+<p>20ps 看起来很小。但一条路径上如果有 30 段这样的线，加起来 600ps；而 28nm 下一个周期才 2ns。<strong>这就是为什么"没读 SPEF"的时序一定是假的乐观。</strong></p>
+<h3>标准读入流程与顺序纪律</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ============================================================</span><span class="ln cmt"># 作用：PT 读入三件套的最小可用流程</span><span class="ln cmt"># 用法：pt_shell -f read_design.tcl，在 signoff/pt/ 目录下跑</span><span class="ln cmt"># 前提：netlist.v / final.spef / constraints.sdc 都在当前目录</span><span class="ln cmt"># ============================================================</span><span class="ln "> </span><span class="ln cmt"># ---- 1. 设库搜索路径。三部分：当前目录、工艺库、宏库 ----</span><span class="ln ">set link_path "* \</span><span class="ln ">  /pdk/28nm/lib/ss_0p81v_125c/std_cell_ss.db \</span><span class="ln ">  /pdk/28nm/lib/ss_0p81v_125c/sram_2048x64_ss.db \</span><span class="ln ">  /pdk/28nm/lib/ss_0p81v_125c/io_ss.db"</span><span class="ln cmt"># 说明："*" 表示"当前 design 里已有的库优先"，必须有</span><span class="ln cmt"># 说明：每个 .db 都要写绝对路径，别依赖未知的 search_path</span><span class="ln "> </span><span class="ln cmt"># ---- 2. 读网表并解析 ----</span><span class="ln ">read_verilog ./netlist/final.v          ;# 只建立层次和连接，还没解析单元</span><span class="ln ">link_design -keep_sub_designs           ;# 解析每个实例对应的库单元</span><span class="ln cmt"># 说明：link 之后立刻看有没有 unresolved reference 的 warning</span><span class="ln "> </span><span class="ln cmt"># ---- 3. 读 SDC。必须在 link 之后！----</span><span class="ln ">source ./constraints/final.sdc          ;# 时钟、IO 延迟、例外全在这</span><span class="ln cmt"># 说明：link 之前读，get_ports 会返回空，约束静默失效（见下面的坑）</span><span class="ln "> </span><span class="ln cmt"># ---- 4. 读寄生参数 ----</span><span class="ln ">read_parasitics -format SPEF ./spef/final_ss_cmax.spef</span><span class="ln cmt"># 说明：一个 corner 一份 SPEF，别混用</span><span class="ln "> </span><span class="ln cmt"># ---- 5. 确认三件事都生效了 ----</span><span class="ln ">report_design -library                  ;# 列出实际用到的库，逐个对</span><span class="ln ">report_clocks                           ;# 时钟有没有、周期对不对</span><span class="ln ">check_timing                            ;# 未约束/无时钟/无输入延迟</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · SDC 读在 link 之前，约束"静默失效"</div><div class="pit-b"><p>现象：<code>report_clocks</code> 是空的，<code>report_timing</code> 报 <code>No paths</code>，或者所有路径都不受约束。PT 只给一句 <code>Warning: No clocks found</code>，不报错。</p>
+<p>原因：SDC 里写的是 <code>[get_ports clk]</code>。<code>link_design</code> 之前，设计还没有端口对象，<code>get_ports clk</code> 返回空列表。于是 <code>create_clock -period 2.0 []</code> 什么都没创建。后面的 <code>set_input_delay</code> 同理，全部作用在空集合上。</p>
+<p>为什么危险：PT 对"空集合"只给 warning，脚本不会中断。你可能跑完一整套报告、写进 PPT，才发现报告里一条路径都没有。</p>
+<p>怎么查：读 SDC 后立刻跑 <code>report_clocks</code> 和 <code>llength [all_clocks]</code>。数量对不上就是没生效。<strong>固定顺序：read_verilog → link_design → source SDC → read_parasitics。</strong></p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · link 只报 warning，不报 error</div><div class="pit-b"><p><code>link_design</code> 遇到解析不了的单元，默认只给 warning 并继续，把该实例当黑盒。后果是穿过它的路径延迟被算成接近 0，WNS 假性变好。</p>
+<p>三个必查动作：</p>
+<ol><li><code>link_design</code> 之后 <code>grep -i unresol</code> 日志，条数必须是 0。</li><li><code>report_design -library</code> 对比网表里出现的单元类型清单，看有没有整类缺失。</li><li>抽样 <code>report_timing -through [get_pins u_mem/u_sram0/*]</code>，看宏内部的延迟是不是 0。</li></ol>
+<p>如果宏确实要当黑盒（比如只有 lef 没有 lib），那必须<strong>显式</strong>用 <code>set_disable_timing</code> 并记录在案，而不是让工具默默当 0 算。</p></div></div>
+<h3>link_design 报错排查表</h3>
+<div class="tbl"><table><thead><tr><th>报错/现象</th><th>常见原因</th><th>处理</th></tr></thead><tbody><tr><td><code>Cannot find the link library 'xxx.db'</code></td><td>路径写错、文件名大小写不符、库没编译</td><td><code>ls</code> 确认文件存在；<code>.lib</code> 用 <code>lc_shell</code> 编译成 <code>.db</code></td></tr><tr><td><code>Unable to resolve reference 'SRAM_2048X64'</code></td><td>宏库没加进 <code>link_path</code>；网表里的名字和库里不一致</td><td>补宏库；<code>report_lib</code> 查库里真实单元名</td></tr><tr><td><code>Linking design with N unresolved references</code></td><td>同上的批量表现</td><td>按单元名去重统计，一次性补齐</td></tr><tr><td><code>Cannot find port 'xxx' in design</code></td><td>SDC 里的名字和网表不匹配（综合改名了）</td><td><code>get_ports *xxx*</code> 模糊找，或回综合确认命名规则</td></tr><tr><td>时序好得离谱（WNS +1.8ns）</td><td>有黑盒被当 0 延迟</td><td>按上面三条必查动作排查</td></tr><tr><td>多个库同名单元冲突</td><td>同时读了两个 corner 的库</td><td>一个场景只读一个 corner 的库，多 corner 分进程跑</td></tr></tbody></table></div>
+<div class="note"><div class="note-h">为什么一个场景只读一个 corner 的库</div><p>两个 corner 的 <code>.db</code> 里有同名单元（比如都叫 <code>DFFX1</code>），PT 的 <code>link_path</code> 从左到右匹配，谁在前用谁。混着读的结果是"一部分单元用慢库、一部分用快库"，算出来的东西没有物理意义。</p>
+<p>多 corner 的正确做法是<strong>一个 corner 一个 PT session</strong>（或用 MCMM 的多场景机制），而不是一个 session 里读多套库。</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="read"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="sdc" data-ch="sdc">
-  <div class="ch-h"><span class="ch-n">03</span><h2>约束怎么写（SDC 核心五条）</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 定义时钟：周期 2.0ns，占空比 50%</span><span class="ln ">create_clock -name clk_core -period 2.0 [get_ports clk]</span><span class="ln "> </span><span class="ln cmt"># 2. 时钟不确定性：给 jitter 和 skew 留余量（签核时更保守）</span><span class="ln ">set_clock_uncertainty -setup 0.15 [get_clocks clk_core]</span><span class="ln ">set_clock_uncertainty -hold  0.08 [get_clocks clk_core]</span><span class="ln "> </span><span class="ln cmt"># 3. 输入延迟：数据从芯片外进来，要算上游器件的延迟</span><span class="ln ">set_input_delay -clock clk_core -max 1.2 [get_ports data_in*]</span><span class="ln ">set_input_delay -clock clk_core -min 0.3 [get_ports data_in*]</span><span class="ln "> </span><span class="ln cmt"># 4. 输出延迟：数据出去后要在外部器件建立前到达</span><span class="ln ">set_output_delay -clock clk_core -max 1.0 [get_ports data_out*]</span><span class="ln "> </span><span class="ln cmt"># 5. 例外路径：这些路径不用按单周期算</span><span class="ln ">set_false_path -from [get_ports rst_n]            # 复位不需要时序</span><span class="ln ">set_multicycle_path 2 -setup -from [get_cells u_slow/*] -to [get_cells u_slow/*]</span><span class="ln cmt"># 多周期：这条路径允许 2 个周期完成（慢速模块）</span></code></pre></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>约束怎么写：SDC 核心五条</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">SDC</span><span class="term-zh">设计约束</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Synopsys Design Constraints，基于 Tcl 的一套约束语言。它描述"设计要在什么条件下工作"：时钟多快、外部信号什么时候来、哪些路径不用查、信号边沿最慢允许多少。<br>SDC 不是"给工具的设置"，它是<strong>设计规格的一部分</strong>。同一个网表配两份不同的 SDC，就是两个不同的设计。</p></div>
+</div>
+<p>SDC 有几十条命令，但<strong>真正决定签核结论的只有五条</strong>。剩下的是例外（false path、multicycle、clock group），放在 <code>06-01</code> 课讲。</p>
+<p>这五条的共同点：每一条都要填一个数，而那个数<strong>不是工具能猜的，必须有人负责</strong>。下面逐条讲"这个数从哪来"和"写错会怎样"。</p>
+<h3>第一条：<code>create_clock</code> —— 时钟有多快</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：定义芯片的主时钟。这是所有时序计算的基准，写错则全盘皆错</span><span class="ln cmt"># 用法：SDC 最前面几行，必须在任何 set_input_delay 之前</span><span class="ln ">create_clock -name clk_core -period 2.000 -waveform {0 1.000} [get_ports clk]</span><span class="ln cmt"># -name      给时钟起名。后面所有约束都引用这个名字，改名等于改全部约束</span><span class="ln cmt"># -period    周期，单位 ns。2.000 = 500MHz</span><span class="ln cmt"># -waveform  上升沿/下降沿时刻。{0 1.0} = 50% 占空比</span></code></pre></div>
+<p><strong>为什么是这个数</strong>：周期只有两个来源——要么是芯片规格书写的目标频率（<code>T = 1/f</code>），要么是 PLL/IP 输出手册给的范围。500MHz → 2.0ns；800MHz → 1.25ns；1GHz → 1.0ns。</p>
+<p><strong>写小了会怎样</strong>：过度约束。工具拼命优化，面积和功耗白涨，最后还是能过——只是浪费了两周。<strong>写大了会怎样</strong>：这是真事故。周期写成 2.5ns 而芯片实际跑 2.0ns，PT 全绿，流片回来跑不到标称频率，整个项目降频卖。</p>
+<p>三个容易漏的点：</p>
+<ul><li><strong>占空比不是永远 50%</strong>。DDR 接口、某些 IP 要求 40/60，<code>-waveform</code> 必须按手册写。</li><li><strong>时钟名要统一</strong>。<code>create_clock -name clk_core</code> 之后，<code>set_clock_uncertainty [get_clocks clk_core]</code> 才有效。名字打错，<code>get_clocks</code> 返回空，约束静默失效（和前面 SDC 读太早是同一类坑）。</li><li><strong>虚拟时钟</strong>。芯片外面那颗驱动 IO 的时钟不在你的网表里，用 <code>create_clock -name vclk -period 2.0</code>（<strong>不带端口</strong>）建一个虚拟时钟，专门给 <code>set_input_delay</code> 用。</li></ul>
+<h3>第二条：<code>set_input_delay</code> —— 外面送进来的数据什么时候到</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Input Delay</span><span class="term-zh">输入延迟</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>数据到达芯片输入端口时，相对于<strong>参考时钟沿</strong>已经过去了多久。它描述的是芯片外部（上游器件 + 板级走线）的延迟，不是你芯片内部的延迟。</p></div>
+</div>
+<p>类比：你约人 9:00 开会，对方从家到公司要 40 分钟。你不能假设他 9:00 整出现在会议室——你要按"他 8:20 出发"来安排。<code>set_input_delay</code> 就是那个"路上要花的时间"。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：告诉 PT 外部数据最早/最晚什么时候到达输入端口</span><span class="ln cmt"># 用法：create_clock 之后。max 用于 setup 检查，min 用于 hold 检查</span><span class="ln ">set_input_delay -clock clk_core -max 1.60 [get_ports din*]</span><span class="ln cmt"># -max：最晚到达。setup 检查用这个数（数据来得晚，最危险）</span><span class="ln ">set_input_delay -clock clk_core -min 1.10 [get_ports din*]</span><span class="ln cmt"># -min：最早到达。hold 检查用这个数（数据来得太早，会把上一拍冲掉）</span></code></pre></div>
+<p><strong>为什么是这两个数</strong>：它们来自上游器件的时序手册 + 板级走线，算两遍：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">input_delay_max = Tco_ext_max + Tpcb_max</span><span class="ln ">input_delay_min = Tco_ext_min + Tpcb_min</span></code></pre></div>
+<p>手算：上游触发器 <code>Tco</code> 手册给 0.9~1.3ns，PCB 走线仿真给 0.25ns ±0.05ns。</p>
+<ul><li><code>max = 1.3 + 0.30 = 1.60ns</code></li><li><code>min = 0.9 + 0.20 = 1.10ns</code></li></ul>
+<p><strong>写小了会怎样</strong>：<code>max</code> 写小 → 工具以为数据来得早，内部留的时间不够，实际芯片上数据到得太晚，setup 违例，功能错。<code>min</code> 写小（或干脆不写）→ hold 检查过于乐观，芯片上数据太早冲掉上一拍，同样是功能错，而且这种错在实验室常温下可能测不出来，只在低压高温出现。</p>
+<p><strong>最常见的错误是只写 <code>-max</code> 不写 <code>-min</code></strong>。PT 会把 min 当 0，hold 分析失真。规矩：<strong>IO 延迟必须成对写</strong>。</p>
+<h3>第三条：<code>set_output_delay</code> —— 送出去的数据要留多少时间给别人</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：告诉 PT 外部接收器件对数据的要求（建立/保持 + 板级延迟）</span><span class="ln cmt"># 用法：对每个输出端口写一组，max 管 setup，min 管 hold</span><span class="ln ">set_output_delay -clock clk_core -max 0.50 [get_ports dout*]</span><span class="ln cmt"># -max = 外部 setup 要求 + 板级最大延迟</span><span class="ln ">set_output_delay -clock clk_core -min 0.10 [get_ports dout*]</span><span class="ln cmt"># -min = 板级最小延迟 − 外部 hold 要求（可以是负数）</span></code></pre></div>
+<p><strong>为什么和 input delay 不一样</strong>：输入延迟是"别人多久送到我门口"，输出延迟是"我必须多久之内送到别人门口"。方向相反，所以 <code>-min</code> 的符号要反过来减外部 hold。</p>
+<p>手算：外部接收触发器 setup 0.20ns、hold 0.10ns，PCB 走线 0.20~0.30ns。</p>
+<ul><li><code>max = 0.20 + 0.30 = 0.50ns</code>（我必须在时钟沿前 0.5ns 把数据送到）</li><li><code>min = 0.20 − 0.10 = 0.10ns</code>（我不能早于沿前 0.1ns 送到，否则冲掉别人的 hold）</li></ul>
+<p><strong>写错会怎样</strong>：<code>max</code> 写小 → 输出路径被过度优化（浪费），或者反过来写太大 → 输出路径修不动，WNS 卡在 IO 上。更隐蔽的是 <code>-min</code> 漏写：输出 hold 不检查，芯片间通信在快速 corner 下偶发误码。</p>
+<h3>第四条：<code>set_clock_uncertainty</code> —— 给时钟留多少余量</h3>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Clock Uncertainty</span><span class="term-zh">时钟不确定性</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>约束里给时钟加的"额外悲观量"。包含两部分：时钟源抖动（jitter）和时钟树偏斜（skew）的残余。<br><code>set_clock_uncertainty -setup 0.15</code> 的意思是：<strong>算 setup 时，假设时钟比理想情况早到 0.15ns</strong>，逼工具留出余量。</p></div>
+  <div class="term-b"><p>在理想时钟之上额外加的一段"悲观量"，用来覆盖：时钟源抖动（jitter）、时钟树偏斜（skew）的残余、以及建模误差。setup 和 hold 要分别设，因为两者的最坏组合方向相反。</p></div>
 </div>
-<div class="pit"><div class="pit-h">常见坑 · false_path 用多了，等于骗自己</div><div class="pit-b"><p><code>set_false_path</code> 是告诉工具"这条路径不用检查"。用对了是效率（复位、测试逻辑），用错了是掩盖问题。</p>
-<p>真实事故：有人为了让报告变绿，把一条真实的跨时钟域路径设成 false path。流片后功能错，几百万打水漂。</p>
-<p><strong>规矩：每一条 false_path 都要写注释说明理由，并且 Review 时逐条过。</strong></p></div></div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：给 setup/hold 分别加时钟余量</span><span class="ln cmt"># 用法：CTS 之前用大值（覆盖未知 skew），CTS 之后可以适当收紧</span><span class="ln ">set_clock_uncertainty -setup 0.150 [get_clocks clk_core]</span><span class="ln cmt"># setup：假设捕获时钟早到 0.15ns，逼工具多留 150ps</span><span class="ln ">set_clock_uncertainty -hold  0.080 [get_clocks clk_core]</span><span class="ln cmt"># hold：假设时钟关系更差，留 80ps（hold 的余量通常比 setup 小）</span></code></pre></div>
+<p><strong>这个数是怎么拼出来的</strong>（典型拆法，具体值看项目）：</p>
+<div class="tbl"><table><thead><tr><th>来源</th><th>setup 贡献</th><th>hold 贡献</th><th>说明</th></tr></thead><tbody><tr><td>PLL 周期抖动</td><td>30ps</td><td>10ps</td><td>手册给，取峰峰值的一半更保守</td></tr><tr><td>PLL 相位误差</td><td>20ps</td><td>10ps</td><td>同上</td></tr><tr><td>CTS 后残余 skew</td><td>40ps</td><td>40ps</td><td>用 <code>report_clock_timing</code> 的实测值，别拍脑袋</td></tr><tr><td>建模/提取误差</td><td>20ps</td><td>20ps</td><td>经验值，先进工艺要加大</td></tr><tr><td>合计</td><td>110ps</td><td>80ps</td><td>签核取整到 150 / 80</td></tr></tbody></table></div>
+<p><strong>为什么 setup 比 hold 大</strong>：setup 检查跨一个时钟周期，两个沿的抖动不相关，最坏情况是"发射沿晚 + 捕获沿早"，抖动要算两遍；hold 检查在同一个沿附近，抖动大部分共模抵消。</p>
+<p><strong>写错会怎样</strong>：写 0 → 报告变好看，实际芯片在抖动大的时候出错，这是典型的"签核放水"。写太大（比如 0.5ns）→ 过度悲观，明明能跑的设计被修了两周还收不掉，最后被迫降频——<strong>悲观也是一种成本</strong>。</p>
+<div class="pit"><div class="pit-h">常见坑 · CTS 之后 uncertainty 忘了收紧</div><div class="pit-b"><p>现象：CTS 前为了覆盖未知 skew 把 uncertainty 设成 0.2ns，CTS 做完 skew 实测只有 60ps，但脚本没改，签核一直按 0.2ns 算，WNS 卡在 −0.15ns 怎么都修不掉。</p>
+<p>原因：uncertainty 里的 skew 部分和真实时钟树是<strong>重复计算</strong>的。CTS 之后时钟走 propagated，skew 已经在路径里体现了，uncertainty 里那份就该缩到"残余 + 抖动"。</p>
+<p>处理：CTS 后按 <code>report_clock_timing -type skew</code> 的实测值重算 uncertainty，并在签核记录里写明"uncertainty 从 0.20 收到 0.12，依据是实测 skew 60ps"。<strong>改动要有依据，不能为了让报告变绿而改。</strong></p></div></div>
+<h3>第五条：<code>set_max_transition</code> —— 边沿最慢允许多少</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Max Transition</span><span class="term-zh">最大转换时间</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>信号从低到高（或高到低）跨越阈值区间所需的时间上限。超过这个值，单元延迟表要外插（不准）、短路功耗上升、串扰和电迁移都会恶化。</p></div>
+</div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：给所有输入端口和内部网络设边沿上限（DRV 检查的依据）</span><span class="ln cmt"># 用法：可以和库里的默认值一致，也可以按设计需要收紧</span><span class="ln ">set_max_transition 0.120 [current_design]</span><span class="ln cmt"># 全设计 120ps 上限（典型值，实际看库和工艺）</span><span class="ln ">set_max_transition 0.080 [get_ports din*]</span><span class="ln cmt"># 关键输入端口更严：边界信号质量差会一路传进去</span><span class="ln ">set_max_capacitance 0.050 [current_design]</span><span class="ln cmt"># 顺带把最大负载也设上，两者是一对</span></code></pre></div>
+<p><strong>为什么是这个数</strong>：库里每个单元都有 <code>max_transition</code> 属性，那是"保证延迟表有效"的边界。设计值一般取库值的 80%~100%。工艺越先进，这个数越小（16nm 常在 60~80ps）。</p>
+<p><strong>写错会怎样</strong>：不设 → 工具只用库默认值，某些路径的边沿烂到 300ps 也不报，签核"通过"但 SI 和 EM 全挂。设太松（比如 0.5ns）→ 等于没设。设太紧（0.03ns）→ 工具疯狂插 buffer，面积爆炸还收不掉。</p>
+<p><strong>这条最容易被当成"次要检查"跳过</strong>。实际上先进工艺里 DRV 违例经常是 WNS 修不掉的真因：边沿太慢 → 延迟表外插 → 延迟算不准 → 你按错的延迟修时序。</p>
+<div class="note"><div class="note-h">五条之外还有什么</div><p><code>set_clock_groups</code>（异步时钟分组）、<code>set_false_path</code>、<code>set_multicycle_path</code>、<code>set_max_delay</code> 这四条决定"哪些路径该查、按几拍查"，写错的后果比数值写错更严重——它们能让一整类违例凭空消失。详见 <code>06-01 STA 深水区</code>。</p>
+<p>本课只强调一条纪律：<strong>每一条例外约束都要写注释说明理由，并在评审时逐条过。</strong>没有理由的 false path，等于在签核报告上造假。</p></div>
+<h3>五条约束的检查清单</h3>
+<p>写完 SDC 不要直接跑报告，先过这张表：</p>
+<div class="tbl"><table><thead><tr><th>检查</th><th>命令</th><th>期望</th></tr></thead><tbody><tr><td>时钟数量对不对</td><td><code>llength [all_clocks]</code></td><td>等于设计里的时钟数（含虚拟时钟）</td></tr><tr><td>周期对不对</td><td><code>report_clocks</code></td><td>逐个对规格书</td></tr><tr><td>每个输入都有 max 和 min</td><td><code>check_timing -include no_input_delay</code></td><td>0 条</td></tr><tr><td>每个输出都有 max 和 min</td><td><code>report_port -delay</code></td><td>逐端口核对</td></tr><tr><td>uncertainty 是不是双份</td><td>对比 CTS 前后设置</td><td>CTS 后必须收紧并记录依据</td></tr><tr><td>transition 有没有生效</td><td><code>report_constraint -all_violators -max_transition</code></td><td>违例数合理，不是 0 也不是几万</td></tr></tbody></table></div>
   <label class="ch-done"><input type="checkbox" data-mark="sdc"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="report" data-ch="report">
-  <div class="ch-h"><span class="ch-n">04</span><h2>报告怎么读</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_timing -max_paths 20 -slack_lesser_than 0 &gt; rpt/viol.rpt</span><span class="ln cmt"># 只报 slack &lt; 0 的路径</span><span class="ln "> </span><span class="ln ">report_qor &gt; rpt/qor.rpt</span><span class="ln cmt"># 汇总：WNS / TNS / 违例路径数 / 面积 / 单元数</span><span class="ln "> </span><span class="ln ">report_constraint -all_violators &gt; rpt/all_viol.rpt</span><span class="ln cmt"># 所有类型的违例（setup / hold / max_transition / max_cap ...）</span></code></pre></div>
-<p>一条路径报告的骨架：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Startpoint: u_core/u_reg[3]/CK          ← 起点（时钟引脚）</span><span class="ln ">Endpoint:   u_core/u_alu/out_reg[7]/D   ← 终点（数据引脚）</span><span class="ln ">Path Group: clk_core</span><span class="ln ">Path Type:  max                          ← max = setup 检查</span><span class="ln "> </span><span class="ln ">  Point                     Incr     Path</span><span class="ln ">  -------------------------------------------------</span><span class="ln ">  clock clk_core (rise)     0.00     0.00</span><span class="ln ">  u_core/u_reg[3]/CK        0.00     0.00</span><span class="ln ">  u_core/u_reg[3]/Q         0.12     0.12     ← 单元延迟</span><span class="ln ">  u_core/u_alu/U12/Z        0.85     0.97     ← 组合逻辑</span><span class="ln ">  u_core/u_alu/out_reg[7]/D 0.00     0.97</span><span class="ln ">  data arrival time                  0.97</span><span class="ln "> </span><span class="ln ">  clock clk_core (rise)     2.00     2.00     ← 下一个时钟沿</span><span class="ln ">  clock uncertainty        -0.15     1.85</span><span class="ln ">  library setup time       -0.08     1.77     ← T_setup</span><span class="ln ">  data required time                 1.77</span><span class="ln ">  -------------------------------------------------</span><span class="ln ">  data required time                 1.77</span><span class="ln ">  data arrival time                 -0.97</span><span class="ln ">  -------------------------------------------------</span><span class="ln ">  slack (MET)                        0.80</span></code></pre></div>
-<p><strong>读报告的三步</strong>：</p>
-<ol><li>看 <code>slack</code>：正负、多少。</li><li>看 <code>data arrival</code> 和 <code>required</code> 的差在哪一段：是单元延迟太大，还是时钟余量吃太多。</li><li>看路径上的单元：哪一级贡献最大（<code>Incr</code> 列）。</li></ol>
-<div class="scene"><div class="scene-h">工作场景 · WNS 是负的，怎么回答组长</div><div class="scene-b"><p>组长问："WNS −0.12ns，为什么？"</p>
-<p>错误回答："工具优化不够，我再跑一遍。"（等于没说）</p>
-<p>正确回答："最差路径在 <code>u_core/u_alu</code> 到 <code>out_reg[7]</code>，arrival 1.89、required 1.77，差 0.12。看 Incr 列，中间那条 32 位加法器占了 0.85ns，是主因。修法有两个：拆进位链，或者把这段逻辑往上游挪，减少线延迟。"</p>
-<p><strong>能定位到具体单元和具体原因，才叫会看报告。</strong></p></div></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>report_timing：把一条路径逐列读出来</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Path Report</span><span class="term-zh">路径报告</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p><code>report_timing</code> 打印的一条路径的完整账本：起点、终点、经过的每个引脚、每段的增量延迟、累计延迟，最后是 required、arrival 和 slack。读报告的能力，就是 STA 工程师的核心技能。</p></div>
+</div>
+<p>很多人看报告只看最后那个 <code>slack</code>。这就像看体检报告只看"合格"两个字——真出了问题，你不知道是哪项指标、哪个器官。</p>
+<p>下面是一条完整的 setup 路径报告（数字是教学用的构造值，格式按 PT 的 <code>full_clock_expanded</code>）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Startpoint: u_core/u_reg[3]/CK          (rising edge-triggered flip-flop clocked by clk_core)</span><span class="ln ">Endpoint:   u_core/u_alu/out_reg[7]/D   (rising edge-triggered flip-flop clocked by clk_core)</span><span class="ln ">Path Group: clk_core</span><span class="ln ">Path Type:  max</span><span class="ln ">Corner:     ss_0p81v_125c</span><span class="ln ">Scenario:   func_ss</span><span class="ln "> </span><span class="ln ">  Point                                    Incr       Path</span><span class="ln ">  ---------------------------------------------------------------</span><span class="ln ">  clock clk_core (rise edge)               0.0000     0.0000</span><span class="ln ">  clock source latency                     0.0000     0.0000</span><span class="ln ">  clock network delay (propagated)         0.6200     0.6200</span><span class="ln ">  u_core/u_reg[3]/CK                       0.0000     0.6200</span><span class="ln ">  u_core/u_reg[3]/CK-&gt;Q                    0.1200     0.7400</span><span class="ln ">  u_core/u_alu/U1204/Z                     0.3100     1.0500</span><span class="ln ">  u_core/u_alu/U1188/Z                     0.5400     1.5900</span><span class="ln ">  u_core/u_alu/out_reg[7]/D                0.0000     1.5900</span><span class="ln ">  data arrival time                                   1.5900</span><span class="ln "> </span><span class="ln ">  clock clk_core (rise edge)               2.0000     2.0000</span><span class="ln ">  clock network delay (propagated)         0.5800     2.5800</span><span class="ln ">  clock uncertainty                       -0.1500     2.4300</span><span class="ln ">  u_core/u_alu/out_reg[7]/CK               0.0000     2.4300</span><span class="ln ">  library setup time                      -0.0800     2.3500</span><span class="ln ">  data required time                                  2.3500</span><span class="ln ">  ---------------------------------------------------------------</span><span class="ln ">  data required time                                  2.3500</span><span class="ln ">  data arrival time                                  -1.5900</span><span class="ln ">  ---------------------------------------------------------------</span><span class="ln ">  slack (MET)                                         0.7600</span></code></pre></div>
+<h3>头部四行是什么意思</h3>
+<div class="tbl"><table><thead><tr><th>行</th><th>含义</th><th>读它干什么</th></tr></thead><tbody><tr><td><code>Startpoint</code></td><td>发射触发器（launch FF）的<strong>时钟引脚</strong></td><td>确认是哪个寄存器发的数据；带 <code>CK</code> 说明起点取的是时钟端</td></tr><tr><td><code>Endpoint</code></td><td>捕获触发器（capture FF）的<strong>数据引脚</strong></td><td>带 <code>D</code> 说明终点取的是数据端；如果这里是 <code>CK</code>，多半是 recovery/removal 检查</td></tr><tr><td><code>Path Group</code></td><td>这条路径属于哪个时钟组</td><td>统计 WNS 时按组分别看，别把两个组的数混在一起</td></tr><tr><td><code>Path Type: max</code></td><td>max = setup 检查（最长路径）；min = hold 检查（最短路径）</td><td>看 hold 报告要确认这里真的是 <code>min</code></td></tr></tbody></table></div>
+<p><code>Corner</code> 和 <code>Scenario</code> 两行是 MCMM 模式下才有的。它们非常重要——<strong>同一路径在不同 corner 下 slack 可能差 0.3ns</strong>，报告不带 corner 就没法讨论。</p>
+<h3>中间三列：<code>Point</code> / <code>Incr</code> / <code>Path</code></h3>
+<p>这是最容易读错的地方。</p>
+<ul><li><strong><code>Point</code></strong>：路径上的节点。单元、引脚、连线都算。</li><li><strong><code>Incr</code>（increment）</strong>：<strong>进入这个节点所花的延迟</strong>。单元延迟、线延迟、时钟网络延迟都记在这里。</li><li><strong><code>Path</code></strong>：从起点到这里的<strong>累计时间</strong>。注意它是累计，不是"这一段自己的延迟"。</li></ul>
+<p>所以 <code>0.74 → 1.05 → 1.59</code> 的意思是：CK→Q 花了 0.12，第一级组合逻辑 0.31，第二级 0.54，累计到 D 端 1.59ns。<strong>找瓶颈就看 <code>Incr</code> 列最大的那一行</strong>——这里 0.54 的 <code>U1188</code> 是主因。</p>
+<h3>发射侧：时钟不是"0 时刻到"</h3>
+<p>报告里这两行最容易被忽略：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">clock network delay (propagated)         0.6200     0.6200</span></code></pre></div>
+<p>它的意思是：时钟从源走到 <code>u_reg[3]/CK</code> 花了 0.62ns。<strong>数据不是从 0 时刻出发的，是从 0.62ns 出发的。</strong></p>
+<p>如果这里显示的是 <code>clock network delay (ideal)  0.0000</code>，说明你还在用理想时钟——所有时序都是乐观的，不能签核。</p>
+<h3>捕获侧：required 是怎么拼出来的</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">clock clk_core (rise edge)               2.0000     ← 下一个时钟沿</span><span class="ln ">clock network delay (propagated)         0.5800     ← 捕获时钟也走了 0.58ns</span><span class="ln ">clock uncertainty                       -0.1500     ← 减掉余量</span><span class="ln ">library setup time                      -0.0800     ← 减掉触发器 setup</span><span class="ln ">data required time                                  2.3500</span></code></pre></div>
+<p><code>required = 周期 + 捕获时钟延迟 − uncertainty − setup = 2.00 + 0.58 − 0.15 − 0.08 = 2.35</code></p>
+<p>注意捕获时钟延迟（0.58）比发射时钟延迟（0.62）<strong>小</strong> 0.04ns。这 0.04 就是这条路径上的实际 skew，它让 required 变小，等于<strong>吃掉了 40ps 的时序余量</strong>。skew 不是抽象概念，它就明明白白写在报告里。</p>
+<h3>slack 与"差 0.12 到底差在哪"</h3>
+<p><code>slack = required − arrival = 2.35 − 1.59 = 0.76ns</code>（MET）。</p>
+<p>如果路径更长，<code>Incr</code> 那两级变成 0.31 + 1.42，arrival 变成 <code>0.62 + 0.12 + 0.31 + 1.42 = 2.47</code>，那么：</p>
+<p><code>slack = 2.35 − 2.47 = −0.12ns</code>（VIOLATED）</p>
+<p>这时候回答"为什么差 0.12"的正确格式是三段：</p>
+<ol><li><strong>差多少</strong>：−0.12ns，在 <code>u_alu</code> 到 <code>out_reg[7]</code> 这条路径上。</li><li><strong>差在哪</strong>：<code>Incr</code> 列里 <code>U1188</code> 占 1.42ns，是唯一的大头；时钟侧 skew 只贡献 0.04。</li><li><strong>怎么修</strong>：拆进位链（逻辑重构）、或把这段逻辑打一拍（加流水）、或换驱动更强的单元（<code>size_cell</code>）。</li></ol>
+<p>只说"工具优化不够，我再跑一遍"的人，在评审会上会被问穿。</p>
+<div class="scene"><div class="scene-h">工作场景 · 组长在群里问："WNS 为什么是负的？"</div><div class="scene-b"><p>晚上八点，签核群弹出这句话。你手上只有一份 <code>viol_setup.rpt</code>，要在五分钟内回复。</p>
+<p>错误回答："PR 那边优化不够，我让他们再跑一轮。"——这等于把问题推回去，什么信息都没给。</p>
+<p>正确回答分三句：</p>
+<ol><li>"WNS −0.12ns，最差路径 <code>u_alu/U1188</code> 到 <code>out_reg[7]/D</code>，属 <code>clk_core</code> 组。"</li><li>"arrival 2.47 = 发射时钟 0.62 + 数据路径 1.85，其中 <code>U1188</code> 一级就占 1.42；required 2.35，被 uncertainty 0.15 和 setup 0.08 压过。skew 只贡献 0.04，不是主因。"</li><li>"所以不是时钟问题，是组合逻辑太深。建议两条路：拆进位链，或在 <code>U1188</code> 前打一拍。我倾向后者，因为拆链会动 RTL。"</li></ol>
+<p><strong>能定位到具体单元、给出两条可选方案并说明取舍，才叫会看报告。</strong></p></div></div>
+<h3>常用参数，一次记全</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：按不同目的捞路径。每个参数解决一个具体问题</span><span class="ln cmt"># 用法：在 pt_shell 里按需组合，输出重定向到 rpt/ 存档</span><span class="ln ">report_timing -max_paths 50 -nworst 5 \</span><span class="ln ">              -slack_lesser_than 0 \</span><span class="ln ">              -path_type full_clock_expanded \</span><span class="ln ">              -significant_digits 4 &gt; rpt/viol_setup.rpt</span><span class="ln cmt"># -max_paths 50           最多列 50 条路径（按 slack 从差到好）</span><span class="ln cmt"># -nworst 5               每个 endpoint 最多列 5 条（防止一个 endpoint 刷屏）</span><span class="ln cmt"># -slack_lesser_than 0    只报负 slack（不加就会报一堆 MET 的，看不到问题）</span><span class="ln cmt"># -path_type full_clock_expanded  把时钟路径展开（不加则折叠，看不到 skew）</span><span class="ln cmt"># -significant_digits 4   保留 4 位小数（−0.0712 不会被显示成 −0.1）</span><span class="ln "> </span><span class="ln ">report_timing -delay_type min -max_paths 20 &gt; rpt/viol_hold.rpt</span><span class="ln cmt"># -delay_type min         看 hold（最短路径）</span><span class="ln "> </span><span class="ln ">report_timing -from [get_pins u_ctrl/state_reg[2]/CK] -to [get_pins u_ctrl/*/D]</span><span class="ln cmt"># -from/-to/-through      定位单条路径，改完 ECO 后复查用</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 看 <code>Path</code> 列当成"这一段花了多久"</div><div class="pit-b"><p>现象：有人指着 <code>Path</code> 列的 1.59 说"这一级花了 1.59ns"，然后去优化那个单元，越优化越差。</p>
+<p>原因：<code>Path</code> 是<strong>累计</strong>，<code>Incr</code> 才是这一段。1.59 是整条路径到现在为止的总和。</p>
+<p>记法：<code>Incr</code> = 这一步花了多少；<code>Path</code> = 到现在一共花了多少。看瓶颈永远看 <code>Incr</code>。</p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · 用默认 <code>path_type</code> 看报告，找不到 skew 来源</div><div class="pit-b"><p><code>report_timing</code> 默认把时钟路径折叠成一行 <code>clock network delay</code>，只给总数。当你需要回答"这 0.62ns 里哪几级 buffer 贡献最大"时，必须加 <code>-path_type full_clock_expanded</code>。</p>
+<p>这份展开报告也是 CTS 工程师和 STA 工程师吵架时唯一的事实依据：<strong>时钟树到底公不公平，看展开报告，不看直觉。</strong></p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="report"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="ocv" data-ch="ocv">
-  <div class="ch-h"><span class="ch-n">05</span><h2>OCV：签核为什么更悲观</h2></div>
-  <p>真实芯片里，同一个单元在不同位置、不同批次的延迟会有偏差。OCV（On-Chip Variation）就是把这个偏差算进去。</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">set_timing_derate -early 0.95     # 早路径（hold 检查用）快 5%</span><span class="ln ">set_timing_derate -late  1.05     # 晚路径（setup 检查用）慢 5%</span></code></pre></div>
-<p>效果：setup 检查时把数据路径算慢 5%、时钟路径算快 5%（更悲观）；hold 相反。</p>
-<div class="tbl"><table><thead><tr><th>模式</th><th>含义</th><th>复杂度</th></tr></thead><tbody><tr><td>OCV</td><td>统一 derate</td><td>简单，偏悲观</td></tr><tr><td>AOCV</td><td>按逻辑深度分级 derate</td><td>中等</td></tr><tr><td>POCV / LVF</td><td>按统计分布算</td><td>最准，先进工艺必用</td></tr></tbody></table></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Derate</span><span class="term-zh">降额系数</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>在计算延迟时乘一个系数，模拟工艺偏差。<code>1.05</code> 表示"实际可能比标称慢 5%"。<br><strong>derate 加得越狠，签核越保守</strong>：容易过不了，但过了就真能工作。</p></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>OCV / AOCV / POCV：签核为什么比 PR 更悲观</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">OCV</span><span class="term-zh">片上偏差</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>On-Chip Variation。同一颗芯片上，不同位置的同型号单元，因为光刻、掺杂、氧化层厚度的随机差异，实际延迟不完全一样。OCV 就是在时序计算里给这种差异留的余量。</p></div>
 </div>
+<p>买一盒 100Ω 电阻，标称精度 ±5%，实际可能是 96~104Ω。如果一条电路上串了 20 个，最坏情况是不是 20 × 4Ω？不是——误差有正有负，全部同向的概率很低。但<strong>签核必须按最坏情况算</strong>，因为芯片是要量产几百万颗的，极小概率也会发生。</p>
+<p>OCV 的做法最粗暴：所有单元统一乘一个系数。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：设置全局 derate。setup 检查时"数据路径变慢、时钟路径变快"</span><span class="ln cmt"># 用法：read_parasitics 之后、report_timing 之前设置</span><span class="ln ">set_timing_derate -late  1.05 -cell_delay</span><span class="ln cmt"># -late 1.05：晚路径（数据）延迟按 105% 算</span><span class="ln ">set_timing_derate -early 0.95 -cell_delay</span><span class="ln cmt"># -early 0.95：早路径（捕获时钟）延迟按 95% 算</span><span class="ln ">set_timing_derate -late  1.05 -net_delay</span><span class="ln ">set_timing_derate -early 0.95 -net_delay</span><span class="ln cmt"># 线和单元分别设，互不覆盖（只写 -cell_delay 时，线延迟不加 derate）</span></code></pre></div>
+<h3>手算：5% derate 到底吃掉多少</h3>
+<p>用上面那条路径的数：周期 2.0ns，发射时钟路径 1.0ns，数据路径（CK→Q + 组合 + 线）0.9ns，捕获时钟路径 1.1ns，setup 0.08ns，uncertainty 0。</p>
+<p><strong>不开 OCV：</strong></p>
+<ul><li><code>arrival = 1.0 + 0.9 = 1.90</code></li><li><code>required = 2.0 + 1.1 − 0.08 = 3.02</code></li><li><code>slack = 3.02 − 1.90 = 1.12ns</code></li></ul>
+<p><strong>开 5% derate（late 打数据侧和发射时钟，early 打捕获时钟）：</strong></p>
+<ul><li><code>arrival = 1.0×1.05 + 0.9×1.05 = 1.05 + 0.945 = 1.995</code></li><li><code>required = 2.0 + 1.1×0.95 − 0.08 = 2.0 + 1.045 − 0.08 = 2.965</code></li><li><code>slack = 2.965 − 1.995 = 0.97ns</code></li></ul>
+<p><strong>一个 5% 的系数，吃掉了 0.15ns（约 7.5% 的周期）。</strong> 本来 1.12ns 的余量变成 0.97ns。如果设计本来就紧张（余量 0.1ns），这一下直接变负。</p>
+<p>这就是"PR 里是正的，PT 里是负的"最典型的来源之一。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">CPPR</span><span class="term-zh">公共路径悲观度消除</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Common Path Pessimism Removal。发射和捕获时钟从同一个源出发，在分叉之前走过同一段路径。这段公共路径被同时按 late（发射侧）和 early（捕获侧）算了两遍，产生了虚假的悲观量。CPPR 把这部分加回来。</p></div>
+</div>
+<p>继续上面的手算：假设发射和捕获时钟有 0.8ns 是公共路径（从时钟根到分叉点）。</p>
+<ul><li>这段公共路径在发射侧按 <code>0.8×1.05 = 0.84</code> 算，在捕获侧按 <code>0.8×0.95 = 0.76</code> 算，差 <code>0.08ns</code>。</li><li>物理上它就是同一段线，不可能同时快 5% 又慢 5%。所以这 0.08ns 是假的。</li><li>CPPR 加回 0.08：<code>slack = 0.97 + 0.08 = 1.05ns</code>。</li></ul>
+<p><strong>"OCV 吃掉 0.15，CPPR 还回 0.08，净损失 0.07"</strong> ——这个账要会算。PT 默认开 CPPR（<code>timing_report_ppr</code> 相关变量），但你要知道报告里有一行 <code>clock reconvergence pessimism</code> 就是它。</p>
+<h3>AOCV：路径越长，derate 越小</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">AOCV</span><span class="term-zh">先进片上偏差</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Advanced OCV。核心洞察：偏差是随机变量，<strong>路径上串联的级数越多，相对偏差越小</strong>（统计平均）。所以 derate 不该是常数，应该按逻辑深度（depth）和物理距离（distance）查表。</p></div>
+</div>
+<p>AOCV 的表长这样（数值为示意，真实表由 foundry 给）：</p>
+<div class="tbl"><table><thead><tr><th>级数 depth</th><th>cell derate (late)</th><th>net derate (late)</th></tr></thead><tbody><tr><td>1</td><td>1.08</td><td>1.10</td></tr><tr><td>5</td><td>1.04</td><td>1.06</td></tr><tr><td>10</td><td>1.02</td><td>1.04</td></tr><tr><td>20</td><td>1.01</td><td>1.02</td></tr></tbody></table></div>
+<p>同一条 10 级的路径，统一 OCV 按 1.05 算，AOCV 按 1.02 算——<strong>少了 3 个百分点</strong>。对一条 2ns 的路径，就是 60ps 的差别。</p>
+<p>所以 AOCV 比 OCV <strong>更准，而且通常没那么悲观</strong>（浅路径反而更悲观，深路径更宽松）。28nm~16nm 项目普遍用 AOCV。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：读入 AOCV 表，替代统一 derate</span><span class="ln cmt"># 用法：read_parasitics 之后，report_timing 之前</span><span class="ln ">read_aocvm ./aocv/tsmc28_ss.aocvm</span><span class="ln cmt"># 表里有 cell/net、late/early、按 depth 和 distance 的多张子表</span><span class="ln ">set_timing_derate -early 0.97 -late 1.03</span><span class="ln cmt"># AOCV 模式下这个全局值作为"兜底"，实际按表查</span><span class="ln ">report_timing -path_type full_ocvm</span><span class="ln cmt"># 加 full_ocvm 可以看到每一级实际用了多少 derate</span></code></pre></div>
+<h3>POCV / LVF：按分布算，不按边界算</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">POCV / LVF</span><span class="term-zh">参数化片上偏差 / Liberty 变异格式</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>POCV 把每个单元的延迟当成正态分布（均值 + sigma），路径的 sigma 按方差相加（<code>σ_total = √(σ1² + σ2² + …)</code>）。LVF 是这种数据的标准文件格式，先进工艺（16nm 以下）签核必须用。</p></div>
+</div>
+<p>手算一次"方差相加"和"直接相加"的区别：两级单元各 σ = 10ps。</p>
+<ul><li>直接相加（最悲观）：<code>10 + 10 = 20ps</code></li><li>方差相加（统计）：<code>√(10² + 10²) = √200 ≈ 14.1ps</code></li></ul>
+<p>差 6ps。级数越多差得越大：10 级各 10ps，直接相加 100ps，统计相加只有 31.6ps。<strong>这就是为什么统一 derate 在深路径上过度悲观。</strong></p>
+<p>代价是：POCV 需要 foundry 提供 LVF 文件（每个单元每个弧一条分布），文件巨大，跑得慢。所以成熟工艺用 AOCV，先进工艺用 POCV，是成本和精度的折中。</p>
+<div class="tbl"><table><thead><tr><th>模式</th><th>依据</th><th>典型节点</th><th>悲观度</th></tr></thead><tbody><tr><td>无 OCV</td><td>标称值</td><td>学习/早期探索</td><td>最乐观，不能签核</td></tr><tr><td>OCV</td><td>统一系数</td><td>40nm 以上、快速评估</td><td>偏悲观</td></tr><tr><td>AOCV</td><td>深度/距离查表</td><td>28~16nm</td><td>中等</td></tr><tr><td>POCV / LVF</td><td>统计分布</td><td>16nm 以下</td><td>最准</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · derate 只加了 cell 没加 net</div><div class="pit-b"><p><code>set_timing_derate -late 1.05 -cell_delay</code> 只影响单元延迟，<strong>线延迟不受影响</strong>。有人以为设了一次就全覆盖，结果长线路径的悲观度不足。</p>
+<p>判断方法：<code>report_timing -path_type full_ocvm</code> 看每一行的 derate 标注，单元行和线行都要有值。</p>
+<p>规矩：cell 和 net 各设一次，四个组合（late/early × cell/net）写完才叫"OCV 开了"。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="ocv"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="corner" data-ch="corner">
+  <div class="ch-h"><span class="ch-n">07</span><h2>多 corner 签核：一张场景表</h2></div>
+  <p>慢 corner 查 setup，快 corner 查 hold，这是常识。但"慢"和"快"不是只看工艺一个维度。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">RC Corner</span><span class="term-zh">寄生参数角</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>线延迟的边界。<strong>Cmax</strong>（电容最大）线最慢，用于 setup；<strong>Cmin</strong>（电容最小）线最快，用于 hold；<strong>Ctypical</strong> 用于一般分析。提取工具会为每个 RC corner 各出一份 SPEF。</p></div>
+</div>
+<h3>三个维度怎么组合</h3>
+<div class="tbl"><table><thead><tr><th>维度</th><th>setup 取</th><th>hold 取</th><th>原因</th></tr></thead><tbody><tr><td>工艺 Process</td><td>SS（慢管）</td><td>FF（快管）</td><td>慢管单元延迟大</td></tr><tr><td>电压 Voltage</td><td>低（如 0.81V）</td><td>高（如 0.99V）</td><td>电压低延迟大</td></tr><tr><td>温度 Temperature</td><td>高（125℃）*</td><td>低（−40℃）</td><td>见下方温度反转说明</td></tr><tr><td>RC corner</td><td>Cmax</td><td>Cmin</td><td>电容大线慢 / 电容小线快</td></tr></tbody></table></div>
+<p>\* 先进工艺（大致 28nm 以下）存在<strong>温度反转（temperature inversion）</strong>：高温下迁移率下降但阈值电压也下降，后者占优，导致高温反而更快。这种情况下 setup 要同时看高温和低温两个点，不能想当然。</p>
+<p>所以 setup 的最坏场景常常写成 <code>ss_0p81v_m40c</code> 和 <code>ss_0p81v_125c</code> 两个都要跑——<strong>"最慢"到底是高温还是低温，要看库的特性表，不能猜。</strong></p>
+<h3>MCMM 场景表</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">MCMM</span><span class="term-zh">多角多模式</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Multi-Corner Multi-Mode。一颗芯片有多个工作模式（功能模式、测试模式、低功耗模式）× 多个 corner，每个组合是一个 scenario（场景）。MCMM 让一个 session 里并行处理多个场景，共享网表，只切换库/SPEF/约束。</p></div>
+</div>
+<p>一个典型项目的场景表（示意，实际按项目定）：</p>
+<div class="tbl"><table><thead><tr><th>场景名</th><th>模式</th><th>Corner</th><th>RC</th><th>查什么</th><th>必须跑?</th></tr></thead><tbody><tr><td>func_ss_cmax</td><td>功能</td><td>ss_0p81v_125c</td><td>Cmax</td><td>setup</td><td>是</td></tr><tr><td>func_ss_cmax_lt</td><td>功能</td><td>ss_0p81v_m40c</td><td>Cmax</td><td>setup（温度反转）</td><td>是</td></tr><tr><td>func_ff_cmin</td><td>功能</td><td>ff_0p99v_m40c</td><td>Cmin</td><td>hold</td><td>是</td></tr><tr><td>func_ff_cmax</td><td>功能</td><td>ff_0p99v_125c</td><td>Cmax</td><td>hold + EM</td><td>是</td></tr><tr><td>scan_ss_cmax</td><td>扫描测试</td><td>ss_0p81v_125c</td><td>Cmax</td><td>setup（测试模式时钟慢）</td><td>是</td></tr><tr><td>func_tt</td><td>功能</td><td>tt_0p9v_25c</td><td>Ctypical</td><td>功耗/面积评估</td><td>否</td></tr></tbody></table></div>
+<p><strong>场景数量会爆炸</strong>：3 corner × 2 模式 × 2 RC × 2 温度 = 24 个。实际项目靠"裁剪"控制：只保留能产生最坏值的组合，其余用工程判断排除，并<strong>在签核记录里写明裁剪理由</strong>。</p>
+<div class="note"><div class="note-h">场景裁剪的红线</div><p>探索阶段可以裁剪（先跑 4 个主场景看看大概）；<strong>签核阶段不能裁</strong>——一旦某个场景被裁掉，就没有任何报告能证明它在那个条件下能工作。</p>
+<p>被裁掉的场景要写进 waiver 清单，注明"由谁判断、依据是什么"。这句话在 tapeout review 上会被问到。</p></div>
+<h3>为什么 hold 用 Cmin 而不是 Cmax</h3>
+<p>直觉上"线越慢越危险"，但 hold 的危险方向相反：hold 要求数据<strong>不要来太早</strong>。线短（Cmin）→ 数据到得早 → 更容易冲掉上一拍 → hold 更危险。</p>
+<p>所以：<strong>setup 怕慢（SS + Cmax），hold 怕快（FF + Cmin）。</strong> 两个方向的 derate 也是反的：setup 让数据慢、时钟快；hold 让数据快、时钟慢。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="corner"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="checks" data-ch="checks">
+  <div class="ch-h"><span class="ch-n">08</span><h2>check_timing 与 report_constraint：先找"没查的"</h2></div>
+  <p>时序报告只回答"查过的路径过不过"。它不回答"有没有路径根本没查"。后者更危险——<strong>没查的路径，slack 是无穷大。</strong></p>
+<p><code>check_timing</code> 就是干这个的：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：列出所有"约束不完整"的地方，是签核前的第一道关</span><span class="ln cmt"># 用法：读完全部输入后立刻跑，输出必须逐条清空或记录豁免理由</span><span class="ln ">check_timing -verbose &gt; rpt/check_timing.rpt</span><span class="ln cmt"># -verbose 会把每个受影响的引脚/端口都列出来，便于定位</span></code></pre></div>
+<p>常见条目和含义：</p>
+<div class="tbl"><table><thead><tr><th>条目</th><th>含义</th><th>危险度</th><th>怎么处理</th></tr></thead><tbody><tr><td><code>no_clock</code></td><td>有时序单元没有时钟到达</td><td>高</td><td>查时钟定义、时钟是否穿过不可传播的单元</td></tr><tr><td><code>unconstrained_endpoints</code></td><td>有终点没有任何约束覆盖</td><td>高</td><td>补时钟/补 IO 延迟/确认是否真空逻辑</td></tr><tr><td><code>no_input_delay</code></td><td>输入端口没设延迟</td><td>高</td><td>补 <code>set_input_delay</code>（max 和 min）</td></tr><tr><td><code>no_output_delay</code></td><td>输出端口没设延迟</td><td>高</td><td>补 <code>set_output_delay</code></td></tr><tr><td><code>no_driving_cell</code></td><td>输入端口没建模驱动能力</td><td>中</td><td><code>set_driving_cell</code>，否则输入 transition 按理想算</td></tr><tr><td><code>loop</code></td><td>组合逻辑成环</td><td>高</td><td>多半是 latch 环或测试逻辑，需 <code>set_disable_timing</code> 断开</td></tr><tr><td><code>latch</code></td><td>有 latch 被当触发器分析</td><td>中</td><td>确认是设计意图，否则让前端改</td></tr><tr><td><code>generated_clock_no_source</code></td><td>生成时钟的源找不到</td><td>高</td><td>检查 <code>-source</code> 指向的是不是上游引脚</td></tr></tbody></table></div>
+<p>一条纪律：<strong><code>check_timing</code> 里有 <code>no_clock</code> 或 <code>unconstrained_endpoints</code> 时，后面所有 WNS 数字都要打问号。</strong> 因为分母不全，通过率没有意义。</p>
+<p><code>report_constraint</code> 则是"查过的都过不过"的汇总：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：一次性列出所有类型的违例（不只 setup/hold）</span><span class="ln cmt"># 用法：签核报告必带，按类型分别统计条数</span><span class="ln ">report_constraint -all_violators -verbose &gt; rpt/all_viol.rpt</span><span class="ln cmt"># -all_violators  只列违例（默认只列最差的）</span><span class="ln cmt"># -verbose        带每个违例的具体对象名</span><span class="ln "> </span><span class="ln ">report_constraint -all_violators -max_transition &gt; rpt/drv_trans.rpt</span><span class="ln ">report_constraint -all_violators -max_capacitance &gt; rpt/drv_cap.rpt</span><span class="ln cmt"># 单独捞某一类，便于分工：DRV 给 PR，时序给自己</span></code></pre></div>
+<p><code>report_qor</code> 给的是数字汇总，签核 PPT 上那一页就靠它：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：输出 WNS / TNS / 违例路径数 / 面积 / 单元数 / 功耗</span><span class="ln cmt"># 用法：每个场景各跑一份，横向对比</span><span class="ln ">report_qor &gt; rpt/qor_ss.rpt</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>指标</th><th>全称</th><th>含义</th><th>为什么重要</th></tr></thead><tbody><tr><td>WNS</td><td>Worst Negative Slack</td><td>最差那条路径的 slack（没有负值时为 0）</td><td>一条路径决定整个芯片能不能跑这个频率</td></tr><tr><td>TNS</td><td>Total Negative Slack</td><td>所有负 slack 之和</td><td>衡量"烂得有多广"，WNS 只反映一个点</td></tr><tr><td>NVP</td><td>Number of Violating Paths</td><td>负 slack 路径条数</td><td>决定 ECO 工作量</td></tr><tr><td>Area</td><td>单元面积总和</td><td>—</td><td>成本</td></tr><tr><td>Utilization</td><td>利用率</td><td>单元面积 / 核心面积</td><td>太高布不通</td></tr></tbody></table></div>
+<div class="note"><div class="note-h">WNS 和 TNS 要一起看</div><ul><li>WNS −0.05、TNS −2：只有几十条路径差一点点，一轮 ECO 能收。</li><li>WNS −0.05、TNS −800：几千条路径都差一点点，说明是<strong>系统性问题</strong>（约束太紧、库不对、频率定高了），ECO 修不完。</li></ul>
+<p>看到第二种，先别写 ECO，先去查约束和库。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="checks"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="eco" data-ch="eco">
-  <div class="ch-h"><span class="ch-n">06</span><h2>违例怎么反馈回 PR</h2></div>
-  <p>PT 发现违例，不能直接改版图。流程是：</p>
-<ol><li>PT 输出 ECO 清单（哪些单元要换、哪些要插 buffer）。</li><li>PR 工具读入 ECO，做局部修改。</li><li>重新导出网表/SPEF，回 PT 复算。</li></ol>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># PT 侧生成 ECO</span><span class="ln ">fix_eco_timing -type setup -methods {size_cell}</span><span class="ln ">write_changes -format icctcl -output eco.tcl</span><span class="ln "> </span><span class="ln cmt"># PR 侧应用（ICC2）</span><span class="ln ">source eco.tcl</span></code></pre></div>
-<div class="tip"><div class="tip-h">小技巧</div><p>第一轮修掉 80%，第二轮修掉剩下的一半，第三轮处理边角。</p>
-<p>如果三轮还收敛不了，说明问题不在时序优化，而在<strong>约束、库、或架构</strong>（比如频率定得太高）。</p></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>违例怎么反馈回 PR</h2></div>
+  <p>PT 不能改版图。它只能出一份"改动建议"，交给 PR 执行。这份建议就是 ECO 清单。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：让 PT 生成修复建议（只出方案，不动网表）</span><span class="ln cmt"># 用法：确认时序报告可信之后再跑，否则是在错的数据上生成错的方案</span><span class="ln ">fix_eco_timing -type setup \</span><span class="ln ">               -methods {size_cell} \</span><span class="ln ">               -slack_lesser_than 0 \</span><span class="ln ">               -slack_greater_than -0.20</span><span class="ln cmt"># -type setup            只修 setup（一次只修一类，见 05-04 的四条纪律）</span><span class="ln cmt"># -methods {size_cell}   只允许换单元尺寸，改动最小</span><span class="ln cmt"># -slack_lesser_than 0   只修负 slack</span><span class="ln cmt"># -slack_greater_than    只修 -0.20 以内的（太差的换单元也救不回来，别浪费）</span><span class="ln "> </span><span class="ln ">write_changes -format icctcl -output eco/eco_setup_round1.tcl</span><span class="ln cmt"># icctcl = ICC2 可直接 source 的格式；Innovus 用 -format innovus</span><span class="ln cmt"># 输出是纯文本 Tcl，必须人工过一遍再交给 PR</span></code></pre></div>
+<p>一份给人看的 ECO 清单（PT 输出 + 人工补的列）：</p>
+<div class="tbl"><table><thead><tr><th>列</th><th>例子</th><th>含义</th></tr></thead><tbody><tr><td>动作</td><td><code>size_cell</code></td><td>换单元 / 插缓冲 / 删单元</td></tr><tr><td>目标</td><td><code>u_core/u_alu/U1188</code></td><td>实例全路径名（必须能唯一定位）</td></tr><tr><td>参数</td><td><code>BUF_X8</code></td><td>换成什么单元</td></tr><tr><td>原始 slack</td><td><code>-0.0712</code></td><td>改之前多差（4 位小数）</td></tr><tr><td>预期收益</td><td><code>+0.09</code></td><td>预计能修回多少</td></tr><tr><td>原因分类</td><td><code>驱动不足/负载 12</code></td><td>为什么改（评审要看）</td></tr></tbody></table></div>
+<p>完整链路是：<strong>PT 出清单 → 人工筛（物理可行性）→ PR 应用 → 局部布线 → 重新导出 netlist+SPEF → PT 复算</strong>。一轮修掉大部分，通常 2~3 轮收敛。具体脚本和纪律见 <code>05-04 ECO 实战</code>。</p>
+<div class="pit"><div class="pit-h">常见坑 · 用 ECO 去修本该改约束的问题</div><div class="pit-b"><p>现象：WNS −0.4ns，跑了两轮 ECO，每轮修好 0.1，第三轮又冒出新违例，永远收不掉。</p>
+<p>原因：根因不是优化不足，而是约束错了——比如某个时钟的 uncertainty 忘了在 CTS 后收紧、或者一条跨异步域的路径漏了 clock group（假违例）。</p>
+<p>判断方法：看违例的<strong>分布</strong>。如果违例散落在几十个不相关的模块、每条都差 0.3~0.5ns，且 <code>Incr</code> 列没有明显大头，那基本是系统性问题，不是局部优化能解决的。</p>
+<p>处理：停下来，回到 <code>check_timing</code> 和 SDC 逐条对。<strong>ECO 是修局部小病的，不是治系统性疾病的。</strong></p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="eco"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="criteria" data-ch="criteria">
-  <div class="ch-h"><span class="ch-n">07</span><h2>签核标准</h2></div>
-  <div class="tbl"><table><thead><tr><th>指标</th><th>要求</th><th>说明</th></tr></thead><tbody><tr><td>setup WNS</td><td>≥ 0（建议留 50~100ps）</td><td>最差路径不能违例</td></tr><tr><td>hold WNS</td><td>≥ 0（建议留 30~50ps）</td><td>hold 更危险，必须留余量</td></tr><tr><td>TNS</td><td>0</td><td>所有违例之和</td></tr><tr><td>max_transition</td><td>全部达标</td><td>信号边沿不能太慢</td></tr><tr><td>max_capacitance</td><td>全部达标</td><td>负载不能超过驱动能力</td></tr></tbody></table></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>知道为什么必须用 PT 复签</li><li>会读入网表/约束/SPEF 并跑 <code>check_timing</code></li><li>能写出 SDC 五条核心约束</li><li>能读懂一条路径报告并定位瓶颈</li><li>理解 OCV/derate 的作用</li><li>知道 ECO 流程和签核标准</li></ul></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>为什么布局布线工具自己算的时序不能签核？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">缺乏独立性（同一引擎的系统偏差会被继承），且精度和约束解析不如 PT 严格；流片签字以 PT 为准。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span><code>check_timing</code> 报"没有时钟"说明什么？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">约束没读进去，或时钟端口名写错，后面所有时序结果都不可信。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span><code>set_clock_uncertainty -setup 0.15</code> 的含义？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">算 setup 时假设时钟提前 0.15ns 到达，逼工具留出余量。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>一条路径 arrival 1.89、required 1.77，slack 是多少？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">−0.12ns（违例）。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>PT 发现违例后怎么让版图改？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">生成 ECO（换单元/插 buffer），PR 工具读入执行，再导出网表/SPEF 回 PT 复算，通常 2~3 轮收敛。</div>
-</div></div>
+  <div class="ch-h"><span class="ch-n">10</span><h2>签核标准：通过线怎么定</h2></div>
+  <p>"通过"不是一个数，是一组数。下面这张表是典型项目的通过线（具体数值按项目规格调整，不是行业统一标准）：</p>
+<div class="tbl"><table><thead><tr><th>指标</th><th>通过线</th><th>为什么这么定</th></tr></thead><tbody><tr><td>setup WNS</td><td>≥ 0，建议 ≥ +50ps</td><td>留 50ps 覆盖模型误差和后期改动</td></tr><tr><td>setup TNS</td><td>0（或 ≤ −1ns 且有 waiver）</td><td>TNS 不为 0 说明面广，风险高</td></tr><tr><td>hold WNS</td><td>≥ 0，建议 ≥ +30ps</td><td>hold 违例无法靠降频规避，必须留余量</td></tr><tr><td>hold TNS</td><td>0</td><td>hold 没有"降频可救"这一说</td></tr><tr><td>max_transition 违例</td><td>0</td><td>边沿超标意味着延迟计算不可信</td></tr><tr><td>max_capacitance 违例</td><td>0</td><td>负载超标意味着单元可能不工作</td></tr><tr><td>单元利用率</td><td>≤ 85%（布线后）</td><td>再高布通率急剧下降</td></tr><tr><td>总功耗</td><td>≤ 规格 × 1.0</td><td>超了要重新评估封装/散热</td></tr></tbody></table></div>
+<p><strong>为什么 hold 比 setup 更严格</strong>：setup 违例可以降频救（芯片还能卖低端），hold 违例是"数据冲掉了"，降频也没用——频率越低，hold 越差。所以 hold 必须真正清零。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Waiver</span><span class="term-zh">豁免</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>明知有违例但决定接受，并记录理由和批准人。合法的 waiver 场景：测试逻辑的伪路径、已知不会同时工作的模式组合、被上游 IP 保证过的接口。<br><strong>waiver 不是"改报告让它变绿"，它是"带着证据接受风险"。</strong> 每条 waiver 都要有：违例对象、slack、理由、影响评估、批准人、复审日期。</p></div>
+</div>
+<p>签核会上会被追问的三个问题，提前准备：</p>
+<ol><li><strong>这条违例为什么可以 waive？</strong> —— 要有物理/逻辑依据，不能是"来不及修"。</li><li><strong>如果模型偏乐观 10%，还过吗？</strong> —— 所以 WNS 要留 margin。</li><li><strong>worst case 真的是这个 corner 吗？</strong> —— 温度反转、电压跌落（IR drop）都要考虑。</li></ol>
   <label class="ch-done"><input type="checkbox" data-mark="criteria"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="false-viol" data-ch="false-viol">
+  <div class="ch-h"><span class="ch-n">11</span><h2>假违例：四种"看着要修，其实不该修"</h2></div>
+  <p>签核最耗时间的不是修违例，是<strong>判断哪些违例是真的</strong>。下面四类占了假违例的绝大多数。</p>
+<h3>第一类：false path 漏写，跨时钟域路径被当真</h3>
+<p>现象：最差路径永远跨在两个异步时钟之间，slack −3.5ns，怎么优化都不动，因为路径两端根本没有共同的时序关系。</p>
+<p>识别：看 <code>Startpoint</code> 和 <code>Endpoint</code> 的时钟是不是同一个。不同且确实异步 → 应该设 <code>set_clock_groups -asynchronous</code>。</p>
+<p>风险：<strong>反过来更危险</strong>——为了让报告变绿，把一条真实的同步路径设成 false path。这样报告全绿，芯片功能错。</p>
+<p>纪律：每条 false path 都要写注释，注明"为什么这两组时钟异步"的依据（设计规格第几节 / 前端确认邮件）。</p>
+<h3>第二类：multicycle 只设了 setup，没设 hold</h3>
+<p>现象：设了 <code>set_multicycle_path 2 -setup</code> 之后，那条路径的 hold 违例突然变得很怪（要么一堆，要么一个都没有）。</p>
+<p>原因：setup 检查点后移一个周期，hold 检查点也跟着错位。必须成对写：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：多周期路径的正确写法——setup 和 hold 必须成对</span><span class="ln cmt"># 用法：只对确实需要 N 拍完成的路径使用，且要写注释说明依据</span><span class="ln ">set_multicycle_path 2 -setup -from [get_cells u_slow/*] -to [get_cells u_slow/*]</span><span class="ln cmt"># setup 按 2 个周期检查</span><span class="ln ">set_multicycle_path 1 -hold  -from [get_cells u_slow/*] -to [get_cells u_slow/*]</span><span class="ln cmt"># hold 退回 1 个周期（N−1），否则 hold 检查点错位</span></code></pre></div>
+<p>识别：<code>report_timing -delay_type min</code> 里那条路径的 required 明显不对（比如应该是 0.2 却算成 2.2）。</p>
+<h3>第三类：generated clock 定义错，同源时钟被当成异步</h3>
+<p>现象：分频时钟那一片全是违例，或者反过来，本该检查的路径一条都不报。</p>
+<p>原因：<code>create_generated_clock</code> 的 <code>-source</code> 指错了（指到输出而不是输入），或者 <code>-divide_by</code> 写错。工具认为这是两个无关时钟，于是要么不检查，要么按最坏相位检查。</p>
+<p>识别：<code>report_clocks</code> 看每个 generated clock 的 source 和 divide 值，和 RTL 里的分频逻辑对一遍。</p>
+<h3>第四类：ideal / propagated 混用，或者 SPEF corner 用错</h3>
+<p>现象：同一版设计，两次跑出来的 WNS 差 0.3ns，代码没改。</p>
+<p>原因只有两种：一次用了 ideal clock（skew=0），一次用了 propagated；或者一次读了 Cmax 的 SPEF，一次读了 Cmin 的。</p>
+<p>识别：报告头部看 <code>clock network delay (propagated)</code> 还是 <code>(ideal)</code>；<code>report_parasitics</code> 看当前加载的是哪份 SPEF。</p>
+<p><strong>这两种混用是"报告不可复现"的头号原因</strong>，也是签核记录必须写清 corner 和时钟模式的原因。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="false-viol"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="script" data-ch="script">
+  <div class="ch-h"><span class="ch-n">12</span><h2>一个完整的 PT 签核 run 脚本</h2></div>
+  <p>下面这份脚本按"读库 → 读网表 → 读 SPEF → 读 SDC → 检查 → 报告 → 导出"分节。可以直接改成项目用。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ============================================================</span><span class="ln cmt"># 作用：单个 corner 的 PT 签核完整流程（ss / setup 场景）</span><span class="ln cmt"># 用法：pt_shell -f signoff_ss.tcl 2&gt;&amp;1 | tee log/signoff_ss.log</span><span class="ln cmt"># 前提：netlist、SPEF、SDC、库都在下面的路径里；先改路径再跑</span><span class="ln cmt"># ============================================================</span><span class="ln "> </span><span class="ln ">set DESIGN   "top"</span><span class="ln ">set CORNER   "ss_0p81v_125c"</span><span class="ln ">set RPT      "./rpt/${CORNER}"</span><span class="ln ">file mkdir $RPT                                  ;# 报告目录，不存在会报错</span><span class="ln "> </span><span class="ln cmt"># ---- 1. 读库：一个场景只读一套 corner 的库 ----</span><span class="ln ">set link_path "* \</span><span class="ln ">  /pdk/28nm/lib/${CORNER}/std_cell.db \</span><span class="ln ">  /pdk/28nm/lib/${CORNER}/sram_2048x64.db \</span><span class="ln ">  /pdk/28nm/lib/${CORNER}/io.db"</span><span class="ln cmt"># "*" 让当前 design 已有的库优先；每个 .db 都要绝对路径</span><span class="ln "> </span><span class="ln cmt"># ---- 2. 读网表并解析 ----</span><span class="ln ">read_verilog ./netlist/${DESIGN}_final.v</span><span class="ln ">link_design -keep_sub_designs</span><span class="ln cmt"># 立刻检查：解析失败的单元会被当黑盒，延迟按 0 算</span><span class="ln ">set unresolved [sizeof_collection [get_cells -hier -filter "is_black_box==true"]]</span><span class="ln ">puts "@@@ 黑盒数量：$unresolved"                  ;# 必须为 0，否则停下来查库</span><span class="ln "> </span><span class="ln cmt"># ---- 3. 读 SPEF（寄生参数）----</span><span class="ln ">read_parasitics -format SPEF ./spef/${DESIGN}_${CORNER}_cmax.spef</span><span class="ln cmt"># 一个 corner 一份 SPEF：setup 用 cmax，hold 用 cmin，别混</span><span class="ln "> </span><span class="ln cmt"># ---- 4. 读 SDC（必须在 link 之后）----</span><span class="ln ">source ./constraints/${DESIGN}_func.sdc</span><span class="ln cmt"># 读完立刻验证：时钟数、周期、IO 延迟是否都生效</span><span class="ln ">puts "@@@ 时钟数：[sizeof_collection [all_clocks]]"</span><span class="ln ">report_clocks &gt; $RPT/clocks.rpt</span><span class="ln "> </span><span class="ln cmt"># ---- 5. 设悲观度（OCV / AOCV）----</span><span class="ln ">set_timing_derate -late  1.05 -cell_delay</span><span class="ln ">set_timing_derate -early 0.95 -cell_delay</span><span class="ln ">set_timing_derate -late  1.05 -net_delay</span><span class="ln ">set_timing_derate -early 0.95 -net_delay</span><span class="ln cmt"># 四个组合都写全；只写 cell 会让线延迟没有 derate</span><span class="ln "> </span><span class="ln cmt"># ---- 6. 前置检查：约束有没有漏 ----</span><span class="ln ">check_timing -verbose &gt; $RPT/check_timing.rpt</span><span class="ln cmt"># 打开这个文件，no_clock / unconstrained_endpoints 必须为 0</span><span class="ln "> </span><span class="ln cmt"># ---- 7. 出报告 ----</span><span class="ln ">report_qor &gt; $RPT/qor.rpt</span><span class="ln ">report_timing -max_paths 100 -nworst 5 -slack_lesser_than 0 \</span><span class="ln ">              -path_type full_clock_expanded \</span><span class="ln ">              -significant_digits 4 &gt; $RPT/viol_setup.rpt</span><span class="ln cmt"># setup 违例全量清单，4 位小数，时钟路径展开</span><span class="ln ">report_constraint -all_violators -verbose &gt; $RPT/all_viol.rpt</span><span class="ln cmt"># 所有类型违例（含 DRV），用于分工</span><span class="ln ">report_constraint -all_violators -max_transition &gt; $RPT/drv_trans.rpt</span><span class="ln "> </span><span class="ln cmt"># ---- 8. 生成 ECO 建议（可选，只在需要修的时候跑）----</span><span class="ln ">if {[sizeof_collection [get_timing_paths -slack_lesser_than 0 -max_paths 1]] &gt; 0} {</span><span class="ln ">  fix_eco_timing -type setup -methods {size_cell} -slack_lesser_than 0</span><span class="ln ">  write_changes -format icctcl -output ./eco/eco_setup_${CORNER}.tcl</span><span class="ln ">  puts "@@@ 已生成 ECO 建议，需人工审核后再交 PR"</span><span class="ln ">}</span><span class="ln "> </span><span class="ln cmt"># ---- 9. 收尾 ----</span><span class="ln ">puts "@@@ 签核跑完，报告在 $RPT/"</span><span class="ln ">exit</span></code></pre></div>
+<p>每个"为什么这么排"：</p>
+<ol><li><strong>库在最前</strong>：<code>link_design</code> 依赖它，晚设等于白设。</li><li><strong>网表第二</strong>：没有 design 就没有对象，SDC 无从作用。</li><li><strong>SPEF 第三</strong>：它挂在 net 上，必须在 design 存在之后。</li><li><strong>SDC 第四</strong>：必须在 link 之后（前面踩过这个坑）；放在 SPEF 之后也没问题，因为它只依赖对象名。</li><li><strong>derate 第五</strong>：它是计算参数，必须在出报告之前。</li><li><strong>检查第六</strong>：先确认分母完整，再看分子。</li><li><strong>报告第七</strong>：全部重定向到文件，屏幕只留 <code>@@@</code> 打点，便于 <code>grep @@@ log</code> 快速判断跑到哪一步。</li></ol>
+<div class="pit"><div class="pit-h">常见坑 · 脚本里用相对路径，换个目录跑就全错</div><div class="pit-b"><p>现象：同事照你的脚本跑，报 <code>Cannot find the link library</code>，或者读到了一版旧的 SPEF，报告和你差 0.3ns。</p>
+<p>原因：脚本里写的是 <code>./spef/final.spef</code>，他在别的目录执行，<code>./</code> 指向了别处；更坏的情况是那个目录里恰好有一份旧文件，读进去了但不报错。</p>
+<p>处理：签核脚本里<strong>所有输入路径用变量 + 绝对路径</strong>，并在开头 <code>puts</code> 一遍所有实际路径（<code>puts "@@@ SPEF: [file normalize $spef]"</code>），日志里留证据。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="script"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="in-work" data-ch="in-work">
+  <div class="ch-h"><span class="ch-n">13</span><h2>工作中怎么用：签核在项目里的位置</h2></div>
+  <p><strong>谁做</strong>：STA 签核工程师。PR 工程师负责提供干净数据并做第一轮自检，签核工程师负责独立复算和签字。小团队里是同一人做两遍，但必须换 session、换目录、换脚本。</p>
+<p><strong>时间线</strong>（典型项目，示意）：</p>
+<div class="tbl"><table><thead><tr><th>阶段</th><th>签核做什么</th><th>输出</th></tr></thead><tbody><tr><td>综合后</td><td>快速评估（ideal clock、估算线负载）</td><td>频率能不能达到的初判</td></tr><tr><td>布局后</td><td>用估算 RC 跑，找系统性问题</td><td>架构/约束问题清单</td></tr><tr><td>CTS 后</td><td>用真实时钟树跑，hold 首次全量暴露</td><td>hold 违例清单给 PR</td></tr><tr><td>布线后</td><td>用真 SPEF 跑，这是第一次"接近签核"</td><td>WNS/TNS 趋势</td></tr><tr><td>流片前</td><td>全 corner 全模式 + OCV + SI，冻结版</td><td>签核报告 + waiver 清单</td></tr></tbody></table></div>
+<p><strong>交付物</strong>：每个场景一份报告目录（<code>rpt/</code>），一份汇总表（WNS/TNS/NVP 逐场景），一份 waiver 清单，一份"输入版本记录"（netlist/SDC/SPEF/库的版本号）。</p>
+<p><strong>做错了会怎样</strong>：签核是最后一道关。这里放过一条真违例，前面所有工作都白做。反过来，过度悲观导致不必要的降频或重复 ECO，也是实打实的损失——<strong>签核工程师的价值在于"准"，不是"严"</strong>。</p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：跑一次最小签核并写一份结论</div><div class="lab-b"><p><strong>任务</strong>：用课程环境里 05-02 的练习数据（<code>~/backend_lab/signoff/</code> 下有 <code>final.v</code>、<code>final_ss_cmax.spef</code>、<code>func.sdc</code>、<code>lib/</code> 目录），跑完一次 PT 签核，输出一份 200 字结论。</p>
+<p><strong>步骤</strong>：</p>
+<ol><li>按上面脚本改成绝对路径，<code>pt_shell -f signoff_ss.tcl</code>。</li><li>看 log 里的 <code>@@@ 黑盒数量</code>，必须为 0；不为 0 就先去补库。</li><li><code>grep -E "no_clock|unconstrained" rpt/ss/check_timing.rpt</code>，必须无输出。</li><li>打开 <code>rpt/ss/viol_setup.rpt</code>，抄下最差一条的：起点、终点、arrival、required、slack、<code>Incr</code> 最大的那一级。</li><li>打开 <code>rpt/ss/qor.rpt</code>，抄 WNS / TNS / NVP。</li></ol>
+<p><strong>过关标准</strong>：结论里必须包含这五句——最差路径在哪、差多少、差在哪一级、属于 setup 还是 hold、下一步建议（修逻辑 / 换单元 / 查约束）。写不出"差在哪一级"，说明还没会读报告。</p>
+<p><strong>如果课程环境跑不了 PT</strong>：用现成的报告文件做第 4、5 步，一样能练"逐列读报告"。真实项目里你会看到的就是这种格式，只是路径名和数值不同。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 PR 工具里 WNS 是正的，PT 一跑变负？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">常见四因：PR 用估算 RC 而 PT 读真 SPEF；PR 用 ideal clock 而 PT 用 propagated；PR 没开全 OCV；两边 SDC 版本不一致。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>read_parasitics</code> 之前必须先做什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">先 <code>read_verilog</code> + <code>link_design</code>。SPEF 挂在 net 上，没有 design 就没有对象可挂。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>SDC 读在 <code>link_design</code> 之前会怎样？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>get_ports</code> 返回空，<code>create_clock</code> 等约束静默失效，PT 只给 warning 不报错，报告里没有时钟也没有路径。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>set_input_delay -max 1.6</code> 这个 1.6 是怎么来的？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">上游器件 Tco 最大值 + 板级走线最大延迟；<code>-min</code> 则用两者的最小值。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>报告里 <code>Incr</code> 和 <code>Path</code> 两列的区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>Incr</code> 是进入该节点所花的延迟（这一步），<code>Path</code> 是从起点到该点的累计时间。找瓶颈看 <code>Incr</code>。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>required time 由哪几项拼成？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">周期 + 捕获时钟网络延迟 − clock uncertainty − library setup time（hold 检查则是 + hold time，且用同沿）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>OCV 的 derate 1.05/0.95 对 setup 检查具体作用在哪？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">发射侧（数据路径 + 发射时钟）按 1.05 变慢，捕获时钟按 0.95 变快，两者共同压缩可用时间。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>CPPR 在修什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">发射和捕获时钟的公共路径被同时按 late 和 early 算了两次，产生虚假悲观量，CPPR 把它加回来。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>AOCV 相比 OCV 的核心改进？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">按逻辑深度/物理距离查表：路径越长相对偏差越小，derate 更小，比统一系数更准也没那么悲观。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>check_timing 报 <code>unconstrained_endpoints</code> 不为 0，还能看 WNS 吗？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">不能。分母不全，WNS 只覆盖了受约束的那部分路径，通过率没有意义。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>签核里 hold 为什么要求比 setup 更严？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">setup 违例可以降频规避，hold 违例降频反而更差，无法用频率换，必须真正清零并留余量。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>什么样的违例不该用 ECO 修？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">系统性问题：违例散落在大量不相关模块、每条都差得多、<code>Incr</code> 无大头；根因通常是约束错误、库不对或频率定太高。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 PR 内建 STA 与 PT 签核在目的、输入、精度、可复现性上的四点差异</li><li>能按正确顺序读入 netlist / 库 / SPEF / SDC，并解释为什么 SDC 必须在 <code>link_design</code> 之后</li><li>能写出五条核心约束，并说清每条的数值来源和写错的后果</li><li>能逐列读一条 <code>report_timing</code>：认出起点终点、<code>Incr</code> 与 <code>Path</code> 的区别、required 的四个组成项</li><li>能手算一次 5% derate 对 slack 的影响，并知道 CPPR 加回多少</li><li>能列出 SS/TT/FF 各查什么，说清为什么 hold 用 Cmin</li><li>能用 <code>check_timing</code> 和 <code>report_constraint -all_violators</code> 分别找"没查的"和"查了不过的"</li><li>能识别四类假违例，并说出各自的识别方法</li><li>能照着分节脚本跑完一次单 corner 签核，并写出含"差在哪一级"的结论</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="in-work"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">

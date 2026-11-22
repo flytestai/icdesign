@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ICC2：换一套工具，把同一件事再做一遍 · 24 | IC 后端学院</title>
-<meta name="description" content="ICC2 的设计数据库（NDM）和 Innovus 完全不同，库要先"建"出来。这一课讲 NDM 是什么、怎么建、和 Innovus 的命令怎么对应。">
+<title>ICC2：换一套工具，把同一件事再做一遍 · 27 | IC 后端学院</title>
+<meta name="description" content="IC Compiler II 的第一课：同一批后端动作在 Innovus 和 ICC2 里有两套名词，标准单元库还要先"建"成 NDM 才能用。这一课给出 20 组命令对照、OPT-041 的逐词读法，以及建库时最先撞上的版本坑。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -26,10 +26,10 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-4">阶段四 · ICC2 32nm 项目</a><span>/</span><b>ICC2：换一套工具，把同一件事再做一遍</b></div>
     <div class="hero">
-      <div class="hero-no">24</div>
+      <div class="hero-no">27</div>
       <h1>ICC2：换一套工具，把同一件事再做一遍</h1>
       <p class="hero-en">ICC2 Fundamentals</p>
-      <p class="hero-sum">ICC2 的设计数据库（NDM）和 Innovus 完全不同，库要先"建"出来。这一课讲 NDM 是什么、怎么建、和 Innovus 的命令怎么对应。</p>
+      <p class="hero-sum">IC Compiler II 的第一课：同一批后端动作在 Innovus 和 ICC2 里有两套名词，标准单元库还要先"建"成 NDM 才能用。这一课给出 20 组命令对照、OPT-041 的逐词读法，以及建库时最先撞上的版本坑。</p>
       <div class="hero-meta">
         <span class="pill">约 35 分钟</span>
         <span class="pill">课表学时 2</span>
@@ -38,58 +38,170 @@
     </div>
     <article id="article"><section class="ch" id="why" data-ch="why">
   <div class="ch-h"><span class="ch-n">01</span><h2>为什么换工具会卡住</h2></div>
-  <p>会用 Innovus 不等于会用 ICC2。差的不只是命令名，而是<strong>数据组织方式</strong>：</p>
-<div class="tbl"><table><thead><tr><th>维度</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>库格式</td><td>直接读 <code>.lef</code> + <code>.lib</code></td><td>必须先合成 <strong>NDM</strong></td></tr><tr><td>设计存盘</td><td><code>.enc</code> 目录</td><td>block 数据库（在 lib 里）</td></tr><tr><td>时序视图</td><td>读 <code>.lib</code> 即可</td><td>NDM 里必须有 timing view</td></tr><tr><td>命令风格</td><td><code>place_opt_design</code></td><td><code>place_opt</code></td></tr></tbody></table></div>
+  <div class="goal"><span>本章目标</span>学完这一课，你能把一条 Innovus 命令翻译成 ICC2 的对应命令，能独立判断"库建得对不对"，并在看到 <code>OPT-041</code> 时先往上翻日志而不是乱改脚本。</div>
+<p>会开一辆车，不等于会开另一辆。方向盘、油门、刹车都在，但雨刷在左边还是右边、挡位是旋钮还是拨杆，全变了。你越想凭肌肉记忆操作，越容易在第一个路口熄火。</p>
+<p>Innovus 换到 ICC2 就是这样。<strong>动作是同一批</strong>：读网表、摆单元、建时钟树、布线、导出。<strong>名词全换了</strong>，而且底层的数据组织方式也换了。</p>
+<p>卡住通常发生在两个层面：</p>
+<ul><li><strong>名词层</strong>：你想查一个实例的坐标，手上只有 <code>dbGet</code> 的记忆；ICC2 只认 <code>get_cells</code> + <code>get_attribute</code>。</li><li><strong>数据层</strong>：Innovus 直接读 <code>.lef</code> 和 <code>.lib</code> 就能开工；ICC2 必须先把它们"合成"成一个 NDM 库。库没建好，后面每条命令都跑不动。</li></ul>
+<p>这一课先把这两层拆开讲清楚，再给对照表。命令可以查，<strong>"为什么这条命令在这个工具里不存在"必须想明白</strong>，否则每次换工具都要从零开始。</p>
+<div class="scene"><div class="scene-h">工作场景 · 周一早上，一个跑不通的 ICC2 会话</div><div class="scene-b"><p>leader 把一个在 Innovus 里已经跑通的设计交给你："9390 个单元，QoR 报告在 <code>pnr/rpt/</code>，你用 ICC2 再跑一遍，对比一下。"</p>
+<p>你打开 <code>icc2_shell</code>，<code>read_verilog</code> 成功，敲 <code>link_block</code> 之后 <code>report_design_mismatch</code> 里列了三百多个单元。你想查其中一个 SRAM 的坐标，习惯性敲 <code>dbGet [dbGet top.insts.name u_sram0]</code>，工具回了一句 <code>invalid command name "dbGet"</code>。</p>
+<p>下午两点，你还没开始 floorplan。leader 问进度，你只能说"在调库"。</p></div></div>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">NDM</span><span class="term-zh">Milkyway/NDM 库</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>Synopsys 的库格式。一个 NDM 里可以同时装：物理视图（来自 LEF）、时序视图（来自 .db）、工艺信息（来自 .tf）。<br><strong>关键：如果 NDM 里只有物理视图没有时序视图，<code>place_opt</code> 会直接失败</strong>（报 <code>OPT-041</code>），因为它没法算时序。</p></div>
+  <div class="term-h"><span class="term-en">NDM (New Data Model)</span><span class="term-zh">新数据模型库</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Synopsys 为 ICC2 设计的库容器。一个 NDM 目录里同时装三类东西：物理视图（来自 LEF）、时序视图（来自 <code>.db</code>）、工艺与寄生信息（来自 <code>.tf</code> / TLU+）。<strong>它不是一个文件，是一个目录</strong>，不要手改里面的内容。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Milkyway</span><span class="term-zh">银河库（上一代库格式）</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>ICC（现在常被叫 ICC1）时代使用的库格式。ICC2 换成了 NDM，两者不能直接互读。项目里如果还有 Milkyway 库，正规做法是从 LEF 和 <code>.db</code> 重建 NDM，而不是指望格式转换工具保住全部信息。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Scenario</span><span class="term-zh">场景</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>ICC2 里"一套可计算的时序条件"：一个 mode（功能模式、测试模式）+ 一个 corner（工艺/电压/温度）+ 一份寄生参数。Innovus 的对应概念是 analysis view。一个设计通常有 4~12 个 scenario，跑优化时要指定用哪个。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Link</span><span class="term-zh">链接</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把网表里写的单元名（比如 <code>BUFX4</code>）和库里真实的单元定义对上号。链接不上的单元叫 unresolved（未解析），它没有时序模型、没有版图，后面所有优化都会算错或者直接停。</p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="naming" data-ch="naming">
+  <div class="ch-h"><span class="ch-n">02</span><h2>同一件事，两套名词</h2></div>
+  <p>先看一张最小的对照。左边是"你要干的活"，中间和右边是两个工具的说法：</p>
+<div class="tbl"><table><thead><tr><th>你要干的活</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>查某个单元</td><td><code>dbGet top.insts.name</code></td><td><code>get_cells</code></td></tr><tr><td>取单元属性</td><td><code>dbGet $inst.pt</code></td><td><code>get_attribute $inst origin</code></td></tr><tr><td>设全局模式</td><td><code>setOptMode -fixFanoutLoad true</code></td><td><code>set_app_options -name &lt;开关名&gt; -value true</code></td></tr><tr><td>打开设计</td><td><code>restoreDesign x.enc</code></td><td><code>open_lib</code> + <code>open_block</code></td></tr><tr><td>读网表</td><td><code>read_netlist x.v</code></td><td><code>read_verilog x.v</code> + <code>link_block</code></td></tr><tr><td>多模式多端角</td><td><code>create_analysis_view</code></td><td><code>create_scenario</code></td></tr><tr><td>建时钟树</td><td><code>ccopt_design</code></td><td><code>clock_opt</code></td></tr></tbody></table></div>
+<p><code>dbGet</code> 和 <code>get_*</code> 最大的区别不在拼写，在<strong>返回值</strong>：</p>
+<ul><li><code>dbGet</code> 返回的是<strong>对象列表</strong>，可以直接 <code>foreach</code>，也可以直接取属性。</li><li>ICC2 的 <code>get_cells</code> 返回的是 <strong>collection（集合）</strong>，不能当普通 Tcl 列表用；遍历要 <code>foreach_in_collection</code>，取属性要 <code>get_attribute</code>。</li></ul>
+<p>同一件事写两遍，你就能看出差别：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：在 Innovus 里按名字找 SRAM，并打印坐标</span><span class="ln cmt"># 用法：Innovus 命令行直接执行；当前设计已经 open 且有实例 u_sram0</span><span class="ln ">set insts [dbGet -p top.insts.name u_sram*]      ;# 按通配符筛出名字以 u_sram 开头的实例</span><span class="ln ">foreach i $insts {                                ;# dbGet 返回的是列表，可以直接 foreach</span><span class="ln ">    puts "[dbGet $i.name] [dbGet $i.pt]"          ;# 取实例名和坐标（pt 是 point 的缩写）</span><span class="ln ">}</span></code></pre></div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：同一件事在 ICC2 里的写法</span><span class="ln cmt"># 用法：icc2_shell 里执行；先 open_block，否则 get_cells 返回空</span><span class="ln ">set insts [get_cells u_sram*]                                   ;# 返回 collection，不是列表</span><span class="ln ">foreach_in_collection i $insts {                                ;# 遍历 collection 必须用这个命令</span><span class="ln ">    puts "[get_attribute $i full_name] [get_attribute $i origin]" ;# 取属性要用 get_attribute</span><span class="ln ">}</span></code></pre></div>
+<p>记住一句话：<strong>Innovus 把数据库当 Tcl 列表用，ICC2 把数据库当对象集合用。</strong> 这一条能解释一半的"命令不认识"。</p>
+<p>再补一个高频差异：设全局开关。Innovus 用 <code>setOptMode -fixFanoutLoad true</code>，一个命令管一类行为；ICC2 用 <code>set_app_options -name place.coarse.continue_on_missing_scandef -value true</code> 这种"点分路径"，每个开关一个完整名字。ICC2 的写法更长，但好处是能按前缀列出相关开关（<code>get_app_options</code>），排查时不用翻整本手册。开关名随版本增删，照抄教程前先 <code>man set_app_options</code> 确认。</p>
+<div class="note"><div class="note-h">命名风格也有规律</div><p>ICC2 的命令更像"动词 + 名词"的英文：<code>create_lib</code>、<code>open_block</code>、<code>report_qor</code>。Innovus 里 camelCase（驼峰）更多：<code>restoreDesign</code>、<code>place_opt_design</code>、<code>report_area</code>。</p>
+<p>看到一条陌生命令，先判断它是"读/写/建/报"哪一类，再去对照表里找同一类，比死记快。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="naming"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="two-dbs" data-ch="two-dbs">
+  <div class="ch-h"><span class="ch-n">03</span><h2>两套工具的数据库不一样</h2></div>
+  <p>把库想成收纳箱：三家厂商各有各的箱子，盖子形状都不一样。</p>
+<div class="tbl"><table><thead><tr><th>数据</th><th>谁产生</th><th>Innovus 怎么用</th><th>ICC2 怎么用</th></tr></thead><tbody><tr><td>LEF</td><td>库厂商</td><td>直接 <code>read_lef</code></td><td>建 NDM 时读进去</td></tr><tr><td><code>.lib</code> / <code>.db</code></td><td>库厂商 / Library Compiler</td><td>直接读 <code>.lib</code></td><td>建 NDM 时读 <code>.db</code></td></tr><tr><td>TLU+</td><td>库厂商</td><td><code>read_parasitic_tech</code>（或等效命令）</td><td>同样要单独读</td></tr><tr><td>设计数据库</td><td>工具自己</td><td><code>.enc</code> 目录</td><td>library 里的 block</td></tr><tr><td>库容器</td><td>—</td><td>无（散着读）</td><td>NDM 目录</td></tr></tbody></table></div>
+<p>三件事值得单独说清：</p>
+<p><strong>第一，NDM 是"合起来"的产物。</strong> Innovus 可以今天读一版 LEF、明天换一版 <code>.lib</code>，工具不拦你。ICC2 把两者在<strong>建库那一刻</strong>焊死在一起：LEF 里有的单元、<code>.db</code> 里没有，<code>check_workspace</code> 就会报出来。好处是后面不会出现"物理和时序不是同一版"的鬼故事，坏处是建库多了一道必须过的关。</p>
+<p><strong>第二，Milkyway 是上一代，不要混着用。</strong> Milkyway 是 ICC1 的库格式，NDM 是 ICC2 的。两者不是"新旧文件名"的关系，是两套完全不同的存储结构。看到教程里写 <code>create_mw_lib</code>，那讲的是 ICC1，不是 ICC2。</p>
+<p><strong>第三，Innovus 的 <code>.enc</code> 是目录，不是单文件。</strong> <code>saveDesign</code> 会写一整个目录，<code>restoreDesign</code> 读它。它同样跟工具版本强相关——大版本升级后老 <code>.enc</code> 常常打不开。所以项目里存盘文件名一定要带工具版本，比如 <code>04_place_icc2_2023.03.enc</code>，别只写 <code>04_place.enc</code>。</p>
+<div class="pit"><div class="pit-h">常见坑 · 用错版本的库，跑六小时才发现</div><div class="pit-b"><p>现象：<code>create_lib</code> 能过，<code>place_opt</code> 跑到一半报时序计算异常，或者 <code>report_qor</code> 里所有单元的延迟都是 0。</p>
+<p>原因：NDM 是用另一个 ICC2 版本建的。NDM 内部记录了生成它的版本号，跨大版本经常不兼容；<code>.db</code> 更是纯二进制，跨版本直接读不了。</p>
+<p>怎么查：进 <code>icc2_lm_shell</code> 用 <code>report_workspace</code>（具体子选项以 <code>-help</code> 为准）看库的生成信息；再和 <code>icc2_shell -version</code> 对一下。对不上就重建，不要试图"修"。</p>
+<p>怎么避免：把库的版本号写进 run 脚本的头部注释，和网表、约束一起存档。建库是 CAD 或库管理员的责任，但<strong>用库的人必须会看版本</strong>。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="two-dbs"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="build" data-ch="build">
-  <div class="ch-h"><span class="ch-n">02</span><h2>建库：ICC2 的第一道关</h2></div>
-  <p>造 NDM 要用 <code>icc2_lm_shell</code>（Library Manager），不是 <code>icc2_shell</code>。这是一条容易踩空的坑：<strong>两个 shell 的命令集是互补的</strong>。</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 在 icc2_lm_shell 里执行</span><span class="ln ">create_workspace -technology /pdk/tsmc32.tf tsmc32_ts</span><span class="ln "> </span><span class="ln ">read_lef /pdk/lef/tsmc32_stdcell.lef        # 先读物理</span><span class="ln ">read_db  /pdk/db/tsmc32_tt.db               # 再读时序</span><span class="ln "> </span><span class="ln ">check_workspace                              # 检查一致性</span><span class="ln ">commit_workspace -output /pdk/ndm/tsmc32_ts.ndm   # 提交成 NDM</span></code></pre></div>
-<div class="pit"><div class="pit-h">常见坑 · 建库时 check_workspace 不过，commit 会失败</div><div class="pit-b"><p>常见原因：LEF 和 .db 里的单元对不上（比如某个单元只在 .db 里有，LEF 里没有）。</p>
-<p><strong>处理办法</strong>：把冲突单元从库里剔掉（<code>remove_lib_cell</code>），或者补一份匹配的 LEF。我们实测时踢掉了 3 个单元（LOGIC0/LOGIC1/TAPCELL），因为它们引脚名或物理信息不一致，剔掉不影响综合（DC 会改用反相器做 tie）。</p></div></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>建库：ICC2 的第一道关</h2></div>
+  <p>建库要在 <code>icc2_lm_shell</code>（Library Manager，库管理器）里做，不是在 <code>icc2_shell</code> 里。两个 shell 的命令集是互补的：<code>read_lef</code>、<code>read_db</code>、<code>commit_workspace</code> 只在 lm_shell 里有；<code>place_opt</code>、<code>clock_opt</code> 只在 icc2_shell 里有。</p>
+<p>把它想成"先把零件和说明书装进标准工具箱，再拿工具箱去干活"。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把 LEF（物理）、.db（时序）、.tf（工艺）合成一个 NDM</span><span class="ln cmt"># 用法：终端先执行 icc2_lm_shell 进入库管理器，再逐条执行；路径换成你环境里的 PDK</span><span class="ln ">create_workspace -technology /pdk/tsmc32/tsmc32.tf tsmc32_ws  ;# 建一个空工作区，先挂上工艺文件（层定义、单位）</span><span class="ln ">read_lef /pdk/tsmc32/lef/tsmc32_stdcell.lef                    ;# 读物理视图：每个单元的外框、引脚位置、阻挡层</span><span class="ln ">read_db  /pdk/tsmc32/db/tsmc32_tt_1v0_25c.db                   ;# 读时序视图：延迟表、功耗表、setup/hold 约束</span><span class="ln ">check_workspace                                                 ;# 交叉检查两份数据：单元名、引脚名、面积是否一致</span><span class="ln ">commit_workspace -output /pdk/ndm/tsmc32_tt.ndm                 ;# 检查通过后落盘，生成 NDM 目录</span></code></pre></div>
+<p>逐行说清三件容易忽略的事：</p>
+<ul><li><code>-technology</code> 指向的 <code>.tf</code> 决定"这个库有哪些层、单位是微米还是纳米"。同一个 LEF 配错 <code>.tf</code>，读进去不报错，但所有坐标会差 1000 倍。</li><li><code>read_db</code> 读的是编译过的 <code>.db</code>，不是文本 <code>.lib</code>。手里只有 <code>.lib</code> 时，要先编译：Library Compiler（<code>lc_shell</code>）里 <code>read_lib</code> + <code>write_lib -format db</code>。有些公司把这一步包成一个叫 <code>librate</code> 的脚本，名字各家不同，看到它就理解成"把 <code>.lib</code> 编成 <code>.db</code>"。</li><li><code>check_workspace</code> 是唯一一道"物理和时序对不上"的拦截。它过了，才允许 <code>commit_workspace</code>。</li></ul>
+<div class="pit"><div class="pit-h">常见坑 · check_workspace 不过，别硬 commit</div><div class="pit-b"><p>现象：<code>check_workspace</code> 打印一批 mismatched cells，<code>commit_workspace</code> 直接失败。</p>
+<p>常见原因有三类：</p>
+<ol><li><strong>单元只在一侧存在</strong>：<code>.db</code> 里有 <code>LOGIC0</code>/<code>LOGIC1</code>，LEF 里没有；或者 LEF 里有 <code>TAPCELL</code>，<code>.db</code> 里没有（tap cell 本来就没有时序）。</li><li><strong>引脚名不一致</strong>：LEF 里叫 <code>A</code>，<code>.db</code> 里叫 <code>A1</code>。</li><li><strong>面积对不上</strong>：LEF 的外框面积和 <code>.db</code> 里的 <code>area</code> 差太多，通常是版本不匹配。</li></ol>
+<p>处理：先 <code>report_workspace</code> 看清单，再用 <code>remove_lib_cell</code> 把冲突单元剔掉，或者补一份匹配的 LEF。我们实测时剔掉过 3 个单元（<code>LOGIC0</code>、<code>LOGIC1</code>、<code>TAPCELL</code>），因为综合阶段会用反相器做 tie、tap 由后端单独插，剔掉不影响流程。</p>
+<p><strong>注意：剔单元要有记录。</strong> 在库的 build 记录里写清"剔了哪三个、为什么"，否则半年后没人知道这个库里少了东西。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="build"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="version" data-ch="version">
+  <div class="ch-h"><span class="ch-n">05</span><h2>版本不匹配：最先撞上的一堵墙</h2></div>
+  <p><code>.db</code> 是二进制，不是文本。文本 <code>.lib</code> 你能用眼睛看出周期、面积；<code>.db</code> 打开是乱码，只能由同版本的 Library Compiler 或 ICC2 读。</p>
+<p>所以版本关系是一条链：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">.lib 文本  --(lc_shell, 某个版本)--&gt;  .db  --(icc2_lm_shell, 同代版本)--&gt;  NDM  --(icc2_shell, 同代版本)--&gt; 可以跑</span></code></pre></div>
+<p>链上任何一环换了大版本，都要从头重建。<strong>判断方法</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：一次性打印工具版本，确认库和工具是不是同一代</span><span class="ln cmt"># 用法：在项目 run 目录下执行，把输出贴进 run.log 头部</span><span class="ln ">icc2_shell -version        # 打印 ICC2 版本，例如 2023.03-SP2（以你环境为准）</span><span class="ln ">icc2_lm_shell -version     # 库管理器版本，正常应与 icc2_shell 同代</span><span class="ln ">lc_shell -version          # 如果自己编译 .db，Library Compiler 也要对得上</span></code></pre></div>
+<p>真实项目里你会看到两种典型报错：一种是读库时直接说 <code>cannot read library</code> / 含 <code>version</code>、<code>format</code> 字样；另一种更阴——库能读进来，但 <code>report_lib</code> 里 timing view 是空的。第二种最难查，因为工具不报错。</p>
+<p>所以"能用"不等于"版本对"。判断一个库能不能进项目，除了能打开，还要看三处：<code>report_lib</code> 有 timing view、<code>report_parasitic_tech</code> 有 corner、<code>report_qor</code> 里单元延迟不是 0。三处都过，才算这个 NDM 和当前 ICC2 是配套的。至于 NDM 内部具体子目录叫什么，各版本都在变，<strong>以你手上版本的 <code>man</code> 和 <code>report_workspace</code> 输出为准</strong>，不要按网上截图去核对目录名。</p>
+<div class="pit"><div class="pit-h">常见坑 · read_db 成功了，但时序是空的</div><div class="pit-b"><p>现象：<code>report_lib</code> 能看到单元，<code>get_cells</code> 也能取到，但 <code>report_timing</code> 一条路径都没有，<code>place_opt</code> 报 <code>OPT-041</code>。</p>
+<p>原因：建库时只读了 LEF，没读 <code>.db</code>，或者 <code>.db</code> 读失败但被脚本里的 <code>catch</code> 吞掉了。</p>
+<p>怎么查：在 lm_shell 里用 <code>report_workspace</code> 看每个库挂了多少视图（选项名以 <code>-help</code> 为准）；在 icc2_shell 里 <code>report_lib</code> 看 <code>Timing Data</code> 那一栏是不是空的。</p>
+<p>怎么避免：建库脚本里 <code>read_db</code> 后面立刻加一条断言式检查，读不到就直接退出，不要让它带着半个库往下走。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="version"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="mapping" data-ch="mapping">
-  <div class="ch-h"><span class="ch-n">03</span><h2>命令对照表</h2></div>
-  <div class="tbl"><table><thead><tr><th>动作</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>建库</td><td>无需（直接读 lef/lib）</td><td><code>create_workspace</code> + <code>commit_workspace</code></td></tr><tr><td>打开设计</td><td><code>restoreDesign x.enc</code></td><td><code>open_lib</code> + <code>open_block</code></td></tr><tr><td>读网表</td><td><code>read_netlist</code></td><td><code>read_verilog</code> + <code>link_design</code></td></tr><tr><td>Floorplan</td><td><code>floorPlan</code></td><td><code>initialize_floorplan</code></td></tr><tr><td>摆宏</td><td><code>placeInstance</code></td><td><code>set_cell_location</code></td></tr><tr><td>电源</td><td><code>addRing</code> / <code>addStripe</code></td><td><code>create_power_straps</code> / <code>create_pg_ring</code></td></tr><tr><td>布局</td><td><code>place_opt_design</code></td><td><code>place_opt</code></td></tr><tr><td>CTS</td><td><code>ccopt_design</code></td><td><code>clock_opt</code></td></tr><tr><td>布线</td><td><code>routeDesign</code></td><td><code>route_auto</code></td></tr><tr><td>布线后优化</td><td><code>optDesign -postRoute</code></td><td><code>route_opt</code></td></tr><tr><td>存盘</td><td><code>saveDesign</code></td><td><code>save_block</code></td></tr><tr><td>导出 DEF</td><td><code>defOut</code></td><td><code>write_def</code></td></tr><tr><td>导出网表</td><td><code>saveNetlist</code></td><td><code>write_verilog</code></td></tr></tbody></table></div>
-<div class="tip"><div class="tip-h">小技巧</div><p>不要死记名字，记<strong>动作</strong>：读入、存盘、布局、时钟、布线、优化、导出。七个动作 × 两个工具 = 十四行表，比背课本容易。</p></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>命令对照表</h2></div>
+  <p>这张表建议打印出来贴在显示器边上。左边一列是"动作"，右边两列才是命令。表里刻意按<strong>动作</strong>排序，而不是按字母，因为你在项目里是先想到"我要存盘"，才去想"存盘叫什么"。</p>
+<div class="tbl"><table><thead><tr><th>动作</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>建库</td><td>无需（直接读 LEF/LIB）</td><td><code>create_workspace</code> + <code>commit_workspace</code></td></tr><tr><td>开库</td><td>—</td><td><code>open_lib</code></td></tr><tr><td>打开设计</td><td><code>restoreDesign x.enc</code></td><td><code>open_block lib:block</code></td></tr><tr><td>新建设计</td><td><code>init_design</code></td><td><code>create_lib</code> + <code>create_block</code></td></tr><tr><td>读网表</td><td><code>read_netlist x.v</code></td><td><code>read_verilog x.v</code></td></tr><tr><td>链接</td><td>（读网表时自动）</td><td><code>link_block</code>（旧脚本里可能写作 <code>link_design</code>）</td></tr><tr><td>设全局</td><td><code>setOptMode</code></td><td><code>set_app_options</code></td></tr><tr><td>查对象</td><td><code>dbGet</code></td><td><code>get_cells</code> / <code>get_nets</code> / <code>get_pins</code></td></tr><tr><td>读约束</td><td><code>read_sdc x.sdc</code></td><td><code>source x.sdc</code>（或 <code>read_sdc</code>）</td></tr><tr><td>模式/端角</td><td><code>create_constraint_mode</code> / <code>create_delay_corner</code></td><td><code>create_mode</code> / <code>create_corner</code></td></tr><tr><td>时序场景</td><td><code>create_analysis_view</code></td><td><code>create_scenario</code></td></tr><tr><td>Floorplan</td><td><code>floorPlan</code></td><td><code>initialize_floorplan</code>（ICC1 叫 <code>create_floorplan</code>）</td></tr><tr><td>摆宏</td><td><code>placeInstance</code></td><td><code>set_cell_location</code></td></tr><tr><td>电源环</td><td><code>addRing</code></td><td><code>create_pg_ring_pattern</code> + <code>compile_pg</code></td></tr><tr><td>电源条</td><td><code>addStripe</code></td><td><code>create_power_straps</code>（新版本用 mesh pattern）</td></tr><tr><td>布局</td><td><code>place_opt_design</code></td><td><code>place_opt</code></td></tr><tr><td>CTS</td><td><code>ccopt_design</code></td><td><code>clock_opt</code></td></tr><tr><td>布线</td><td><code>routeDesign</code></td><td><code>route_auto</code></td></tr><tr><td>布线后优化</td><td><code>optDesign -postRoute</code></td><td><code>route_opt</code></td></tr><tr><td>存盘</td><td><code>saveDesign x.enc</code></td><td><code>save_block</code></td></tr><tr><td>导 DEF</td><td><code>defOut</code></td><td><code>write_def</code></td></tr><tr><td>导网表</td><td><code>saveNetlist</code></td><td><code>write_verilog</code></td></tr><tr><td>导 SDC</td><td><code>write_sdc</code></td><td><code>write_sdc</code></td></tr><tr><td>导 SPEF</td><td><code>rcOut -spef</code></td><td><code>write_parasitics -format SPEF</code></td></tr><tr><td>报告 QoR</td><td><code>report_qor</code></td><td><code>report_qor</code></td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>不要背名字，背<strong>七类动作</strong>：读入、设模式、布局、时钟、布线、优化、导出。每类记住"输入是什么、输出是什么"，名字忘了就 <code>man</code> 一下。</p>
+<p>真正让你卡住的从来不是名字，而是"这个工具为什么要求我先做那一步"。</p>
+<p>还有一件事：两个工具的<strong>步骤颗粒度</strong>不一样。Innovus 里 <code>place_opt_design</code> 一步做完布局和预 CTS 优化；ICC2 的 <code>place_opt</code> 也是一步，但选项散在 <code>place.*</code> 一堆 app option 里。Innovus 里 <code>optDesign -preCTS</code> / <code>-postCTS</code> / <code>-postRoute</code> 分三段；ICC2 对应 <code>place_opt</code> / <code>clock_opt</code> / <code>route_opt</code>，靠"跑哪个命令"区分阶段，而不是靠一个命令的开关。看懂这一点，对照表就不是死记，而是"阶段映射"。</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="mapping"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="opt041" data-ch="opt041">
-  <div class="ch-h"><span class="ch-n">04</span><h2>一个真实的坑：OPT-041</h2></div>
-  <p>我们第一次跑 <code>place_opt</code> 时报错：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: OPT-041 Scenario Manager creation failed</span></code></pre></div>
-<p>官方文档会说"时序场景创建失败"，于是你会去查 NDM 有没有 timing view。<strong>但我们查了，有。</strong></p>
-<p>真正的原因在上一行日志：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">NEX-018: no valid parasitic for default corner (LATE)</span></code></pre></div>
-<p><strong>缺的是寄生参数模型（TLU+）</strong>，不是时序视图。</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">read_parasitic_tech -tlup /pdk/tlup/tsmc32.tlup -layermap /pdk/tlup/layer.map -name tt</span><span class="ln ">set_parasitic_parameters -early_spec tt -late_spec tt</span><span class="ln cmt"># 必须在 link_design 之后设置</span></code></pre></div>
-<div class="scene"><div class="scene-h">工作场景 · 这个坑的教学价值</div><div class="scene-b"><p>报错信息经常"指错方向"。<code>OPT-041</code> 看起来是场景问题，实际是寄生问题。</p>
-<p><strong>排查原则：不要只看最后一条错误，往上翻 5 行看第一条。</strong> 后面往往是连锁反应。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>知道 NDM 里必须同时有物理视图和时序视图</li><li>记得建库用 <code>icc2_lm_shell</code> 而不是 <code>icc2_shell</code></li><li>能说出至少 8 组 Innovus/ICC2 命令对应</li><li>遇到 <code>OPT-041</code> 先查寄生参数</li></ul></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>NDM 里缺时序视图会怎样？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a"><code>place_opt</code> / <code>clock_opt</code> 起不来（优化器需要时序信息）。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>建库为什么要在 <code>icc2_lm_shell</code> 里做？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">因为 <code>read_lef</code>/<code>read_db</code>/<code>create_workspace</code> 这些库管理命令只在 lm_shell 里有（<code>icc2_shell</code> 有 <code>create_lib</code> 但没有 lef/db 读取）。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span><code>OPT-041</code> 的真实原因可能是什么？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">常见是缺寄生参数模型（NEX-018），不是时序视图缺失。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>Innovus 的 <code>.enc</code> 和 ICC2 的 block 数据库有什么区别？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a"><code>.enc</code> 是独立目录存盘；ICC2 的 block 存在 lib 里，要先 <code>open_lib</code> 再 <code>open_block</code>。</div>
-</div></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>一个真实的坑：OPT-041</h2></div>
+  <p>第一次跑 <code>place_opt</code>，报错只有一行：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: OPT-041 Scenario Manager creation failed</span></code></pre></div>
+<p>很多人看到这句就去查 NDM 有没有 timing view。<strong>方向对了一半</strong>——但如果你查了，发现 timing view 明明在，就会彻底卡住。</p>
+<p>正确做法是把这句话拆开逐词读：</p>
+<div class="tbl"><table><thead><tr><th>片段</th><th>含义</th></tr></thead><tbody><tr><td><code>Error</code></td><td>错误级别（还有 <code>Warning</code>、<code>Information</code>）</td></tr><tr><td><code>OPT</code></td><td>消息来自优化器模块（optimizer）</td></tr><tr><td><code>041</code></td><td>该模块的第 41 号消息，查手册时用这个号</td></tr><tr><td><code>Scenario Manager</code></td><td>场景管理器，负责把 mode + corner + 寄生组合成可计算的时序条件</td></tr><tr><td><code>creation failed</code></td><td>它没能建出场景</td></tr></tbody></table></div>
+<p>这句话告诉你的是<strong>结果</strong>：场景没建起来。它没告诉你<strong>原因</strong>。原因通常在上一行或上几行——工具是"先出错，再报一个更笼统的错"。</p>
+<p>往上翻，我们看到了真正的原因：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">NEX-018: no valid parasitic for default corner (LATE)</span></code></pre></div>
+<p>再拆一次：</p>
+<ul><li><code>no valid parasitic</code>：没有可用的寄生参数模型。</li><li><code>default corner</code>：工具在用默认端角，说明你没有显式指定。</li><li><code>LATE</code>：晚端角，也就是算 max delay / setup 用的那一套。与之对应的是 <code>EARLY</code>（算 hold）。</li></ul>
+<p><strong>结论：缺的是 TLU+（寄生参数模型），不是时序视图。</strong></p>
+<p>修复要在 <code>link_block</code> 之后、<code>place_opt</code> 之前：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：读入 TLU+ 寄生模型，并指定 early/late 各用哪一套</span><span class="ln cmt"># 用法：open_block + link_block 之后执行；否则工具还不知道当前设计，参数挂不上去</span><span class="ln ">read_parasitic_tech -tlup /pdk/tsmc32/tlup/tsmc32.tlup \        ;# 读 TLU+ 文件（每个金属层的 R/C 表）</span><span class="ln ">    -layermap /pdk/tsmc32/tlup/layer.map \                        ;# 层号映射：TLU+ 里的层名对到设计里的层号</span><span class="ln ">    -name tt                                                       ;# 给这套参数起名 tt，后面引用这个名字</span><span class="ln ">set_parasitic_parameters -early_spec tt -late_spec tt              ;# early（算 hold）和 late（算 setup）都用 tt</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 只看最后一条错误</div><div class="pit-b"><p>现象：日志最后一行是 <code>OPT-041</code>，你按 <code>OPT-041</code> 查了半天文档，改了 scenario 设置，还是同样的错。</p>
+<p>原因：<code>OPT-041</code> 是<strong>下游症状</strong>。上游可能已经报了 <code>NEX-018</code>、<code>LIB-xxx</code>、<code>read_db failed</code>，只是被刷屏刷过去了。</p>
+<p>规矩：<strong>从最后一条错误往上翻 5 行，找第一条 <code>Error</code>。</strong> 第一条才是根因，后面都是连锁反应。日志里搜 <code>^Error</code> 比看最后 20 行有用得多。</p>
+<p>命令：<code>grep -n "^Error" run.log | head -5</code>。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="opt041"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="in-work" data-ch="in-work">
+  <div class="ch-h"><span class="ch-n">08</span><h2>工作中怎么用：建库这一步归谁</h2></div>
+  <p><strong>谁做</strong>：大公司由 CAD 组或库管理员建库，PR 工程师只负责用；小公司或实验室里，PR 自己建。无论谁建，<strong>用库的人必须会看版本</strong>。</p>
+<p><strong>输入</strong>：PDK 里的 LEF、<code>.db</code>、<code>.tf</code>、TLU+；以及一份"这次建库剔了哪些单元"的记录。</p>
+<p><strong>输出</strong>：一个 NDM 目录 + 一份 build 记录（工具版本、日期、剔除清单、check_workspace 结果）。这份记录要跟网表、约束一起进项目归档。</p>
+<p><strong>评审看什么</strong>：库里 timing view 数量对不对（多少种 corner）、面积和 LEF 是否一致、有没有为了"能过"而剔掉关键单元。剔 <code>LOGIC0/LOGIC1</code> 可以，剔一个真实的 buffer 就是事故。</p>
+<p><strong>做错了会怎样</strong>：库版本不对，最短的代价是重跑一天；最长的代价是 signoff 时发现 PR 和 STA 用的不是同一版库，两边时序对不上，整轮返工。所以 run 脚本第一行就该写清库路径和版本。</p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：把库和命令都验一遍</div><div class="lab-b"><p><strong>任务</strong>：在课程环境的 ICC2 工作目录（<code>~/backend_lab/icc2/</code>）里完成三件事，并写进 <code>lab04-01.md</code>。</p>
+<p><strong>步骤</strong>：</p>
+<ol><li>看库：<code>icc2_shell</code> 里 <code>open_lib</code> 后执行 <code>report_lib</code>，把 <code>Timing Data</code> 那一栏抄下来；如果为空，说明这个库只有物理视图。</li><li>查寄生：执行 <code>report_parasitic_tech</code>（有的版本是 <code>get_parasitic_techs</code>），记下 corner 名字。</li><li>翻译命令：把下面 5 条 Innovus 命令写成 ICC2 版本，写不出就查对照表：</li></ol>
+<p><code>restoreDesign</code>、<code>dbGet top.insts.name</code>、<code>place_opt_design</code>、<code>ccopt_design</code>、<code>defOut</code>。</p>
+<ol><li>读日志：打开 <code>logs/place_opt_fail.log</code>，用 <code>grep -n "^Error"</code> 找出第一条错误，说明它和最后一条 <code>OPT-041</code> 的关系。</li></ol>
+<p><strong>过关标准</strong>：能说出这个库有几个 corner、TLU+ 是否已加载；5 条翻译至少对 4 条；能指出日志里"根因行"的行号。</p>
+<p><strong>如果环境里没有 ICC2 license</strong>：第 1、2 步跳过，用课程提供的 <code>report_lib.txt</code> 和 <code>parasitic.txt</code> 代替；第 3、4 步照做。真实项目里这两个文件由 CAD 每天生成，学会读比学会敲更重要。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>ICC2 里为什么不能直接用 <code>dbGet</code>？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>dbGet</code> 是 Innovus 的命令；ICC2 用 <code>get_cells</code>/<code>get_nets</code> 等返回 collection，遍历要用 <code>foreach_in_collection</code>，取属性要用 <code>get_attribute</code>。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>NDM 里必须同时有什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">物理视图（LEF）和时序视图（<code>.db</code>）。只有物理视图时能打开设计，但优化器算不了时序。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>建库为什么在 <code>icc2_lm_shell</code> 而不是 <code>icc2_shell</code>？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>read_lef</code>、<code>read_db</code>、<code>create_workspace</code>、<code>commit_workspace</code> 这些库管理命令只在 Library Manager 里提供；<code>icc2_shell</code> 负责用库做实现。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>check_workspace</code> 报单元不匹配，通常有哪三类原因？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">单元只在一侧存在（如 LOGIC0、TAPCELL）、引脚名不一致、面积对不上（版本不匹配）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>OPT-041 Scenario Manager creation failed</code> 应该怎么查？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">这是结果不是原因。往上翻找第一条 Error；常见根因是 <code>NEX-018: no valid parasitic</code>，即缺 TLU+，不是缺 timing view。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Milkyway 和 NDM 是什么关系？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">Milkyway 是 ICC1 的库格式，NDM 是 ICC2 的库格式；两者不通用，需要从 LEF/.db 重建。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Innovus 的 <code>.enc</code> 和 ICC2 的 block 有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>.enc</code> 是独立目录，<code>saveDesign</code> 写、<code>restoreDesign</code> 读；ICC2 的 block 存在 library 里，要先 <code>open_lib</code> 再 <code>open_block</code>。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 <code>.db</code> 必须和 ICC2 版本匹配？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>.db</code> 是二进制格式，跨大版本通常读不了；库、NDM、工具三者要同代，否则轻则时序为空，重则直接报错。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出"名词层"和"数据层"两类差异，并各举一个例子</li><li>能解释 <code>dbGet</code> 和 <code>get_cells</code> 返回值不同，以及由此导致的写法差异</li><li>能背出建库五步：<code>create_workspace</code> → <code>read_lef</code> → <code>read_db</code> → <code>check_workspace</code> → <code>commit_workspace</code></li><li>能说出 <code>OPT-041</code> 的逐词含义，并知道先往上翻日志找根因</li><li>能写出至少 10 组 Innovus/ICC2 命令对照</li><li>知道库版本要写进 run 脚本，和网表、约束一起归档</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="in-work"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -103,7 +215,7 @@
         <h3>这一课学完了吗？</h3>
         <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <button id="btn-done" class="pri">标记本课完成</button>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-12-chipfinish/">← ChipFinish：收尾这一步，决定能不能送厂</a><a class="nav-btn" href="/lesson/04-02-icc2-flow/">ICC2 全流程实战：从空目录到导出版图 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-15-floorplan-lab/">← Floorplan 实战：利用率、IO 与电源走廊的一体化决策</a><a class="nav-btn" href="/lesson/04-02-icc2-flow/">ICC2 全流程实战：从空目录到导出版图 →</a></div>
       </div>
     </div>
   </main>

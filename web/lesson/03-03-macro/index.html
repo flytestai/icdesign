@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>宏单元摆放实战：通道宽度的算法 · 14 | IC 后端学院</title>
-<meta name="description" content="宏单元不是"放边上就行"。通道留多宽可以直接算出来：按出线数量估轨道数。这一课给公式、给检查方法、给真实踩坑记录。">
+<meta name="description" content="宏单元只占两成面积，却决定一半的布线难度。这一课给通道宽度的完整算式与手算、四条摆放硬规则、摆完的七项自检，以及一组真实的返工数据。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -29,7 +29,7 @@
       <div class="hero-no">14</div>
       <h1>宏单元摆放实战：通道宽度的算法</h1>
       <p class="hero-en">Macro Placement</p>
-      <p class="hero-sum">宏单元不是"放边上就行"。通道留多宽可以直接算出来：按出线数量估轨道数。这一课给公式、给检查方法、给真实踩坑记录。</p>
+      <p class="hero-sum">宏单元只占两成面积，却决定一半的布线难度。这一课给通道宽度的完整算式与手算、四条摆放硬规则、摆完的七项自检，以及一组真实的返工数据。</p>
       <div class="hero-meta">
         <span class="pill">约 40 分钟</span>
         <span class="pill">课表学时 3</span>
@@ -38,81 +38,190 @@
     </div>
     <article id="article"><section class="ch" id="why" data-ch="why">
   <div class="ch-h"><span class="ch-n">01</span><h2>宏单元为什么难</h2></div>
-  <p>标准单元小、均匀、可以随便挪。宏单元（SRAM、PLL、模拟 IP）不一样：</p>
-<ul><li><strong>大</strong>：一个 SRAM 可能占 5% 的芯片面积。</li><li><strong>硬</strong>：形状固定、引脚位置固定、不能旋转任意角度（只能 90° 翻转）。</li><li><strong>吸线</strong>：一个 SRAM 可能有 200 个引脚，全往一个方向出线。</li></ul>
-<p>所以宏单元周围是拥塞的高发区。<strong>拥塞不是布线工具无能，是布局没给够空间。</strong></p>
+  <div class="goal"><span>本章目标</span>学完这一课，你能用"引脚数 × 出线数 ÷ 层数 × 间距 + 电源走廊 + 余量"算出一条通道该留多宽，按四条硬规则摆完宏单元，再用七项检查判断这一版能不能进布局。</div>
+<p>先做个类比。搬家时书可以随手塞进任何缝隙，衣柜不行——它大、重、门朝哪边开是定死的，进门还得先拆门框。标准单元是书，宏单元（macro）是衣柜。</p>
+<p>宏单元是预先设计好的整块功能：SRAM、ROM、PLL、ADC、模拟 IP。在后端眼里它是个黑盒子，你只能"摆"，不能"改"。</p>
+<p>三个"硬"决定了它难摆。</p>
+<p><strong>第一，尺寸大。</strong> 40nm 下一颗 512×64 的 SRAM，面积在 0.1~0.3mm² 量级（典型值）。一颗万门级设计的 core 可能只有 0.08mm²——<strong>一个 SRAM 比整个标准单元区还大</strong>，这在真实项目里很常见。</p>
+<p><strong>第二，引脚多且集中。</strong> 一颗 SRAM 有 150~250 个引脚，而且全挤在一条边上。标准单元的引脚是"撒"在面上的，宏单元的引脚是"排"在一条线上的，后者的线密度高一个数量级。</p>
+<p><strong>第三，位置固定。</strong> 形状、尺寸、引脚坐标都写在 LEF 里。它能做的只有 90° 翻转，不能拉伸、不能裁角、不能被工具重排。</p>
+<p>还有第四个隐形成本：<strong>它周围的地不能用</strong>。为了防止标准单元贴上来堵住引脚出口，宏单元四周要留一圈保护边（halo）。这圈地算进 core 面积，却放不了标准单元。</p>
+<p>所以宏单元的"实际占地"比它的外框（bbox，bounding box）大：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">实际占地 ≈ (W + 2h) × (H + 2h)，h = 单边 halo 宽度</span></code></pre></div>
+<p>手算一次。一颗 100µm × 200µm 的 SRAM，halo 每边 8µm：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">实际占地 = (100 + 16) × (200 + 16) = 116 × 216 = 25056 µm²</span><span class="ln ">外框面积 = 100 × 200 = 20000 µm²</span><span class="ln ">倍数     = 25056 ÷ 20000 = 1.25  →  多占 25%</span></code></pre></div>
+<p><strong>做面积预算时漏掉这 25%，是后面利用率失控的第一个原因。</strong> 六个这样的 SRAM，账面 12 万 µm²，实际吃掉 15 万 µm²。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Macro Pin</span><span class="term-zh">宏单元引脚</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>宏单元对外连接的物理接入点，坐标固定在 LEF 里。SRAM 的数据/地址/控制引脚通常集中在一条边，电源引脚在另一条边或贯穿整个高度。<br>引脚朝哪边由摆放方向决定：<code>R0</code> 时朝东，翻转后就朝西。<strong>摆之前必须确认"这一侧的引脚朝哪"，摆完必须看图确认。</strong></p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 周一早上的三个问题</div><div class="scene-b"><p>SRAM 刚摆完，review 会上组长只问三句：</p>
+<ol><li>"这两个 SRAM 之间留了多宽？"——你答"大概 10µm"。他问："算过吗？"</li><li>"<code>u_sram2</code> 的 pin 朝哪边？"——你说"默认的"。他让你开飞线，结果线从 SRAM 背面绕出来，兜了 400µm。</li><li>"halo 加了吗？"——你说"布局工具会自动避让吧"。他打开图形界面，标准单元正贴着 SRAM 引脚边缘。</li></ol>
+<p>这三个问题对应这一课的三块内容：通道怎么算、朝向怎么定、halo 怎么加。答不出来，说明你只是把宏单元"放上去了"，并没有"摆"。</p>
+<p>真实代价是这样的：这一版进布局，布线跑到 70% 卡住，回头挪 SRAM，前面 8 小时布局 + 3 小时 CTS 全部作废。<strong>宏单元摆错不是"改一个坐标"，是"重跑三天"。</strong></p></div></div>
+<p><strong>工作中怎么用</strong>：宏单元摆放是 floorplan 阶段 PR 工程师的活，但决定权不全在你——连接关系来自前端和架构，封装与模拟团队会指定某些 IP 必须靠某条边。你的职责是"在给定约束下把空间需求算出来"。输出物是一版 floorplan 数据库加一张通道宽度表，交给布局和 CTS。</p>
   <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="calc" data-ch="calc">
   <div class="ch-h"><span class="ch-n">02</span><h2>通道要留多宽：一个能用的估算</h2></div>
-  <p>思路：数一数这个通道要过多少根线，再看每根线占多少横向空间。</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">通道宽度 ≈ (穿过该通道的连线数 × 每线间距) ÷ 可用金属层数 + 余量</span></code></pre></div>
-<p>举例：两个 SRAM 之间的竖直通道，中间要过 300 根线，工艺 M2~M5 可用于横向走线（4 层），每根线间距 0.2µm：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">单层能过：300 / 4 = 75 根</span><span class="ln ">需要宽度：75 × 0.2 = 15 µm</span><span class="ln ">加 30% 余量：≈ 20 µm</span></code></pre></div>
-<p>所以这个通道至少留 20µm。工具默认给的 <code>-channel</code> 有时候是 10µm，不够。</p>
+  <p>先给结论，再拆开推。通道宽度由三块拼成：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">通道宽度 = 信号占用 + 电源走廊 + 余量</span><span class="ln ">信号占用 = (引脚数 × 每引脚出线数 ÷ 可用层数) × 线间距</span></code></pre></div>
+<p>三个因子逐个解释：</p>
+<ul><li><strong>每引脚出线数</strong>：一个引脚平均接几根线。纯数据引脚 1 根，带测试或双向的 2 根，控制引脚可能 3 根。不确定时按 2 根估，偏保守。</li><li><strong>可用层数</strong>：这条通道方向上有几层金属真的能走。40nm 常见配置是 M1~M6，但 M1 基本只做单元内部连线，M6 以上留给电源，实际可用往往只有 3~4 层。</li><li><strong>线间距（pitch）</strong>：一根线加它必须留出的间距。40nm 大约 0.2~0.3µm（典型值），具体查工艺的 <code>tech LEF</code>。</li></ul>
+<p>手算一条"大通道"。两个大 SRAM 面对面，两侧合计朝通道出 128 个信号引脚（每侧 64），平均每引脚 2 根线，4 层可用，pitch 0.28µm，余量 25%，通道里还要走两条电源条：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">信号线数     = 128 × 2 = 256 根</span><span class="ln ">单层线数     = 256 ÷ 4 = 64 根</span><span class="ln ">信号宽度     = 64 × 0.28 = 17.92 µm</span><span class="ln ">加 25% 余量  = 22.4 µm</span><span class="ln "> </span><span class="ln ">电源条       = 每条 8µm 宽 + 两侧各 2µm 间距 → 8 + 2×2 = 12 µm</span><span class="ln ">两条 + 中间 3µm 间隔 = 12 × 2 + 3 = 27 µm</span><span class="ln "> </span><span class="ln ">走线区小计   = 22.4 + 27 ≈ 49.4 µm  （信号 + 电源，还没算逃逸和 halo）</span></code></pre></div>
+<p>先记住这个 49.4。工具默认给 10µm，差五倍——这就是"按默认值摆"必然翻车的原因。但它还不是最终答案，下面两项还要加上去。</p>
+<p><strong>反向校验</strong>（review 时最容易被追问的一步）：用轨道数验一遍。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">通道给的单层轨道数 = 22.4 ÷ 0.28 = 80 根</span><span class="ln ">实际需要           = 64 根</span><span class="ln ">余量               = 80 ÷ 64 = 1.25  ← 正好是前面那个 25%</span></code></pre></div>
+<p>两个方向算出来是同一个数，说明公式没写错。<strong>对不上就一定是口径用错了</strong>：把总宽当信号宽、把 M1 算进可用层数、或者把引脚数重复计了两次。</p>
+<p>还有一个常被漏掉的修正项：<strong>出线要错开</strong>。128 个引脚挤在两侧各 200µm 的边上，每根线不能直着出去，得在通道里拐到不同轨道，这个动作叫出线逃逸（escape）。逃逸区至少要吃 1 条轨道/引脚：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">逃逸占用 = 128 × 1 × 0.28 ÷ 4 层 ≈ 9 µm</span></code></pre></div>
+<p>所以<strong>走线区</strong>的下限是 <code>49.4 + 9 = 58.4µm</code>，实战取 60µm。还有一项 halo 没算——它加在走线区外面，见规则四。<strong>估算值永远向上取整到布线网格</strong>，别写 58.4。</p>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Channel</span><span class="term-zh">通道</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>两个宏单元之间（或宏单元与边界之间）留给走线的空间。太窄 → 拥塞；太宽 → 浪费面积。<br><strong>经验值：小设计 10~20µm，中等设计 20~40µm，大 SRAM 密集区 40µm 以上。</strong></p></div>
+  <div class="term-h"><span class="term-en">Pin Pitch</span><span class="term-zh">引脚间距</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>相邻两个引脚中心的距离。它决定一个引脚占多宽的边，也间接决定逃逸能走几根线。<br>SRAM 的 pin pitch 常见 0.5~4µm（典型值），比布线 pitch 大一个数量级。所以引脚本身不是瓶颈，<strong>引脚之间的出线空间才是</strong>。</p></div>
 </div>
-<div class="scene"><div class="scene-h">工作场景 · 用 flyline 判断摆得对不对</div><div class="scene-b"><p>Innovus 有个可视化功能叫 <strong>flyline</strong>：把每条连线的两端用直线连起来。</p>
-<p>摆完宏单元，打开 flyline 看一眼：</p>
-<ul><li>线密集交叉、形成"蜘蛛网" → 摆错了，连接多的模块离得太远。</li><li>线基本平行、短 → 摆得不错。</li></ul>
-<p>这比看数字直观得多，也是 review 时最常用的说服材料。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Escape Routing</span><span class="term-zh">出线逃逸</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>引脚上的线先垂直离开宏单元边缘、再拐进通道的那一小段。所有线都挤在宏单元的边上，必须逐层错开，否则一出头就短路。<br>逃逸区宽度通常按"1~2 条轨道 × 引脚数 ÷ 层数"估。它是通道宽度里最容易被忘掉的一块。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Flyline</span><span class="term-zh">飞线</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>工具把每根连线的两个端点用直线连起来画在版图上，不管中间有没有障碍。<br>它不精确（不绕障碍、不分层），但<strong>判断"摆得对不对"最快</strong>：线短而平行是好的，线长而交叉成蜘蛛网说明连接紧密的模块被摆远了。</p></div>
+</div>
+<p><strong>工作中怎么用</strong>：这张通道宽度表要在 floorplan review 前交上去，每个宏单元一条通道、一个数字、一行算式。评审时不看图画得好不好看，只看"这个数怎么来的"——所以算式必须能当场复现。</p>
   <label class="ch-done"><input type="checkbox" data-mark="calc"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="rules" data-ch="rules">
   <div class="ch-h"><span class="ch-n">03</span><h2>摆放的四条硬规则</h2></div>
-  <ol><li><strong>靠边</strong>：宏单元贴芯片边缘放，中间留给标准单元。中间放一个 SRAM，等于把标准单元区切成两半。</li><li><strong>对齐</strong>：几个 SRAM 的边对齐，形成整齐的通道。错位会产生"死角"，那里永远布不通。</li><li><strong>朝向</strong>：pin 一律朝向标准单元区。Innovus 里用 <code>MY</code>（上下镜像）、<code>MX</code>（左右镜像）调。</li><li><strong>留 halo</strong>：宏单元周围设一个"禁放区"（halo / blockage），防止标准单元贴着它摆，把通道堵死。</li></ol>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 摆宏单元并指定朝向</span><span class="ln ">placeInstance u_sram0 50 80 MY</span><span class="ln ">placeInstance u_sram1 50 260 MY</span><span class="ln "> </span><span class="ln cmt"># 给宏单元加 halo（四周各留 8µm 不放标准单元）</span><span class="ln ">createPlaceBlockage -type halo -box 50 80 180 200 -name halo_sram0</span><span class="ln cmt"># box 格式：llx lly urx ury（左下角 + 右上角坐标）</span><span class="ln "> </span><span class="ln cmt"># 或者用更简单的方式：设置宏单元周围的 keepout margin</span><span class="ln ">setPlaceMode -place_global_module_padding {u_sram0 8 u_sram1 8}</span><span class="ln "> </span><span class="ln cmt"># 检查：有没有重叠、有没有超出边界</span><span class="ln ">checkFPlan -reportUtil</span></code></pre></div>
+  <p>四条规则按"违反后的修复代价"排序。</p>
+<h3>规则一：出 pin 方向朝外</h3>
+<p>这里的"外"指标准单元区，不是芯片边缘。宏单元贴边放时，引脚必须朝里。两种判断方法：打开 LEF 看 PIN 的坐标和方向；或者在图形界面里开飞线，看线从哪一侧出来。</p>
+<p>朝向代码容易记混：</p>
+<div class="tbl"><table><thead><tr><th>代码</th><th>实际效果</th><th>常见误用</th></tr></thead><tbody><tr><td><code>R0</code></td><td>原样</td><td>引脚在左、你希望朝右，却没翻</td></tr><tr><td><code>MY</code></td><td>沿 Y 轴镜像（左右翻）</td><td>引脚左右对调，上下不变</td></tr><tr><td><code>MX</code></td><td>沿 X 轴镜像（上下翻）</td><td>引脚上下对调，左右不变</td></tr><tr><td><code>R180</code></td><td>转 180°</td><td>引脚跑到对角，最容易摆错</td></tr></tbody></table></div>
+<p>记一句就够：<strong><code>MY</code> 管左右，<code>MX</code> 管上下</strong>。摆完开飞线看一眼，不要相信记忆。判断标准很硬：飞线如果从宏单元的"背面"绕出去，就是朝向错了。</p>
+<h3>规则二：通道方向一致</h3>
+<p>同一条通道两侧的宏单元，引脚都朝这条通道，让线直着穿过去。最忌讳两条通道十字交叉——交叉点四面来线，是拥塞的绝对热点。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">✅ 一字通道                      ❌ 十字交叉</span><span class="ln ">┌────┐   ┌────┐                ┌────┐</span><span class="ln ">│RAM │──▶│RAM │                │RAM │</span><span class="ln ">└────┘   └────┘                └────┘</span><span class="ln ">   通道直穿，线不拐弯              ↓ 四面来线</span><span class="ln ">┌────┐   ┌────┐                ┌────┐</span><span class="ln ">│RAM │──▶│RAM │                │RAM │</span><span class="ln ">└────┘   └────┘                └────┘</span></code></pre></div>
+<p>如果布局逼得你只能做十字，就把交叉那一小段通道加宽 30%，并在交叉点上盖一块硬禁放区，把标准单元赶走，让布线有地方换层。</p>
+<h3>规则三：电源对齐</h3>
+<p>宏单元的电源引脚（VDD/VSS）要和全局电源网格的电源条（stripe）对齐。不对齐的后果有两种：加一段短接线接过去（多一组通孔，多一个电迁移弱点），或者整条 stripe 改道（影响全片电源规划）。</p>
+<p>做法：先知道 stripe 的间距（比如 20µm）和起始坐标，摆宏单元时让电源引脚落在 stripe 上。同一列宏单元宽度一致时，一条 stripe 能笔直打穿所有宏单元，这是最省事的情况。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把三个同尺寸 SRAM 沿左边缘对齐摆成一列，让电源引脚落在同一条竖直 stripe 上</span><span class="ln cmt"># 用法：floorPlan 之后执行；坐标单位 µm，原点在 die 左下角；y 步进 = 宏单元高度 + 通道宽度</span><span class="ln ">placeInstance u_sram0 40  60  MY    ;# 左下角 (40,60)，MY 让原本朝左的引脚翻到右侧</span><span class="ln ">placeInstance u_sram1 40 260  MY    ;# y = 60 + 180(高) + 20(这两颗小 SRAM 的通道) = 260，x 保持 40</span><span class="ln ">placeInstance u_sram2 40 460  MY    ;# 按同一节拍继续排，三个 x 对齐形成笔直通道</span></code></pre></div>
+<p><code>x</code> 全为 40，保证三个宏单元的电源引脚在同一条竖直线上；<code>y</code> 的步进是"高度 + 通道宽度"，保证通道宽度处处一致——宽度忽宽忽窄的地方，布线工具会往宽处堆线，窄处反而空着。</p>
+<h3>规则四：留出 halo / keepout</h3>
+<p>halo 加在"走线区"外面，所以它不占走线区的宽度，而是让<strong>两个宏单元外框之间的距离</strong>变大。取每边 10µm：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">摆位间距 D = 走线区 + 2 × halo</span><span class="ln ">           = 58.4 + 2 × 10</span><span class="ln ">           = 78.4 µm  →  取 80µm</span><span class="ln "> </span><span class="ln ">若 halo 压到 5µm：D = 58.4 + 10 = 68.4  →  取 70µm</span></code></pre></div>
+<p>这里有个口径问题，review 时一定会被问：<strong>"两个 SRAM 之间留多宽"说的是走线区还是外框间距？</strong> 走线区是 58，外框间距是 78，差 20µm。报数时先说口径，再报数字。</p>
+<p>halo 给太小（比如 2µm）标准单元会贴上来，把引脚出口堵死；给太大则白扔面积。经验值是走线区的 1/6~1/8，且不低于 5µm。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：给宏单元四周加保护边，并把通道里的电源走廊钉成硬禁放区</span><span class="ln cmt"># 用法：placeInstance 之后执行；-halo 的四个数对应 左 下 右 上（不同版本可能只收一个统一值，敲前 man 一下）</span><span class="ln ">createPlaceBlockage -type halo -inst u_sram0 -halo {10 10 10 10}   ;# 通道左侧的宏单元，四边各 10µm 不放单元</span><span class="ln ">createPlaceBlockage -type halo -inst u_sram1 -halo {10 10 10 10}   ;# 通道右侧，与左侧对称</span><span class="ln ">createPlaceBlockage -type hard -box {266 60 293 640} -name pwr_corr ;# 通道中段 27µm 宽（两条 stripe + 间距），禁止摆放</span><span class="ln ">checkPlace                                                          ;# 立刻检查有没有实例落在 halo 里</span></code></pre></div>
+<p>不想建 blockage，也可以让布局工具自己留位：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：等价写法——不画 halo，直接告诉布局工具给这些实例四周留空</span><span class="ln cmt"># 用法：place_opt_design 之前执行；数值单位 µm</span><span class="ln ">setPlaceMode -place_global_module_padding {u_sram0 10 u_sram1 10}  ;# 每个实例四周各留 10µm</span></code></pre></div>
+<p>ICC2 里的对应写法（坐标格式不同，别照抄）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：ICC2 里等价的"硬禁放区 + 实例保护边"</span><span class="ln cmt"># 用法：ICC2 中 floorplan 之后执行；boundary 是 {{llx lly} {urx ury}}，和 Innovus 的 box 顺序不同</span><span class="ln ">create_placement_blockage -type hard -boundary {{266 60} {293 640}} -name pwr_corr  ;# 电源走廊禁放</span><span class="ln ">set_keepout_margin -type hard -outer {10 10 10 10} [get_cells u_sram0]             ;# 实例四周 10µm 保护边</span><span class="ln cmt"># 有些教材把上面这条写作 set_inst_halo，含义相同：给实例加保护边；参数名以 man 为准</span></code></pre></div>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Halo / Blockage</span><span class="term-zh">保护环 / 禁布区</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>- <strong>Halo</strong>：宏单元周围一圈不许放标准单元的区域，防止挤死通道。<br>- <strong>Blockage</strong>：明确禁止布线/摆放的区域，常用于电源网格下方或特殊 IP 周围。<br>区别：halo 是"给这个宏单元留的缓冲"，blockage 是"这块地不许用"。</p></div>
+  <div class="term-h"><span class="term-en">Placement Blockage</span><span class="term-zh">摆放禁区</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>明确告诉工具"这块地不许摆标准单元"的区域。三种常见类型：硬禁放（hard，永不许摆）、软禁放（soft，工具可以临时借用）、部分禁放（partial，按百分比限制密度）。<br>它和 halo 的区别：halo 是<strong>跟着某个实例走</strong>的一圈缓冲；blockage 是<strong>画在坐标上</strong>的一块地，和实例无关。</p></div>
 </div>
-<div class="pit"><div class="pit-h">常见坑 · 宏单元贴太近，布线阶段无解</div><div class="pit-b"><p>现象：布线跑到 70% 卡住，报</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Routing congestion detected in region (1200, 800) - (1800, 1400)</span></code></pre></div>
-<p>打开热图，红色区域正是两个 SRAM 之间的 6µm 缝隙。</p>
-<p>此时的选择只有两个：把 SRAM 挪开（重做布局+CTS，8 小时），或者硬着头皮让工具拆线（DRC 清不干净，最后还是要重做）。</p>
-<p><strong>结论：floorplan 阶段多花 30 分钟算通道，能省后面 8 小时。</strong></p></div></div>
+<p><strong>四条规则里哪条最容易违反？</strong> 朝向。因为它不报错——<code>checkPlace</code> 会说"完全合法"，只有飞线和时序报告会告诉你不对劲。所以第四条之后还要加一步：<strong>摆完立刻开飞线看十秒</strong>。</p>
+<p><strong>工作中怎么用</strong>：四条规则里，靠边和对齐是"摆法"，朝向和 halo 是"约束"。实际做法是先用脚本按列摆好（对齐），再逐个调朝向（看图），最后批量加 halo。顺序反了会返工——用 <code>-inst</code> 建的 halo 会跟着实例走，用 <code>-box</code> 画的不会，宏单元一挪，画的那块就留在原地挡路。</p>
   <label class="ch-done"><input type="checkbox" data-mark="rules"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="patterns" data-ch="patterns">
+  <div class="ch-h"><span class="ch-n">04</span><h2>三种典型摆法：条状、环形、岛屿</h2></div>
+  <p>规则讲完，还剩一个选择题：这些宏单元<strong>整体排成什么形状</strong>。工程上常见三种，没有优劣，只有适用场景。</p>
+<div class="tbl"><table><thead><tr><th>摆法</th><th>长什么样</th><th>适合什么设计</th><th>主要风险</th></tr></thead><tbody><tr><td>条状（strip）</td><td>所有宏单元排成一条或两条带，贴一边</td><td>宏单元少（≤6 个）、尺寸相近</td><td>带太长，另一侧的逻辑要跨全片</td></tr><tr><td>环形（ring）</td><td>沿四边各排一排，中间留完整标准单元区</td><td>宏单元多（8~20 个）、形状不一</td><td>四个角的通道交汇，最易拥塞</td></tr><tr><td>岛屿（island）</td><td>按数据流分几群，每群靠近自己的逻辑</td><td>多模块 SoC、有明确子系统边界</td><td>群与群之间的通道要单独算</td></tr></tbody></table></div>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">条状                      环形                      岛屿</span><span class="ln ">┌────────────────┐      ┌────────────────┐      ┌────────────────┐</span><span class="ln ">│ ███ ███ ███    │      │ ██          ██ │      │ ██    ██       │</span><span class="ln ">│                │      │                │      │  ↑数据流A  ↑B  │</span><span class="ln ">│   标准单元区    │      │   标准单元区    │      │   ██    ██     │</span><span class="ln ">│                │      │ ██          ██ │      │    ↑C     ↑D   │</span><span class="ln ">└────────────────┘      └────────────────┘      └────────────────┘</span></code></pre></div>
+<p>选择依据有两条，按顺序问：</p>
+<ol><li><strong>数据流在哪？</strong> 宏单元和哪块逻辑交互最多，就往那块逻辑旁边放。这条压倒一切——形状好看但线要跨全片，等于白摆。</li><li><strong>还剩多少完整区域？</strong> 标准单元需要一个连续的、能形成长 row 的区域。环形和岛屿都会把区域切碎，碎片区放不下大单元，利用率会掉 3~5 个百分点。</li></ol>
+<p>条状最容易做对，所以新项目常从它起步；宏单元超过八个之后，条状会拉得太长，才转环形或岛屿。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Island Placement</span><span class="term-zh">岛屿式摆放</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把宏单元按功能/数据流分成几群，每群靠近它服务的逻辑区，群与群之间留宽通道。<br>它把"一条大通道"拆成"多条小通道"，每条都要单独按本课的公式算宽度——<strong>岛屿摆法的通道数量多，最容易漏算</strong>。</p></div>
+</div>
+<p><strong>工作中怎么用</strong>：摆法在 floorplan 评审时就要定下来，并写进脚本注释（"采用环形，四角通道各留 45µm"）。中途从条状改环形等于坐标全废。评审时如果被问"为什么不用岛屿"，回答"数据流集中在一个方向，岛屿会把一条通道拆成四条、每条都要更宽，反而更费面积"。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="patterns"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="checklist" data-ch="checklist">
-  <div class="ch-h"><span class="ch-n">04</span><h2>检查清单（摆完必做）</h2></div>
-  <div class="tbl"><table><thead><tr><th>检查项</th><th>怎么做</th><th>通过标准</th></tr></thead><tbody><tr><td>重叠</td><td><code>checkFPlan</code></td><td>无 overlap</td></tr><tr><td>出界</td><td><code>checkFPlan</code></td><td>全部在 core 内</td></tr><tr><td>利用率</td><td><code>report_area</code></td><td>与目标差 &lt;5%</td></tr><tr><td>通道</td><td>目视 + flyline</td><td>无 &lt;10µm 的窄缝</td></tr><tr><td>朝向</td><td>看 pin 位置</td><td>全部朝标准单元区</td></tr><tr><td>halo</td><td><code>reportPlaceBlockage</code></td><td>关键宏单元都有</td></tr></tbody></table></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>摆完的自检清单</h2></div>
+  <p>七项检查，十分钟能跑完。跑不完就别进布局。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：七项自检里能脚本化的五项；第 4、6 项（朝向、电源对齐）只能看图，见下文</span><span class="ln cmt"># 用法：Innovus 里逐条执行；输出重定向到 rpt/ 存证，结果写进交接记录</span><span class="ln ">checkPlace                        ;# ① 合法性：重叠、越界、站点对齐、落在 blockage 里的实例</span><span class="ln ">checkFPlan -reportUtil            ;# ② 整体规划：宏单元是否在 core 内、利用率是多少</span><span class="ln ">dbGet [dbGet -p top.insts.name u_sram0].box   ;# ③ 量坐标：输出 {llx lly urx ury}，用来自查通道宽度</span><span class="ln ">report_area                       ;# ④ 面积：标准单元面积 + 宏单元面积，和综合报告对得上吗</span><span class="ln ">reportCongestion -hotSpot         ;# ⑤ 拥塞预判：此时还没布线，只能看早期估计，有热点就记下来</span></code></pre></div>
+<p><code>checkPlace</code> 通过时输出是"没有违例"这类汇总；有违例时它会逐条列出实例名和原因。<strong>课程环境跑不了完整流程，真实项目里你会看到类似这样的行</strong>（不同版本措辞不同）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Placement violation: instance u_core/u_alu/U1203 overlaps blockage pwr_corr</span></code></pre></div>
+<p>读到这一行要知道三件事：哪个实例、违反了哪条规则、被哪块区域挡住。修法不是删 blockage，而是把这个实例挪走或让工具重跑局部布局。</p>
+<div class="tbl"><table><thead><tr><th>#</th><th>检查项</th><th>通过标准</th><th>不通过先怀疑什么</th></tr></thead><tbody><tr><td>1</td><td>重叠/越界</td><td>0 条 placement violation</td><td>坐标算错、朝向翻转后外框变了</td></tr><tr><td>2</td><td>落在禁放区</td><td>0 条 blockage violation</td><td>halo 太宽、blockage 坐标写反</td></tr><tr><td>3</td><td>通道宽度</td><td>每条 ≥ 估算值，无 &lt;10µm 的窄缝</td><td>没算通道、按默认间距摆</td></tr><tr><td>4</td><td>朝向</td><td>飞线全部从宏单元朝内一侧出发</td><td><code>MY</code>/<code>MX</code> 用反</td></tr><tr><td>5</td><td>halo</td><td>每个宏单元四周都有，宽度 ≥5µm</td><td>只加了 padding 没加 blockage，或反过来</td></tr><tr><td>6</td><td>电源对齐</td><td>宏单元电源引脚落在 stripe 上</td><td>摆了 macro 才想起电源，顺序反了</td></tr><tr><td>7</td><td>利用率</td><td>与目标差 &lt;3 个百分点（含 halo）</td><td>面积预算漏了 halo 那 25%</td></tr></tbody></table></div>
+<p>前六项是"几何对不对"，第七项是"账算没算对"。<strong>几何错能改，账错会一路错到布线</strong>——利用率虚报的设计，后面每一步都会以为"还有空间"。</p>
+<p>第 4 项（朝向）和第 6 项（电源对齐）没有可靠的单条命令，只能开图形界面看：打开飞线看线的第一段方向，把电源网格和宏单元电源引脚同时显示、逐列目测。所以放在最后人工确认——这两项也是最容易漏的。</p>
+<p>自检里最容易糊弄过去的是第 3 项。别用眼睛估，用坐标算：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：从 checkPlace 前的坐标快照里量出相邻宏单元的真实间距</span><span class="ln cmt"># 用法：把 dbGet 的输出粘进 boxes.txt，一行一个 "llx lly urx ury"，按 y 排序后逐对相减</span><span class="ln ">awk '{print $2, $1, $3, $4}' boxes.txt | sort -n | \</span><span class="ln ">awk 'NR&gt;1 {gap = $2 - prev_urx; if (gap &lt; min || NR==2) min = gap; prev_urx = $4} END {print "最小通道:", min, "um"}'</span><span class="ln cmt"># $1..$4 = llx lly urx ury；先按 lly 排序，再拿当前 llx 减上一个 urx 得到水平间距</span></code></pre></div>
+<p><strong>工作中怎么用</strong>：这七项要在进 place 之前跑完，输出贴进交接记录：日期、数据库版本、七个数字。下次有人问"这版 floorplan 靠不靠得住"，你拿得出证据，而不是"我记得检查过"。</p>
   <label class="ch-done"><input type="checkbox" data-mark="checklist"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="real" data-ch="real">
-  <div class="ch-h"><span class="ch-n">05</span><h2>一个真实的数字</h2></div>
-  <p>我们在一套 45nm 开源库上跑过万门设计（9390 单元、6 个 SRAM 通道）。第一版没算通道，直接按默认间距摆：</p>
-<ul><li>布线 DRC：<strong>6000 条</strong></li><li>局部拥塞：红色区域 5 处</li></ul>
-<p>改成"按出线数算通道 + halo + 对齐"之后：</p>
-<ul><li>布线 DRC：<strong>0</strong>（同一套布线参数）</li></ul>
-<p><strong>这就是 floorplan 的威力：不是优化出来的，是布局对了自然就通了。</strong></p>
-<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：算通道宽度</div><div class="lab-b"><p>条件：某通道要过 420 根信号线，可用 4 层金属横向走线，线间距 0.16µm，余量 30%。</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">python3 -c "</span><span class="ln ">n=420; layers=4; pitch=0.16; margin=1.3</span><span class="ln ">per=n/layers; w=per*pitch*margin</span><span class="ln ">print('单层线数', per)</span><span class="ln ">print('需要通道宽度 %.1f um' % w)</span><span class="ln ">"</span></code></pre></div>
-<p>预期：单层 105 根，通道 ≈ 21.8µm。</p>
-<p>过关标准：把层数改成 2 层，算出需要多宽，并解释"为什么减少层数会让通道变宽"。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>会用"线数 ÷ 层数 × 间距 × 余量"估算通道宽度</li><li>知道 halo 和 blockage 的区别</li><li>会看 flyline 判断宏单元摆得好不好</li><li>记得摆完跑 <code>checkFPlan</code></li><li>能说出宏单元贴太近的两个后果</li></ul></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>一个真实的数字</h2></div>
+  <p>课程环境里，我们在一套 45nm 开源库上跑过一个万门设计：9390 个标准单元、6 个 SRAM。第一版没算通道，直接按工具默认间距摆（SRAM 之间 6µm）：</p>
+<ul><li>布线 DRC：<strong>6000 条</strong>（课程环境实测）</li><li>红色拥塞区：<strong>5 处</strong>，全部落在 SRAM 之间的缝里</li></ul>
+<p>改成"按出线数算走线区（20~50µm）+ halo + 对齐 + 朝向修正"之后，同一套布线参数：</p>
+<ul><li>布线 DRC：<strong>0 条</strong></li><li>红色拥塞区：0 处</li></ul>
+<p><strong>这不是优化出来的，是摆对了自然就通了。</strong></p>
+<p>再看面积账（估算，按上面 6 个 SRAM 的典型尺寸推）：</p>
+<div class="tbl"><table><thead><tr><th>项目</th><th>占 core 面积</th><th>说明</th></tr></thead><tbody><tr><td>6 个 SRAM 外框</td><td>约 18%</td><td>账面数</td></tr><tr><td>加 halo 后</td><td>约 22%</td><td>实际占地，多出 4 个点</td></tr><tr><td>5 条通道</td><td>约 8%~10%</td><td>只放线，不放单元</td></tr></tbody></table></div>
+<p><strong>用 4% 的面积换掉 6000 条 DRC，这笔账在任何项目里都划算。</strong> 反之，为了省 4% 面积把通道压到 6µm，后面要用两三天返工来还。</p>
+<p>还有一个更值得记住的比例：这 6 个 SRAM 的引脚加起来约 1200 个，占全部连线端点的比例不到 5%，但它们集中在 5 条通道上——<strong>通道里的线密度是标准单元区内部的 5~6 倍</strong>（估算）。面积上它是"低效用地"，走线上它是全片最挤的地方，这个反差就是宏单元难摆的本质。</p>
+<p><strong>工作中怎么用</strong>：报这组数要带口径和代价。"6 个 SRAM 占 18% 面积"是布局选择，"通道不够导致 6000 条 DRC"是它的账单——两个数并列摆出来，评审才听得懂你为什么坚持要那 80µm。只说"间距太小会拥塞"，没人会批你多用 4% 面积。</p>
+<div class="pit"><div class="pit-h">常见坑 · 宏单元贴太近，布线阶段无解</div><div class="pit-b"><p>现象：布线跑到 70% 卡住，日志里出现类似这样的提示（不同版本措辞不同）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Routing congestion detected in region (1200, 800) - (1800, 1400)</span></code></pre></div>
+<p>打开拥塞热图，红色区域正是两个 SRAM 之间那条 6µm 的缝。</p>
+<p>原因：通道宽度是布局阶段定死的物理量，布线只能在既有空间里绕。空间不够时，工具能做的只有"拆线、换层、绕远"，结果就是一大堆 DRC 和天线违例。</p>
+<p>处理：只有两条路——挪宏单元（重跑布局 + CTS，8 小时起），或者接受一堆 DRC 然后一条条手工修（通常修不干净，最后还是要挪）。</p>
+<p><strong>结论：floorplan 阶段多花 30 分钟算通道，能省后面 8 小时。</strong></p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · halo 加了，但利用率没重算</div><div class="pit-b"><p>现象：加了 halo 之后 <code>checkFPlan</code> 说利用率 78%，而你的目标是 62%。布局一跑，标准单元被挤到更远的角落，原来宏单元旁边的拥塞消失了，却在 core 的另一侧冒出新的红色区域。</p>
+<p>原因：halo 吃掉的是"可用 row 面积"，分母变小，利用率自然上升。你没重算，工具就按 78% 的真实密度去摊，只能把单元往剩余空间里硬塞。</p>
+<p>处理：加完 halo 先 <code>report_area</code> + <code>checkFPlan -reportUtil</code> 重算一遍；如果利用率超过 75%，要么减 halo（但不能低于 5µm），要么承认 die 尺寸不够、回去改 floorplan。<strong>拥塞不会消失，只会搬家。</strong></p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · 朝向用反，飞线绕半圈</div><div class="pit-b"><p>现象：<code>checkPlace</code> 全绿，布局也正常，但 <code>u_sram2</code> 相关的路径时序特别差，飞线图上它的线绕了 400µm 才出来。</p>
+<p>原因：这颗 SRAM 的引脚本来在左侧，你想让它朝右，用了 <code>MX</code>（上下翻），结果引脚还是在左边，只是上下颠倒了。引脚朝着 die 边缘，线必须贴着边缘绕过去。</p>
+<p>处理：记住 <code>MY</code> 管左右、<code>MX</code> 管上下；摆完开飞线，看线是否从宏单元朝内的一侧出发。判断标准不是"看起来对不对"，是"线的第一段方向对不对"。</p></div></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：算一遍你自己的通道</div><div class="lab-b"><p><strong>任务</strong>：给定条件算通道宽度，写成命令，并用自检确认。</p>
+<p><strong>给定</strong>：两个 SRAM 面对面，两侧合计朝通道出 128 个信号引脚，每引脚 2 根线，4 层可用，pitch 0.28µm，余量 25%，通道内两条 8µm 电源条（两侧各 2µm 间距，条间 3µm），另需 9µm 逃逸空间，两侧各 10µm halo。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：算通道宽度，并验证"层数减半会怎样"</span><span class="ln cmt"># 用法：任意目录 python3 直接跑；改 layers 看结果变化</span><span class="ln ">python3 - &lt;&lt;'EOF'</span><span class="ln ">pins, per_pin, layers, pitch, guard = 128, 2, 4, 0.28, 1.25   # 引脚数、每引脚出线、层数、线距、余量系数</span><span class="ln ">nets = pins * per_pin                                          # 这条通道要过的信号线总数</span><span class="ln ">sig  = nets / layers * pitch * guard                            # 信号需要的宽度</span><span class="ln ">pwr  = (8 + 2 * 2) * 2 + 3                                      # 两条电源条 + 两侧间距 + 条间间隔</span><span class="ln ">esc  = 9                                                        # 逃逸区（按 1 轨/引脚估出来的）</span><span class="ln ">print("信号 %.1f + 电源 %.1f + 逃逸 %.1f = %.1f um" % (sig, pwr, esc, sig + pwr + esc))</span><span class="ln ">print("层数改 2 层时信号宽度 %.1f um" % (nets / 2 * pitch * guard))</span><span class="ln ">EOF</span></code></pre></div>
+<p><strong>预期</strong>：<code>22.4 + 27.0 + 9.0 = 58.4µm</code>；层数改 2 层后信号宽度翻倍到 44.8µm（总宽 80.8µm）。</p>
+<p><strong>再走一步</strong>：把这几个数写成命令并自检。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：按算出的走线区 58µm、摆位间距 80µm 摆两个 SRAM，加 halo，并检查合法性</span><span class="ln cmt"># 用法：Innovus 里 floorPlan 之后执行；坐标按 200µm 宽的 SRAM 推</span><span class="ln ">placeInstance u_sram0 40  60  MY                        ;# 左列，引脚朝右（朝通道）</span><span class="ln ">placeInstance u_sram1 320 60  MX                        ;# 右列，x = 40 + 200(宽) + 80(摆位间距)，引脚朝左</span><span class="ln ">createPlaceBlockage -type halo -inst u_sram0 -halo {10 10 10 10}   ;# 通道侧各留 10µm</span><span class="ln ">checkPlace                                              ;# 期望：0 条 violation</span></code></pre></div>
+<p><strong>过关标准</strong>：能说出三件事——58.4µm 里信号、电源、逃逸各占多少；为什么层数从 4 减到 2 后信号部分正好翻倍（22.4→44.8）；以及 58.4 和 78.4 这两个数分别在说什么（走线区 vs 摆位间距），为什么报数前必须先说口径。</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>通道宽度怎么估算？</div>
+  <div class="q-q"><span class="q-no"></span>宏单元和标准单元最本质的三个区别是什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">穿过通道的线数 ÷ 可用金属层数 × 线间距 × 安全余量（约 1.3）。</div>
+  <div class="q-a">尺寸大（可能超过整个标准单元区）、引脚多且集中在一条边、位置和形状固定（只能 90° 翻转，不能改）。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>halo 和 blockage 有什么区别？</div>
+  <div class="q-q"><span class="q-no"></span>为什么算宏单元面积时要额外加 halo？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">halo 是围绕宏单元的一圈禁止摆放区（防挤死通道）；blockage 是任意指定区域的禁止摆放/布线。</div>
+  <div class="q-a">halo 是宏单元四周不许放标准单元的缓冲带，它占 core 面积但不承载单元；不加会让面积预算偏小 20% 以上，后面利用率失控。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>为什么宏单元要"靠边对齐"？</div>
+  <div class="q-q"><span class="q-no"></span>通道宽度公式里"÷ 可用层数"是在算什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">靠边能把完整区域留给标准单元；对齐能形成整齐通道，避免死角。</div>
+  <div class="q-a">把总走线需求平摊到几层金属上。层数越多，同一宽度能过的线越多，通道就可以窄；层数减少，通道必须按比例变宽。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>flyline 用来判断什么？</div>
+  <div class="q-q"><span class="q-no"></span>手算：128 个引脚、每引脚 2 根线、4 层、pitch 0.28µm、余量 25%，信号部分要多宽？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">直观判断宏单元相对位置是否合理——连接多的模块应该靠近，线应该短而平行。</div>
+  <div class="q-a">256 根 ÷ 4 = 64 根/层，64 × 0.28 = 17.92µm，乘 1.25 得 22.4µm。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>布局阶段没留够通道，布线阶段能补救吗？</div>
+  <div class="q-q"><span class="q-no"></span>为什么通道里要先算电源走廊再算信号？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">基本不能。布线只能绕线，绕不开物理空间不足，最终要么大量 DRC，要么回头重做 floorplan。</div>
+  <div class="q-a">两者抢同一块地。先定电源，剩下的才是信号可用宽度；顺序反了会来回改，而且电源条位置被迫偏移会影响全片电源网格。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>MY</code> 和 <code>MX</code> 分别翻哪个方向？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>MY</code> 沿 Y 轴镜像，左右对调；<code>MX</code> 沿 X 轴镜像，上下对调。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么朝向摆错时 <code>checkPlace</code> 查不出来？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">因为朝向错在几何上完全合法——单元不重叠、不出界、落在站点上。只有飞线图和时序报告能暴露"线绕远了"。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>halo 加宽之后利用率上升，说明什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">说明可用 row 面积变小了。要么减 halo（不低于 5µm），要么承认 die 不够，回 floorplan 改尺寸。</div>
 </div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出宏单元难的三个原因，并解释 halo 为什么让实际占地多 20% 以上</li><li>能默写通道宽度公式，并手算一次包含电源走廊和逃逸的完整例子</li><li>会用"轨道数"反向校验自己算的宽度</li><li>记得四条硬规则的顺序，并能说出哪一条最容易违反、为什么</li><li>知道 <code>MY</code> 管左右、<code>MX</code> 管上下，摆完会开飞线确认</li><li>能写出 <code>createPlaceBlockage -type halo</code> 与 <code>setPlaceMode -place_global_module_padding</code> 两种留边写法</li><li>能跑完七项自检，并说出每项不通过时先怀疑什么</li><li>能解释"通道面积只占 10%、线密度却是别处 5 倍"这个反差</li></ul></div>
   <label class="ch-done"><input type="checkbox" data-mark="real"><span>这一章我学完了</span></label>
 </section></article>
 

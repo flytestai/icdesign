@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>文本处理三件套：grep / sed / awk · 04 | IC 后端学院</title>
-<meta name="description" content="后端的报告全是文本。学会从几十万行报告里精确捞出"哪条路径违例、差多少"，是效率分水岭。">
+<meta name="description" content="后端报告全是文本。学会用重定向、管道、grep/sed/awk 从几十万行里捞出"哪条路径违例、差多少"，并用一条命令回答"最差 slack 是多少、有几条违例、集中在哪"。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -29,7 +29,7 @@
       <div class="hero-no">04</div>
       <h1>文本处理三件套：grep / sed / awk</h1>
       <p class="hero-en">grep, sed, awk</p>
-      <p class="hero-sum">后端的报告全是文本。学会从几十万行报告里精确捞出"哪条路径违例、差多少"，是效率分水岭。</p>
+      <p class="hero-sum">后端报告全是文本。学会用重定向、管道、grep/sed/awk 从几十万行里捞出"哪条路径违例、差多少"，并用一条命令回答"最差 slack 是多少、有几条违例、集中在哪"。</p>
       <div class="hero-meta">
         <span class="pill">约 45 分钟</span>
         <span class="pill">课表学时 3.5</span>
@@ -38,50 +38,75 @@
     </div>
     <article id="article"><section class="ch" id="why" data-ch="why">
   <div class="ch-h"><span class="ch-n">01</span><h2>后端的一天，就是在文本里捞针</h2></div>
-  <p>时序报告动辄几十万行，DRC 报告几万条，日志几百兆。你不可能用眼睛找。</p>
+  <div class="goal"><span>本章目标</span>学完这一课，你能写出"从报告里捞出最差 slack 一行"的完整管道，并逐段解释每个命令在做什么、去掉它会怎样。</div>
+<p>时序报告动辄几十万行，DRC 报告几万条，日志几百兆（都是 40nm 量级项目的典型值）。你不可能用眼睛找。</p>
+<p>算一笔账：30 万行的报告，人眼平均 1 秒看 1 行，看完要</p>
+<p><code>300,000 ÷ 3,600 ≈ 83 小时</code></p>
+<p>而且看完你还记不住。工具跑一次只要 3 小时，你看报告要 83 小时——<strong>这就是为什么"会不会文本处理"是后端的效率分水岭</strong>，不是知识差距。</p>
 <p>真实场景长这样：</p>
 <ul><li>早上看时序：<code>report_timing</code> 出来 30 万行，你只想知道"最差的那条差多少"。</li><li>中午看 DRC：<code>calibre</code> 报告 8000 条违例，你想知道"有几类、各多少条"。</li><li>下午看日志：跑了 4 小时的流程挂在某一步，你要在 200MB 日志里找到第一个 <code>Error</code>。</li></ul>
-<p>这三个动作对应三个命令：<strong>awk 取数、grep 过滤、sed 改写</strong>。</p>
+<p>这三个动作对应三个命令：<strong>grep 过滤、sed 改写、awk 取数</strong>。而把它们串起来的东西叫管道。</p>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Pipeline</span><span class="term-zh">管道</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>把上一个命令的输出，直接当成下一个命令的输入。写法是一个竖线 <code>|</code>。<br><code>cat a.log | grep error | wc -l</code> 读作："把 a.log 的内容，交给 grep 筛出含 error 的行，再交给 wc 数行数"。<br>管道是 Unix 最伟大的设计：每个工具只做一件小事，串起来就能干大事。</p></div>
+  <div class="term-h"><span class="term-en">Pipeline（管道）</span><span class="term-zh">管道</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把上一个命令的输出，直接当成下一个命令的输入。写法是一个竖线。<br><code>cat a.log | grep error | wc -l</code> 读作："把 a.log 的内容，交给 grep 筛出含 error 的行，再交给 wc 数行数"。<br>管道是 Unix 最伟大的设计：每个工具只做一件小事，串起来就能干大事。<strong>你不需要写一个大程序，只需要会拼积木。</strong></p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="redirect" data-ch="redirect">
   <div class="ch-h"><span class="ch-n">02</span><h2>重定向：把输出送到该去的地方</h2></div>
-  <p>默认情况下，命令的输出打在屏幕上（标准输出 stdout），报错也打在屏幕上（标准错误 stderr）。</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">ls &gt; filelist.txt</span><span class="ln cmt"># &gt; 覆盖写入：把 ls 的结果写进 filelist.txt，屏幕什么都不显示</span><span class="ln "> </span><span class="ln ">ls &gt;&gt; filelist.txt</span><span class="ln cmt"># &gt;&gt; 追加写入：接在文件末尾，不覆盖</span><span class="ln "> </span><span class="ln ">run.sh &gt; run.log 2&gt;&amp;1</span><span class="ln cmt"># 把正常输出和错误输出都写进 run.log</span><span class="ln cmt"># 2&gt;&amp;1 的意思是"把 2 号（stderr）指向 1 号（stdout）该去的地方"</span><span class="ln cmt"># 这是跑批最常见的写法，一定要背下来</span><span class="ln "> </span><span class="ln ">run.sh &gt; /dev/null 2&gt;&amp;1</span><span class="ln cmt"># 全部丢掉（/dev/null 是系统的黑洞），只关心成功与否</span></code></pre></div>
+  <p>默认情况下，命令的输出打在屏幕上。但"屏幕"其实只是三个标准流之一：</p>
+<div class="tbl"><table><thead><tr><th>编号</th><th>名字</th><th>装什么</th><th>默认去哪</th></tr></thead><tbody><tr><td>0</td><td>stdin（标准输入）</td><td>你敲进去的内容</td><td>键盘</td></tr><tr><td>1</td><td>stdout（标准输出）</td><td>正常结果</td><td>屏幕</td></tr><tr><td>2</td><td>stderr（标准错误）</td><td>报错信息</td><td>屏幕</td></tr></tbody></table></div>
+<p><strong>关键点：1 和 2 是两个不同的管道，虽然都显示在屏幕上。</strong> 这就是为什么 <code>run.sh &gt; run.log</code> 之后，错误还是会刷在屏幕上——你只重定向了 1 号，2 号还在往屏幕走。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：四种重定向写法；在任意目录执行，run.log 会生成在当前目录</span><span class="ln ">ls &gt; filelist.txt               # &gt; 覆盖写入：清空原文件再写，屏幕什么都不显示</span><span class="ln ">ls &gt;&gt; filelist.txt              # &gt;&gt; 追加写入：接在末尾，不覆盖</span><span class="ln ">run.sh &gt; run.log 2&gt;&amp;1           # 正常输出和错误输出都进 run.log（最常用的跑批写法）</span><span class="ln ">run.sh 2&gt; err.log               # 只把错误单独收进 err.log，正常输出还在屏幕上</span><span class="ln ">run.sh &gt; /dev/null 2&gt;&amp;1         # 全部丢掉（/dev/null 是系统的黑洞），只关心成功与否</span><span class="ln ">run.sh 2&gt;&amp;1 | tee run.log       # 既进日志又显示在屏幕上（tee = 三通，真机命令）</span></code></pre></div>
+<p><code>2&gt;&amp;1</code> 到底在说什么，拆开看：</p>
+<ul><li><code>2&gt;</code> 是"把 2 号（stderr）重定向到某个地方"。</li><li><code>&amp;1</code> 是"1 号当前指向的地方"（不是"1 号这个文件"，<code>&amp;</code> 表示引用而不是文件名）。</li><li>连起来：<strong>把错误流接到输出流正在去的那个地方</strong>。</li></ul>
+<p><strong>顺序不能反。</strong> <code>&gt; run.log 2&gt;&amp;1</code> 是"先把 1 指向文件，再让 2 跟着 1"，两个都进文件。而 <code>2&gt;&amp;1 &gt; run.log</code> 是"先让 2 跟着当前的 1（屏幕），再把 1 指向文件"，结果是<strong>错误还在屏幕上</strong>。这一个字符的顺序，坑过无数人。</p>
 <div class="pit"><div class="pit-h">常见坑 · <code>&gt; run.log</code> 会清空文件</div><div class="pit-b"><p>如果你本来想追加，用了 <code>&gt;</code>，之前 3 小时的日志瞬间没了。</p>
-<ul><li>想追加：<code>&gt;&gt;</code></li><li>想保留现场再重跑：先 <code>mv run.log run_$(date +%m%d_%H%M).log</code>，再跑</li></ul></div></div>
+<ul><li>想追加：<code>&gt;&gt;</code></li><li>想保留现场再重跑：先 <code>mv run.log run_$(date +%m%d_%H%M).log</code>，再跑</li></ul>
+<p>判断依据：<code>&gt;</code> 是"打开并截断"，<code>&gt;&gt;</code> 是"打开并定位到末尾"。跑批脚本里 90% 的场景应该用 <code>&gt;&gt;</code> 或带时间戳的新文件名，而不是 <code>&gt;</code>。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="redirect"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="grep" data-ch="grep">
   <div class="ch-h"><span class="ch-n">03</span><h2>grep：把想要的行挑出来</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep error run.log</span><span class="ln cmt"># 打印所有含 "error" 的行（区分大小写，Error 不会被匹配）</span><span class="ln "> </span><span class="ln ">grep -i error run.log</span><span class="ln cmt"># -i = ignore case，忽略大小写。日志里 Error / ERROR / error 混着出现时必须加</span><span class="ln "> </span><span class="ln ">grep -n error run.log</span><span class="ln cmt"># -n = number，带上行号。方便回头用 vim 跳到那一行</span><span class="ln "> </span><span class="ln ">grep -c error run.log</span><span class="ln cmt"># -c = count，只输出命中多少行，不输出内容</span><span class="ln "> </span><span class="ln ">grep -v error run.log</span><span class="ln cmt"># -v = invert，反过来：打印"不含 error"的行</span><span class="ln "> </span><span class="ln ">grep -A 3 "Error" run.log</span><span class="ln cmt"># -A 3 = after，命中行后面再带 3 行。看报错上下文必用</span><span class="ln "> </span><span class="ln ">grep -B 2 "Error" run.log</span><span class="ln cmt"># -B 2 = before，前面带 2 行</span><span class="ln "> </span><span class="ln ">grep -E "setup|hold" timing.rpt</span><span class="ln cmt"># -E = 扩展正则，用 | 表示"或"。这一行等价于筛出含 setup 或 hold 的行</span><span class="ln "> </span><span class="ln ">grep -rn "create_clock" scripts/</span><span class="ln cmt"># -r = 递归整个目录，-n 带行号。找"哪个脚本里定义了这个时钟"</span></code></pre></div>
+  <p>grep 是"按行过滤"：只要这一行里出现了你给的模式，就把整行打出来。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：grep 的九个常用选项；在报告所在目录执行</span><span class="ln ">grep error run.log              # 打印所有含 "error" 的行（区分大小写，Error 不匹配）</span><span class="ln ">grep -i error run.log           # -i = ignore case，忽略大小写（Error/ERROR/error 混着出现时必加）</span><span class="ln ">grep -n error run.log           # -n = number，带行号，方便回头用 vim 跳到那一行</span><span class="ln ">grep -c error run.log           # -c = count，只输出命中多少行，不输出内容</span><span class="ln ">grep -v error run.log           # -v = invert，反过来：打印"不含 error"的行</span><span class="ln ">grep -w error run.log           # -w = word，只匹配整词，避免 error_code 被算进来</span><span class="ln ">grep -o "slack.*" timing.rpt    # -o = only，只打印匹配到的那一段，不打印整行</span><span class="ln ">grep -A 3 "Error" run.log       # -A 3 = after，命中行后面再带 3 行（看上下文必用）</span><span class="ln ">grep -B 2 "Error" run.log       # -B 2 = before，前面带 2 行</span><span class="ln ">grep -C 3 "Error" run.log       # -C 3 = 前后各 3 行（context）</span><span class="ln ">grep -m 1 -n -i error run.log   # -m 1 = 找到第一个就停（大日志必加）</span><span class="ln ">grep -E "setup|hold" timing.rpt # -E = 扩展正则，用竖线表示"或"</span><span class="ln ">grep -F "reg_b[3]" paths.rpt    # -F = fixed string，把模式当纯文本，不解释 [ ] 等正则符号</span><span class="ln ">grep -rn "create_clock" scripts/  # -r = 递归整个目录，-n 带行号，找"哪个脚本里定义了这个时钟"</span></code></pre></div>
+<p>其中 <strong><code>-F</code> 是后端最被低估的选项</strong>。路径里全是 <code>[</code> <code>]</code> <code>.</code> <code>*</code>，这些在正则里都有特殊含义。想搜 <code>u_core/u_alu/reg_b[3]</code> 这一行，不加 <code>-F</code> 会被当成"reg_b 后面跟一个 3 的字符类"，匹配不到。<strong>搜路径、搜带括号的实例名，一律加 <code>-F</code>。</strong></p>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Regular Expression</span><span class="term-zh">正则表达式</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>一种描述"文本模式"的小语言。常用的几个：<br>| 写法 | 含义 |<br>|---|---|<br>| <code>^abc</code> | 以 abc 开头 |<br>| <code>abc$</code> | 以 abc 结尾 |<br>| <code>.</code> | 任意一个字符 |<br>| <code>.*</code> | 任意多个字符 |<br>| <code>[0-9]</code> | 一个数字 |<br>| <code>\|</code>（在 -E 下是 <code>|</code>） | 或 |<br>不用一次学全。<strong>先会 <code>^</code>、<code>$</code>、<code>[0-9]</code>，就够应付 80% 的报告提取。</strong></p></div>
+  <div class="term-h"><span class="term-en">Regular Expression（正则表达式）</span><span class="term-zh">正则表达式</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一种描述"文本模式"的小语言。grep 默认用基本正则，<code>-E</code> 用扩展正则。<br>| 写法 | 含义 |<br>|---|---|<br>| <code>^abc</code> | 以 abc 开头 |<br>| <code>abc$</code> | 以 abc 结尾 |<br>| <code>.</code> | 任意一个字符 |<br>| <code>.*</code> | 任意多个字符 |<br>| <code>[0-9]</code> | 一个数字 |<br>| <code>[^0-9]</code> | 一个非数字 |<br>| <code>\b</code> | 单词边界 |<br>| 竖线（<code>-E</code> 下） | 或 |<br>不用一次学全。<strong>先会 <code>^</code>、<code>$</code>、<code>[0-9]</code>，就够应付 80% 的报告提取。</strong></p></div>
 </div>
-<div class="scene"><div class="scene-h">工作场景 · 在 200MB 日志里找第一个错误</div><div class="scene-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep -n -m 1 -i "error" run.log</span><span class="ln cmt"># -m 1 = max count，找到第一个就停（日志大时必须加，否则要扫完）</span><span class="ln "> </span><span class="ln ">grep -n -A 5 -i "error" run.log | head -40</span><span class="ln cmt"># 带上下文看前 40 行，基本能定位病因</span></code></pre></div>
-<p>老手不看最后一个错误，看<strong>第一个</strong>错误——后面的错误常常是第一个引起的连锁反应。</p></div></div>
+<div class="scene"><div class="scene-h">工作场景 · 在 200MB 日志里找第一个错误</div><div class="scene-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：在大日志里定位第一个错误及其上下文；在日志所在目录执行</span><span class="ln ">grep -n -m 1 -i "error" run.log          # 找到第一个错误，带行号，找到就停</span><span class="ln ">grep -n -A 5 -i "error" run.log | head -40   # 带后 5 行上下文，只看前 40 行</span></code></pre></div>
+<p>老手不看最后一个错误，看<strong>第一个</strong>错误——后面的错误常常是第一个引起的连锁反应。</p>
+<p>举个真实例子：第一个错误是 <code>Cannot open library file 'slow.db'</code>（库读不到），后面 800 条 <code>Cannot resolve reference</code> 全是它引起的。你要是从最后一条开始查，会查一整天。</p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · grep 一个目录，报 Is a directory</div><div class="pit-b"><p>现象：你想在整个 reports 目录里找 slack，敲了</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">$ grep "slack" reports/</span><span class="ln ">grep: reports/: Is a directory</span></code></pre></div>
+<p>原因：grep 默认只处理<strong>文件</strong>。给它一个目录，它不会自己进去翻，而是直接告诉你"这是个目录"。</p>
+<p>怎么查、怎么修：想递归整个目录就加 <code>-r</code>（同时建议加 <code>-n</code> 保留行号）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：在整个目录里递归搜索；在 reports 的上一层执行</span><span class="ln ">grep -rn "slack" reports/            # -r 递归，-n 带行号，输出形如 reports/timing.rpt:32:...</span><span class="ln ">grep -rn --include="*.rpt" "slack" . # 只搜 .rpt 文件，避免把 .log/.db 也扫一遍</span></code></pre></div>
+<p>判断依据：报错里出现 <code>Is a directory</code>、<code>omitting directory</code>、<code>cannot read</code> 这一类词，先想"我是不是少加了一个递归选项"。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="grep"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="sed" data-ch="sed">
   <div class="ch-h"><span class="ch-n">04</span><h2>sed：替换和筛选行</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">sed -n '10,20p' timing.rpt</span><span class="ln cmt"># -n 加 p：只打印第 10 到 20 行（p = print）</span><span class="ln "> </span><span class="ln ">sed -n '/Startpoint/,/Endpoint/p' timing.rpt</span><span class="ln cmt"># 打印从 "Startpoint" 到 "Endpoint" 之间的所有行</span><span class="ln cmt"># 这是读时序报告最实用的一条命令：一条路径的完整信息全在这两行之间</span><span class="ln "> </span><span class="ln ">sed 's/old/new/' file</span><span class="ln cmt"># 把每行第一个 old 换成 new（只换第一个）</span><span class="ln "> </span><span class="ln ">sed 's/old/new/g' file</span><span class="ln cmt"># g = global，一行里全部替换</span><span class="ln "> </span><span class="ln ">sed -i 's/0\.5/0.6/g' config.tcl</span><span class="ln cmt"># -i = in-place，直接改文件（小心，先不加 -i 看一眼输出）</span><span class="ln "> </span><span class="ln ">sed '/^#/d' config.tcl</span><span class="ln cmt"># d = delete，删掉所有以 # 开头的注释行</span><span class="ln "> </span><span class="ln ">sed -i 's/\r$//' run.sh</span><span class="ln cmt"># 去掉 Windows 换行符。从 Windows 拷脚本过来必用</span></code></pre></div>
-<div class="pit"><div class="pit-h">常见坑 · <code>sed -i</code> 没有撤销</div><div class="pit-b"><p><code>sed -i</code> 是直接改磁盘上的文件，改错了没法 Ctrl+Z。</p>
-<p>保命做法：<strong>先去 <code>-i</code> 跑一遍看输出</strong>，确认替换对了再加 <code>-i</code>。</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">sed 's/0.5/0.6/g' config.tcl | head -20     # 只看，不改</span><span class="ln ">sed -i.bak 's/0.5/0.6/g' config.tcl         # 改，同时留一份 config.tcl.bak</span></code></pre></div></div></div>
+  <p>sed 是"流编辑器"：一行一行读进来，按你的规则改，再输出。它不改原文件（除非加 <code>-i</code>）。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：sed 的读取与替换；在报告或配置文件所在目录执行</span><span class="ln ">sed -n '10,20p' timing.rpt              # -n 加 p：只打印第 10 到 20 行（p = print）</span><span class="ln ">sed -n '10p;20p' timing.rpt             # 打印第 10 行和第 20 行</span><span class="ln ">sed -n '/Startpoint/,/Endpoint/p' timing.rpt   # 打印从 Startpoint 到 Endpoint 之间的所有行</span><span class="ln ">sed -n '/VIOLATED/p' timing.rpt         # 只打印含 VIOLATED 的行（等价 grep VIOLATED）</span><span class="ln ">sed 's/old/new/' file                   # 把每行第一个 old 换成 new</span><span class="ln ">sed 's/old/new/g' file                  # g = global，一行里全部替换</span><span class="ln ">sed 's/old/new/2' file                  # 只替换每行的第 2 个匹配</span><span class="ln ">sed -n 's/^slack.*:\s*//p' rpt          # 替换 + 只打印被改过的行（提取数字的常用组合）</span><span class="ln ">sed 's/^[ \t]*//' file                  # 去掉行首空白（对齐乱的报告很有用）</span><span class="ln ">sed '/^#/d' config.tcl                  # d = delete，删掉所有以 # 开头的注释行</span><span class="ln ">sed '/^$/d' config.tcl                  # 删掉所有空行</span><span class="ln ">sed -i 's/0\.5/0.6/g' config.tcl        # -i = in-place，直接改文件（危险，见下面的坑）</span><span class="ln ">sed -i.bak 's/0\.5/0.6/g' config.tcl    # 改的同时留一份 config.tcl.bak</span><span class="ln ">sed -i 's/\r$//' run.sh                 # 去掉 Windows 换行符（上一课讲过）</span></code></pre></div>
+<p>三个必须理解的细节：</p>
+<ol><li><strong><code>-n</code> 和 <code>p</code> 是一对</strong>。sed 默认会把每一行都打印出来；<code>-n</code> 关掉默认打印，<code>p</code> 才显式打印你要的行。只用 <code>p</code> 不加 <code>-n</code>，每行会打印两遍。</li><li><strong><code>/A/,/B/p</code> 是区间匹配</strong>，从含 A 的行开始，到含 B 的行结束。<strong>如果 A 出现多次、B 只出现一次，会打印出好几段</strong>——这在时序报告里正好是你要的（每条路径一段）。</li><li><strong><code>s///</code> 里 <code>/</code> 是分隔符</strong>，如果模式里有 <code>/</code>（比如路径），换成别的分隔符更清楚：<code>sed 's|/home/wei|/home/lisi|g'</code>。</li></ol>
+<div class="pit"><div class="pit-h">常见坑 · <code>sed -i</code> 没有撤销</div><div class="pit-b"><p><code>sed -i</code> 是直接改磁盘上的文件，改错了没法 Ctrl+Z。更糟的是：如果正则写错，它可能把整个文件改乱，而你还没备份。</p>
+<p>保命三步：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：安全地做一次批量替换；在配置文件所在目录执行</span><span class="ln ">cp config.tcl config.tcl.bak                  # 第一步：先备份（比 -i.bak 更早，连"改错文件名"都能救）</span><span class="ln ">sed 's/0\.5/0.6/g' config.tcl | head -20      # 第二步：不加 -i，只看前 20 行输出，确认替换对不对</span><span class="ln ">sed -i.bak 's/0\.5/0.6/g' config.tcl          # 第三步：确认无误再改，并自动留 .bak</span></code></pre></div>
+<p>判断依据：<strong>凡是 <code>sed -i</code>，前面必须有备份，后面必须有 <code>diff</code> 验证</strong>：<code>diff config.tcl.bak config.tcl | head</code> 只应该看到你预期的几行变化。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="sed"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="awk" data-ch="awk">
   <div class="ch-h"><span class="ch-n">05</span><h2>awk：按列取数，做小计算</h2></div>
-  <p>awk 把每一行按空格（或指定分隔符）切成若干列，<code>$1</code> 是第一列，<code>$2</code> 第二列，<code>$NF</code> 是最后一列，<code>$0</code> 是整行。</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">awk '{print $1}' file</span><span class="ln cmt"># 打印每行第一列</span><span class="ln "> </span><span class="ln ">awk '{print $NF}' file</span><span class="ln cmt"># NF = number of fields，最后一列</span><span class="ln "> </span><span class="ln ">awk '{print $1, $3}' file</span><span class="ln cmt"># 打印第 1 和第 3 列，中间用空格分隔</span><span class="ln "> </span><span class="ln ">awk 'NR==5' file</span><span class="ln cmt"># NR = 行号，只打印第 5 行</span><span class="ln "> </span><span class="ln ">awk 'NR&gt;=10 &amp;&amp; NR&lt;=20' file</span><span class="ln cmt"># 打印 10 到 20 行，效果同 sed -n '10,20p'</span><span class="ln "> </span><span class="ln ">awk '/setup/ {print $2}' report</span><span class="ln cmt"># 只对含 setup 的行，打印它的第 2 列</span><span class="ln "> </span><span class="ln ">awk '{sum+=$2} END {print sum}' num.txt</span><span class="ln cmt"># 把第 2 列累加，最后打印总和</span><span class="ln "> </span><span class="ln ">awk '{print $2}' num.txt | sort -n | tail -1</span><span class="ln cmt"># 取第 2 列，按数值排序，取最大的那个 → 一行拿到"最差 slack"</span></code></pre></div>
+  <p>awk 把每一行按分隔符（默认空格 / Tab）切成若干列，<code>$1</code> 是第一列，<code>$2</code> 第二列，<code>$NF</code> 是最后一列，<code>$0</code> 是整行。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：awk 的取列与小计算；在报告所在目录执行</span><span class="ln ">awk '{print $1}' file               # 打印每行第一列</span><span class="ln ">awk '{print $NF}' file              # NF = number of fields，最后一列（列数不定时最有用）</span><span class="ln ">awk '{print $1, $3}' file           # 打印第 1 和第 3 列，中间用空格分隔</span><span class="ln ">awk '{print NF}' file               # 每行有多少列（排查"格式变了"很快）</span><span class="ln ">awk 'NR==5' file                    # NR = 行号，只打印第 5 行</span><span class="ln ">awk 'NR&gt;=10 &amp;&amp; NR&lt;=20' file         # 打印 10 到 20 行，效果同 sed -n '10,20p'</span><span class="ln ">awk 'NR&gt;1' file                     # 跳过第 1 行（表头），报告提取的标配</span><span class="ln ">awk '/setup/ {print $2}' report     # 只对含 setup 的行，打印它的第 2 列</span><span class="ln ">awk -F: '{print $1}' /etc/passwd    # -F 指定分隔符为冒号（默认是空格）</span><span class="ln ">awk -F, '{print $2}' data.csv       # CSV 用逗号分隔</span><span class="ln ">awk 'NR&gt;1 {s+=$2; n++} END {printf "n=%d sum=%.3f avg=%.4f\n", n, s, s/n}' paths.rpt</span><span class="ln cmt"># ↑ 跳过表头，累加第 2 列、计数，最后打印条数 / 总和 / 平均值</span><span class="ln ">awk 'NR&gt;1 &amp;&amp; $2&lt;0 {c++} END {print c+0}' paths.rpt    # 统计第 2 列为负的行数（+0 保证空结果输出 0）</span></code></pre></div>
+<p><code>$NF</code> 值得单独说：时序报告的列数不固定（层级深的名字会把字段推来推去），但 <strong>slack 那个数字永远在最后一个字段</strong>。所以 <code>'{print $NF}'</code> 比 <code>'{print $3}'</code> 稳得多。这是老手和新手的区别：新手数第几列，老手用 <code>$NF</code>。</p>
+<p><code>NR&gt;1</code> 也是标配。报告第一行通常是表头（<code># endpoint  slack  cells  length</code>），表头参与计算会让 <code>n</code> 多 1、<code>avg</code> 偏掉。<strong>所有统计都要先想"表头怎么办"。</strong></p>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Field</span><span class="term-zh">字段 / 列</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>一行文本里被分隔符（默认空格、Tab）切开的一段。<code>$1</code> 是第一段。<br>报告类文本的规律很强：<strong>同一个位置的数字含义固定</strong>。所以 <code>awk '{print $2}'</code> 这种"取第 2 列"的写法，在报告提取里极其常用。</p></div>
+  <div class="term-h"><span class="term-en">Field（字段 / 列）</span><span class="term-zh">字段</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一行文本里被分隔符（默认空格、Tab）切开的一段。<code>$1</code> 是第一段，<code>$NF</code> 是最后一段。<br>报告类文本的规律很强：<strong>同一个位置的数字含义固定</strong>。所以"取第 2 列""取最后一列"这种写法，在报告提取里极其常用。</p></div>
 </div>
 <div class="sbx" data-preset="text">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>模拟终端</b><span class="sbx-tip">试：grep slack timing.rpt、awk '{print $1}' paths.rpt、cat drc.rpt</span><button class="sbx-rst" type="button">重置</button></div>
@@ -94,43 +119,106 @@
 </section>
 <section class="ch" id="combo" data-ch="combo">
   <div class="ch-h"><span class="ch-n">06</span><h2>组合技：从时序报告里提取最差 slack</h2></div>
-  <p>真实报告长这样（<code>report_timing</code> 的摘录）：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Startpoint: u_core/u_reg[3]</span><span class="ln ">            (rising edge-triggered flip-flop clocked by clk)</span><span class="ln ">Endpoint:   u_core/u_alu/out_reg[7]</span><span class="ln ">            (rising edge-triggered flip-flop clocked by clk)</span><span class="ln ">Path Group: clk</span><span class="ln ">Path Type:  max</span><span class="ln ">...</span><span class="ln ">slack (VIOLATED) -0.213</span></code></pre></div>
+  <p>真实报告长这样（<code>report_timing</code> 的摘录，本站模拟终端里的 <code>timing.rpt</code> 就是这个格式）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Startpoint: u_core/u_alu/reg_a[3]  (rising edge-triggered flip-flop clocked by clk)</span><span class="ln ">Endpoint:   u_core/u_alu/reg_b[3]  (rising edge-triggered flip-flop clocked by clk)</span><span class="ln ">  data arrival time                               0.32</span><span class="ln ">  data required time                              1.90</span><span class="ln ">  slack (MET)                                     1.58</span></code></pre></div>
+<p>先手算一次 slack，把公式钉死：</p>
+<p><code>slack = required − arrival = 1.90 − 0.32 = 1.58 ns</code></p>
+<p>正数表示还有 1.58ns 余量（MET）；如果是 <code>-0.213</code>，就表示晚了 213ps（VIOLATED）。<strong>所有时序报告都是这个结构，看懂这一处，所有报告都能读。</strong></p>
 <p>想一句话回答"最差 slack 是多少"：</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep "slack" timing.rpt | awk '{print $NF}' | sort -n | head -1</span><span class="ln cmt"># grep 挑出所有 slack 行 → awk 取最后一列（数字） → 数值排序 → 取最小</span><span class="ln cmt"># 输出：-0.213</span></code></pre></div>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：从 report_timing 输出里取最差（最小）slack；在报告目录执行</span><span class="ln ">grep "slack (" timing.rpt | awk '{print $NF}' | sort -n | head -1</span><span class="ln cmt"># grep 挑出所有 slack 行（含 VIOLATED / MET）</span><span class="ln cmt"># awk 取最后一列，也就是那个数字</span><span class="ln cmt"># sort -n 按数值排序（不要用字典序，否则 -0.9 会排在 -0.1 后面）</span><span class="ln cmt"># head -1 取第一个，也就是最小值</span><span class="ln cmt"># 本站 timing.rpt 只有一条 slack，输出 1.58；真实报告有几百条，输出的就是最负的那个值</span></code></pre></div>
+<p>注意 <code>sort</code> 必须加 <code>-n</code>。默认的字典序会把 <code>-0.9</code> 排在 <code>-0.1</code> 前面（因为字符 <code>9</code> &gt; <code>1</code>），你会拿到一个错误答案，而且看起来"很像对的"。<strong>这是文本处理里最隐蔽的坑。</strong></p>
+<p>如果手上是"每条路径一行"的摘要表（<code>paths.rpt</code> 那种四列格式），最差 slack 更简单：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：从摘要表里取 slack 最差的一行；paths.rpt 第 2 列是 slack</span><span class="ln ">grep -v '^#' paths.rpt | sort -k2 -n | head -1</span><span class="ln cmt"># grep -v '^#'  去掉 # 开头的表头（否则表头会被排进结果）</span><span class="ln cmt"># sort -k2 -n   按第 2 列做数值排序</span><span class="ln cmt"># head -1       取最差的一行</span><span class="ln cmt"># 输出：u_core/u_mul/reg_p[7]             -0.35     57     203.8</span></code></pre></div>
 <p>想统计各类违例数：</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep -c "VIOLATED" timing.rpt        # 违例路径条数</span><span class="ln ">grep -o "slack (VIOLATED)" timing.rpt | wc -l   # 同上，另一种写法</span></code></pre></div>
-<p>想看所有违例路径的起点：</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep -A 2 "slack (VIOLATED)" timing.rpt | grep "Startpoint" | awk '{print $2}' | sort | uniq -c | sort -rn | head</span><span class="ln cmt"># 输出形如： 12 u_core/u_reg[3]  ← 说明这个寄存器贡献了 12 条违例</span></code></pre></div>
-<div class="scene"><div class="scene-h">工作场景 · 这段脚本组长真的会用</div><div class="scene-b"><p>布局布线跑完，报告 30 万行。组长问："最差多少？有几条违例？集中在哪？"</p>
-<p>你把上面三条命令贴过去，30 秒回答完。<strong>这就是"会用 Linux"和"不会用"的差距</strong>——不是知识差距，是效率差距。</p></div></div>
-<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：自己造一份报告并分析</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~/demo 2&gt;/dev/null || { mkdir -p ~/demo &amp;&amp; cd ~/demo; }</span><span class="ln "> </span><span class="ln cmt"># 造一份假的时序报告</span><span class="ln ">cat &gt; timing.rpt &lt;&lt;'EOF'</span><span class="ln ">Startpoint: u_core/u_reg[3]</span><span class="ln ">Endpoint:   u_core/u_alu/out_reg[7]</span><span class="ln ">slack (VIOLATED) -0.213</span><span class="ln ">Startpoint: u_core/u_reg[9]</span><span class="ln ">Endpoint:   u_core/u_alu/out_reg[1]</span><span class="ln ">slack (VIOLATED) -0.087</span><span class="ln ">Startpoint: u_core/u_reg[9]</span><span class="ln ">Endpoint:   u_core/mem/rd_reg[2]</span><span class="ln ">slack (MET) 0.412</span><span class="ln ">EOF</span><span class="ln "> </span><span class="ln cmt"># 1. 有几条违例</span><span class="ln ">grep -c VIOLATED timing.rpt</span><span class="ln "> </span><span class="ln cmt"># 2. 最差 slack</span><span class="ln ">grep slack timing.rpt | awk '{print $NF}' | sort -n | head -1</span><span class="ln "> </span><span class="ln cmt"># 3. 违例集中在哪个起点</span><span class="ln ">grep -A 1 "VIOLATED" timing.rpt | grep Startpoint | awk '{print $2}' | sort | uniq -c</span></code></pre></div>
-<p>预期输出：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">2</span><span class="ln ">-0.213</span><span class="ln ">      1 u_core/u_reg[3]</span><span class="ln ">      1 u_core/u_reg[9]</span></code></pre></div>
-<p>过关标准：不改脚本，把第 3 条改成"按起点统计违例数并从多到少排序"（提示：末尾加 <code>| sort -rn</code>）。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能写出"输出和错误都进日志"的那一行（<code>&gt; run.log 2&gt;&amp;1</code>）</li><li>会用 <code>grep -n -i -c -v -A/-B</code> 五个选项</li><li>会用 <code>sed -n '/A/,/B/p'</code> 截取一段报告</li><li>会用 <code>awk '{print $NF}'</code> 取最后一列并配合 <code>sort -n | head -1</code> 找最小值</li><li>知道 <code>sed -i</code> 有风险，会先不加 <code>-i</code> 验证</li></ul></div>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：统计违例条数的三种写法；任选一种，在报告目录执行</span><span class="ln ">grep -c "VIOLATED" timing.rpt                    # 违例行数（一行一条路径时可用）</span><span class="ln ">grep -o "slack (VIOLATED)" timing.rpt | wc -l    # 一行里出现多次时按出现次数算</span><span class="ln ">grep -v '^#' paths.rpt | awk '$2&lt;0' | wc -l      # 摘要表里第 2 列为负的行数</span></code></pre></div>
+<p>想看所有违例路径的起点，并按"谁贡献最多"排序。这里不能简单用 <code>grep -A</code>：<strong>Startpoint 在 slack 上面</strong>，而中间隔几行是不固定的。正确做法是用 awk 记住"最近一个起点"，读到违例行时把它打出来：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：按"起点"统计违例条数；适合"一条路径占几十行"的 report_timing 输出</span><span class="ln ">awk '/^Startpoint:/{sp=$2} /slack \(VIOLATED\)/{print sp}' timing.rpt | sort | uniq -c | sort -rn | head</span><span class="ln cmt"># /^Startpoint:/{sp=$2}    遇到起点行，把第 2 列（实例名）存进变量 sp</span><span class="ln cmt"># /slack \(VIOLATED\)/     遇到违例行，打印"当前记住的 sp"</span><span class="ln cmt"># sort | uniq -c | sort -rn  按出现次数从多到少排</span><span class="ln cmt"># 输出形如： 12 u_core/u_reg[3]  ← 说明这个寄存器贡献了 12 条违例</span></code></pre></div>
+<p>这个"状态变量"的思路比 <code>-A/-B</code> 可靠得多：<strong>报告里两个信息的距离不固定时，就别数行数，让 awk 帮你记。</strong></p>
+<div class="scene"><div class="scene-h">工作场景 · 这段脚本组长真的会用</div><div class="scene-b"><p>布局布线跑完，报告 30 万行。组长在群里问："最差多少？有几条违例？集中在哪？"</p>
+<p>你把上面三条命令贴过去，30 秒回答完。<strong>这就是"会用 Linux"和"不会用"的差距</strong>——不是知识差距，是效率差距。</p>
+<p>更实际的一点：这三个数决定了下一步干什么。最差 -0.35ns 且集中在 <code>u_mul</code>，说明是乘法器那片布局太挤，而不是全局问题；这时候该回 floorplan 看 macro 间距，而不是盲目插 buffer。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="combo"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="sortuniq" data-ch="sortuniq">
+  <div class="ch-h"><span class="ch-n">07</span><h2>配角三件套：sort / uniq / wc</h2></div>
+  <p>三个"看起来不重要、但每个管道里都有"的命令。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：排序、去重计数、统计；在报告所在目录执行</span><span class="ln ">sort -n nums.txt                # -n = numeric，按数值排（不加就是字典序，-0.9 会排错）</span><span class="ln ">sort -k2 -n paths.rpt           # -k2 = 按第 2 列排序</span><span class="ln ">sort -k2 -n -r paths.rpt        # -r = reverse，倒序（找最大值用）</span><span class="ln ">sort -u names.txt               # -u = unique，排序的同时去重</span><span class="ln ">grep -v '^#' paths.rpt | awk '{print $1}' | cut -d/ -f2 | sort | uniq -c   # 按模块名聚合计数</span><span class="ln ">wc -l paths.rpt                 # 行数</span><span class="ln ">wc -lw paths.rpt                # 行数 + 单词数</span><span class="ln ">wc -c paths.rpt                 # 字节数（判断文件是不是空的第二招）</span><span class="ln ">cut -d: -f1 /etc/passwd         # -d 指定分隔符，-f1 取第 1 段（简单取列比 awk 快）</span><span class="ln ">cut -d' ' -f1-3 paths.rpt       # 取第 1 到第 3 段</span></code></pre></div>
+<p><code>uniq -c</code> 有个必须记住的前提：<strong>它只合并"相邻"的重复行</strong>。所以永远是 <code>sort | uniq -c</code>，不能 <code>uniq -c</code> 单独用——单独用的时候，中间隔了一行的重复项算不出来，而结果看起来完全正常。</p>
+<p>手算一次"违例率"：<code>paths.rpt</code> 里 8 条路径，slack 依次是</p>
+<p><code>-0.12, 0.31, -0.35, 0.04, -0.08, 0.22, -0.21, 0.15</code></p>
+<p>负数的有 4 条（<code>-0.12</code>、<code>-0.35</code>、<code>-0.08</code>、<code>-0.21</code>），所以违例率 <code>4 ÷ 8 = 50%</code>。</p>
+<p>平均 slack：<code>(-0.12 + 0.31 - 0.35 + 0.04 - 0.08 + 0.22 - 0.21 + 0.15) ÷ 8 = -0.04 ÷ 8 = -0.005 ns</code></p>
+<p>也就是<strong>平均还差 5ps</strong>。这个数很有用：如果平均是 -5ps、最差是 -350ps，说明只有个别路径烂，整体健康；如果平均是 -200ps，说明是整个设计的问题，改约束比修路径更有效。</p>
+<p>在真机上用 awk 一次算出来（跳过表头）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：一次算出条数、总和、平均值；真机执行（模拟终端不支持累加）</span><span class="ln ">awk 'NR&gt;1 {s+=$2; n++} END {printf "n=%d sum=%.3f avg=%.4f\n", n, s, s/n}' paths.rpt</span><span class="ln cmt"># 输出：n=8 sum=-0.040 avg=-0.0050</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="sortuniq"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="one-liner" data-ch="one-liner">
+  <div class="ch-h"><span class="ch-n">08</span><h2>一条命令的解剖：从 30 万行到一行</h2></div>
+  <p>真正干活时，你拼出来的命令往往有四五个管道。<strong>看不懂不可怕，可怕的是不知道哪一段出了问题。</strong></p>
+<p>把最常用的那条命令逐段拆开：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：从 report_timing 全量输出里，找出最差 slack 出现在第几行</span><span class="ln cmt"># 用法：在 pnr/reports 下执行；timing.rpt 是 report_timing 的重定向输出</span><span class="ln ">grep "slack (" timing.rpt | awk '{print $NF}' | sort -n | head -1 | xargs -I{} grep -n -- "{}" timing.rpt</span><span class="ln cmt"># 最后一段的 -- 不能省：-0.213 以减号开头，不加 -- 会被 grep 当成选项，报 invalid option</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>段</th><th>在干什么</th><th>去掉它会怎样</th></tr></thead><tbody><tr><td><code>grep "slack ("</code></td><td>只留 slack 行（<code>(</code> 避免匹配到别处出现的 slack 字样）</td><td>所有行都进管道，后面全乱</td></tr><tr><td><code>awk '{print $NF}'</code></td><td>取最后一列，也就是数值</td><td>排序时按整行字符串排，结果错</td></tr><tr><td><code>sort -n</code></td><td>按数值升序</td><td>不排序则 <code>head -1</code> 只是第一行</td></tr><tr><td><code>head -1</code></td><td>取最小值（最差）</td><td>没有"最差"这个概念</td></tr><tr><td><code>xargs -I{}</code></td><td>把上一步的结果填到下一段的 <code>{}</code> 位置</td><td>无法把数字当作参数传给下一条命令</td></tr><tr><td><code>grep -n -- "{}"</code></td><td>拿这个数回原文件找它出现在第几行</td><td>只得到一个数字，不知道是哪条路径</td></tr></tbody></table></div>
+<p><strong>拆管道的方法：每加一段就回车看一次输出。</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：逐段验证，定位是哪一段出错；在报告目录执行</span><span class="ln ">grep "slack (" timing.rpt | head -3        # 第一段：确认能捞到行</span><span class="ln ">grep "slack (" timing.rpt | awk '{print $NF}' | head -3   # 第二段：确认取到的是数字</span><span class="ln ">... | sort -n | head -3                    # 第三段：确认排序方向对（最差在最前）</span></code></pre></div>
+<p>这是最实用的调试方法：<strong>管道越长，越要分段看</strong>。一次性写完再回车，报错信息只会告诉你"最后一段没输入"，不会告诉你哪一段断了。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="one-liner"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="pipe-debug" data-ch="pipe-debug">
+  <div class="ch-h"><span class="ch-n">09</span><h2>管道没输出时的五种断点</h2></div>
+  <p>"命令跑完了，什么都没显示"是最常见的困惑。按这个顺序查，五种原因覆盖 95% 的情况：</p>
+<div class="tbl"><table><thead><tr><th>#</th><th>原因</th><th>怎么验证</th><th>怎么修</th></tr></thead><tbody><tr><td>1</td><td>真的没有匹配</td><td>去掉管道单独跑第一段</td><td>换关键词；确认大小写</td></tr><tr><td>2</td><td>文件不对/是空的</td><td><code>wc -l 文件</code></td><td>检查路径；上游是否真的产出了报告</td></tr><tr><td>3</td><td>大小写不一致</td><td>加 <code>-i</code> 试一次</td><td>报告里是 <code>Slack</code>，你搜的是 <code>slack</code></td></tr><tr><td>4</td><td>特殊字符被当正则</td><td>加 <code>-F</code> 试一次</td><td>搜 <code>reg_b[3]</code> 这类名字必须 <code>-F</code></td></tr><tr><td>5</td><td>上一条命令的错误流没进来</td><td>加 <code>2&gt;&amp;1</code></td><td>错误在 stderr，管道只接 stdout</td></tr></tbody></table></div>
+<p>第 5 条最隐蔽：<code>工具 | grep Error</code> 什么都没捞到，因为工具的报错走的是 stderr（2 号），而管道只接 stdout（1 号）。正确写法是 <code>工具 2&gt;&amp;1 | grep Error</code>。</p>
+<p>还有一个更工程化的做法：在脚本开头加 <code>set -o pipefail</code>。默认情况下，管道的返回码是<strong>最后一段</strong>的返回码——<code>grep</code> 没匹配到返回 1，但后面的 <code>wc -l</code> 成功返回 0，整条管道就算"成功"，你的脚本会带着空结果继续往下跑。加了 <code>pipefail</code>，任何一段失败整条管道就失败。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">#!/bin/bash</span><span class="ln cmt"># ↑ shebang 必须在第一行，前面不能有任何注释或空行</span><span class="ln cmt"># 作用：让管道里的失败不被吞掉；放在脚本开头</span><span class="ln ">set -e              # 任何命令失败就退出</span><span class="ln ">set -o pipefail     # 管道中任意一段失败，整条管道算失败（默认只看最后一段）</span><span class="ln ">set -u              # 用到未定义变量就报错，防止 $DIR 为空导致 rm -rf /</span></code></pre></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：自己造一份报告并分析</div><div class="lab-b"><p><strong>任务</strong>：造一份假的时序摘要，回答三个问题：几条违例、最差多少、集中在哪。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：造数据 + 三步分析；在 ~/demo 下执行（没有就 mkdir -p ~/demo）</span><span class="ln ">cd ~/demo 2&gt;/dev/null || { mkdir -p ~/demo &amp;&amp; cd ~/demo; }</span><span class="ln "> </span><span class="ln ">cat &gt; paths.rpt &lt;&lt;'EOF'</span><span class="ln cmt"># endpoint                        slack    cells  length(um)</span><span class="ln ">u_core/u_alu/reg_b[3]             -0.12     42     118.4</span><span class="ln ">u_core/u_alu/reg_c[0]              0.31     28      76.2</span><span class="ln ">u_core/u_mul/reg_p[7]             -0.35     57     203.8</span><span class="ln ">u_core/u_ctrl/state_reg[2]         0.04     19      41.6</span><span class="ln ">u_ram/u_sram/DO[31]               -0.08     33      92.5</span><span class="ln ">u_core/u_alu/reg_a[5]              0.22     24      63.1</span><span class="ln ">u_core/u_mul/reg_p[6]             -0.21     51     187.3</span><span class="ln ">u_dma/u_fifo/wr_ptr[4]             0.15     26      70.9</span><span class="ln ">EOF</span><span class="ln "> </span><span class="ln ">grep -v '^#' paths.rpt | awk '$2&lt;0' | wc -l      # 1. 有几条违例 → 4</span><span class="ln ">grep -v '^#' paths.rpt | sort -k2 -n | head -1   # 2. 最差 slack → -0.35，在 u_mul/reg_p[7]</span><span class="ln ">grep -v '^#' paths.rpt | awk '$2&lt;0 {print $1}' | cut -d/ -f2 | sort | uniq -c | sort -rn</span><span class="ln cmt"># 3. 违例集中在哪个模块 → 按路径第 2 段（模块名）统计</span></code></pre></div>
+<p>预期输出：第一条 <code>4</code>；第二条 <code>u_core/u_mul/reg_p[7] ... -0.35 ...</code>；第三条形如</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">      2 u_mul</span><span class="ln ">      1 u_alu</span><span class="ln ">      1 u_ram</span></code></pre></div>
+<p><strong>过关标准</strong>：三条输出都对得上，并且能说出"为什么第 3 条要先 <code>cut -d/ -f2</code>"（因为要按模块聚合，而 <code>$1</code> 是整个路径名，直接 <code>uniq -c</code> 每行都是 1）。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能写出"输出和错误都进日志"的那一行（<code>&gt; run.log 2&gt;&amp;1</code>），并解释为什么顺序不能反</li><li>会用 <code>grep -n -i -c -v -A/-B</code> 五个选项，并知道搜路径要加 <code>-F</code></li><li>会用 <code>sed -n '/A/,/B/p'</code> 截取一段报告，知道 <code>-n</code> 和 <code>p</code> 为什么必须配对</li><li>会用 <code>awk '{print $NF}'</code> 取最后一列，用 <code>NR&gt;1</code> 跳过表头，用 <code>-F</code> 指定分隔符</li><li>能写出"最差 slack"的完整管道，并逐段说出每段的作用</li><li>知道 <code>sort</code> 不加 <code>-n</code> 会按字典序出错，知道 <code>uniq -c</code> 必须先 <code>sort</code></li><li>管道没输出时，能按"文件是否存在 → 是否匹配 → 大小写 → 特殊字符 → stderr"排查</li><li>知道 <code>sed -i</code> 有风险，会先不加 <code>-i</code> 验证并留 <code>.bak</code></li></ul></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span><code>run.sh &gt; run.log 2&gt;&amp;1</code> 里 <code>2&gt;&amp;1</code> 是什么意思？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">把标准错误（文件描述符 2）重定向到标准输出（1）当前指向的地方，也就是同一个日志文件。</div>
+  <div class="q-a">把标准错误（文件描述符 2）重定向到标准输出（1）当前指向的地方，也就是同一个日志文件。顺序不能反，写成 <code>2&gt;&amp;1 &gt; run.log</code> 错误仍会留在屏幕上。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span><code>grep -A 3 Error</code> 和 <code>grep -B 3 Error</code> 有什么区别？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">-A 是命中行之后多显示 3 行（after），-B 是之前多显示 3 行（before）。</div>
+  <div class="q-a">-A 是命中行之后多显示 3 行（after），-B 是之前多显示 3 行（before），-C 是前后各 3 行。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>怎么打印一份报告里从 Startpoint 到 Endpoint 之间的内容？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a"><code>sed -n '/Startpoint/,/Endpoint/p' report</code></div>
+  <div class="q-a"><code>sed -n '/Startpoint/,/Endpoint/p' report</code>，<code>-n</code> 关掉默认打印，<code>p</code> 只打印区间内的行。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span><code>awk '{print $NF}'</code> 里的 NF 是什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">Number of Fields，当前行的字段总数，所以 $NF 就是最后一列。</div>
+  <div class="q-a">Number of Fields，当前行的字段总数，所以 $NF 就是最后一列。列数不固定时用它比写死列号稳。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>为什么在 200MB 日志里找错误要加 <code>-m 1</code>？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a"><code>-m 1</code> 命中第一个就停止，避免扫完整个文件；而且第一个错误通常才是根因。</div>
+  <div class="q-a"><code>-m 1</code> 命中第一个就停止，避免扫完整个文件；而且第一个错误通常才是根因，后面的多是连锁反应。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>sort</code> 不加 <code>-n</code> 会发生什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">按字典序排序，<code>-0.9</code> 会排在 <code>-0.1</code> 前面（因为字符 9 大于 1），你会拿到错误的"最差值"，而且结果看起来很正常。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>uniq -c</code> 为什么必须先 <code>sort</code>？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>uniq</code> 只合并相邻的重复行。不排序时，中间隔了别的行的重复项不会被合并，计数会偏小且毫无提示。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>搜 <code>u_core/u_alu/reg_b[3]</code> 为什么搜不到，怎么修？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>[3]</code> 在正则里是"匹配字符 3 的字符类"，实际被匹配成 <code>reg_b3</code>。加 <code>-F</code> 按纯文本搜索。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>awk 'NR&gt;1 {s+=$2} END {print s}'</code> 里的 <code>NR&gt;1</code> 为什么要加？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">跳过第 1 行表头。表头第 2 列是文字（如 slack），参与计算会让条数多 1、平均值偏掉。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>工具报错为什么用管道 grep 捞不到？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">工具的报错走 stderr（2 号），管道只接 stdout（1 号）。要写成 <code>工具 2&gt;&amp;1</code> 再接 grep。</div>
 </div></div>
-  <label class="ch-done"><input type="checkbox" data-mark="combo"><span>这一章我学完了</span></label>
+  <label class="ch-done"><input type="checkbox" data-mark="pipe-debug"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CTS 时钟树：让时钟同时到达 · 19 | IC 后端学院</title>
-<meta name="description" content="时钟是芯片的心跳。几万个触发器要同时收到时钟，靠的是插入缓冲器建成一棵树。这一课讲清 skew、insertion delay、NDR，以及 CTS 之后必须看的三份报告。">
+<title>CTS 时钟树（一）：为什么几万个触发器要同时收到时钟 · 19 | IC 后端学院</title>
+<meta name="description" content="时钟是芯片的心跳。几万个触发器要"同时"收到时钟，靠的是插入缓冲器建成一棵树。这一课讲清 skew、insertion delay、NDR 这三个词，CTS 的五个步骤，以及 CTS 之后必须看的三份报告。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -24,94 +24,153 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>CTS 时钟树：让时钟同时到达</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>CTS 时钟树（一）：为什么几万个触发器要同时收到时钟</b></div>
     <div class="hero">
       <div class="hero-no">19</div>
-      <h1>CTS 时钟树：让时钟同时到达</h1>
+      <h1>CTS 时钟树（一）：为什么几万个触发器要同时收到时钟</h1>
       <p class="hero-en">Clock Tree Synthesis</p>
-      <p class="hero-sum">时钟是芯片的心跳。几万个触发器要同时收到时钟，靠的是插入缓冲器建成一棵树。这一课讲清 skew、insertion delay、NDR，以及 CTS 之后必须看的三份报告。</p>
+      <p class="hero-sum">时钟是芯片的心跳。几万个触发器要"同时"收到时钟，靠的是插入缓冲器建成一棵树。这一课讲清 skew、insertion delay、NDR 这三个词，CTS 的五个步骤，以及 CTS 之后必须看的三份报告。</p>
       <div class="hero-meta">
-        <span class="pill">约 48 分钟</span>
+        <span class="pill">约 50 分钟</span>
         <span class="pill">课表学时 4</span>
-        <span class="pill tag">CTS</span><span class="pill tag">skew</span><span class="pill tag">clock tree</span><span class="pill tag">NDR</span>
+        <span class="pill tag">CTS</span><span class="pill tag">skew</span><span class="pill tag">insertion delay</span><span class="pill tag">NDR</span><span class="pill tag">clock tree</span>
       </div>
     </div>
     <article id="article"><section class="ch" id="why" data-ch="why">
-  <div class="ch-h"><span class="ch-n">01</span><h2>没有 CTS 会怎样</h2></div>
-  <p>时钟源只有一个，但触发器有几万个。如果直接从源拉线到每个触发器：</p>
-<ul><li>有的线长 2mm，有的线短 50µm → 延迟差几百 ps → skew 巨大</li><li>一个源驱动几万个负载 → 驱动能力完全不够，时钟波形直接变形</li></ul>
-<p>结果：hold 违例报到 −10ns 级，setup 也没法收敛，芯片根本不能工作。</p>
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么没有 CTS 芯片就跑不起来</h2></div>
+  <div class="goal"><span>本章目标</span>学完这一课，你能判断一棵时钟树建得好不好：读出 skew、insertion delay、transition 三个数，指出下一步该先修什么。</div>
+<p>时钟源只有一个，触发器有几万个。最省事的做法是从源直接拉一根线，串到每个触发器上。</p>
+<p>这么做会出两个问题：</p>
+<p><strong>第一，到达时间差得离谱。</strong> 靠近源的触发器可能 50ps 就收到时钟，最远那个要 800ps。这个差值叫 <strong>skew（偏斜）</strong>。skew 一大，两个触发器之间那条路径的可用时间就被吃掉一大块——时序直接崩。</p>
+<p><strong>第二，一根线驱动不了几万个负载。</strong> 时钟波形会被"拖垮"：上升沿从陡直的台阶变成慢慢爬的斜坡，这叫 <strong>transition（转换时间）</strong> 变差。波形一烂，触发器可能在中间电平上采样，芯片出现亚稳态——就是那种"跑一天偶尔错一次"的偶发故障。</p>
+<p>所以必须有一步专门干这件事：<strong>插缓冲器（buffer / inverter），把一根线变成一棵树，让每个触发器收到的时钟尽量一样</strong>。这一步就是 CTS（Clock Tree Synthesis，时钟树综合）。</p>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Clock Tree</span><span class="term-zh">时钟树</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>从时钟源出发，一层层插入缓冲器（buffer/inverter），形成一个树状结构，把时钟分配到所有触发器。<br>目标：<strong>每个触发器收到时钟的时间尽可能一致</strong>，且波形质量（transition、占空比）达标。</p></div>
+  <div class="term-h"><span class="term-en">Clock Tree Synthesis (CTS)</span><span class="term-zh">时钟树综合</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>在时钟网络上按层级插入缓冲器或反相器，形成树状结构，使时钟到达每个触发器的延迟尽量一致、波形质量达标。它是布局（placement）之后、布线（route）之前的一步。</p></div>
 </div>
-  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
-</section>
-<section class="ch" id="structure" data-ch="structure">
-  <div class="ch-h"><span class="ch-n">02</span><h2>树长什么样</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">                 clk 源</span><span class="ln ">                   │</span><span class="ln ">            ┌──────┴──────┐</span><span class="ln ">          buf            buf          ← 第一级</span><span class="ln ">        ┌──┴──┐       ┌──┴──┐</span><span class="ln ">      buf   buf     buf   buf        ← 第二级</span><span class="ln ">      ┌┴┐   ┌┴┐     ┌┴┐   ┌┴┐</span><span class="ln ">     FF FF FF FF   FF FF FF FF       ← 触发器（叶子）</span></code></pre></div>
-<p>几个术语：</p>
-<div class="tbl"><table><thead><tr><th>术语</th><th>含义</th><th>典型值</th></tr></thead><tbody><tr><td>Levels</td><td>树的层数</td><td>6~12 级</td></tr><tr><td>Skew</td><td>叶子之间到达时间的最大差</td><td>&lt;100ps（成熟工艺）</td></tr><tr><td>Insertion Delay</td><td>从源到叶子的总延迟</td><td>0.5~2ns</td></tr><tr><td>Transition</td><td>时钟边沿的上升/下降时间</td><td>&lt;100ps</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Skew</span><span class="term-zh">偏斜</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>同一个时钟到达不同触发器的<strong>时间差</strong>。全局 skew 指整棵树的最大差值；局部 skew 指相邻两个触发器之间的差值。skew 是 CTS 的第一考核指标。</p></div>
+</div>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Insertion Delay</span><span class="term-zh">插入延迟</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>时钟从源出发，经过树的缓冲器，到达触发器所花的时间。<br>它本身不是问题，<strong>问题是它占用了时序预算</strong>：时钟晚到 1ns，数据路径就少 1ns 可用时间。</p></div>
+  <div class="term-b"><p>从时钟源（clock root）到某个触发器时钟端的<strong>总延迟</strong>。延迟本身不可怕，可怕的是不同叶子之间差太多；另外延迟太大意味着时钟要在片内绕一大圈，功耗和 OCV 影响都会变差。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 周一早上，CTS 报告全是红的</div><div class="scene-b"><p>你接手一个 40nm 项目，placement 刚做完，leader 说"这周把 CTS 收掉"。你在 <code>pnr/</code> 下跑完 <code>ccopt_design</code>，打开 <code>report_clock_timing -type skew</code>，看到全局 skew 380ps、最长 insertion delay 2.1ns、还有 1200 个时钟引脚 transition 超标。周五要交 CTS review，你得先搞清楚：这 380ps 是哪一段树贡献的、2.1ns 是深还是浅、1200 个 transition 违例该从哪下手。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="metrics" data-ch="metrics">
+  <div class="ch-h"><span class="ch-n">02</span><h2>时钟树的三个指标，先记住再看命令</h2></div>
+  <div class="tbl"><table><thead><tr><th>指标</th><th>含义</th><th>典型目标（40nm 量级）</th><th>变差的后果</th></tr></thead><tbody><tr><td>Skew</td><td>叶子之间到达时间差</td><td>全局 &lt; 100~150ps，局部 &lt; 30~50ps</td><td>setup/hold 预算被吃掉</td></tr><tr><td>Insertion delay</td><td>源到叶子的总延迟</td><td>越短越好，通常 0.8~1.5ns</td><td>功耗高、OCV 悲观度变大</td></tr><tr><td>Transition（slew）</td><td>波形陡不陡</td><td>时钟网络 &lt; 100~150ps</td><td>亚稳态、漏电增加、EM 变差</td></tr></tbody></table></div>
+<p>这三个指标是<strong>互相拉扯</strong>的：想 skew 小，就多插几级 buffer 把树做平衡，但级数一多 insertion delay 就变长、功耗上去；想 delay 短，树就做得浅，skew 又压不住。</p>
+<div class="note"><div class="note-h">一个常被搞混的点</div><p>skew 小 ≠ 时序好。CTS 的目标不是"skew = 0"，而是"在满足 transition 和功耗的前提下，把时序做到能收敛"。有些路径故意留一点 skew 反而更好——这就是后面 OptCts 课里的 useful skew。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="metrics"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="structure" data-ch="structure">
+  <div class="ch-h"><span class="ch-n">03</span><h2>树长什么样</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">                    clk 源（root）</span><span class="ln ">                         │</span><span class="ln ">              ┌──────────┴──────────┐</span><span class="ln ">            buf                   buf          ← 第 1 级（驱动主干）</span><span class="ln ">          ┌──┴──┐               ┌──┴──┐</span><span class="ln ">        buf   buf             buf   buf        ← 第 2 级</span><span class="ln ">        ┌┴┐   ┌┴┐             ┌┴┐   ┌┴┐</span><span class="ln ">       FF FF FF FF           FF FF FF FF       ← 叶子（触发器时钟端）</span></code></pre></div>
+<p>几个必须知道的细节：</p>
+<ol><li><strong>每一级 buffer 的扇出有限</strong>（一般 8~16），所以树是"一层层扇出去"的，叶子数量决定树的深度。几万个叶子通常是 5~7 级。</li><li><strong>叶子不一定是触发器</strong>。clock gating cell（门控时钟单元）、macro 的时钟引脚、ICG 的 CK 端，都在树上，都要平衡。</li><li><strong>树不是唯一形态</strong>。H-tree、mesh（网格）用于高性能芯片的全局时钟，代价是占用大量布线资源；普通项目用常规树就够了。</li><li><strong>时钟分主次</strong>。主时钟（root）到各个子时钟（generated clock）要分别建树，跨时钟域的两棵树之间不做平衡。</li></ol>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">NDR (Non-Default Rule)</span><span class="term-zh">非默认规则</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>给时钟网络单独指定的线宽和间距规则，比如"双倍线宽 + 双倍间距"。线宽加倍降低电阻（延迟和 EM 都变好），间距加倍降低耦合电容（串扰变小）。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Clock Gating</span><span class="term-zh">门控时钟</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>用一个使能信号把某块逻辑的时钟关掉，省掉这部分动态功耗的单元。它的输出也是时钟，必须一起进 CTS，而且使能端有时序检查（clock gating check）。</p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="structure"><span>这一章我学完了</span></label>
 </section>
-<section class="ch" id="cmd" data-ch="cmd">
-  <div class="ch-h"><span class="ch-n">03</span><h2>命令与关键参数</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># Innovus 用 CCOpt（并发时钟与优化）</span><span class="ln cmt"># 1. 定义时钟树要用的单元</span><span class="ln ">set_ccopt_property buffer_cells {BUF_X2 BUF_X4 BUF_X8}</span><span class="ln ">set_ccopt_property inverter_cells {INV_X2 INV_X4 INV_X8}</span><span class="ln "> </span><span class="ln cmt"># 2. 设定目标</span><span class="ln ">set_ccopt_property target_skew 0.08        # 目标 skew 80ps</span><span class="ln ">set_ccopt_property target_max_trans 0.10   # 最大 transition 100ps</span><span class="ln "> </span><span class="ln cmt"># 3. 关键：NDR（非默认布线规则），时钟线要更宽、间距更大</span><span class="ln ">set_ccopt_property routing_layer -type trunk M4   # 主干走 M4</span><span class="ln ">set_ccopt_property ndr "2w2s"                     # 双倍线宽、双倍间距</span><span class="ln "> </span><span class="ln cmt"># 4. 跑</span><span class="ln ">ccopt_design</span><span class="ln "> </span><span class="ln cmt"># 5. 三份必看报告</span><span class="ln ">report_ccopt_clock_trees -file rpt/cts_trees.rpt    # 树结构、层数、延迟</span><span class="ln ">report_ccopt_skew_groups  -file rpt/cts_skew.rpt    # 每组 skew</span><span class="ln ">report_timing -max_paths 20 &gt; rpt/cts_timing.rpt    # 时序变化</span><span class="ln "> </span><span class="ln ">saveDesign db/05_cts.enc</span></code></pre></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">NDR</span><span class="term-zh">非默认布线规则</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>Non-Default Rule。给特定网络指定更宽的线、更大的间距。<br>时钟线必须用 NDR，原因：<br>1. 时钟翻转频繁，电阻要小（宽线降电阻）。<br>2. 时钟对噪声敏感，间距要大（减少耦合电容）。<br>3. 时钟要抗 EM（电流密度大）。<br>常见写法 <code>2w2s</code> = 2 倍线宽、2 倍间距。</p></div>
-</div>
-  <label class="ch-done"><input type="checkbox" data-mark="cmd"><span>这一章我学完了</span></label>
+<section class="ch" id="five-steps" data-ch="five-steps">
+  <div class="ch-h"><span class="ch-n">04</span><h2>CTS 到底做哪五步</h2></div>
+  <h3>第一步：确认时钟定义是对的</h3>
+<p>CTS 只处理"它看得见的时钟"。如果 SDC 里时钟没定义、名字写错、或者信号传不进来，那部分触发器就变成 <strong>unconstrained（未约束）</strong>——它们不在树上，等 CTS 做完你会在报告里看到一大片"no clock"。</p>
+<p>开工前先查：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：确认工具认到的时钟有哪些、各自定义在哪个端口上</span><span class="ln cmt"># 用法：Innovus 里 source 完 SDC 之后执行；输出应为项目里的全部时钟</span><span class="ln ">report_clocks                        # 列出所有时钟：名字、周期、源端口</span><span class="ln ">check_timing -include unconstrained  # 找出"没有时钟驱动"的时序单元</span></code></pre></div>
+<p><code>check_timing</code> 输出里的 <code>unconstrained_endpoints</code> 应该是 0。不是 0 就先修约束，别急着建树——树一旦按错的时钟建完，后面全要重来。</p>
+<h3>第二步：设 CTS 约束</h3>
+<p>CTS 需要三类约束：<strong>目标（skew / latency）、规则（NDR / transition）、例外（哪些不管）</strong>。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：Innovus 里设置 CTS 目标和规则</span><span class="ln cmt"># 用法：在 ccopt_design 之前执行，通常单独写成 cts.tcl</span><span class="ln ">set_ccopt_property target_skew        0.08   ;# 全局 skew 目标 80ps，约周期的 3%</span><span class="ln ">set_ccopt_property target_max_trans   0.12   ;# 时钟网络最大 transition 120ps</span><span class="ln ">set_ccopt_property buffer_cells  {BUFX2 BUFX4 BUFX8}   ;# 允许用的缓冲器清单</span><span class="ln ">set_ccopt_property inverter_cells {INVX2 INVX4}        ;# 允许用的反相器清单</span><span class="ln ">set_ccopt_property use_inverters  true    ;# 允许成对反相器，比 buffer 省面积</span><span class="ln "> </span><span class="ln cmt"># 给时钟网络加 NDR：双倍线宽 + 双倍间距</span><span class="ln ">add_ndr -name cts_2w2s -width_multiplier 2 -spacing_multiplier 2</span><span class="ln ">set_ccopt_property -net_type trunk ndr cts_2w2s   ;# 主干用 2w2s</span><span class="ln ">set_ccopt_property -net_type leaf  ndr cts_2w2s   ;# 叶子也用</span></code></pre></div>
+<p>每行都在说什么：</p>
+<ul><li><code>target_skew</code> 不是越小越好。设 0（追求完美平衡）会让工具插一堆 buffer，功耗和面积暴涨，收益却很小。按周期的 5%~10% 给，比较现实。</li><li><code>buffer_cells</code> 要<strong>限定清单</strong>。不限定，工具会挑一堆奇形怪状的单元，后面 DRC 和 EM 都难收。</li><li><code>use_inverters true</code> 很实用：两级反相器 = 一个 buffer，但面积更小、驱动更强，时钟树上大量使用。</li><li>NDR 加在 <strong>trunk（主干）和 leaf（叶子）</strong> 上。主干电流大、易受串扰，必须加；叶子线短，加了也没什么坏处。</li></ul>
+<h3>第三步：建树</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：真正执行时钟树综合</span><span class="ln cmt"># 用法：CTS 阶段单独跑，不要和 placement 揉成一步</span><span class="ln ">ccopt_design -cts          ;# Innovus：一次建完</span><span class="ln ">clock_opt -only_cts        ;# ICC2：只做 CTS（对照用）</span></code></pre></div>
+<p>跑完工具会打印树的规模，比如：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Clock tree summary: 1 root, 6421 sinks, 1834 buffers, 6 levels, max latency 1.42ns</span></code></pre></div>
+<p>这句话要会读：<strong>1 个根、6421 个叶子、插了 1834 个缓冲器、6 级、最长延迟 1.42ns</strong>。缓冲器数 / 叶子数 ≈ 0.28，这个比例正常；如果接近 1，说明工具在乱插，多半是约束写得太紧，或者库里驱动很弱的单元被反复用了。</p>
+<h3>第四步：看报告</h3>
+<p>CTS 之后不看报告就往下走，是最常见的翻车方式。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：CTS 后的四份必看报告</span><span class="ln cmt"># 用法：跑完 ccopt_design 立刻执行，全部重定向到 rpt/ 存证</span><span class="ln ">report_clock_tree -summary &gt; rpt/cts_tree.rpt      ;# ① 树的结构：级数、buffer 数、latency</span><span class="ln ">report_clock_timing -type skew &gt; rpt/cts_skew.rpt  ;# ② skew：全局/局部最差，以及是哪两个叶子</span><span class="ln ">report_timing -max_paths 20 &gt; rpt/cts_setup.rpt    ;# ③ setup：建树后变成什么样</span><span class="ln ">report_timing -delay_type min -max_paths 20 &gt; rpt/cts_hold.rpt  ;# ④ hold 提前看，CTS 后必变</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>报告</th><th>看什么</th><th>看到什么算过关</th></tr></thead><tbody><tr><td><code>cts_tree.rpt</code></td><td>级数、buffer 数、max/min latency</td><td>级数 5~7；buffer/leaf &lt; 0.4</td></tr><tr><td><code>cts_skew.rpt</code></td><td>全局 skew、局部 skew、最差的那对叶子</td><td>全局不超过目标值 1.5 倍</td></tr><tr><td><code>cts_setup.rpt</code></td><td>WNS、违例条数</td><td>与 place 后相比恶化不超过 20%</td></tr><tr><td><code>cts_hold.rpt</code></td><td>hold 最差 slack</td><td>有负值正常，但要记基线，交给 OptCts 修</td></tr></tbody></table></div>
+<h3>第五步：修 transition 和 DRV，再交给 OptCts</h3>
+<p>建树只看结构，<strong>电气质量</strong>要单独修。CTS 之后通常有一批 transition 超标、max cap 超标、max fanout 超标的引脚。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：修时钟网络的电气违例（先不碰时序）</span><span class="ln cmt"># 用法：CTS 之后、optDesign -postCTS 之前</span><span class="ln ">setOptMode -fixFanoutLoad true   ;# 允许为了修 fanout 而插 buffer</span><span class="ln ">optDesign -drv                   ;# 只修 DRV：transition / cap / fanout</span></code></pre></div>
+<p>这里有个顺序纪律：<strong>DRV 先修，时序后修</strong>。原因很直接——transition 不达标时，工具算出来的延迟本身就是错的，你按错的延迟去修时序，等于在错的地基上盖楼。</p>
+<div class="pit"><div class="pit-h">常见坑 · CTS 之后 hold 全崩了，是不是树建坏了</div><div class="pit-b"><p>不一定。多数情况是正常的：CTS 之前时钟是"理想时钟"（ideal，零延迟），工具不知道真实 skew；CTS 之后换成传播时钟（propagated），时钟路径有了真实延迟，原来藏着的 hold 违例全暴露出来了。</p>
+<p>判断方法：看 <code>report_timing -delay_type min</code> 里违例的<strong>起点和终点是不是同一个时钟树分支</strong>。如果是相邻叶子之间的短路径违例，属于正常"暴露"，交给 OptCts 修；如果是跨越大半个芯片的路径 hold 违例，那才是树或约束的问题。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="five-steps"><span>这一章我学完了</span></label>
 </section>
-<section class="ch" id="reports" data-ch="reports">
-  <div class="ch-h"><span class="ch-n">04</span><h2>CTS 之后必须看的三份报告</h2></div>
-  <h3>1. 树结构报告</h3>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Clock: clk_core</span><span class="ln ">  Levels: 9</span><span class="ln ">  Total buffers: 1240</span><span class="ln ">  Insertion delay: 0.82ns</span><span class="ln ">  Max transition: 0.09ns</span></code></pre></div>
-<p>判断：层数 6~12 正常；层数过多（&gt;15）说明驱动不够或负载太重；insertion delay 过大要查是不是走的层不对。</p>
-<h3>2. Skew 报告</h3>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Skew Group: clk_core</span><span class="ln ">  Target skew: 0.080ns</span><span class="ln ">  Achieved skew: 0.062ns     ✅</span><span class="ln ">  Worst pair: FF_u_core/u_reg[3] (0.71ns) vs FF_u_ddr/u_reg[1] (0.77ns)</span></code></pre></div>
-<p>判断：achieved ≤ target 才算达标。worst pair 告诉你哪两个触发器差最多，可能是布局上离得太远。</p>
-<h3>3. 时序报告（对比 CTS 前后）</h3>
-<p>重点看 <strong>hold</strong>：</p>
-<ul><li>CTS 前：hold 违例可能 −5ns 到 −10ns（skew 太大）</li><li>CTS 后：应该收敛到 −0.1ns 以内</li><li>再靠 <code>optDesign -postCTS -hold</code> 修到 0</li></ul>
-<div class="pit"><div class="pit-h">常见坑 · CTS 用了太多 buffer，面积和功耗都涨</div><div class="pit-b"><p>现象：CTS 跑完，单元数从 12000 涨到 15000，面积涨 8%，功耗报告也变差。</p>
-<p>原因：skew 目标定得太紧（比如 0.02ns），工具只能疯狂插缓冲器去平衡。</p>
-<p>对策：</p>
-<ol><li>skew 目标按工艺给（成熟工艺 80~100ps，先进工艺 30~50ps），不要盲目求小。</li><li>允许工具用 inverter 代替 buffer（反相器更省面积，成对使用）。</li><li>检查是否有"超远距离"的触发器被塞进同一组——分组（skew group）要按物理区域划。</li></ol></div></div>
-<div class="scene"><div class="scene-h">工作场景 · CTS review 现场</div><div class="scene-b"><p>组长打开 CTS 报告，问三个问题：</p>
-<ol><li>"skew 多少？达标没有？"（0.062ns，目标 0.08）</li><li>"用了多少 buffer？面积涨了多少？"（1240 个，涨 6%）</li><li>"时钟线用 NDR 了吗？走的哪层？"（2w2s，主干 M4）</li></ol>
-<p>答不出来，说明你只是敲了 <code>ccopt_design</code>，没有真的控制它。</p></div></div>
-<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：算一下 skew 预算</div><div class="lab-b"><p>条件：时钟周期 2.0ns，触发器 setup 0.15ns、hold 0.08ns，组合逻辑最长 1.6ns、最短 0.20ns。</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">python3 - &lt;&lt;'EOF'</span><span class="ln ">P, tsu, th = 2.0, 0.15, 0.08</span><span class="ln ">logic_max, logic_min = 1.6, 0.20</span><span class="ln "> </span><span class="ln cmt"># setup: skew 最多能吃掉多少</span><span class="ln ">skew_budget_setup = P - logic_max - tsu</span><span class="ln cmt"># hold: skew 最多能吃掉多少（正 skew 对 hold 不利）</span><span class="ln ">skew_budget_hold = logic_min - th</span><span class="ln "> </span><span class="ln ">print("setup 允许的最大正 skew: %+.3f ns" % skew_budget_setup)</span><span class="ln ">print("hold  允许的最大正 skew: %+.3f ns" % skew_budget_hold)</span><span class="ln ">print("取交集 → 实际可用 skew 预算: %.3f ns" % min(skew_budget_setup, skew_budget_hold))</span><span class="ln ">EOF</span></code></pre></div>
-<p>预期：setup 允许 0.25ns，hold 只允许 0.12ns → <strong>真正的瓶颈是 hold</strong>。</p>
-<p>过关标准：能解释"为什么 CTS 的 skew 目标不能只看 setup 预算"。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能解释为什么必须做 CTS（不做会怎样）</li><li>知道 skew / insertion delay / transition 三个指标</li><li>知道时钟必须用 NDR，以及为什么</li><li>会看树结构、skew、时序三份报告</li><li>知道 skew 目标不是越小越好</li></ul></div>
+<section class="ch" id="hand-calc" data-ch="hand-calc">
+  <div class="ch-h"><span class="ch-n">05</span><h2>手算一次：skew 目标该给多少</h2></div>
+  <p>假设时钟周期 2.5ns（400MHz），一条普通路径逻辑延迟 1.6ns，触发器 setup 时间 0.15ns，时钟不确定性（uncertainty）0.1ns。</p>
+<p><code>slack = 周期 − 逻辑延迟 − setup − uncertainty − skew</code></p>
+<ul><li>skew = 0.05ns：<code>2.5 − 1.6 − 0.15 − 0.1 − 0.05 = 0.6ns</code> → 有余量</li><li>skew = 0.40ns：<code>2.5 − 1.6 − 0.15 − 0.1 − 0.40 = 0.25ns</code> → 勉强</li><li>skew = 0.60ns：<code>2.5 − 1.6 − 0.15 − 0.1 − 0.60 = 0.05ns</code> → 一点 OCV 波动就违例</li></ul>
+<p>结论：这条设计里 skew 目标给 100~150ps 合理，超过 300ps 就开始吃时序余量。反过来说——<strong>skew 目标不是拍脑袋的数字，而是从时序预算里分出来的</strong>。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="hand-calc"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="pitfalls" data-ch="pitfalls">
+  <div class="ch-h"><span class="ch-n">06</span><h2>常见翻车：CTS 阶段的七个坑</h2></div>
+  <div class="pit"><div class="pit-h">常见坑 · 时钟没传到某些触发器</div><div class="pit-b"><p>现象：<code>report_clock_tree</code> 的 sink 数比触发器总数少，<code>check_timing</code> 报 <code>unconstrained_endpoints</code> 不为 0。 原因：时钟经过了一个"工具不认为是时钟"的单元（比如某个自定义 buffer 没在库里标成 clock cell），传播断了。 处理：把这类单元加入 CTS 可用的时钟单元清单，或者用工具属性明确告诉它"这也是时钟网络"。</p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · generated clock 忘记定义</div><div class="pit-b"><p>现象：分频出来的时钟那一片，skew 报告为空或异常大。 原因：SDC 里只有主时钟，分频器输出没有写 <code>create_generated_clock</code>。 处理：补 generated clock，并确认它的 source 指向分频器的输入引脚，不是输出。</p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · clock gating check 报一堆违例</div><div class="pit-b"><p>现象：<code>report_timing</code> 里 ICG 的 enable 端大量 setup 违例。 原因：门控单元的使能必须比时钟早到，否则会切掉半个时钟脉冲。这个检查叫 clock gating check；CTS 后时钟有了真实延迟，检查才生效。 处理：先确认 enable 来自哪个触发器；如果是组合逻辑直接驱动，通常要加一级触发器或用 skew 调。</p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · 为了压 skew 把 buffer 插爆</div><div class="pit-b"><p>现象：buffer/leaf 比例 &gt; 0.8，功耗涨 15%，skew 只改善 10ps。 原因：<code>target_skew</code> 设得太小（比如 20ps），工具开始疯狂插 buffer 追求平衡。 处理：把目标放宽到周期 5%~10%，或者改用 useful skew 思路（见 OptCts 课）。</p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · leaf 用了驱动太弱的单元</div><div class="pit-b"><p>现象：leaf 网络 transition 大量超标，怎么修都不干净。 原因：叶子 buffer 清单里混进了 X1 这类小驱动单元，带不动后面十几个触发器。 处理：leaf 只允许 X4 以上，用 <code>leaf_cells</code> 明确限定。</p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · 屏蔽（skip）写错，把要平衡的单元排除了</div><div class="pit-b"><p>现象：某个 macro 的时钟引脚 skew 特别大，其他都正常。 原因：早期为了省事把 macro 的 CK 排除在平衡之外。 处理：<code>report_clock_tree -skipped</code> 查被排除的引脚清单，只保留真正不需要平衡的（比如测试逻辑）。</p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · CTS 完直接跑 route</div><div class="pit-b"><p>现象：布线后 DRC 里一堆时钟网络的 spacing 违例，或者 EM 违例。 原因：NDR 没加，或者加了但没作用到 clock net 上（属性写在了错的 net type 上）。 处理：确认 NDR 生效范围，布线前再做一次时钟网络的 DRC 检查。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="pitfalls"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="in-work" data-ch="in-work">
+  <div class="ch-h"><span class="ch-n">07</span><h2>工作中怎么用：CTS 在项目里的位置</h2></div>
+  <p><strong>谁做</strong>：数字后端工程师（PR 工程师）本人。CTS 是 PR 流程里技术含量最高的一步，通常由工作两年以上的人做，或者由资深工程师 review。</p>
+<p><strong>输入是什么</strong>：placement 之后的数据库、SDC（含时钟定义）、库文件（含 CTS 可用的 buffer / inverter 清单）、时钟网络的 NDR 规则。</p>
+<p><strong>输出交给谁</strong>：交给 OptCts 继续优化，再进 route。同时要给 STA 工程师一份 CTS 报告，让他知道时钟的真实延迟和 skew——签核时 STA 用的就是这个数。</p>
+<p><strong>评审会看三个数</strong>：skew 是否达标、insertion delay 是否合理、buffer 数量与功耗增量是否可接受。任一超预期，都要回去改约束。</p>
+<p><strong>做错了会怎样</strong>：CTS 是"上游错误放大"最厉害的一步。这里 skew 多 100ps，route 阶段要花两三天插 buffer 去补；这里 buffer 多插 30%，芯片功耗直接超标。所以 CTS 阶段宁可在报告上多花两小时，也不要急着往下走。</p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：把一棵树的三个指标读出来</div><div class="lab-b"><p><strong>任务</strong>：用课程环境里的 CTS 报告（<code>~/backend_lab/soc/pnr/reports/</code> 下有 <code>cts_tree.rpt</code>、<code>cts_skew.rpt</code>、<code>cts_hold.rpt</code>），回答四个问题。</p>
+<p><strong>步骤</strong>：</p>
+<ol><li><code>head -20 cts_tree.rpt</code> 看树摘要，记下 sink 数、buffer 数、级数、max latency。</li><li><code>grep -c "slack" cts_hold.rpt</code> 数 hold 违例条数。</li><li><code>sort -k3 -n cts_skew.rpt | head -3</code> 找出 skew 最差的三对叶子。</li><li><code>awk '{print $NF}' cts_tree.rpt | sort | uniq -c</code> 看 leaf 上用了哪些单元。</li></ol>
+<p><strong>过关标准</strong>：能说出"这棵树深不深（级数/叶子数）、skew 最差在哪一级、hold 违例是不是集中在同一分支"，并指出下一步先修什么。</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>CTS 的核心目标是什么？</div>
+  <div class="q-q"><span class="q-no"></span>CTS 的一句话作用是什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">把时钟同时、干净地送到所有触发器，即控制 skew 和 transition。</div>
+  <div class="q-a">插入缓冲器把时钟网络做成树，让每个触发器收到的时钟时间尽量一致、波形达标。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>Insertion delay 为什么会影响时序？</div>
+  <div class="q-q"><span class="q-no"></span>skew 和 insertion delay 的区别是什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">时钟晚到会占用数据路径的时间预算，等效于可用时间变少。</div>
+  <div class="q-a">skew 是不同叶子之间的时间差（相对量），insertion delay 是源到某个叶子的总延迟（绝对量）。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>时钟为什么必须用 NDR？</div>
+  <div class="q-q"><span class="q-no"></span>为什么 NDR 要加在时钟网络上？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">时钟翻转频繁、电流大、对噪声敏感，需要更宽的线（降电阻/抗 EM）和更大的间距（降耦合）。</div>
+  <div class="q-a">线宽加倍降电阻（延迟和 EM 改善），间距加倍降耦合电容（串扰改善），时钟是翻转最频繁的网络，收益最大。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>CTS 后最先看哪份报告？为什么？</div>
+  <div class="q-q"><span class="q-no"></span>CTS 之后 hold 违例突然变多，最先要确认什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">看 skew 报告和时序（重点是 hold），因为 CTS 的主要收益就是把 hold 从 −ns 级收敛到 −0.1ns 以内。</div>
+  <div class="q-a">确认是不是从 ideal clock 切到 propagated clock 导致违例"暴露"，再看违例是否集中在相邻叶子之间。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>skew 目标定得过紧会有什么代价？</div>
+  <div class="q-q"><span class="q-no"></span>target_skew 是不是设得越小越好？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">工具大量插缓冲器，面积、功耗上升，可能引入新的拥塞。</div>
+  <div class="q-a">不是。过小会让工具疯狂插 buffer，功耗面积上涨、收益递减；一般按周期的 5%~10% 给。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>CTS 之后先修 DRV 还是先修时序？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">先修 DRV（transition/cap/fanout）。transition 不准时延迟计算本身就是错的，修时序没有意义。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>怎么判断一部分触发器没进时钟树？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">比较 report_clock_tree 的 sink 数与触发器总数，并用 check_timing 看 unconstrained_endpoints 是否为 0。</div>
 </div></div>
-  <label class="ch-done"><input type="checkbox" data-mark="reports"><span>这一章我学完了</span></label>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用自己的话讲清 skew、insertion delay、transition 三个指标，以及它们为什么互相拉扯</li><li>能背出 CTS 五步：查时钟定义 → 设约束 → 建树 → 看报告 → 修 DRV</li><li>能手算一道：给定周期、逻辑延迟、setup、uncertainty，算出可接受的 skew 上限</li><li>能说出 CTS 之后 hold 违例变多的两种原因，并知道怎么区分</li><li>能在报告里定位"skew 最差的是哪两个叶子"</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="in-work"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -125,7 +184,7 @@
         <h3>这一课学完了吗？</h3>
         <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <button id="btn-done" class="pri">标记本课完成</button>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-07-fix-timing/">← 修时序：六种手段和它们的代价</a><a class="nav-btn" href="/lesson/03-09-route/">布线、优化与收尾：从能连到能交付 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-07-fix-timing/">← 修时序：六种手段和它们的代价</a><a class="nav-btn" href="/lesson/03-09-route/">布线（Route）：从布通到布干净 →</a></div>
       </div>
     </div>
   </main>

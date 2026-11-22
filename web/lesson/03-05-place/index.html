@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Placement：几万个单元怎么摆 · 16 | IC 后端学院</title>
-<meta name="description" content="布局是在"连线短"和"放得下"之间找平衡。这一课讲清密度、拥塞、合法化、扫描链重排，以及怎么从报告判断布局好不好。">
+<meta name="description" content="布局是在四个互相打架的目标之间找平衡：线长、拥塞、时序、电源。这一课讲清三个指标怎么读、density 与 target_density 的关系、参数逐个什么意思、扫描链为什么必须重排，以及什么时候该认输回去改 floorplan。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -29,83 +29,207 @@
       <div class="hero-no">16</div>
       <h1>Placement：几万个单元怎么摆</h1>
       <p class="hero-en">Placement</p>
-      <p class="hero-sum">布局是在"连线短"和"放得下"之间找平衡。这一课讲清密度、拥塞、合法化、扫描链重排，以及怎么从报告判断布局好不好。</p>
+      <p class="hero-sum">布局是在四个互相打架的目标之间找平衡：线长、拥塞、时序、电源。这一课讲清三个指标怎么读、density 与 target_density 的关系、参数逐个什么意思、扫描链为什么必须重排，以及什么时候该认输回去改 floorplan。</p>
       <div class="hero-meta">
         <span class="pill">约 45 分钟</span>
         <span class="pill">课表学时 4</span>
-        <span class="pill tag">Innovus</span><span class="pill tag">placement</span><span class="pill tag">拥塞</span><span class="pill tag">密度</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">placement</span><span class="pill tag">拥塞</span><span class="pill tag">密度</span><span class="pill tag">HPWL</span>
       </div>
     </div>
     <article id="article"><section class="ch" id="tradeoff" data-ch="tradeoff">
   <div class="ch-h"><span class="ch-n">01</span><h2>布局在权衡什么</h2></div>
-  <p>把几万个标准单元摆进标准单元区，目标有两个，而且互相打架：</p>
-<ul><li><strong>线要短</strong> → 有连接的单元靠在一起 → 局部挤爆 → 布不通</li><li><strong>要布得通</strong> → 摊开 → 线变长 → 时序变差</li></ul>
-<p>工具的做法分两步：</p>
-<ol><li><strong>全局布局（global placement）</strong>：先算一个"理论最优位置"，允许重叠。目标是最小化总线长。</li><li><strong>合法化（legalize）</strong>：把重叠的单元挪开，落到合法的行/站点上。</li></ol>
+  <div class="goal"><span>本章目标</span>学完这一课，你能读懂 place 之后的密度、拥塞、HPWL 三份数据，判断这一版该继续优化、该调参数、还是该回 floorplan 重来，并且说得出判断依据。</div>
+<p>先想一个场景：两百人的考场，认识的同学习惯性坐一起。让他们随便坐，凑得近的那几堆没路可走；按学号散开坐，路是通了，但要传纸条得跨三个区。</p>
+<p>布局（placement）就是排这个座位。几万个标准单元，有连线的想凑近（线短），但不能挤到没地方走线（拥塞），同时"快交卷的那几位"（关键路径）还得单独照顾（时序），最后整片还不能局部过热（电源）。</p>
+<p>四个目标，两两冲突：</p>
+<div class="tbl"><table><thead><tr><th>想改善</th><th>通常牺牲</th><th>为什么</th></tr></thead><tbody><tr><td>线长更短</td><td>拥塞</td><td>单元挤在一起，局部走线需求超过轨道数</td></tr><tr><td>拥塞更松</td><td>线长、时序</td><td>单元摊开，连线变长，延迟变大</td></tr><tr><td>时序更好</td><td>面积、功耗、拥塞</td><td>关键路径加 buffer、换大驱动单元</td></tr><tr><td>电源更稳</td><td>面积</td><td>降密度、拉大间距、加去耦单元</td></tr></tbody></table></div>
+<p>所以布局没有"最优解"，只有"这一版在四个目标上的取舍"。工具给你的是它认为的加权最优，你要判断的是<strong>权重给对了没有</strong>。</p>
+<p>工具内部走三步：</p>
+<ol><li><strong>全局布局（global placement）</strong>：先解一个连续优化问题，允许单元重叠，目标是最小化总线长（用 HPWL 近似）。</li><li><strong>合法化（legalize）</strong>：把重叠的单元挪开，落到合法的行（row）和站点（site）上。</li><li><strong>详细布局（detail placement）</strong>：在合法位置上做小范围微调，顺手修站点对齐、pin access 之类的问题。</li></ol>
+<p>时序驱动是怎么加进去的？靠<strong>线网加权（net weighting）</strong>：给关键路径上的连线更高的权重，工具在最小化线长时会优先把这几个 net 拉短。这就是 <code>timing_effort</code> 参数在控制的东西。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Legalize</span><span class="term-zh">合法化</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>把单元坐标调整到"行"上、对齐到"站点"网格、且互不重叠的过程。<br>没合法化的位置叫 illegal，工具不能布线，必须先 legalize。</p></div>
+  <div class="term-b"><p>把单元的连续坐标调整到"行"上、对齐到"站点"网格、且互不重叠的过程。<br>没合法化的位置叫 illegal，工具不能布线。合法化一定会让线长变差一点（因为不能停在最优位置），这部分损失是必须付的。</p></div>
 </div>
+<div class="scene"><div class="scene-h">工作场景 · 周二下午，overflow 3200</div><div class="scene-b"><p>place 跑完，你打开 <code>reportCongestion</code>，总 overflow 3200，热点集中在两个 SRAM 之间那条通道里。同时 density 热图很均匀，平均只有 0.68。</p>
+<p>组长的三个问题：</p>
+<ol><li>"调 <code>cong_effort</code> 能救吗？"——你不能凭感觉答，得知道 overflow 是"分配不均"还是"空间不够"。</li><li>"现在改 floorplan 要多久？"——两天。所以你得先证明"不改不行"。</li><li>"如果先往下走 CTS，最坏会怎样？"——CTS 会往里插几千个 buffer，密度再涨一截，现在 3200 会变成多少？</li></ol>
+<p>这三个问题的答案决定这一版是"调参数"还是"回退"。这一课最后两节就是回答它们。</p></div></div>
+<p><strong>工作中怎么用</strong>：place 是 PR 工程师的主战场，通常跑 2~3 轮。第一轮看趋势（哪里挤），第二轮调参数，第三轮才追时序。<strong>布局阶段定下全片 70%~80% 的线长</strong>，后面 CTS 和 route 只能在这个基础上微调。所以布局做完必须存盘 + 存报告，因为它是后面所有对比的基线。</p>
   <label class="ch-done"><input type="checkbox" data-mark="tradeoff"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="metrics" data-ch="metrics">
   <div class="ch-h"><span class="ch-n">02</span><h2>三个关键指标</h2></div>
-  <div class="tbl"><table><thead><tr><th>指标</th><th>含义</th><th>看哪份报告</th><th>健康值</th></tr></thead><tbody><tr><td>密度（density）</td><td>局部区域单元占用比例</td><td><code>reportDensityMap</code></td><td>平均 &lt;0.75，峰值 &lt;0.90</td></tr><tr><td>拥塞（congestion）</td><td>走线需求 / 可用轨道</td><td><code>reportCongestion</code></td><td>overflow = 0 最好</td></tr><tr><td>线长（wirelength）</td><td>总线长</td><td><code>reportWirelength</code></td><td>与上一版对比</td></tr></tbody></table></div>
+  <p>三个数，三种问法：<strong>放得下吗（密度）、走得通吗（拥塞）、绕得远吗（线长）</strong>。</p>
+<h3>指标一：利用率（utilization）</h3>
+<p>标准单元总面积 ÷ 可放置标准单元的面积。它的完整定义和两种口径在第 13 课讲过，这里只说 place 阶段的新问题：<strong>place 之后的利用率一定比 floorplan 时高</strong>。</p>
+<p>原因是工具在布局时会顺手插一些 buffer（修 DRV、隔离、时钟预缓冲），实例数增加 5%~15%。所以 floorplan 时按 0.62 起，place 完看到 0.70 是正常的；如果 place 完直接看到 0.80，说明 floorplan 时算少了。</p>
+<h3>指标二：拥塞（congestion）</h3>
+<p>把芯片切成很多小格子（grid），每个格子统计"要过多少根线"和"有几条轨道"：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">overflow = 走线需求（demand） − 可用轨道（capacity）</span></code></pre></div>
+<p>单格 overflow 大于 0 就叫溢出，全片加起来就是 <code>Total Overflow</code>。它是个"预估值"——此时还没真布线，工具用统计模型估每条 net 会走哪、要多宽。</p>
+<p>判断标准（40nm 量级，典型值）：</p>
+<div class="tbl"><table><thead><tr><th>Total Overflow</th><th>判断</th><th>动作</th></tr></thead><tbody><tr><td>0</td><td>理想</td><td>直接往下走</td></tr><tr><td>1~500</td><td>可接受</td><td>布线工具能消化，记下来</td></tr><tr><td>500~2000</td><td>危险</td><td>先调参数/加局部禁放区，再看</td></tr><tr><td>&gt; 2000</td><td>不可接受</td><td>基本要回 floorplan</td></tr></tbody></table></div>
+<p><strong>关键不是总数，是分布。</strong> 3200 均匀撒在全片，可能只是密度略高，加 3% 面积就解决；3200 全挤在一条 6µm 的通道里，那是物理空间不够，调任何参数都没用。</p>
+<h3>指标三：HPWL（半周长线长）</h3>
+<p>HPWL（Half-Perimeter Wirelength，半周长线长）是最常用的线长估计：对每根 net，画一个能把所有引脚包住的最小矩形，取它周长的一半。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">HPWL(net) = (max_x − min_x) + (max_y − min_y)</span><span class="ln ">全设计 HPWL = Σ HPWL(每根 net)</span></code></pre></div>
+<p>手算一根三引脚 net：引脚坐标 (10,20)、(30,50)、(45,25)。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">max_x − min_x = 45 − 10 = 35</span><span class="ln ">max_y − min_y = 50 − 20 = 30</span><span class="ln ">HPWL = 35 + 30 = 65 µm</span></code></pre></div>
+<p>这根 net 的<strong>真实布线长度通常是 HPWL 的 1.2~1.5 倍</strong>（典型值）——因为线要绕障碍、要换层、要在引脚处逃逸。所以 HPWL 只适合做<strong>相对比较</strong>：这一版比上一版降了 8%，说明布局变好了；不能拿它当"这一版线长 65µm"去报数。</p>
+<p>HPWL 的两个盲区必须知道：它<strong>看不见障碍</strong>（一根 net 跨过 SRAM，HPWL 算得很短，实际要绕一大圈），也<strong>看不见层</strong>（不知道这根线能不能用上层）。所以它和拥塞要一起看。</p>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Overflow</span><span class="term-zh">溢出</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>某块区域的走线需求超过可用轨道数，多出来的部分叫 overflow。<br><code>reportCongestion</code> 里 <code>Total Overflow = 0</code> 是最理想的状态。几百以内还能靠布线工具消化；上千就必须回去改布局。</p></div>
+  <div class="term-h"><span class="term-en">HPWL</span><span class="term-zh">半周长线长</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Half-Perimeter Wirelength。把所有引脚包住的最小外框，周长的一半。<br><strong>它是估计值，不是测量值</strong>，真实线长通常还要乘 1.2~1.5。用途只有一个：同一设计不同版本之间比大小。</p></div>
 </div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Bin</span><span class="term-zh">网格</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>工具把 core 切成的小方格，常见 5~20µm 见方。密度、拥塞都按 bin 统计，报告里的"热点"就是某个 bin 超标。<br>bin 越小，定位越准，但统计噪声越大；bin 越大，趋势越清楚，但会漏掉局部尖峰。</p></div>
+</div>
+<p><strong>工作中怎么用</strong>：三个指标要一起报。只报 overflow 0 不报密度，等于说"路不堵"但没说"车停哪"；只报 HPWL 降了不报 overflow，等于说"路修短了"但没说"路是不是变窄了"。</p>
   <label class="ch-done"><input type="checkbox" data-mark="metrics"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="density" data-ch="density">
+  <div class="ch-h"><span class="ch-n">03</span><h2>密度和 target_density 到底是什么关系</h2></div>
+  <p>这两个词经常被混着说，其实是两件事。</p>
+<p><strong>密度（density）是结果</strong>：某个 bin 里，标准单元占了多少可用面积。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">bin_density = bin 内标准单元面积 ÷ bin 内可用 row 面积</span></code></pre></div>
+<p><strong>target_density 是输入</strong>：你告诉布局工具"我希望整体摊到多密"，它会按这个目标去决定单元之间的平均间距。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">place 时的平均间距 ≈ f(target_density)</span><span class="ln ">target_density 0.65 → 单元之间平均留 35% 空隙</span><span class="ln ">target_density 0.85 → 平均只留 15% 空隙</span></code></pre></div>
+<p>所以 target_density 调高，工具会把单元挤得更紧，<strong>局部 density 随之升高，overflow 跟着涨</strong>。这就是"省面积"和"布得通"之间的那个旋钮。</p>
+<p>为什么不能设到 0.95？三个硬约束：</p>
+<ol><li><strong>row 是按 site 切的</strong>，一个 bin 里可用面积本来就只有 80%~90%（row 边界、tap cell、去耦单元占位），0.95 的目标实际上无解。</li><li><strong>后面还要塞东西</strong>：CTS 插 buffer（实例数 +20%~30%）、route 插 repeater、ECO 修 hold 插 delay cell。place 时 0.70，CTS 后可能就 0.85 了。</li><li><strong>pin access 需要空隙</strong>：单元贴太紧，布线连引脚都接不出来，会出现"密度不高但布不通"的怪现象。</li></ol>
+<p>手算一次，看清"预留"这件事。core 可用 row 面积 77419µm²，标准单元 48000µm²：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">place 时密度 = 48000 ÷ 77419 = 62%</span><span class="ln ">CTS 后实例增加 25%（插 buffer）→ 有效面积 48000 × 1.25 = 60000</span><span class="ln ">CTS 后密度 = 60000 ÷ 77419 = 77.5%</span><span class="ln ">route 再插 5% → 63% → 81%</span></code></pre></div>
+<p><strong>62% 起步，最后落到 80% 左右</strong>，这是健康曲线。如果你 place 时就按 0.80 起步，CTS 后必然 95%+，布线阶段只能拆线。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Target Density</span><span class="term-zh">目标密度</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>给布局工具的输入参数，控制单元平均摊多开。不是结果，是"我希望多密"。<br>它和 utilization 的区别：utilization 是事后统计的<strong>实际占用比例</strong>，target_density 是事前给的<strong>优化目标</strong>，两者通常差 3~8 个百分点（工具会为了时序/拥塞在局部偏离目标）。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · 把 target_density 拉到 0.9 想省面积</div><div class="pit-b"><p>现象：为了不改 die 尺寸，把 <code>-place_global_max_density 0.90</code>。place 跑完 overflow 4000，density 热图一片深红。</p>
+<p>原因：0.9 意味着平均只留 10% 空隙，而 bin 内可用面积本来就只有 85% 左右，实际局部密度直接冲到 0.95+。单元挤在一起，每个 bin 的走线需求都超过轨道数。</p>
+<p>处理：target_density 一次只调 0.03~0.05，调完立刻看 overflow。<strong>真正该做的是承认面积不够</strong>——省下来的那 8% 面积，要用两三天布线调试来换，而且经常换不回来。</p></div></div>
+<p><strong>工作中怎么用</strong>：target_density 是少数"调一下立刻看到效果"的参数，所以最容易被拿来救火。规矩是：一次只动 0.03，动完同时看 overflow 和 HPWL——只降一个说明你只是把问题挪了地方。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="density"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="cmd" data-ch="cmd">
-  <div class="ch-h"><span class="ch-n">03</span><h2>命令与参数</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 基本布局（时序驱动）</span><span class="ln ">setPlaceMode -place_global_timing_effort high \</span><span class="ln ">             -place_global_cong_effort high \</span><span class="ln ">             -place_global_place_io_pins false</span><span class="ln "> </span><span class="ln ">place_opt_design</span><span class="ln cmt"># 这个命令会做：全局布局 + 合法化 + 初步时序优化（插 buffer、换单元）</span><span class="ln "> </span><span class="ln cmt"># 看结果</span><span class="ln ">reportDensityMap                 # 密度热图（GUI 里看更直观）</span><span class="ln ">reportCongestion -hotSpot        # 拥塞热点</span><span class="ln ">reportArea                       # 面积/利用率</span><span class="ln ">reportTiming -max_paths 10       # 最差 10 条路径</span><span class="ln "> </span><span class="ln ">saveDesign db/04_place.enc</span></code></pre></div>
-<p>三个参数的作用：</p>
-<ul><li><code>timing_effort high</code>：花更多时间优化时序（跑得慢，结果好）。</li><li><code>cong_effort high</code>：更努力避免拥塞。</li><li><code>place_io_pins false</code>：不动 IO 引脚位置（引脚是 floorplan 定的，别让布局工具乱挪）。</li></ul>
+  <div class="ch-h"><span class="ch-n">04</span><h2>命令与参数</h2></div>
+  <p>Innovus 的主力命令是 <code>place_opt_design</code>，纯布局用 <code>placeDesign</code>。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：时序/拥塞双驱动的全局布局 + 合法化 + 初步优化（插 buffer、换单元）</span><span class="ln cmt"># 用法：floorplan 与电源规划之后执行；参数先逐条 setPlaceMode 设好，再跑 place</span><span class="ln ">setPlaceMode -place_global_timing_effort high      ;# 时序优化力度：high 更慢，但关键路径更短</span><span class="ln ">setPlaceMode -place_global_cong_effort   high      ;# 拥塞缓解力度：high 会主动把单元摊开</span><span class="ln ">setPlaceMode -place_global_place_io_pins false     ;# 不动 IO 引脚：位置是 floorplan/封装定的</span><span class="ln ">setPlaceMode -place_global_reorder_scan  true      ;# 布局时顺手重排扫描链（下一节详说）</span><span class="ln ">setPlaceMode -place_global_max_density   0.72      ;# 目标密度 72%，给 CTS 留 20 个点余量</span><span class="ln "> </span><span class="ln ">place_opt_design                                   ;# 真正执行：全局布局 → 合法化 → pre-CTS 优化</span></code></pre></div>
+<blockquote><p>注意：Tcl 里换行要用 <code>\</code> 结尾，而 <code>\</code> 后面不能再跟注释。所以这里拆成多条 <code>setPlaceMode</code>（它们会累加），每条行尾用 <code>;#</code> 接注释——<strong>这是 Tcl 唯一安全的行尾注释写法</strong>。</p></blockquote>
+<p>参数逐个解释：</p>
+<div class="tbl"><table><thead><tr><th>参数</th><th>含义</th><th>给错的后果</th></tr></thead><tbody><tr><td><code>timing_effort high</code></td><td>关键路径加权更重、迭代更多</td><td>跑得慢（可能 2~3 倍），但 WNS 通常好 5%~15%</td></tr><tr><td><code>cong_effort high</code></td><td>主动为高需求区域留白</td><td>线长可能变差 3%~5%，换 overflow 下降</td></tr><tr><td><code>place_io_pins false</code></td><td>不移动 IO 引脚</td><td>设 true 会把引脚挪位置，和封装对不上，等于白做 floorplan</td></tr><tr><td><code>reorder_scan true</code></td><td>布局时按物理位置重排扫描链</td><td>不做就等布线时被扫描链拖累（见下一节）</td></tr><tr><td><code>max_density 0.72</code></td><td>目标密度</td><td>太高布不通，太低浪费面积（&lt;0.55 基本等于 die 做大了一档）</td></tr></tbody></table></div>
+<p><code>place_opt_design</code> 和 <code>placeDesign</code> 的区别要记牢：</p>
+<div class="tbl"><table><thead><tr><th>命令</th><th>做什么</th><th>什么时候用</th></tr></thead><tbody><tr><td><code>placeDesign</code></td><td>只做布局（全局 + 合法化），不碰网表</td><td>想先看"纯布局"的质量，或调试布局算法</td></tr><tr><td><code>place_opt_design</code></td><td>布局 + pre-CTS 优化（sizing、buffering、DRV 修复）</td><td>正常流程都用这个</td></tr><tr><td><code>place_opt_design -incremental</code></td><td>在当前布局基础上做增量优化</td><td>第二轮微调，不想全推翻</td></tr></tbody></table></div>
+<p>跑完必须存盘再存报告：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把布局结果和三份关键报告一起落盘，作为后续所有对比的基线</span><span class="ln cmt"># 用法：place_opt_design 之后立刻执行；rpt/ 目录要先存在</span><span class="ln ">saveDesign db/04_place.enc                            ;# 存数据库：后面 CTS 从这里起</span><span class="ln ">reportCongestion -hotSpot &gt; rpt/place_cong.rpt        ;# 拥塞：总 overflow + 热点坐标</span><span class="ln ">report_area              &gt; rpt/place_area.rpt        ;# 面积：实例数、利用率</span><span class="ln ">timeDesign -preCTS -outDir rpt/place_timing           ;# 时序快照：setup/hold 各一组，带 WNS/TNS</span></code></pre></div>
+<p><code>timeDesign</code> 会一次生成一整套报告（summary、最差路径、DRV），比一条条 <code>report_timing</code> 省事，也更接近签核口径。</p>
+<p>ICC2 里的等价流程：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：ICC2 的布局设置与执行（对应 Innovus 的 setPlaceMode + place_opt_design）</span><span class="ln cmt"># 用法：ICC2 中 floorplan 之后执行；参数名按版本查 man</span><span class="ln ">set_app_options -name place_opt.flow.enable_congestion -value true   ;# 开拥塞驱动</span><span class="ln ">set_app_options -name place_opt.flow.timing_effort    -value high    ;# 时序优化力度</span><span class="ln ">place_opt                                                            ;# 布局 + 优化一体</span></code></pre></div>
+<p><strong>工作中怎么用</strong>：这些参数不会手敲，都写在 <code>03_place.tcl</code> 里用变量管（<code>set TARGET_DENSITY 0.72</code>）。换版本只改一行，报告能和数据库对上号。评审时被问"这版用了什么参数"，直接打开脚本给对方看。</p>
   <label class="ch-done"><input type="checkbox" data-mark="cmd"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="scan" data-ch="scan">
-  <div class="ch-h"><span class="ch-n">04</span><h2>扫描链重排：一个容易忽略的步骤</h2></div>
-  <p>DFT 插入了扫描链，把几千个触发器串成一条长链。如果按综合顺序连，线会绕遍全片，既长又占资源。</p>
-<p><strong>扫描链重排（scan chain reorder）</strong>：按物理位置重新串，让相邻的触发器串在一起。</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 布局之后做，因为需要坐标</span><span class="ln ">setPlaceMode -place_global_reorder_scan true</span><span class="ln cmt"># 或在布局后单独执行</span><span class="ln ">scanReorder</span></code></pre></div>
-<div class="scene"><div class="scene-h">工作场景 · 不做扫描链重排的后果</div><div class="scene-b"><p>一条扫描链 3000 个触发器，按逻辑顺序连，物理上满片乱窜。布线时这条链占用大量资源，还会造成局部拥塞。</p>
-<p>重排之后线长能降 30%~50%。<strong>这一步不花钱，但不做就是白白浪费。</strong></p></div></div>
-<div class="pit"><div class="pit-h">常见坑 · 布局"看起来不错"，但时序一塌糊涂</div><div class="pit-b"><p>现象：<code>reportDensityMap</code> 很均匀、<code>reportCongestion</code> overflow 0，但 <code>reportTiming</code> 有 200 条 setup 违例。</p>
-<p>原因通常是：<strong>约束没读对</strong>（时钟周期写错、false path 没设），或者<strong>时序库 corner 用错</strong>（用了 fast corner 算 setup）。</p>
-<p>排查顺序：</p>
-<ol><li><code>report_clocks</code> 看时钟周期对不对。</li><li><code>report_timing -path_group</code> 看违例集中在哪个时钟域。</li><li>抽一条路径 <code>report_timing -from xx -to yy -path_type full_clock_expanded</code>，看延迟构成。</li></ol>
-<p><strong>不要一上来就改布局参数</strong> —— 先确认约束是对的。</p></div></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>扫描链重排：一个容易忽略的步骤</h2></div>
+  <p>DFT（可测性设计）会把几千个触发器串成一条长链，用于测试时逐位灌数据。问题是：<strong>这条链的顺序由综合工具按逻辑层次决定，和物理位置毫无关系</strong>。</p>
+<p>一条 3000 个触发器的扫描链，按逻辑顺序连，物理上可能从芯片左上角一路窜到右下角再折回来。它是一根人为造出来的超长 net，占布线资源、制造拥塞、还会引起天线违例。</p>
+<p><strong>扫描链重排（scan chain reorder）</strong>就是把链的顺序按物理位置重排：物理上相邻的触发器串在一起。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：布局之后按物理位置重排扫描链</span><span class="ln cmt"># 用法：place 完成之后、CTS 之前执行；也可以让 placer 顺手做（见上一节的 reorder_scan）</span><span class="ln ">scanReorder                        ;# 全设计重排：读实例坐标，重连 scan chain</span><span class="ln ">checkScanChain                     ;# 检查重排后链是否完整（长度、lockup 顺序、时钟域）</span><span class="ln cmt"># 上面这条在不同版本里可能叫 checkScanChain 或 reportScanChain，敲之前 man 一下确认</span></code></pre></div>
+<p><strong>为什么这一步最容易被忽略？</strong> 三个原因：</p>
+<ol><li>它<strong>不报错</strong>。不重排，流程照样跑完，DRC 也可能清干净，只是线更长、更挤。</li><li>它<strong>不改功能</strong>。测试模式下链的顺序无所谓，所以功能验证不会发现任何问题。</li><li>它<strong>不在"时序"报表里</strong>。扫描链是测试路径，通常被设成 false path，STA 报告里根本看不到它的延迟。</li></ol>
+<p>后果是可以量化的。3000 个触发器，逻辑顺序连 vs 物理顺序连（课程环境实测的那组数据里，这一类链的线长差 30%~50%）：线长降 40%，等于少占 40% 的轨道。一条链占的资源和 3000 根普通 net 差不多，<strong>不做重排等于白扔一片区域的布线空间</strong>。</p>
+<p>重排有两类约束不能破：链的<strong>顺序语义</strong>（前一级的输出必须进下一级的输入，中间不能插东西）和<strong>时钟域</strong>（跨时钟域的链要靠 lockup latch，重排时不能把两个域的触发器串到一起）。所以重排完一定要 <code>checkScanChain</code>，不能只看线长。</p>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Useful Skew</span><span class="term-zh">有用偏斜</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>故意让时钟到达某些触发器的时间不同，把时间"借"给紧张的路径。<br>比如 A→B 这条路径差 100ps，可以让 B 的时钟晚到 100ps（相当于多给它 100ps 时间），代价是 B→C 那条路径少了 100ps。<br>这是 CTS 阶段的手段，但布局阶段就要预留可能性。</p></div>
+  <div class="term-h"><span class="term-en">Scan Chain Reorder</span><span class="term-zh">扫描链重排</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>按物理位置重新排列扫描链中触发器的连接顺序，缩短线长、降低拥塞。<br>它只改测试链的连接，不改功能逻辑；但改完必须重跑链完整性检查，因为顺序和锁存器位置有硬约束。</p></div>
 </div>
-<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：读懂一份拥塞报告</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 典型 reportCongestion 输出（摘录）</span><span class="ln ">cat &gt; cong.rpt &lt;&lt;'EOF'</span><span class="ln ">Layer    Total Capacity   Total Usage   Overflow</span><span class="ln ">M2       120000           118900        0</span><span class="ln ">M3       120000           122500        2500</span><span class="ln ">M4       120000           119200        0</span><span class="ln ">M5       120000           117800        0</span><span class="ln ">Region (1200 800) (1800 1400): overflow 1800</span><span class="ln ">EOF</span><span class="ln "> </span><span class="ln cmt"># 哪一层最拥塞</span><span class="ln ">awk 'NR&gt;1 &amp;&amp; $4&gt;0 {print $1, "overflow="$4}' cong.rpt</span><span class="ln "> </span><span class="ln cmt"># 总 overflow</span><span class="ln ">awk 'NR&gt;1 &amp;&amp; $4 ~ /^[0-9]+$/ {s+=$4} END {print "total:", s}' cong.rpt</span></code></pre></div>
-<p>预期：M3 overflow 2500，total 2500。</p>
-<p>过关标准：能指出"问题在 M3 层 + 特定区域 (1200,800)-(1800,1400)"，并说出至少两个可能原因（宏单元通道太窄 / 该区域密度过高）。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出全局布局和合法化的区别</li><li>知道 density / congestion / overflow 三个指标的健康值</li><li>会用 <code>place_opt_design</code> 及三个关键参数</li><li>知道扫描链重排的作用和时机</li><li>遇到时序违例先查约束再查布局</li></ul></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>全局布局和合法化的区别？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">全局布局算理论最优位置（允许重叠），合法化把单元挪到合法行/站点且互不重叠。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span><code>reportCongestion</code> 里 overflow 是什么？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">走线需求超出可用轨道的部分，0 最理想。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span><code>place_io_pins false</code> 为什么要设？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">IO 引脚位置由 floorplan/封装决定，不该让布局工具改动。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>扫描链重排解决什么问题？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">按物理位置重排扫描链顺序，缩短线长、减少拥塞。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>布局后时序很差，第一步应该查什么？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">先查约束（时钟周期、false path）和时序库 corner，排除约束错误再动布局参数。</div>
-</div></div>
+<div class="scene"><div class="scene-h">工作场景 · 不做扫描链重排的后果</div><div class="scene-b"><p>一条 3000 个触发器的扫描链，逻辑顺序连，飞线图上是满片乱窜的蜘蛛网。</p>
+<p>布线跑到一半，这条链所在区域 overflow 一直降不下来。你以为是密度问题，加了一堆禁放区，结果只是把拥塞推到了旁边。</p>
+<p>关掉扫描链（临时设成 ideal 或直接删掉）再跑一次，overflow 立刻掉 30%——<strong>问题找到了，但已经浪费了半天</strong>。</p></div></div>
+<p><strong>工作中怎么用</strong>：重排放 place 之后、CTS 之前，跑完把线长数字记进交接记录。如果 DFT 团队后面还要改链（加测试点、改压缩结构），必须重跑一次——链一变，重排结果就废了。</p>
   <label class="ch-done"><input type="checkbox" data-mark="scan"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="selfcheck" data-ch="selfcheck">
+  <div class="ch-h"><span class="ch-n">06</span><h2>布局后的自检</h2></div>
+  <p>place 跑完不要直接进 CTS。五项检查，全部有明确阈值。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：布局后的五项自检，任一项不过就不要进 CTS</span><span class="ln cmt"># 用法：place_opt_design 之后逐条执行；结果贴进交接记录</span><span class="ln ">checkPlace                        ;# ① 合法性：重叠、出界、站点对齐、落在禁放区，期望 0 violation</span><span class="ln ">reportCongestion -hotSpot         ;# ② 拥塞：看总 overflow 和热点坐标，不只看总数</span><span class="ln ">report_area                       ;# ③ 面积：利用率、实例数增量（对比 floorplan 时）</span><span class="ln ">timeDesign -preCTS -outDir rpt/place_timing   ;# ④ 时序快照：WNS/TNS，和上一版对比</span><span class="ln ">reportWirelength                  ;# ⑤ 线长：总 HPWL，和上一版对比（看趋势，不看绝对值）</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>#</th><th>检查项</th><th>通过标准</th><th>不通过先怀疑什么</th></tr></thead><tbody><tr><td>1</td><td>合法性</td><td>0 条 placement violation</td><td>禁放区画错、密度目标过高</td></tr><tr><td>2</td><td>拥塞</td><td>overflow &lt; 500，且无 &gt;1000 的单点热点</td><td>通道太窄、密度太高、扫描链没重排</td></tr><tr><td>3</td><td>密度</td><td>平均 &lt;0.75，峰值 &lt;0.92</td><td>target_density 给太高、macro 挤在中间</td></tr><tr><td>4</td><td>时序</td><td>WNS 不比上一版差 15% 以上</td><td>约束错、库 corner 错，先别怪布局</td></tr><tr><td>5</td><td>线长</td><td>HPWL 不比上一版涨 15% 以上</td><td>拥塞缓解把单元摊得太开</td></tr></tbody></table></div>
+<p><strong>第 4 项有个纪律：先确认约束，再怀疑布局。</strong> 布局"看起来不错但时序一塌糊涂"，八成是约束问题——时钟周期写错、false path 漏设、setup 用了 fast corner。查约束的顺序是：<code>report_clocks</code> 看周期 → <code>report_timing -path_group</code> 看违例集中在哪个域 → 抽一条路径看延迟构成。</p>
+<div class="pit"><div class="pit-h">常见坑 · 布局"看起来很整齐"，但时序一塌糊涂</div><div class="pit-b"><p>现象：<code>reportDensityMap</code> 很均匀、<code>reportCongestion</code> overflow 接近 0，但 <code>reportTiming</code> 有 200 条 setup 违例，最差 −0.4ns。</p>
+<p>原因通常是三类：<strong>约束错</strong>（周期写短了、false path 没设）、<strong>库 corner 错</strong>（用 FF 快 corner 算 setup）、<strong>时序没参与布局</strong>（<code>timing_effort</code> 给 low，工具只优化线长）。</p>
+<p>排查顺序（照这个顺序，别跳）：</p>
+<ol><li><code>report_clocks</code>：周期、波形、端口对不对。</li><li><code>report_timing -path_group</code>：违例是不是全集中在某一个时钟域。</li><li>抽一条 <code>report_timing -from ... -to ... -path_type full_clock_expanded</code>：看延迟是 cell 多还是 net 多。</li><li>以上都正常，才回去看 <code>setPlaceMode</code> 的 <code>timing_effort</code> 是不是被设成了 low。</li></ol>
+<p><strong>不要一上来就改布局参数</strong>——约束错了，改什么参数都是在错的地基上盖楼。</p></div></div>
+<p><strong>工作中怎么用</strong>：五项里第 2、4 项要存报告，第 1、3、5 项存数字。因为 CTS 和 route 出问题时，第一件事就是拿现在的数和布局时的数对比——没有基线，你连"变差了"都说不清。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="selfcheck"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="rollback" data-ch="rollback">
+  <div class="ch-h"><span class="ch-n">07</span><h2>什么情况要回退改 floorplan</h2></div>
+  <p>这是布局阶段最重要的判断，也是最难开口的判断（因为回退意味着两天）。</p>
+<p>判据只有一句话：<strong>问题是"分配不均"还是"空间不够"？</strong></p>
+<ul><li>分配不均 → 能在 place 里解决（调参数、加局部禁放区、局部降密度）。</li><li>空间不够 → 必须回 floorplan（加 die、改通道、挪 macro）。</li></ul>
+<p>五种典型症状，对应五种结论：</p>
+<div class="tbl"><table><thead><tr><th>症状</th><th>数据特征</th><th>结论</th><th>代价</th></tr></thead><tbody><tr><td>拥塞集中在宏单元之间的通道</td><td>热点坐标落在两条 macro 边之间，通道宽度 &lt; 估算值</td><td><strong>回退</strong>：通道物理不够，任何参数都救不了</td><td>高：改 floorplan，2 天</td></tr><tr><td>拥塞均匀分布全片</td><td>热点几十处，每处 overflow 一两百，density 普遍 0.85+</td><td><strong>回退</strong>：整体面积不够</td><td>高：加 die 或提利用率</td></tr><tr><td>局部一小片特别挤</td><td>热点 1~2 处，范围几十微米，周围 density 正常</td><td><strong>不回退</strong>：加 partial blockage 或局部降密度</td><td>低：半天</td></tr><tr><td>时序差且路径横跨全片</td><td>最差路径的起点终点在芯片对角，flyline 显示中间被 macro 隔断</td><td><strong>回退</strong>：macro 把相关逻辑分开了</td><td>中高：挪 macro，1 天</td></tr><tr><td>长宽比 &gt;1.5 导致单向拥塞</td><td>overflow 集中在短边方向的通道</td><td><strong>回退</strong>：die 形状问题</td><td>高：改长宽比</td></tr></tbody></table></div>
+<p>判断流程可以固化成四步：</p>
+<ol><li>打开拥塞热图，把热点坐标抄下来，对照 floorplan 图看它落在哪。</li><li>落在 macro 通道里 → 量通道宽度，和课程 13 的公式算出来的值比。小于估算值 80% → 回退。</li><li>落在标准单元区内部，且该区域 density &gt; 0.9 → 看全片平均 density。全片都高 → 回退加面积；只有这里高 → 加禁放区摊开。</li><li>都不符合，看时序：最差路径跨全片 → 这个问题 place 解决不了，是 macro 摆错了。</li></ol>
+<p>最后一条经验：<strong>改 floorplan 的成本是 2 天，硬扛着往下走的成本通常是 3~5 天，而且风险更高。</strong> 因为 CTS 会往里插 20%~30% 的实例，现在 3200 的 overflow，CTS 后往往变 5000。你在 place 阶段看到的拥塞，是"最好的情况"。</p>
+<p><strong>工作中怎么用</strong>：回退的决定要在 review 会上做，不要一个人扛。带上三样东西——拥塞热图、通道宽度与估算值的对比、以及"继续往下走"的最坏估计。组长要听的不是"我觉得布不通"，而是"批我两天，能换回什么"。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Net Weighting</span><span class="term-zh">线网加权</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>给不同 net 设不同权重，引导布局工具优先缩短重要的线。关键路径上的 net 权重高，普通 net 权重低。<br><code>timing_effort</code> 调的就是这套权重的激进程度。权重给得太高，工具会为了几条关键路径把周围单元全拽过来，造成局部拥塞——<strong>时序和拥塞的冲突，本质是权重的冲突</strong>。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · 用 place 参数硬扛 floorplan 的问题</div><div class="pit-b"><p>现象：overflow 3200，你连续调了 <code>cong_effort</code>、<code>max_density</code>、加了三块禁放区，overflow 降到 1800，看起来"解决了"。</p>
+<p>代价：线长涨了 12%，WNS 从 −0.05 变成 −0.22，密度热图从"一处红"变成"到处浅红"。CTS 一跑，overflow 回到 4000。</p>
+<p>原因：所有 place 参数都是在"既定空间里重新分配"，空间本身没变。你把拥塞从 A 推到 B，总量没减少。</p>
+<p>判断方法：调完参数后看<strong>总 HPWL</strong>。如果 overflow 降了但 HPWL 涨了 10% 以上，说明你只是把问题摊平了，不是解决了。这种情况该回 floorplan。</p></div></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：读一份拥塞报告，判断该不该回退</div><div class="lab-b"><p><strong>任务</strong>：给一份 place 后的拥塞报告和三条信息，判断下一步动作。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：造一份典型的 reportCongestion 摘录，练"看分布不看总数"</span><span class="ln cmt"># 用法：任意目录 bash 直接跑，生成 cong.rpt 再用 awk 统计</span><span class="ln ">cat &gt; cong.rpt &lt;&lt;'EOF'</span><span class="ln ">Layer    Total Capacity   Total Usage   Overflow</span><span class="ln ">M2       120000           118900        0</span><span class="ln ">M3       120000           122500        2500</span><span class="ln ">M4       120000           119200        0</span><span class="ln ">M5       120000           117800        0</span><span class="ln ">Region (1200 800) (1800 1400): overflow 1800</span><span class="ln ">Region (300 2600) (700 3000): overflow 700</span><span class="ln ">EOF</span><span class="ln "> </span><span class="ln cmt"># 哪一层最拥塞</span><span class="ln ">awk 'NR&gt;1 &amp;&amp; $4 ~ /^[0-9]+$/ &amp;&amp; $4&gt;0 {print $1, "overflow="$4}' cong.rpt   # 只打 overflow&gt;0 的层</span><span class="ln cmt"># 总 overflow（只累加数字行，跳过 Region 行）</span><span class="ln ">awk 'NR&gt;1 &amp;&amp; $4 ~ /^[0-9]+$/ {s+=$4} END {print "total:", s}' cong.rpt</span></code></pre></div>
+<p><strong>预期</strong>：M3 overflow 2500，total 2500。</p>
+<p><strong>已知条件</strong>：</p>
+<ul><li>设计 core 是 3000µm × 3000µm，热点 (1200,800)-(1800,1400) 正好在两个 SRAM 之间，通道实际宽度 12µm。</li><li>按课程 13 的公式，这条通道应该留 45µm。</li><li>全片平均 density 0.68，热点区域 density 0.71。</li></ul>
+<p><strong>回答四个问题</strong>：</p>
+<ol><li>总 overflow 2500 属于哪一档？（对照本课的判断表）</li><li>问题是"分配不均"还是"空间不够"？依据是什么？</li><li>调 <code>cong_effort high</code> 有用吗？为什么？</li><li>下一步动作是什么，代价多大？</li></ol>
+<p><strong>参考答案</strong>：2500 属于"不可接受"；空间不够——因为热点精确落在 macro 通道，且实际宽度 12µm 只有需求 45µm 的 27%，而周围 density 正常（0.71），说明不是单元太多，是通道太窄；调参数无用，因为 place 只能在既定空间里重分配，通道宽度的上限是物理的；下一步是回 floorplan 把这条通道加宽到 45µm（可能要挪 SRAM 或加 die），代价约 2 天。</p>
+<p><strong>过关标准</strong>：能说出"为什么 density 正常却拥塞"——因为拥塞是走线需求除以轨道数，和单元密度不是一回事：引脚密集的地方，单元不多也会拥塞。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>布局在权衡哪四个目标？举一组互相冲突的例子。</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">线长、拥塞、时序、电源。比如把有连接的单元凑近能缩短线长，但局部走线需求超过轨道数就拥塞。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 place 之后的利用率一定比 floorplan 时高？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">布局时会插 buffer/隔离单元/时钟预缓冲，实例数增加 5%~15%，分子变大；同时分母（可用 row）没变。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>overflow 是什么？总数大就一定要回退吗？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">overflow = 走线需求 − 可用轨道，单格大于 0 就是溢出。不一定：要看分布，均匀分布可能只是密度略高，集中在 macro 通道才是空间不够。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>HPWL 怎么算？为什么不能当真实线长报数？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">把所有引脚包住的最小外框，周长的一半。它看不见障碍和层，真实布线长度通常是它的 1.2~1.5 倍，只能做版本间相对比较。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>target_density 和 density 的区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">target_density 是给工具的优化目标（输入），density 是事后统计的实际占用（结果），两者通常差 3~8 个百分点。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 target_density 不能设 0.9？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">bin 内可用 row 面积本来只有 85% 左右，0.9 的目标局部会冲到 0.95+；而且后面 CTS/route/ECO 还要插 25%~35% 的单元。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>place_io_pins</code> 为什么要设 false？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">IO 引脚位置由 floorplan 和封装决定，布局工具挪动它会导致封装对不上，等于把 floorplan 的工作废掉。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>扫描链重排为什么容易被忽略？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">它不报错、不改功能、扫描路径通常设成 false path 不在时序报告里，所以三条线索都看不见它，只有拥塞和线长会受影响。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>什么情况下必须回退改 floorplan？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">拥塞集中在 macro 通道且宽度不足、全片密度过高、最差路径横跨全片被 macro 隔断、长宽比过大导致单向拥塞——这些都是"空间不够"或"位置不对"，place 参数解决不了。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出布局四个目标的冲突关系，并举一个具体例子</li><li>能用 <code>(max_x − min_x) + (max_y − min_y)</code> 手算一根 net 的 HPWL</li><li>知道 overflow 要看分布而不是只看总数，能说出四个档位</li><li>能解释 target_density 与 density 的区别，以及为什么不能设 0.9</li><li>能逐个解释 <code>timing_effort</code> / <code>cong_effort</code> / <code>place_io_pins</code> / <code>max_density</code> 四个参数</li><li>能说出 <code>placeDesign</code> 与 <code>place_opt_design</code> 的区别</li><li>知道扫描链重排的三个"看不见"和两类约束（顺序语义、时钟域）</li><li>能跑完五项自检，并判断"该调参数"还是"该回 floorplan"</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="rollback"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">

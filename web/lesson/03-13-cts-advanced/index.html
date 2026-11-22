@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CTS（二）：约束、NDR、屏蔽与多时钟 · 24 | IC 后端学院</title>
+<meta name="description" content="一棵树建得好不好，八成取决于约束写得对不对。这一课讲清 skew group、NDR 的施加范围、leaf/trunk 的单元选择、哪些引脚要屏蔽，以及多时钟与 generated clock 怎么分别建树。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="03-13-cts-advanced">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>CTS（二）：约束、NDR、屏蔽与多时钟</b></div>
+    <div class="hero">
+      <div class="hero-no">24</div>
+      <h1>CTS（二）：约束、NDR、屏蔽与多时钟</h1>
+      <p class="hero-en">CTS Constraints and Multi-Clock</p>
+      <p class="hero-sum">一棵树建得好不好，八成取决于约束写得对不对。这一课讲清 skew group、NDR 的施加范围、leaf/trunk 的单元选择、哪些引脚要屏蔽，以及多时钟与 generated clock 怎么分别建树。</p>
+      <div class="hero-meta">
+        <span class="pill">约 50 分钟</span>
+        <span class="pill">课表学时 4</span>
+        <span class="pill tag">CTS</span><span class="pill tag">NDR</span><span class="pill tag">skew group</span><span class="pill tag">useful skew</span><span class="pill tag">multi-clock</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="group" data-ch="group">
+  <div class="ch-h"><span class="ch-n">01</span><h2>分组：先决定"谁和谁比"</h2></div>
+  <div class="goal"><span>本章目标</span>学完这一课，你能写出一份完整的 CTS 约束文件——目标、NDR、单元、分组、屏蔽五节各有依据，并用五条命令自检，指出文件里每个数字为什么是那个值。</div>
+<p>先想一个运动会的场景。裁判要给运动员排名，前提是他们跑的是同一场比赛。把一百米选手和马拉松选手放进同一个榜单，第一名永远是最先冲过百米线的人，这个榜单没有意义。</p>
+<p>CTS 也是这个道理。工具并不会把"全片所有触发器"当成一棵树去平衡，它先问一句：<strong>这些叶子是同一场比赛的吗？</strong> 是，才放进同一个组里互相对齐；不是，各建各的树，谁也不管谁。</p>
+<p>这个"组"就是 <strong>skew group（偏斜组）</strong>。分组是 CTS 的第一步，也是最不该出错的一步，因为它出错时不报错——树照样建，报告照样出，只是你拿到的 skew 数字从一开始就没有意义。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Skew Group</span><span class="term-zh">偏斜组</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一组由 CTS 工具放在一起做平衡的时钟叶子。工具只保证"同组内的叶子到达时间接近"，跨组不做任何平衡。<br>一个时钟默认对应一个 skew group；同一时钟如果物理上分成几块独立子树，也可以拆成多个组，分别压 skew。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Clock Group</span><span class="term-zh">时钟组（异步组）</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>SDC 里用 <code>set_clock_groups -asynchronous</code> 声明的一组时钟：它们之间没有时序路径，STA 不做跨组检查。<br>它的作用是<strong>告诉工具"这两边不用比"</strong>。CTS 读到这个声明，就不会跨组做平衡。</p></div>
+</div>
+<p>这两个词很容易混。一句区分：<strong>clock group 是逻辑上的"不同步"，skew group 是物理上的"要对齐"。</strong> 前者写在 SDC 里，影响 STA 和 CTS 的判断；后者写在 CTS 约束里，直接决定工具插多少 buffer。两者必须一致——SDC 说异步，CTS 却放进同一组，就会出现下面这种账。</p>
+<h3>分组错了会怎样：白插 300 个 buffer</h3>
+<p>假设一个设计里有两个时钟：<code>clk_cpu</code> 300MHz（周期 3.33ns），<code>clk_uart</code> 100MHz（周期 10ns），各自约 3000 个叶子。两个时钟来自不同晶振，异步。</p>
+<p>正确的做法是两组分开建：<code>clk_cpu</code> 的树做到 latency 1.10ns，<code>clk_uart</code> 的做到 1.50ns，各管各的。</p>
+<p>但如果约束里漏了分组，工具把它们当成一组，就必须把两边的叶子拉到同一时间。它会在 <code>clk_cpu</code> 那棵较浅的树上补延迟：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">需要补的差 = 1.50 − 1.10 = 0.40ns</span><span class="ln ">每级 buffer 延迟 ≈ 0.08ns  →  需要补 5 级</span><span class="ln ">最后两级的分支数 ≈ 60 条  →  5 × 60 = 300 个 buffer</span></code></pre></div>
+<p>300 个 buffer 是什么概念？按后面第三课的手算，单个时钟 buffer 约 17µW，300 个就是 <strong>5.1mW</strong>。一个万门级设计总功耗常在 100mW 量级，这一下吃掉 5%。更糟的是 <code>clk_cpu</code> 那边多插了 5 级，级数变深、噪声变大，<strong>skew 反而从 60ps 变成 85ps</strong>——你付出了功耗，指标还退步了。</p>
+<p>所以分组的第一原则不是"按频率分"，而是问一句：<strong>这两个时钟之间有数据路径吗？</strong></p>
+<div class="tbl"><table><thead><tr><th>两个时钟的关系</th><th>要不要同组</th><th>理由</th></tr></thead><tbody><tr><td>同一 PLL 出来的 <code>clk</code> 与 <code>clk_div2</code>，之间有路径</td><td>同组</td><td>有路径就要对齐，不对齐的差直接吃这条路径的余量</td></tr><tr><td>不同 PLL、不同晶振，异步</td><td>不同组</td><td>没有路径可比，平衡纯属浪费 buffer</td></tr><tr><td>同一时钟，物理上分左右两块子树</td><td>看跨区路径量</td><td>跨区路径多就同组；几乎没有就拆组，各自压更紧</td></tr><tr><td>同一时钟，功能模式与测试模式各一套</td><td>用 mode 定义隔离，不靠分组</td><td>测试时钟频率低，和功能时钟平衡没有意义</td></tr></tbody></table></div>
+<p>最后一行的做法值得单独说：<strong>不要用"分组"去解决"模式"问题</strong>。测试模式的时钟该用 <code>set_case_analysis</code> 或 mode 定义隔离，而不是硬塞进一个组里，否则功能模式下工具会为测试逻辑的引脚反复调平衡。</p>
+<div class="scene"><div class="scene-h">工作场景 · 周三下午，skew 报告里两个时钟打成一团</div><div class="scene-b"><p>你接手一个双核 SoC 的 CTS。<code>report_clock_timing -type skew</code> 打出来，<code>clk_core</code> 的 skew 是 210ps，<code>clk_peri</code> 是 240ps，都超标。你第一反应是把 <code>target_skew</code> 从 80ps 收到 50ps，重跑一遍——结果 buffer 从 1800 涨到 2900，skew 只降到 190ps。</p>
+<p>组长看了一眼你的 <code>cts.tcl</code>，问："这两个时钟之间有几条路径？"你打开 SDC 才发现，<code>clk_peri</code> 是独立晶振，和 <code>clk_core</code> 完全异步，但你的约束里没有分组，工具一直在把它们往一块拉。他把 <code>set_clock_groups -asynchronous</code> 加进去，重跑，buffer 回到 1750，两个时钟各自 70ps 和 85ps。</p>
+<p><strong>你花了一下午调的那个参数，本来不该调。</strong></p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · 把异步时钟放进同一组，工具白插 300 个 buffer</div><div class="pit-b"><p>现象：两个异步时钟的 skew 都超标，<code>target_skew</code> 收紧后 buffer 数暴涨、skew 只降一点，功耗涨了 5%。</p>
+<p>原因：SDC 里没有 <code>set_clock_groups -asynchronous</code>，CTS 默认把它们当成一组，为了"组内平衡"在较浅的那棵树上补了 5 级 buffer。</p>
+<p>怎么查：先跑 <code>report_clocks</code> 列出全部时钟，再问自己每个时钟和别的时钟有没有路径。有路径才能同组；没路径就在 SDC 里声明异步。</p>
+<p>怎么避免：分组写在 CTS 约束之前，作为第 0 步。写完用 <code>report_ccopt_skew_group</code>（不同版本命令名可能不同）确认组的数量与预期一致。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="group"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="ndr" data-ch="ndr">
+  <div class="ch-h"><span class="ch-n">02</span><h2>NDR：加在树的哪一段</h2></div>
+  <p>NDR 的定义在《CTS 时钟树（一）》里讲过：给时钟网络单独指定的线宽与间距。这一课要解决的是<strong>加在哪一段</strong>。</p>
+<p>一棵树从根到叶子，物理性质完全不同，所以不能一刀切：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 示意图：三段时钟网络的划分（不是命令输出）</span><span class="ln ">  端口 / PLL 输出</span><span class="ln ">        │</span><span class="ln ">        ├── top 段：源到第一个 buffer，往往最长、最靠近模拟电路</span><span class="ln ">        │</span><span class="ln ">     [buf] ── trunk 段：前 1~2 级，一个 buffer 驱动几十个分支，电流最大</span><span class="ln ">        │</span><span class="ln ">   ┌────┴────┐</span><span class="ln "> [buf]     [buf] ── leaf 段：最后一级到触发器 CK，线短、数量多、贴着标准单元</span><span class="ln ">   │         │</span><span class="ln ">  FF FF     FF FF</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Trunk / Leaf / Top</span><span class="term-zh">主干 / 叶子 / 根网</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>CTS 工具把时钟网络按位置分三段：<br><strong>top</strong>：从时钟源（端口或 PLL）到第一个 buffer 的那一段，通常最长。<br><strong>trunk</strong>：树的前 1~2 级，负责把时钟扇出去，一根线要驱动几十个下游分支。<br><strong>leaf</strong>：最后一级 buffer 到触发器时钟引脚的那一小段，线很短，但条数最多。<br>三段的电流、线长、周边环境都不同，所以 NDR 要分开给。</p></div>
+</div>
+<p>为什么要分？看三个物理事实：</p>
+<ol><li><strong>top 段最长，电阻最大。</strong> 这段线的延迟能占整个 insertion delay 的三成。线宽加倍、电阻减半，收益最直接。</li><li><strong>trunk 段电流最大。</strong> 它要给下游所有叶子供电，电流是 leaf 段的几十倍，电迁移（EM）风险最高。宽线是唯一解。</li><li><strong>leaf 段最密。</strong> 它挤在标准单元中间，线宽加倍会挤占邻居的布线空间，触发 spacing 违例。</li></ol>
+<p>所以工程上的常见配置是：<strong>top 和 trunk 用 2w2s（双宽双距），leaf 用 1w2s（单宽双距）</strong>。</p>
+<div class="tbl"><table><thead><tr><th>段</th><th>典型 NDR</th><th>理由</th><th>用错的后果</th></tr></thead><tbody><tr><td>top</td><td>2w2s</td><td>最长、最敏感，需要最低电阻</td><td>用 1w2s：延迟大 100~200ps</td></tr><tr><td>trunk</td><td>2w2s</td><td>电流最大，EM 卡得最紧</td><td>用默认规则：EM 违例，签核不过</td></tr><tr><td>leaf</td><td>1w2s</td><td>短，双宽收益小；双距防串扰</td><td>用 2w2s：leaf 区 spacing DRC 成片</td></tr></tbody></table></div>
+<h3>过用 NDR 的代价：12% 的布线资源</h3>
+<p>NDR 不是免费的。一条 2w2s 的线，占用的横向资源不是 2 倍，而是接近 3 倍：线宽占 2 条轨道，两侧间距各占 1 条，合计约 4 条轨道减去原本的 1 条。</p>
+<p>算一笔账。全片 40000 条信号网络，其中时钟网络 2000 条（5%）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">普通网络：40000 条 × 1 条轨道 = 40000 轨道当量</span><span class="ln ">时钟网络： 2000 条 × 2.5 条轨道 = 5000 轨道当量（2w2s 取 2.5，偏保守）</span><span class="ln ">总需求  = 45000 轨道当量</span><span class="ln ">时钟占比 = 5000 ÷ 45000 = 11.1%</span></code></pre></div>
+<p>如果把 leaf 也全部上 2w2s，系数从 2.5 涨到 3.0，时钟占用变成 6000，占比 13%。<strong>所以"时钟网络吃掉 12% 布线资源"是个可信的量级</strong>——它只占 5% 的网络条数，却占了八分之一的地。</p>
+<p>这个数字在 review 里有实际用途：当布线阶段出现大面积拥塞，而时序又没明显问题时，先问一句"时钟 NDR 是不是给太满了"。把 leaf 从 2w2s 降到 1w2s，通常能收回 2~3 个百分点的布线资源，代价只是 leaf 的 transition 差 10~15ps。</p>
+<div class="pit"><div class="pit-h">常见坑 · NDR 写了但没生效</div><div class="pit-b"><p>现象：布线后抽一条时钟线量宽度，还是默认的 1 倍；EM 报告照样一片红。</p>
+<p>原因有三种，按出现频率排：① 属性写在了错的 net type 上（写在 leaf，实际那段是 trunk）；② NDR 定义在 <code>add_ndr</code> 之后又被别的约束覆盖；③ 时钟网络在布线时被当成普通信号网络处理（<code>setAttribute</code> 里的 net type 没打上）。</p>
+<p>怎么查：布线后 <code>dbGet</code> 一条主干 net 的 <code>wire.width</code>，和默认宽度比；不看报告，看实际几何。<strong>属性是意图，宽度是事实。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="ndr"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="cells" data-ch="cells">
+  <div class="ch-h"><span class="ch-n">03</span><h2>单元选择：leaf 只用 X4 以上</h2></div>
+  <p>时钟树上的单元清单，是 CTS 约束里最容易被抄来抄去的部分。抄错一个 X1，后面 transition 怎么修都修不干净。</p>
+<p>先解释 <code>X</code> 是什么。库里的单元名常写成 <code>BUFX4</code>、<code>INVX8</code>，X 后面的数字是<strong>驱动能力倍数</strong>，以最小驱动单元为 1。X4 的意思是"在同样负载下，输出电阻约为 X1 的四分之一"。</p>
+<p>延迟的粗略关系是 <code>t ∝ R_eq × C_load</code>。R_eq 减到 1/4，延迟也接近 1/4（实际没这么理想，还有自载和输入电容）。</p>
+<p>手算一次，看 X1 为什么不能做 leaf。假设一个 leaf buffer 要带 12 个触发器，总负载 25fF，输出电阻取量级假设值：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">X1：R_eq ≈ 4kΩ  →  驱动项 ≈ 4k × 25f = 100ps，加上本身延迟，transition 到 180ps</span><span class="ln ">X4：R_eq ≈ 1kΩ  →  驱动项 ≈ 1k × 25f =  25ps，transition 约 70ps</span></code></pre></div>
+<p>时钟网络的目标 transition 是 120ps。X1 一开始就超了，而且工具会为了修这个违例在它前面再插一级——<strong>一个错误的单元选择，会连锁产生三四个多余的 buffer</strong>。</p>
+<p>所以 leaf 的规则是硬的：<strong>最小 X4，常用 X4/X8 混搭</strong>。trunk 可以用到 X8/X12，因为要驱动几十个分支。</p>
+<h3>inverter 成对使用：为什么能省面积</h3>
+<p>《CTS 时钟树（一）》提过 <code>use_inverters true</code>，这里讲原理。</p>
+<p>一个 buffer 在电路上就是两级反相器串联。库里卖的 <code>BUFX4</code>，内部通常就是一个弱反相器加一个强反相器，封在一个单元里。</p>
+<p>CTS 工具更愿意用<strong>分立的两个反相器</strong>，原因有三个：</p>
+<ol><li><strong>中间多了一个节点。</strong> 两级分开，工具可以在中间接一小段线、分摊负载，比封装在一起更灵活。</li><li><strong>尺寸可以自由组合。</strong> <code>INVX2 → INVX8</code> 这种"前小后大"的组合，输入电容只有 X2 那么大，上一级的 transition 更好；输出却能驱动 X8 的负载。</li><li><strong>面积更小。</strong> 同样驱动能力下，两个分立反相器的面积通常比一个 buffer 小 10%~20%（典型值，具体看库）。</li></ol>
+<p>代价是极性。一级反相会把时钟翻过来，<strong>必须成对出现</strong>。这也是为什么约束里要写 <code>use_inverters true</code> 而不是让工具随便用——它要保证从根到每片叶子的反相次数奇偶一致。</p>
+<p>如果同一条时序路径的发射端和捕获端反相次数一奇一偶，两端的有效时钟沿就差半个周期。这种错<strong>在 skew 报告里看不出来</strong>（skew 只看到达时间，不看极性），只有 hold 检查或功能仿真会暴露。所以反相器好用的前提，是工具真的在数极性。</p>
+<div class="tbl"><table><thead><tr><th>单元类型</th><th>允许用在哪</th><th>理由</th></tr></thead><tbody><tr><td><code>BUFX4</code> / <code>BUFX8</code></td><td>leaf、trunk</td><td>驱动够，面积可接受</td></tr><tr><td><code>BUFX12</code> 及以上</td><td>只 trunk</td><td>leaf 用大驱动是浪费，输入电容还拖累上一级</td></tr><tr><td><code>INVX4</code> / <code>INVX8</code></td><td>leaf、trunk（成对）</td><td>省面积，输入电容低</td></tr><tr><td><code>BUFX1</code> / <code>BUFX2</code></td><td>不用</td><td>transition 超标，会连锁插 buffer</td></tr><tr><td><code>DEL*</code>（延迟单元）</td><td>不用</td><td>它不是时钟单元，延迟随电压漂移大</td></tr><tr><td>低 Vt 单元</td><td>不用</td><td>漏电高，时钟又不能关断，功耗常驻</td></tr></tbody></table></div>
+<h3><code>dont_use</code> 清单怎么定</h3>
+<p>做法不是"把清单写成允许清单"，而是<strong>两头都写</strong>：先 <code>set_dont_use</code> 禁掉不该出现的，再用 <code>buffer_cells</code> 限定可用的。只写一头，工具总能在缝隙里找到你没禁的怪单元。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把时钟树上不该出现的单元禁掉，再给出允许清单</span><span class="ln cmt"># 用法：读入库之后、ccopt_design 之前执行；单元名按你的库改，先用 get_lib_cells 列一遍</span><span class="ln ">set_dont_use [get_lib_cells */*BUFX1]        ;# 驱动太弱，leaf 上必超 transition</span><span class="ln ">set_dont_use [get_lib_cells */*BUFX2]        ;# 同上，X2 只适合极短的内部分支</span><span class="ln ">set_dont_use [get_lib_cells */*DEL*]         ;# 延迟单元：延迟随 PVT 漂移，不适合时钟</span><span class="ln ">set_dont_use [get_lib_cells */*LVT*]         ;# 低阈值单元：漏电大，而时钟关不掉</span><span class="ln "> </span><span class="ln ">set_ccopt_property buffer_cells   {BUFX4 BUFX8 BUFX12}    ;# 允许的缓冲器</span><span class="ln ">set_ccopt_property inverter_cells {INVX4 INVX8 INVX12}    ;# 允许的反相器</span><span class="ln ">set_ccopt_property use_inverters  true                    ;# 允许成对反相，省面积</span></code></pre></div>
+<p>表里那条"低 Vt 不用"值得多说一句。低阈值单元的开关速度快，很多设计会在关键路径上大量使用。代价是它的<strong>静态漏电</strong>明显高于标准单元，而时钟网络上的这类单元数量多、又没法用 power gating 关掉（时钟必须一直通着），这部分漏电是常驻的。一个设计里时钟网络常占三成以上的单元数，这笔常驻漏电在功耗报告里能直接看到。</p>
+<div class="pit"><div class="pit-h">常见坑 · 把时钟 MUX 也 dont_use 了</div><div class="pit-b"><p>现象：CTS 报错说某个时钟网络找不到可用单元，或者 MUX 后面的树根本没建起来。</p>
+<p>原因：<code>set_dont_use */*MUX*</code> 这种通配写得太狠，把时钟 MUX（glitch-free 的那种）也禁了。时钟 MUX 是时钟路径上的合法单元，不能禁。</p>
+<p>处理：通配符要收敛到具体单元名，或者禁完之后用 <code>get_lib_cells</code> 反查一遍清单里还剩什么。<strong>通配符是省事，也是事故来源。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="cells"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="skip" data-ch="skip">
+  <div class="ch-h"><span class="ch-n">04</span><h2>屏蔽：哪些引脚不该进树</h2></div>
+  <p>"屏蔽"（skip / exclude）的意思是：这个引脚挂在时钟网络上，但<strong>不要参与平衡</strong>。</p>
+<p>听起来矛盾——时钟树的目的不就是让所有引脚对齐吗？不是。有些引脚的时序根本不靠对齐来保证，把它们拉进来反而有害。</p>
+<p>三类该屏蔽的引脚：</p>
+<p><strong>第一类：测试逻辑。</strong> BIST（内建自测试）控制器、扫描链的测试时钟引脚，在功能模式下是静态的。它们和功能触发器之间没有功能路径，拉进同一组平衡只会让工具为了一个从不翻转的引脚去调整整棵树。</p>
+<p><strong>第二类：常开宏的 CK。</strong> 电源域不同（always-on 域），时钟来自独立的常开时钟源。它和主树的电源、电压、延迟特性都不一样，物理上也不该绑在一起。</p>
+<p><strong>第三类：手工平衡的部分。</strong> 模拟 IP 内部自带时钟树，或者某个高速接口已经用 H 树手工做完了平衡。这些部分的延迟是设计好的，工具再插一级就破坏了。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把不该参与平衡的时钟引脚排除掉（属性名各版本有差异，敲前 man 一次）</span><span class="ln cmt"># 用法：ccopt_design 之前执行；先跑 report_clock_tree -skipped 看当前清单</span><span class="ln ">set_ccopt_property -pin [get_pins u_dft/mbist_ctrl/CK] sink_type ignore   ;# 测试时钟，功能模式静态</span><span class="ln ">set_ccopt_property -pin [get_pins u_pmu/ao_ctl/CLK]    sink_type ignore   ;# 常开域，独立时钟源</span><span class="ln ">set_ccopt_property -pin [get_pins u_ddr_phy/clk_in]    sink_type ignore   ;# PHY 内部已手工平衡</span></code></pre></div>
+<p>上面三行的属性名和取值在不同 Innovus 版本里不一样（有的版本写作 <code>exclude</code>，有的用单独的 skew group 排除名单）。<strong>课程环境跑不了完整 CTS，真实项目里先 <code>man set_ccopt_property</code> 查一次再写。</strong> 要记住的是机制，不是拼写：</p>
+<ul><li>屏蔽是<strong>按引脚</strong>打的，不是按网络；</li><li>屏蔽只影响"平衡"，不影响"布线"；</li><li>屏蔽清单要能在报告里被列出来，否则等于没写。</li></ul>
+<h3>屏蔽写错的两个方向</h3>
+<p><strong>屏蔽多了</strong>：那些触发器不在任何组里，skew 报告里看不到它们。你以为 skew 达标了，等 STA 用真实延迟一算，接口路径全崩。判断方法：每个时钟域的 sink 数应该等于该域触发器数 + ICG 数 + 宏的 CK 数，对不上就说明有引脚被漏掉了。</p>
+<p><strong>屏蔽少了</strong>：工具去平衡一个本来不该平衡的引脚，白插 buffer；更麻烦的是测试模式下时钟被"优化"过，扫描链移位的时序出问题。</p>
+<p>查的办法就一条命令：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：列出所有被排除在时钟树之外的引脚，逐条核对</span><span class="ln cmt"># 用法：ccopt_design 之后执行；清单条数应等于你预期的屏蔽数</span><span class="ln ">report_clock_tree -skipped &gt; rpt/cts_skipped.rpt   ;# 被 skip 的引脚清单</span></code></pre></div>
+<p>读这份报告的方法：不要只看条数，要<strong>按前缀归类</strong>。如果 <code>u_dft/*</code> 有 128 条、<code>u_pmu/*</code> 有 4 条、<code>u_ddr_phy/*</code> 有 2 条，加起来 134 条，和你写的屏蔽清单对得上，就说明没有意外遗漏。</p>
+<div class="pit"><div class="pit-h">常见坑 · skip 写成了"不布线"</div><div class="pit-b"><p>现象：CTS 完成后，某一片触发器的时钟引脚完全没有连线，<code>check_timing</code> 报这些端点没有时钟。</p>
+<p>原因：把"不进平衡"和"不布线"当成了一件事。前者是 <code>sink_type ignore</code> 这类属性，后者是 <code>set_dont_touch</code> 或 net 级别的 <code>skip_routing</code>。后者会让时钟线根本不画。</p>
+<p>处理：屏蔽只用"平衡"这一类属性；确认方法是在布线后看那条 net 有没有几何。<strong>"不参与"和"不存在"是两件事。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="skip"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="multi" data-ch="multi">
+  <div class="ch-h"><span class="ch-n">05</span><h2>多时钟：主时钟、generated clock 与 MUX</h2></div>
+  <p>一个芯片里通常不止一个时钟。CTS 要处理的不是"一个时钟建一棵树"，而是"每个时钟源各建一棵树，交叉的地方特殊处理"。</p>
+<h3>主时钟与 generated clock</h3>
+<p><code>create_clock</code> 定义的是<strong>源头</strong>：外部晶振送进来的、PLL 输出的，都算源头。<code>create_generated_clock</code> 定义的是<strong>从某个时钟派生出来的</strong>：分频器输出、门控后的时钟、MUX 选出来的时钟。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：定义主时钟与分频时钟，让 CTS 知道这是两棵有关系的树</span><span class="ln cmt"># 用法：SDC 里写，CTS 之前 source 进来；-source 指向分频器的输入引脚，不是输出</span><span class="ln ">create_clock -name clk_ref -period 10.0 [get_ports clk_ref]         ;# 100MHz 主时钟</span><span class="ln ">create_generated_clock -name clk_div2 \</span><span class="ln ">    -source [get_pins u_div/CK] \</span><span class="ln ">    -divide_by 2 [get_pins u_div/Q]                                 ;# 50MHz 分频时钟，源指向 CK</span></code></pre></div>
+<p><code>-source</code> 指错是这里最常见的错。指向分频器的<strong>输入</strong>（CK），工具才知道"这个时钟是从主时钟分出来的，两者有相位关系"；指向输出（Q），工具会把它当成一个独立时钟，两棵树之间不做任何关联，跨这两个域的路径时序就没法算。</p>
+<p>分频和倍频的区别要记：</p>
+<div class="tbl"><table><thead><tr><th>派生方式</th><th>写法</th><th>CTS 怎么处理</th></tr></thead><tbody><tr><td>二分频</td><td><code>-divide_by 2</code></td><td>与主时钟同组平衡（有路径）</td></tr><tr><td>三分频</td><td><code>-divide_by 3</code></td><td>同上，但只有部分沿对齐，平衡要求更严</td></tr><tr><td>PLL 倍频输出</td><td>直接 <code>create_clock</code></td><td>它是新源，单独一组，不和输入时钟平衡</td></tr><tr><td>门控时钟</td><td>不需要单独定义</td><td>ICG 的输出仍在同一棵树里，但要做 clock gating check</td></tr></tbody></table></div>
+<p>PLL 倍频为什么用 <code>create_clock</code> 而不是 <code>create_generated_clock</code>？因为 PLL 输出经过了模拟电路，相位和输入的关系由 PLL 自己保证，工具不该假设它和输入同相。把它当新源，独立建树，是最安全的做法。</p>
+<h3>时钟 MUX 后面怎么建树</h3>
+<p>时钟 MUX 是 CTS 里最麻烦的结构：两路时钟进一个 MUX，出一路时钟驱动一大片逻辑。工具站在 MUX 输出往上看，看到两个"父亲"。</p>
+<p>正确的理解是：<strong>MUX 输出是一个新的根，从它往下的树是共享的；从每个输入到 MUX 是各自的 top 段。</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 示意图：时钟 MUX 的两段结构</span><span class="ln ">  PLL_A ──┐</span><span class="ln ">          ├──[MUX]──┬── buf ──┬── FF ...</span><span class="ln ">  PLL_B ──┘   ↑     │         └── FF ...</span><span class="ln ">            SEL     └── 共享树（一段）</span></code></pre></div>
+<p>建树时工具会做两件事：给 MUX 输出往下建一棵共享树；给两个输入各建一段到 MUX 的 top 段。麻烦在于 <strong>SEL 端</strong>——CTS 时它是什么值，工具不知道。</p>
+<p>三种处理方式，按场景选：</p>
+<div class="tbl"><table><thead><tr><th>场景</th><th>写法</th><th>结果与风险</th></tr></thead><tbody><tr><td>SEL 是静态的（strap 引脚、测试模式引脚）</td><td><code>set_case_analysis 0 [get_pins u_mux/SEL]</code></td><td>只按一路建树，跑得快；另一模式必须单独复查</td></tr><tr><td>SEL 运行时切换（两个 PLL 做备份）</td><td>不做 case analysis，让工具两路都建</td><td>两路 latency 分别报告；共享树要同时满足两路</td></tr><tr><td>两路互斥、从不同时有效</td><td><code>set_clock_groups -logically_exclusive</code></td><td>STA 分别检查，CTS 不跨组平衡</td></tr></tbody></table></div>
+<p>第一种最常用，也最容易埋坑：你 <code>set_case_analysis</code> 设了 0，只检查了 A 路，B 路从来没建过树。等芯片切到 B 路，skew 大得离谱。<strong>所以用 case analysis 之后，必须把 SEL 换成另一个值再跑一遍 CTS 的报告检查</strong>，至少确认 B 路的树能建起来、latency 在可接受范围。</p>
+<p>第二种的风险是工具会试图"兼顾"两路，可能在共享段上插一堆 buffer 去平衡两种 latency，结果两路都不理想。判断标准是看 <code>report_clock_timing</code> 里两路的 latency 差：差超过 200ps 就说明共享段在妥协，要考虑把共享树拆短，让 MUX 更靠近叶子。</p>
+<p>还有一条物理约束：<strong>时钟 MUX 必须是 glitch-free 的</strong>（切换时不会产生窄脉冲）。这不是 CTS 能修的，是设计阶段选型的事。后端能做的是检查：切换瞬间两路时钟是否都在低电平。课程环境跑不了这个检查，真实项目里用门级仿真或专门的 clock glitch 检查。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Generated Clock</span><span class="term-zh">生成时钟</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>由 <code>create_generated_clock</code> 定义的、从另一个时钟派生出来的时钟。分频器输出、MUX 输出、门控后的时钟都属于这一类。<br>关键是 <code>-source</code> 要指向派生点的<strong>输入</strong>，这样工具才知道它和父时钟的相位关系。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Clock MUX</span><span class="term-zh">时钟多路选择器</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>两路或多路时钟进、一路时钟出的选择器。CTS 把它当作一个新的根：输出往下建共享树，每个输入到 MUX 各是一段 top。<br>它不是普通 MUX——切换时不能产生窄脉冲，否则下游触发器会采到半个周期。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="multi"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="script" data-ch="script">
+  <div class="ch-h"><span class="ch-n">06</span><h2>一份完整的 CTS 约束文件</h2></div>
+  <p>前面五块拼起来，就是一份能交给批处理跑的 <code>cts.tcl</code>。分六节，每节开头一行注释说明这一节负责什么。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ============================================================================</span><span class="ln cmt"># cts.tcl —— CTS 约束：目标 / 规则 / 单元 / 分组 / 屏蔽</span><span class="ln cmt"># 用法：在 ccopt_design 之前 source；前提是 SDC 已经把时钟定义清楚</span><span class="ln cmt"># ============================================================================</span><span class="ln "> </span><span class="ln cmt"># ---- 0. 开工检查：时钟认得全不全 ----</span><span class="ln ">report_clocks                                 ;# 列出全部时钟：名字、周期、源端口</span><span class="ln ">check_timing -include {unconstrained}         ;# 有未约束端点就先停下，别急着建树</span><span class="ln "> </span><span class="ln cmt"># ---- 1. 目标：三个数 ----</span><span class="ln ">set_ccopt_property target_skew       0.080    ;# 全局 skew 80ps（2.5ns 周期的 3.2%）</span><span class="ln ">set_ccopt_property target_max_trans  0.120    ;# 时钟网络 transition 上限 120ps</span><span class="ln ">set_max_transition 0.120 [get_clocks *]       ;# SDC 侧再写一遍，两处一致才不会被覆盖</span><span class="ln "> </span><span class="ln cmt"># ---- 2. 规则：NDR 分三段 ----</span><span class="ln ">add_ndr -name cts_2w2s -width_multiplier 2 -spacing_multiplier 2   ;# 双宽双距：根与主干</span><span class="ln ">add_ndr -name cts_1w2s -width_multiplier 1 -spacing_multiplier 2   ;# 单宽双距：叶子</span><span class="ln ">set_ccopt_property -net_type top   ndr cts_2w2s   ;# 源到第一个 buffer</span><span class="ln ">set_ccopt_property -net_type trunk ndr cts_2w2s   ;# 前 1~2 级</span><span class="ln ">set_ccopt_property -net_type leaf  ndr cts_1w2s   ;# 最后一级到 sink</span><span class="ln "> </span><span class="ln cmt"># ---- 3. 单元：先禁弱的，再给允许清单 ----</span><span class="ln ">set_dont_use [get_lib_cells */*BUFX1]         ;# X1 驱动不够，leaf 上必超 transition</span><span class="ln ">set_dont_use [get_lib_cells */*BUFX2]         ;# X2 同样偏弱</span><span class="ln ">set_dont_use [get_lib_cells */*DEL*]          ;# 延迟单元不是时钟单元</span><span class="ln ">set_ccopt_property buffer_cells   {BUFX4 BUFX8 BUFX12}    ;# 允许的缓冲器</span><span class="ln ">set_ccopt_property inverter_cells {INVX4 INVX8 INVX12}    ;# 允许的反相器</span><span class="ln ">set_ccopt_property use_inverters  true        ;# 成对反相，省面积、输入电容低</span><span class="ln "> </span><span class="ln cmt"># ---- 4. 分组：谁和谁比 ----</span><span class="ln cmt"># 前提：SDC 里已声明 clk_core 与 clk_ddr 异步（set_clock_groups -asynchronous）</span><span class="ln ">create_ccopt_skew_group -name sg_core -sources [get_ports clk_core] -auto_sinks  ;# 核心时钟单独成组</span><span class="ln ">set_ccopt_property -skew_group sg_core target_skew 0.060   ;# 核心域更紧</span><span class="ln ">create_ccopt_skew_group -name sg_ddr -sources [get_ports clk_ddr] -auto_sinks    ;# DDR 时钟单独成组</span><span class="ln ">set_ccopt_property -skew_group sg_ddr target_skew 0.100    ;# DDR 负载少，可放宽</span><span class="ln "> </span><span class="ln cmt"># ---- 5. 屏蔽：不该进树的引脚 ----</span><span class="ln ">set_ccopt_property -pin [get_pins u_dft/mbist_ctrl/CK]  sink_type ignore  ;# 测试时钟</span><span class="ln ">set_ccopt_property -pin [get_pins u_pmu/ao_ctl/CLK]     sink_type ignore  ;# 常开域</span><span class="ln ">set_ccopt_property -pin [get_pins u_ddr_phy/clk_in]     sink_type ignore  ;# PHY 内已平衡</span><span class="ln "> </span><span class="ln cmt"># ---- 6. 建树 ----</span><span class="ln ">ccopt_design -cts</span></code></pre></div>
+<p>逐节说清"这行在干什么、写错了会怎样"：</p>
+<ul><li><strong>第 0 节</strong>：<code>report_clocks</code> 是给自己看的，确认工具认到的时钟数量和你以为的一致。<code>check_timing</code> 里 <code>unconstrained_endpoints</code> 不为 0 就先修约束——树一旦按错的时钟建完，后面全要重来。</li><li><strong>第 1 节</strong>：<code>target_skew</code> 按周期的 3%~5% 给，不要拍脑袋。<code>set_max_transition</code> 在 SDC 和 ccopt 属性里各写一遍是刻意的：有些流程会用 SDC 的值覆盖属性，两处一致才不会互相打架。</li><li><strong>第 2 节</strong>：<code>add_ndr</code> 只是定义规则，<code>-net_type</code> 才是施加。三段都写上，等于告诉工具"别用默认规则"。</li><li><strong>第 3 节</strong>：<code>dont_use</code> 和允许清单是两道闸。只写允许清单，工具仍可能在合法集合里挑到你不想要的低 Vt 版本。</li><li><strong>第 4 节</strong>：<code>-auto_sinks</code> 让工具自己找该时钟域下的所有叶子。这里的前提是第 0 节的时钟定义准确——源写错，叶子就找错。</li><li><strong>第 5 节</strong>：屏蔽放在分组之后，因为分组会先"认领"叶子；先屏蔽再分组，可能出现某个组空了。</li><li><strong>第 6 节</strong>：建树。跑完立刻存盘，<code>saveDesign db/06_cts.enc</code>，这是后面所有对比的基线。</li></ul>
+<p>最容易写错的八行，单独列一张对照表。评审前拿它逐行扫一遍，比通读全文快。</p>
+<div class="tbl"><table><thead><tr><th>行</th><th>常见的错写法</th><th>后果</th></tr></thead><tbody><tr><td><code>target_skew 0.080</code></td><td>写成 <code>0.008</code>（少一个零）</td><td>buffer 数暴涨两三倍，功耗翻倍，skew 只改善几十 ps</td></tr><tr><td><code>set_max_transition</code></td><td>只写在 ccopt 属性里，SDC 里没写</td><td>被 SDC 的默认值覆盖，属性白设</td></tr><tr><td><code>-net_type top</code></td><td>漏掉 top 这一行</td><td>端口到第一级仍是默认线宽，延迟多 100ps 量级</td></tr><tr><td><code>add_ndr</code> 的 multiplier</td><td>只加 spacing、不加 width</td><td>电阻没降，延迟和 EM 都不改善，只省了串扰</td></tr><tr><td><code>set_dont_use</code></td><td>通配写成 <code>*BUF*1</code></td><td>把 BUFX1 之外的一批单元也误禁，工具找不到可用单元</td></tr><tr><td><code>-auto_sinks</code></td><td>手写 <code>-sinks</code> 且漏了一部分</td><td>漏掉的叶子不在组里，skew 报告里看不见它们</td></tr><tr><td><code>sink_type ignore</code></td><td>写成 <code>skip_routing</code> 一类</td><td>时钟线根本不画，端点变成"没有时钟"</td></tr><tr><td><code>ccopt_design -cts</code></td><td>漏了 <code>-cts</code></td><td>建树和时序优化一起跑，出问题分不清是哪一步</td></tr></tbody></table></div>
+  <label class="ch-done"><input type="checkbox" data-mark="script"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="checklist" data-ch="checklist">
+  <div class="ch-h"><span class="ch-n">07</span><h2>约束写完的自检清单</h2></div>
+  <p>约束文件写完不能直接跑，先用五条命令过一遍。每条都有明确的判据。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：CTS 约束的五项自检，全过才允许 ccopt_design</span><span class="ln cmt"># 用法：source 完 cts.tcl、建树之前逐条执行；输出存 rpt/ 并写进交接记录</span><span class="ln ">check_timing -include {unconstrained}        ;# ① 未约束端点必须为 0</span><span class="ln ">report_clocks                                ;# ② 时钟数量、周期、源端口逐个核对</span><span class="ln ">report_ccopt_skew_group                      ;# ③ 每个组的 sink 数是否等于该域触发器数</span><span class="ln ">get_ccopt_property -net_type trunk ndr       ;# ④ 读回 NDR，确认三段都挂上了</span><span class="ln ">report_clock_tree -skipped                   ;# ⑤ 屏蔽清单条数与预期一致</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>#</th><th>检查项</th><th>判据</th><th>不通过先查什么</th></tr></thead><tbody><tr><td>1</td><td>未约束端点</td><td><code>unconstrained</code> 为 0</td><td>时钟没定义、名字写错、经过非时钟单元断了传播</td></tr><tr><td>2</td><td>时钟清单</td><td>数量、周期、源端口与 SDC 一致</td><td>用了旧的 SDC、generated clock 的 <code>-source</code> 指错</td></tr><tr><td>3</td><td>分组</td><td>每组 sink 数 = 该域 FF + ICG + 宏 CK</td><td>分组漏了某个时钟、<code>-auto_sinks</code> 没找到</td></tr><tr><td>4</td><td>NDR</td><td>三段都能读回规则名</td><td>属性写在错的 net type、被后续约束覆盖</td></tr><tr><td>5</td><td>屏蔽</td><td>条数 = 预期，且前缀能归类</td><td>通配符打太宽、只写了 skip 布线没写 skip 平衡</td></tr></tbody></table></div>
+<p>第 3 项的判据值得单独强调。<strong>sink 数是唯一能证明"分组没漏"的数字。</strong> 假设 <code>clk_core</code> 域有 5800 个触发器、210 个 ICG、4 个宏的 CK，那 <code>sg_core</code> 的 sink 数就该是 6014。报出来是 5000，说明有 1000 个叶子没被认领；报出来是 6300，说明混进了别的域的叶子。两个方向都要查。</p>
+<p>第 4 项在读回的时候要注意：<code>get_ccopt_property</code> 返回空，不一定是没设，也可能是设在了另一个 net type 上。逐段读——top、trunk、leaf 各读一次，别只读一个就下结论。</p>
+<div class="note"><div class="note-h">五项之外，还有一项靠人看</div><p>五项都是"数字对不对"，还有一项是"图对不对"：打开时钟树的飞线图，看主干是不是从根均匀扇出去、有没有一条分支绕了大半个芯片。这一项没有命令，三十秒能看出来，但九成的绕线问题都是这么发现的。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="checklist"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="in-work" data-ch="in-work">
+  <div class="ch-h"><span class="ch-n">08</span><h2>工作中怎么用：约束是谁的责任</h2></div>
+  <p><strong>谁写</strong>：PR 工程师本人。CTS 约束通常不是从零写，而是从上个项目或模板改——这既是效率，也是风险来源。改模板时最容易漏的三处：分组没跟着新时钟更新、<code>dont_use</code> 清单里还留着上个项目的单元名、屏蔽清单指向了不存在的实例（工具不报错，因为 <code>get_pins</code> 返回空）。</p>
+<p><strong>谁 review</strong>：资深 PR 或 STA 工程师。review 只看四件事：分组和 SDC 是否一致、NDR 三段是否合理、单元清单里最小的驱动是多少、屏蔽清单能不能逐条说出理由。</p>
+<p><strong>交付什么</strong>：一份 <code>cts.tcl</code>、一份五项自检的输出、一页说明（每个数字的依据）。三样东西缺一样，下一版就没人敢改。</p>
+<p><strong>做错了会怎样</strong>：约束错的代价不是"重跑一次"。分组错，树建完才发现，要重建；NDR 错，布线后才发现，要重布；屏蔽错，STA 签核时才发现，要回退到 CTS。<strong>这三件事的返工量依次是小时、天、周。</strong> 所以约束阶段的半小时自检，是整条流程里性价比最高的半小时。</p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：把一份 CTS 约束补齐并自检</div><div class="lab-b"><p><strong>任务</strong>：下面这份 <code>cts.tcl</code> 有 5 处空缺（标了 <code>TODO</code>），补全后用命令验证。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：待补全的 CTS 约束骨架</span><span class="ln cmt"># 用法：复制到 cts_lab.tcl，补完 5 个 TODO 后 source</span><span class="ln cmt"># ---- 目标 ----</span><span class="ln ">set_ccopt_property target_skew TODO1          ;# 周期 2.0ns，按 4% 给</span><span class="ln ">set_ccopt_property target_max_trans 0.120</span><span class="ln cmt"># ---- 规则 ----</span><span class="ln ">add_ndr -name cts_2w2s -width_multiplier 2 -spacing_multiplier 2</span><span class="ln ">set_ccopt_property -net_type trunk ndr TODO2  ;# 主干用什么规则</span><span class="ln ">set_ccopt_property -net_type leaf  ndr cts_1w2s</span><span class="ln cmt"># ---- 单元 ----</span><span class="ln ">set_dont_use [get_lib_cells */*BUFX1]</span><span class="ln ">set_ccopt_property buffer_cells TODO3         ;# 只允许 X4 及以上</span><span class="ln cmt"># ---- 分组 ----</span><span class="ln ">create_ccopt_skew_group -name sg_a -sources [get_ports clk_a] -auto_sinks</span><span class="ln ">set_ccopt_property -skew_group sg_a target_skew 0.080</span><span class="ln cmt"># ---- 屏蔽 ----</span><span class="ln ">set_ccopt_property -pin [get_pins TODO4] sink_type ignore   ;# 测试时钟引脚</span></code></pre></div>
+<p><strong>步骤</strong>：</p>
+<ol><li>补 <code>TODO1</code>：算出 2.0ns 周期的 4% 是多少 ps，写成 ns。</li><li>补 <code>TODO2</code>：主干该用 <code>cts_2w2s</code> 还是 <code>cts_1w2s</code>，说一句理由。</li><li>补 <code>TODO3</code>：写出允许清单（至少三个单元）。</li><li>补 <code>TODO4</code>：写一个合理的测试时钟引脚路径。</li><li>跑五项自检命令，把每项的输出各抄一行到一张表里。</li></ol>
+<p><strong>过关标准</strong>：能说出 <code>TODO1</code> 是 0.08 而不是 0.02 的理由；能解释 <code>TODO2</code> 为什么主干用双宽；能在自检表里指出哪一项不通过、下一步改哪一行。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>skew group 和 clock group 的区别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">skew group 是 CTS 里"放在一起做平衡的叶子集合"，决定工具插多少 buffer；clock group 是 SDC 里"彼此异步、不做时序检查"的时钟集合，决定工具要不要跨组比较。两者必须一致。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>把两个异步时钟放进同一组，会发生什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">工具为了组内平衡，在较浅的那棵树上补延迟。按 400ps 差、每级 80ps 算要补 5 级，涉及约 60 个分支，就是 300 个多余 buffer，功耗涨约 5mW，skew 还可能变差。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>NDR 为什么要分 top / trunk / leaf 三段？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">三段物理性质不同：top 最长、电阻最大；trunk 电流最大、EM 最紧；leaf 最密、线最短。统一规则要么收益不足，要么造成 spacing DRC。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>2w2s 的时钟网络大概吃掉多少布线资源？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">时钟网络约占网络条数的 5%，但每条占 2.5~3 倍轨道，折算下来占 12% 左右的布线资源。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>leaf 为什么不允许用 X1、X2？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">驱动太弱，带 12 个触发器（约 25fF）时 transition 会到 180ps，超过 120ps 的目标；工具为了修它会在前面再插级，连锁产生多余 buffer。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>inverter 成对使用为什么能省面积？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">两级反相等于 buffer，但中间多一个节点可以分摊负载、尺寸能自由组合（前小后大降低输入电容），同驱动下面积比 buffer 小 10%~20%。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>generated clock 的 -source 应该指向哪里？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">指向派生点的输入引脚（比如分频器的 CK），这样工具才知道它和父时钟的相位关系；指向输出会被当成独立时钟，跨域路径没法算。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>时钟 MUX 的 SEL 用 set_case_analysis 固定后，还必须做什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">把 SEL 换成另一个值再检查一遍，确认另一路的树也能建起来、latency 可接受。只查一路等于只验了一半芯片。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>report_clock_tree -skipped 用来查什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">列出被排除在时钟树平衡之外的引脚，用来核对屏蔽清单有没有多写或漏写；条数要能和预期逐条对上。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说清 skew group 与 clock group 的区别，并判断两个时钟该不该同组</li><li>能手算"分组错误导致多插多少 buffer、多耗多少功耗"</li><li>能说出 NDR 三段各自用什么规则，以及过用 NDR 的资源代价量级</li><li>能解释 leaf 为什么最小 X4，以及 inverter 成对使用省面积的三条原因</li><li>能列出三类该屏蔽的引脚，并用 <code>report_clock_tree -skipped</code> 核对</li><li>能写出一份分六节的 <code>cts.tcl</code>，并说清每节写错的后果</li><li>能跑完五项自检，并用 sink 数判断分组有没有漏</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="in-work"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-12-chipfinish/">← ChipFinish：收尾这一步，决定能不能送厂</a><a class="nav-btn" href="/lesson/03-14-cts-debug/">CTS（三）：skew、latency、功耗的三角权衡与问题定位 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

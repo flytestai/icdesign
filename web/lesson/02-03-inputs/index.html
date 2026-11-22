@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>开工前要拿到什么：设计数据准备与自检 · 11 | IC 后端学院</title>
-<meta name="description" content="后端项目 80% 的"莫名报错"其实是输入数据不全或版本不对。这一课把 7 类输入文件讲清楚：各自是什么、少了会报什么错、怎么在开工前一次性查完。">
+<meta name="description" content="后端项目 80% 的"莫名报错"其实是输入数据不全或版本不对。这一课把 7 类输入文件讲清楚：各自是什么、少了会报什么错、SDC 最小五条怎么读、以及开工前 10 分钟怎么一次性查完。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -29,7 +29,7 @@
       <div class="hero-no">11</div>
       <h1>开工前要拿到什么：设计数据准备与自检</h1>
       <p class="hero-en">Design Data Preparation & Sanity Checks</p>
-      <p class="hero-sum">后端项目 80% 的"莫名报错"其实是输入数据不全或版本不对。这一课把 7 类输入文件讲清楚：各自是什么、少了会报什么错、怎么在开工前一次性查完。</p>
+      <p class="hero-sum">后端项目 80% 的"莫名报错"其实是输入数据不全或版本不对。这一课把 7 类输入文件讲清楚：各自是什么、少了会报什么错、SDC 最小五条怎么读、以及开工前 10 分钟怎么一次性查完。</p>
       <div class="hero-meta">
         <span class="pill">约 38 分钟</span>
         <span class="pill">课表学时 3</span>
@@ -38,75 +38,121 @@
     </div>
     <article id="article"><section class="ch" id="seven" data-ch="seven">
   <div class="ch-h"><span class="ch-n">01</span><h2>一个项目开工，桌上应该有 7 样东西</h2></div>
-  <p>综合和 PR 不是"给个网表就能跑"。工具要同时知道三件事：<strong>逻辑长什么样、物理长什么样、时间要求是什么</strong>。拆开就是下面这张表。</p>
+  <div class="goal"><span>本章目标</span>拿到一个新工程，能在 10 分钟内核对完 7 类输入文件是否齐全、版本是否匹配，并能读懂"缺文件"的报错指向哪一样。</div>
+<p>综合和 PR 不是"给个网表就能跑"。工具要同时知道三件事：<strong>逻辑长什么样、物理长什么样、时间要求是什么</strong>。拆开就是下面这张表。</p>
 <div class="tbl"><table><thead><tr><th>#</th><th>输入</th><th>常见后缀</th><th>谁给</th><th>少了会怎样（真实报错）</th></tr></thead><tbody><tr><td>1</td><td>RTL 或综合后网表</td><td><code>.v</code> <code>.sv</code></td><td>前端 / 综合</td><td><code>Cannot find design 'xxx'</code></td></tr><tr><td>2</td><td>时序库</td><td><code>.lib</code> <code>.db</code></td><td>工艺厂 / 库团队</td><td><code>Unable to resolve reference 'INV_X1'</code>（单元全变黑盒）</td></tr><tr><td>3</td><td>物理库 LEF</td><td><code>.lef</code></td><td>工艺厂</td><td>单元没有尺寸，布局器无法摆放</td></tr><tr><td>4</td><td>工艺技术文件</td><td><code>.tf</code> <code>.techlef</code></td><td>工艺厂</td><td>建库失败，没有层定义</td></tr><tr><td>5</td><td>寄生参数模型</td><td><code>.tluplus</code> <code>.itf</code> <code>.qrc</code></td><td>工艺厂</td><td><code>NEX-018 no valid parasitic</code> → 优化器起不来</td></tr><tr><td>6</td><td>时序约束</td><td><code>.sdc</code></td><td>设计者 / 前端</td><td>时序全是 0，报告毫无意义</td></tr><tr><td>7</td><td>功耗意图（低功耗项目）</td><td><code>.upf</code> <code>.cpf</code></td><td>架构 / 设计者</td><td>电源域不识别，隔离单元不插</td></tr></tbody></table></div>
+<p>这七样东西分三类，<strong>分类比背清单有用</strong>：</p>
+<ul><li><strong>逻辑</strong>：1（网表）</li><li><strong>物理 + 电气</strong>：2、3、4、5（库和工艺）</li><li><strong>意图</strong>：6、7（约束和功耗）</li></ul>
+<p>报错时先问自己"缺的是哪一类"：说"找不到单元"是第 2 类；说"没有层"是第 4 类；说"全是 0"是第 6 类。分类一对，方向就出来了。</p>
 <div class="scene"><div class="scene-h">工作场景 · 拿到一个"跑不起来"的工程</div><div class="scene-b"><p>同事交接给你一个工程，说"脚本都在，直接跑就行"。你跑第一步就报：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: Unable to resolve reference 'DFF_X1' in design 'soc_top'. (LINK-5)</span></code></pre></div>
-<p>看着像脚本问题，其实是 <strong>link_library 指错了目录，或者 .db 版本和网表不匹配</strong>。会查输入数据的人 10 分钟解决；不会的人重装工具。</p></div></div>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: Unable to resolve reference 'DFF_X1' in design 'soc_top'. (LINK-5)</span></code></pre></div>
+<p>看着像脚本问题，其实是 <strong><code>link_library</code> 指错了目录，或者 <code>.db</code> 版本和网表不匹配</strong>（网表是 A 版库综合的，你读的是 B 版）。</p>
+<p>会查输入数据的人 10 分钟解决；不会的人会重装工具、重下 PDK、怀疑 License，一天就过去了。</p>
+<p>判断方法：<code>ls</code> 一下 <code>link_library</code> 里的文件是否存在，再用 <code>report_lib</code> 看这个库里到底有没有 <code>DFF_X1</code> 这个名字。两个动作，两分钟。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Black Box</span><span class="term-zh">黑盒</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>网表里引用了、但库里找不到定义的单元。工具不会因此停下，而是给它留个空壳：没有延迟、没有面积、没有引脚。<br><strong>黑盒是"沉默的杀手"</strong>：时序分析会直接跳过它，报告看起来干干净净，流片回来功能全错。所以 <code>link_design</code> 之后必须确认未解析引用是 0。</p></div>
+</div>
   <label class="ch-done"><input type="checkbox" data-mark="seven"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="libdb" data-ch="libdb">
-  <div class="ch-h"><span class="ch-n">02</span><h2>`.lib` 和 `.db`：一个是菜谱，一个是压缩包</h2></div>
-  <div class="tbl"><table><thead><tr><th></th><th><code>.lib</code></th><th><code>.db</code></th></tr></thead><tbody><tr><td>格式</td><td>纯文本，能打开看</td><td>二进制，打不开</td></tr><tr><td>内容</td><td>完全一样：每个单元的面积、引脚电容、延迟查找表</td><td>同左</td></tr><tr><td>谁生成</td><td>工艺厂 / 库团队</td><td>用 Library Compiler 从 <code>.lib</code> 转</td></tr><tr><td>工具读哪个</td><td>部分工具能直接读</td><td>综合与 PR 主要读这个（快很多）</td></tr></tbody></table></div>
-<p><code>.lib</code> 里能看到的东西（这是真正有用的部分）：</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cell (INV_X1) {</span><span class="ln ">  area : 0.760;                       # 面积，算利用率要用</span><span class="ln ">  pin (A)  { direction : input;  capacitance : 0.0021; }   # 输入电容，算驱动能力</span><span class="ln ">  pin (ZN) { direction : output;</span><span class="ln ">    timing () {</span><span class="ln ">      related_pin : "A";</span><span class="ln ">      cell_rise (delay_template_7x7) { ... }   # 输入转换时间 × 负载 -&gt; 延迟，一张查找表</span><span class="ln ">    }</span><span class="ln ">  }</span><span class="ln ">}</span></code></pre></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>`.lib` / `.db` / `.lef`：菜谱、压缩包、占地证</h2></div>
+  <p>初学者最容易混的就是这三个。用一个类比锁死：</p>
+<div class="tbl"><table><thead><tr><th>类比</th><th>文件</th><th>回答什么问题</th><th>格式</th></tr></thead><tbody><tr><td>菜谱</td><td><code>.lib</code></td><td>这个单元多快、多耗电、多大面积</td><td>纯文本，能打开看</td></tr><tr><td>压缩包（同一本菜谱的电子版）</td><td><code>.db</code></td><td>同上，内容一模一样</td><td>二进制，打不开</td></tr><tr><td>占地证</td><td><code>.lef</code></td><td>这个单元在版图上占多大、引脚在哪个坐标</td><td>纯文本，能打开看</td></tr></tbody></table></div>
+<p>三句话记住区别：</p>
+<ol><li><strong><code>.lib</code> 和 <code>.db</code> 是同一份数据的两种形态</strong>，一个是源文件，一个是编译产物。换 <code>.db</code> 不会改变时序结果，只会让读取变快。</li><li><strong><code>.lef</code> 里没有任何延迟信息</strong>。它只管形状：<code>SIZE 0.76 BY 1.4</code>、引脚矩形在哪。</li><li><strong>两张表必须互相匹配</strong>。同一个单元名，<code>.lib</code> 说面积 0.76，<code>.lef</code> 说 0.76×1.4，如果版本对不上（比如 <code>.lef</code> 是 2019 版、<code>.lib</code> 是 2021 版），工具不会报错，但算出来的利用率、延迟全是错的。</li></ol>
+<p><code>.lib</code> 里真正有用的部分：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：看清一个单元在时序库里的三样关键数据——面积、引脚电容、延迟查找表</span><span class="ln cmt"># 用法：直接用文本编辑器打开 .lib，搜 cell (INV_X1)；下面只保留关键行</span><span class="ln ">cell (INV_X1) {</span><span class="ln ">  area : 0.760;                       # 面积，算利用率要用这个数</span><span class="ln ">  pin (A)  { direction : input;  capacitance : 0.0021; }   # 输入电容，决定前一级要驱动多大负载</span><span class="ln ">  pin (ZN) { direction : output;      # 输出引脚，延迟从这里查</span><span class="ln ">    timing () {</span><span class="ln ">      related_pin : "A";              # 这条延迟是 A -&gt; ZN</span><span class="ln ">      cell_rise (delay_template_7x7) { ... }   # 7×7 查找表：输入 transition × 输出负载 -&gt; 延迟</span><span class="ln ">    }</span><span class="ln ">  }</span><span class="ln ">}</span></code></pre></div>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">查找表（lookup table, LUT）</span><span class="term-zh">延迟是怎么算出来的</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>标准单元的延迟不是一个固定数字，而是<strong>输入信号变化快慢（transition）× 输出带多大负载（capacitance）</strong> 的函数。工艺厂把它做成一张 7×7 的表存在 <code>.lib</code> 里，工具查表 + 插值得到延迟。<br>这就是为什么"换一个 corner、换一个负载"延迟就变了——不是工具在猜，是在查不同的表。</p></div>
+  <div class="term-h"><span class="term-en">Lookup Table (LUT)</span><span class="term-zh">查找表</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>标准单元的延迟不是固定数字，而是<strong>输入信号变化快慢（transition）× 输出带多大负载（capacitance）</strong> 的函数。工艺厂把它做成一张 7×7 的表存在 <code>.lib</code> 里，工具查表 + 插值得到延迟。<br>这就是为什么"换一个 corner、换一个负载"延迟就变了——不是工具在猜，是在查不同的表。<strong>也是为什么 transition 超标必须先修：表的外插区域不准。</strong></p></div>
 </div>
-<div class="pit"><div class="pit-h">常见坑 · 用了 <code>.lib</code> 但版本是 ss 的，时序全"过"</div><div class="pit-b"><p>典型事故：综合用 <code>tt</code>（typical），PR 用了 <code>ss</code>（slow），PT 又用回 <code>tt</code>。三次报告的 WNS 各不相同，签字的人以为都过了。</p>
-<p><strong>规矩：全流程记录 corner。</strong> 每个阶段日志第一行打印用的是哪个库文件，归档时一起存。签核用的 corner 必须写在报告封面。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Corner</span><span class="term-zh">工艺角</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>同一套库在不同工艺偏差、电压、温度下的多个版本：<code>tt</code>（typical）、<code>ss</code>（slow）、<code>ff</code>（fast），还会带电压温度后缀，如 <code>ss_0p99v_125c</code>。<br>签核要在最坏角（setup 用 ss、hold 用 ff）都过。<strong>混用 corner 是后端最隐蔽的错误</strong>：单看每份报告都"过"，合起来不成立。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · 用了 <code>.lib</code> 但 corner 是 ss，时序全"过"</div><div class="pit-b"><p>典型事故：综合用 <code>tt</code>，PR 用了 <code>ss</code>，PT 又用回 <code>tt</code>。三次报告的 WNS 各不相同，签字的人以为都过了。</p>
+<p><strong>规矩：全流程记录 corner。</strong> 每个阶段日志第一行打印用的是哪个库文件，归档时一起存。签核用的 corner 必须写在报告封面。</p>
+<p>自查一句话：把三个阶段日志的库路径 <code>grep</code> 出来并排放，文件名不一样就是隐患。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="libdb"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="lef" data-ch="lef">
   <div class="ch-h"><span class="ch-n">03</span><h2>LEF：单元的"占地证"</h2></div>
   <p>LEF 描述物理形状，分两种，都必须有：</p>
-<div class="tbl"><table><thead><tr><th>类型</th><th>文件名常见</th><th>内容</th></tr></thead><tbody><tr><td>技术 LEF（tech LEF）</td><td><code>tech.lef</code> / <code>*.techlef</code></td><td>有哪些金属层、每层的最小线宽/间距、via 定义</td></tr><tr><td>宏 LEF（macro LEF）</td><td><code>*_macro.lef</code> / <code>*.lef</code></td><td>每个标准单元的尺寸、引脚位置、阻挡层</td></tr></tbody></table></div>
+<div class="tbl"><table><thead><tr><th>类型</th><th>文件名常见</th><th>内容</th><th>少了会怎样</th></tr></thead><tbody><tr><td>技术 LEF（tech LEF）</td><td><code>tech.lef</code> / <code>*.techlef</code></td><td>有哪些金属层、每层的最小线宽/间距、via 定义</td><td>工具不知道能画几层线、线能多宽</td></tr><tr><td>宏 LEF（macro LEF）</td><td><code>*_macro.lef</code> / <code>*.lef</code></td><td>每个标准单元的尺寸、引脚位置、阻挡层</td><td>单元没有尺寸，布局器无法摆放</td></tr></tbody></table></div>
 <p>一个单元在 LEF 里的样子：</p>
-<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">MACRO INV_X1</span><span class="ln ">  CLASS CORE ;                 # 标准单元（CORE），不是 IO 也不是宏</span><span class="ln ">  ORIGIN 0 0 ;</span><span class="ln ">  SIZE 0.76 BY 1.4 ;           # 宽 0.76um、高 1.4um —— 行高由它决定</span><span class="ln ">  PIN A</span><span class="ln ">    DIRECTION INPUT ;</span><span class="ln ">    PORT</span><span class="ln ">      LAYER metal1 ;</span><span class="ln ">      RECT 0.10 0.30 0.20 1.10 ;   # 引脚在 metal1 上的矩形位置</span><span class="ln ">    END</span><span class="ln ">  END A</span><span class="ln ">END INV_X1</span></code></pre></div>
-<div class="note"><div class="note-h">为什么行高是 1.4um</div><p>因为库里的标准单元都是 1.4um 高（<code>SIZE ... BY 1.4</code>）。<strong>行高由库决定，不由你决定。</strong> 你算"能放几行"时用的就是这个数：芯片高度 ÷ 1.4 = 行数。</p>
-<p>我们实测的万门设计 222.2um 高，正好 153 行：222.2 ÷ 1.4 ≈ 158（去掉边距后 153）。</p></div>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：看清一个标准单元在 LEF 里的尺寸和引脚坐标（真实结构，数值为示例）</span><span class="ln cmt"># 用法：文本编辑器打开 macro LEF，搜 MACRO INV_X1</span><span class="ln ">MACRO INV_X1</span><span class="ln ">  CLASS CORE ;                 # 标准单元（CORE），不是 IO 也不是宏单元</span><span class="ln ">  ORIGIN 0 0 ;</span><span class="ln ">  SIZE 0.76 BY 1.4 ;           # 宽 0.76um、高 1.4um —— 行高由它决定</span><span class="ln ">  PIN A</span><span class="ln ">    DIRECTION INPUT ;</span><span class="ln ">    PORT</span><span class="ln ">      LAYER metal1 ;</span><span class="ln ">      RECT 0.10 0.30 0.20 1.10 ;   # 引脚在 metal1 上的矩形：左下 (0.10,0.30)、右上 (0.20,1.10)</span><span class="ln ">    END</span><span class="ln ">  END A</span><span class="ln ">END INV_X1</span></code></pre></div>
+<p><code>RECT</code> 后面四个数是 <code>llx lly urx ury</code>：左下角坐标 + 右上角坐标。所以这个引脚宽 0.1µm（0.20−0.10）、高 0.8µm（1.10−0.30），位置在单元左侧。</p>
+<p><strong>为什么引脚位置重要</strong>：布线只能在引脚上打孔。引脚在单元内部还是边缘、在哪一层，直接决定这条路好不好走。</p>
+<div class="note"><div class="note-h">为什么行高是 1.4µm</div><p>因为库里所有标准单元都是 1.4µm 高（<code>SIZE ... BY 1.4</code>）。<strong>行高由库决定，不由你决定。</strong> 你算"能放几行"时用的就是这个数：芯片高度 ÷ 1.4 = 行数。</p>
+<p>课程环境实测：万门设计 222.2µm 高，正好 153 行（<code>222.2 ÷ 1.4 ≈ 158</code>，去掉上下边距后 153）。</p></div>
+<div class="pit"><div class="pit-h">常见坑 · <code>.lef</code> 和 <code>.lib</code> 版本不匹配</div><div class="pit-b"><p>现象：布局正常、时序正常，但 <code>report_area</code> 算出来的面积和综合报告差 12%，利用率怎么调都对不上。</p>
+<p>原因：<code>.lef</code> 是旧版（单元尺寸改过），<code>.lib</code> 是新版。工具不校验两者的一致性，各用各的。</p>
+<p>怎么查：挑三个常用单元（INV_X1、DFF_X1、BUF_X4），把 <code>.lib</code> 的 <code>area</code> 和 <code>.lef</code> 的 <code>SIZE</code> 宽×高对一遍。对不上就说明版本串了。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="lef"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="parasitic" data-ch="parasitic">
   <div class="ch-h"><span class="ch-n">04</span><h2>寄生参数模型：为什么缺了优化器直接不干活</h2></div>
   <p>这一项最容易被漏，因为<strong>缺了不一定马上报错，可能到优化阶段才炸</strong>。</p>
-<div class="tbl"><table><thead><tr><th>文件</th><th>工具</th><th>用途</th></tr></thead><tbody><tr><td><code>.itf</code> / <code>.tluplus</code></td><td>ICC2 / Innovus</td><td>每层金属的电阻、电容、边缘电容参数</td></tr><tr><td><code>.qrc</code> / <code>.captable</code></td><td>StarRC / QRC</td><td>高精度提取用的电容表</td></tr></tbody></table></div>
-<p>我们踩过的真实案例（手册里有完整记录）：</p>
+<p>先说清它是什么：布线画出来的金属线不是理想导线，有电阻、有对地电容、有和邻线的耦合电容。这些参数叫<strong>寄生参数（parasitic）</strong>。工具要算真实延迟，就必须知道"每微米某层金属大概多少电阻、多少电容"——这个"每单位的 RC 表"就是寄生参数模型。</p>
+<div class="tbl"><table><thead><tr><th>文件</th><th>工具</th><th>用途</th></tr></thead><tbody><tr><td><code>.itf</code> / <code>.tluplus</code></td><td>ICC2 / Innovus</td><td>每层金属的电阻、电容、边缘电容参数（按宽度/间距建的表）</td></tr><tr><td><code>.qrc</code> / <code>.captable</code></td><td>StarRC / QRC</td><td>高精度提取用的电容表，签核阶段用</td></tr></tbody></table></div>
+<p>课程手册里的真实案例：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: Design has atleast one corner with no Parasitic information. (OPT-906)</span></code></pre></div>
-<p>原因不是"没做提取"，而是<strong>建库时没把 TLU+ 绑进 corner</strong>。修法两步：</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">read_parasitic_tech -tlup ./tlup/NangateOpenCellLibrary.tlup \</span><span class="ln ">                    -layermap ./tlup/NangateOpenCellLibrary.layermap -name nt</span><span class="ln ">set_parasitic_parameters -early_spec nt -late_spec nt    # 必须绑到 corner 上</span></code></pre></div>
+<p>这句话逐词读：<code>at least one corner</code>（至少一个 corner）<code>with no Parasitic information</code>（没有寄生信息）。注意它说的是 <strong>corner</strong>，不是 design——所以问题多半不在"你没做提取"，而在"corner 没绑上"。</p>
+<p>修法两步：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：读入 TLU+ 寄生模型，并把它绑定到 RC corner 上</span><span class="ln cmt"># 用法：Innovus 里 init_design 之后、任何优化之前执行；路径按项目实际改</span><span class="ln ">read_parasitic_tech -tlup ./tlup/NangateOpenCellLibrary.tlup \</span><span class="ln ">                    -layermap ./tlup/NangateOpenCellLibrary.layermap -name nt   # ① 读进内存，起名 nt</span><span class="ln ">set_parasitic_parameters -early_spec nt -late_spec nt                          # ② 把 nt 绑到 early/late 两个 corner</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Parasitic Extraction (RC Extraction)</span><span class="term-zh">寄生参数提取</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>从版图几何算出每根线的电阻和电容，输出 <code>.spef</code> 文件。STA 用它算真实线延迟。<br>提取有两个精度档：<strong>估算</strong>（布线前，按扇出和距离估）和<strong>签核级</strong>（布线后，按真实几何算）。签核必须用后者。</p></div>
+</div>
 <div class="pit"><div class="pit-h">常见坑 · 只 <code>read_parasitic_tech</code> 不 <code>set_parasitic_parameters</code></div><div class="pit-b"><p>第一条命令只是"把文件读进内存"，第二条才是"告诉 corner 用它"。少了第二条，优化器依然认为没有寄生信息，照样报 <code>OPT-906</code>。</p>
-<p>我们在这上面卡了一整轮，日志里 <code>NEX-018</code> 和 <code>OPT-906</code> 前后脚出现，真正的原因是后者。</p></div></div>
+<p>课程环境里我们在这上面卡了一整轮：日志里 <code>NEX-018</code> 和 <code>OPT-906</code> 前后脚出现，一开始以为是文件路径错，真正的原因是后者没绑。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="parasitic"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="sdc" data-ch="sdc">
   <div class="ch-h"><span class="ch-n">05</span><h2>SDC：最小可用的约束集</h2></div>
-  <p>一个能跑起来的 SDC 只需要五类语句。<strong>先跑通这五条，再谈别的。</strong></p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1) 时钟：周期 2ns = 500MHz。没有这一条，所有时序都是 0</span><span class="ln ">create_clock -name clk -period 2.0 [get_ports clk]</span><span class="ln "> </span><span class="ln cmt"># 2) 时钟不确定性：PLL 抖动 + 时钟树 skew 的预算，先给周期的 5%</span><span class="ln ">set_clock_uncertainty 0.05 [get_clocks clk]</span><span class="ln "> </span><span class="ln cmt"># 3) 输入延迟：外部器件把数据送进来要多久</span><span class="ln ">set_input_delay 0.30 -clock clk [all_inputs]</span><span class="ln "> </span><span class="ln cmt"># 4) 输出延迟：外部器件要求数据多快到位</span><span class="ln ">set_output_delay 0.30 -clock clk [all_outputs]</span><span class="ln "> </span><span class="ln cmt"># 5) 例外：复位是异步的，不该做时序检查</span><span class="ln ">set_false_path -from [get_ports rst_n]</span></code></pre></div>
-<div class="tbl"><table><thead><tr><th>少了哪条</th><th>后果</th></tr></thead><tbody><tr><td><code>create_clock</code></td><td>所有路径 unconstrained，报告显示"无违例"——<strong>假的</strong></td></tr><tr><td><code>set_input_delay</code> / <code>set_output_delay</code></td><td>输入输出路径按 0 延迟算，签核时全线违例</td></tr><tr><td><code>set_clock_uncertainty</code></td><td>时序过于乐观，实际芯片回来会 fail</td></tr><tr><td><code>set_false_path</code></td><td>异步复位路径报一堆假违例，掩盖真问题</td></tr></tbody></table></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">SDC</span><span class="term-zh">Synopsys Design Constraints</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>时序约束文件，本质是一串 Tcl 命令。它不描述电路，只描述"这块电路要在多快下工作、哪些路径不用管"。<br><strong>SDC 写错比不写更危险</strong>：不写，工具会说"没有约束"；写错，工具会一本正经地给你一份"全过"的报告。</p></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">SDC</span><span class="term-zh">时序约束文件</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Synopsys Design Constraints，本质是一串 Tcl 命令。它不描述电路长什么样，只描述"这块电路要在多快下工作、哪些路径不用管"。<br><strong>SDC 是设计的"考试大纲"</strong>：工具会严格照着它优化，写错就是照错的目标优化，越努力越偏。</p></div>
 </div>
+<p>一个能跑起来的 SDC 只需要五类语句。<strong>先跑通这五条，再谈别的。</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：一个能跑通时序分析的最小 SDC，五条覆盖"时钟、抖动预算、输入、输出、波形质量"</span><span class="ln cmt"># 用法：综合和 PR 都 source 这一份；周期、端口名按设计改</span><span class="ln ">create_clock -name clk -period 2.0 [get_ports clk]        # ① 时钟：2ns = 500MHz，没有它所有时序都是 0</span><span class="ln ">set_clock_uncertainty 0.06 [get_clocks clk]               # ② 抖动+skew 预算：周期的 3%</span><span class="ln ">set data_in [remove_from_collection [all_inputs] [get_ports clk]]   # 时钟端口本身不是"输入数据"，先剔掉</span><span class="ln ">set_input_delay  0.30 -clock clk $data_in                 # ③ 外部器件送数据进来要 0.3ns</span><span class="ln ">set_output_delay 0.30 -clock clk [all_outputs]            # ④ 外部器件要求数据 0.3ns 内到位</span><span class="ln ">set_max_transition 0.15 [current_design]                  # ⑤ 任何引脚 transition 不得超过 150ps</span></code></pre></div>
+<p>逐条解释，重点是"为什么是这个数"：</p>
+<p><strong>① <code>create_clock</code></strong>：定义周期和源端口。周期从 spec 来（500MHz → 2ns），不是拍的。这一条缺失，所有路径变 unconstrained，报告显示"无违例"——这是假绿，签核必挂。</p>
+<p><strong>② <code>set_clock_uncertainty</code></strong>：给时钟留的余量，包含 PLL 抖动（jitter）和 CTS 之后的 skew。经验值取周期的 3%~5%；2ns 周期 → 60~100ps。给太小，时序过于乐观，芯片回来 fail；给太大，工具拼命优化，面积功耗上去还收不敛。</p>
+<p><strong>③ <code>set_input_delay</code></strong>：描述芯片<strong>外面</strong>的世界。上游器件从时钟沿到把数据送到你的引脚，花了多久（它的 Tco + 板级走线）。这个数不从你的设计里来，要从系统时序预算或接口 spec 里拿。</p>
+<p>注意上面先把时钟端口 <code>clk</code> 从 <code>all_inputs</code> 里剔掉了：给时钟端口加 input delay 等于凭空挪动时钟沿，时序报告会整体偏掉。这是新手最常写出的一个错。</p>
+<p><strong>④ <code>set_output_delay</code></strong>：描述下游器件的<strong>要求</strong>。你的数据必须在下一个时钟沿前多久稳定，才能被对方采到（对方的 setup + 走线）。</p>
+<p><strong>⑤ <code>set_max_transition</code></strong>：限制信号边沿的陡缓。这一条最容易被当成"次要规则"，其实它是延迟准确性的前提：transition 太差时，<code>.lib</code> 查找表要外插，算出来的延迟不可信，后面所有优化都建立在错数上。</p>
+<p>手算一次，理解 ③④ 为什么不能省：周期 2.0ns，input delay 0.3ns，内部组合逻辑 0.9ns，触发器 setup 0.05ns，uncertainty 0.06ns。</p>
+<ul><li>正确的 slack = <code>2.0 − 0.3 − 0.9 − 0.05 − 0.06 = 0.69ns</code></li><li>如果偷懒把 input delay 写成 0：slack 变成 <code>0.99ns</code>，<strong>凭空多出 0.3ns 假余量</strong></li></ul>
+<p>这就是"SDC 写错比不写更危险"的具体含义：不写，工具会警告"没有约束"；写错，工具会一本正经给你一份全过的报告。</p>
+<div class="tbl"><table><thead><tr><th>少了哪条</th><th>后果</th></tr></thead><tbody><tr><td><code>create_clock</code></td><td>所有路径 unconstrained，报告"无违例"——假的</td></tr><tr><td><code>set_clock_uncertainty</code></td><td>时序过于乐观，芯片回来 fail</td></tr><tr><td><code>set_input_delay</code> / <code>set_output_delay</code></td><td>IO 路径按 0 延迟算，签核时全线违例</td></tr><tr><td><code>set_max_transition</code></td><td>transition 失控，延迟查表外插，优化方向全错</td></tr></tbody></table></div>
+<p>另外两条常用但不算"最小集"的：<code>set_false_path</code>（异步复位、跨时钟域不用查的路径）和 <code>set_max_capacitance</code>（负载上限）。写完五条再加这两条，顺序别反。</p>
+<div class="pit"><div class="pit-h">常见坑 · SDC 里的端口名和网表对不上</div><div class="pit-b"><p>现象：<code>create_clock</code> 报了 warning 但流程继续跑，最后所有时序都是 unconstrained。</p>
+<p>原因：<code>get_ports clk</code> 里的 <code>clk</code> 在综合后被改名了（比如变成了 <code>clk_pad</code>），或者大小写不一致。<code>get_ports</code> 找不到东西时只 warning，不 error。</p>
+<p>怎么查：<code>report_clocks</code> 必须能看到你定义的那个时钟名；<code>check_timing -include unconstrained</code> 的 <code>unconstrained_endpoints</code> 必须是 0。两个都为真才算 SDC 真的生效了。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="sdc"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="check" data-ch="check">
   <div class="ch-h"><span class="ch-n">06</span><h2>开工前的 5 项自检（10 分钟，省两天）</h2></div>
-  <p>每次拿到新工程，按这个顺序查一遍：</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1) 库到底读了哪些？单元数对不对？</span><span class="ln ">report_lib tt_1v0_25c</span><span class="ln cmt">#    看 cell count，Nangate45 应该是 130 多个；如果是 0，库没读进来</span><span class="ln "> </span><span class="ln cmt"># 2) 网表里有没有"找不到的单元"（黑盒）？</span><span class="ln ">link_design</span><span class="ln ">report_design -physical</span><span class="ln cmt">#    有 unresolved reference 就是库不全，别往下跑</span><span class="ln "> </span><span class="ln cmt"># 3) 时钟读到了吗？</span><span class="ln ">report_clocks</span><span class="ln cmt">#    必须能看到你 SDC 里定义的那个时钟名</span><span class="ln "> </span><span class="ln cmt"># 4) 有没有完全没约束的路径？</span><span class="ln ">report_timing -unconstrained</span><span class="ln cmt">#    有输出就说明 SDC 漏了 input/output delay</span><span class="ln "> </span><span class="ln cmt"># 5) 面积与利用率合理吗？</span><span class="ln ">report_area</span><span class="ln cmt">#    单元数为 0 或面积为 0，说明前面某步没生效</span></code></pre></div>
-<div class="tip"><div class="tip-h">小技巧</div><p>把这五条存成 <code>check_inputs.tcl</code>，每次新工程第一件事就是 <code>source check_inputs.tcl</code>。</p>
-<p>老手和新手的差别不在会不会修 DRC，而在<strong>新工程上手的前十分钟</strong>：老手先查输入，新手直接跑流程，然后花两天查一个"库版本不对"的问题。</p></div>
-<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：算一次"这个库能放多少单元"</div><div class="lab-b"><p>用 <code>.lib</code> 里的面积和 LEF 里的尺寸做一次手算，理解利用率的来源。</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 在模拟终端里跑（数据来自真实 Nangate45）</span><span class="ln ">cd ~/pdk/nangate45/lib</span><span class="ln ">grep -A2 "cell (INV_X1)" NangateOpenCellLibrary_typical.lib | head -3</span><span class="ln cmt"># 看到 area : 0.760</span></code></pre></div>
-<p>然后手算：</p>
-<ul><li>芯片 222.5 × 222.2 um = 49440 um²</li><li>12026 个单元，平均面积按 2.0 um² 估 = 24052 um²</li><li>利用率 = 24052 / 49440 ≈ <strong>48.6%</strong>（和我们实测 49.8% 对得上）</li></ul>
-<p>过关标准：能说出"利用率 = 单元总面积 ÷ 芯片面积"，并解释为什么利用率不是越高越好（&gt;85% 布不通）。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能背出 7 类输入文件，以及每一类缺了会报什么错</li><li>知道 <code>.lib</code> 是文本、<code>.db</code> 是二进制、内容相同</li><li>知道 tech LEF 和 macro LEF 分别给什么</li><li>能写出 SDC 最小五条</li><li>遇到 <code>OPT-906</code> 知道先查寄生参数有没有绑到 corner</li></ul></div>
+  <p>每次拿到新工程，按这个顺序查一遍。顺序有讲究：<strong>从"库"查到"设计"，再从"约束"查到"数"</strong>，前面的错了，后面的检查没有意义。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：新工程上手第一件事，5 步确认库、网表、约束真的生效了</span><span class="ln cmt"># 用法：存成 check_inputs.tcl，每次 init_design 之后 source 一次；下列以 DC/ICC2 命令为主</span><span class="ln ">report_lib tt_1v0_25c        # ① 库读进来了吗？看 cell count；Nangate45 是 130 多个，0 就是没读进来</span><span class="ln ">link_design                  # ② 网表里的单元都能在库里找到吗？有 unresolved 就是库不全，别往下跑</span><span class="ln ">report_area                  # ③ 单元数和总面积是多少？0 说明网表没读对（ICC2 用 report_design -physical）</span><span class="ln ">report_clocks                # ④ 时钟读到了吗？必须能看到 SDC 里定义的名字</span><span class="ln ">report_timing -unconstrained # ⑤ 有没有完全没约束的路径？有输出就是 SDC 漏了 IO delay</span></code></pre></div>
+<p>每一项的判据要具体到"看到什么数算过"：</p>
+<div class="tbl"><table><thead><tr><th>检查</th><th>通过标准</th><th>不通过说明什么</th></tr></thead><tbody><tr><td>① 库单元数</td><td>与库文档一致（Nangate45 约 130+）</td><td>库路径错、只读了半个库</td></tr><tr><td>② 未解析引用</td><td>0 个</td><td>网表和库版本不匹配</td></tr><tr><td>③ 单元数/面积</td><td>与综合报告差 &lt;2%</td><td>网表读错、层次没展开</td></tr><tr><td>④ 时钟</td><td>名字、周期都对</td><td>SDC 没读、端口名变了</td></tr><tr><td>⑤ 未约束端点</td><td>0 个</td><td>IO delay 缺失、false path 写反</td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>把这五条存成 <code>check_inputs.tcl</code>，每次新工程第一件事就是 <code>source check_inputs.tcl</code>，输出重定向到 <code>rpt/00_check.log</code> 存档。</p>
+<p>老手和新手的差别不在会不会修 DRC，而在<strong>新工程上手的前十分钟</strong>：老手先查输入，新手直接跑流程，然后花两天查一个"库版本不对"的问题。</p>
+<p>更进一步：把这五条写进 flow 的第一步，检查不过就 <code>exit</code>，不让错误数据往下流。</p></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：算一次"这个库能放多少单元"</div><div class="lab-b"><p><strong>任务</strong>：用 <code>.lib</code> 里的面积和 LEF 里的尺寸做一次手算，理解利用率的来源，并核对课程环境的实测值。</p>
+<p><strong>步骤</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：从库里取一个单元的面积，再按平均面积估算整个设计的利用率</span><span class="ln cmt"># 用法：在 ~/pdk/nangate45/lib 下执行；只读文件，不改任何东西</span><span class="ln ">cd ~/pdk/nangate45/lib                                    # 进库目录</span><span class="ln ">grep -A2 "cell (INV_X1)" NangateOpenCellLibrary_typical.lib | head -3   # 取出 INV_X1 的 area 行</span><span class="ln ">grep -c "^  cell (" NangateOpenCellLibrary_typical.lib     # 数一数这个库有多少个单元</span></code></pre></div>
+<p>看到 <code>area : 0.760</code> 之后手算：</p>
+<ul><li>芯片 222.5 × 222.2 µm = 49440 µm²</li><li>12026 个单元，平均面积按 2.0 µm² 估 = 24052 µm²</li><li>利用率 = <code>24052 ÷ 49440 ≈ 48.6%</code>（课程环境实测 49.8%，差在平均面积是估的）</li><li>行数 = <code>222.2 ÷ 1.4 ≈ 158</code>，去掉边距 153 行</li></ul>
+<p><strong>过关标准</strong>：能说出三件事——利用率的分母是芯片面积不是单元面积；行高来自 LEF 的 <code>SIZE ... BY 1.4</code>；把平均面积从 2.0 改成 2.4，利用率会变成约 58%，并解释这对布线意味着什么。</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span><code>.lib</code> 和 <code>.db</code> 的内容有什么区别？</div>
+  <div class="q-q"><span class="q-no"></span><code>.lib</code>、<code>.db</code>、<code>.lef</code> 三者各自回答什么问题？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">没有区别，都是同一个库；.lib 是文本可读，.db 是二进制，工具读 .db 更快。</div>
+  <div class="q-a"><code>.lib</code>/<code>.db</code> 回答"多快、多耗电、多大面积"（菜谱/压缩包，内容相同）；<code>.lef</code> 回答"占多大、引脚在哪"（占地证）。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>只有 tech LEF 没有 macro LEF 会怎样？</div>
   <button class="q-show" type="button">看答案</button>
@@ -114,16 +160,29 @@
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span><code>OPT-906</code> 报"没有寄生信息"，最常见的原因是什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">寄生文件没读，或者读了没绑到 corner（缺 set_parasitic_parameters）。</div>
+  <div class="q-a">寄生文件没读，或者读了没绑到 corner（缺 <code>set_parasitic_parameters</code>）。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>SDC 里少了 create_clock 会怎样？</div>
+  <div class="q-q"><span class="q-no"></span>SDC 里少了 <code>create_clock</code> 会怎样？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">所有路径都 unconstrained，报告显示"无违例"，但这是假的，签核必挂。</div>
+  <div class="q-a">所有路径 unconstrained，报告显示"无违例"，但这是假的，签核必挂。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>set_input_delay</code> 描述的是芯片内部还是外部？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">外部。它表示上游器件把数据送到本芯片引脚所花的时间，要从系统时序预算或接口 spec 拿，不能拍。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 <code>set_max_transition</code> 算"最小五条"之一？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">transition 太差时延迟查找表要外插，算出的延迟不可信，后面所有优化都建立在错数上。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>为什么利用率不是越高越好？</div>
   <button class="q-show" type="button">看答案</button>
   <div class="q-a">超过 80~85% 后布线资源不够，拥塞和 DRC 会爆炸，反而要花更多时间收敛；经验值 50~70% 比较稳。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>新工程上手前 10 分钟应该先查什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">先查库（单元数）、再查网表（未解析引用）、再查时钟和未约束端点，最后看面积/单元数是否合理。</div>
 </div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能背出 7 类输入文件，并把它们分成逻辑、物理电气、意图三类</li><li>能用"菜谱 / 压缩包 / 占地证"讲清 <code>.lib</code>、<code>.db</code>、<code>.lef</code> 的区别</li><li>知道 tech LEF 和 macro LEF 分别给什么，会读 <code>RECT llx lly urx ury</code></li><li>能写出 SDC 最小五条，并说出每条缺失的后果</li><li>能手算一次 input delay 少写导致 slack 虚高的例子</li><li>遇到 <code>OPT-906</code> 知道先查寄生参数有没有绑到 corner</li><li>能按顺序跑完 5 项自检，并说清每项的通过标准</li></ul></div>
   <label class="ch-done"><input type="checkbox" data-mark="check"><span>这一章我学完了</span></label>
 </section></article>
 

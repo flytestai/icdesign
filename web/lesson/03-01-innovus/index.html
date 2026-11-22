@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Innovus 起步：一个后端工具到底在管什么 · 12 | IC 后端学院</title>
-<meta name="description" content="后端工具不是"画图软件"，它管的是一个巨大的数据库和一套优化引擎。这一课讲清 GUI 与命令行的关系、设计数据库里存了什么、以及第一个能跑通的命令序列。">
+<meta name="description" content="后端工具不是"画图软件"，它管的是一个巨大的数据库、一个优化引擎和一堆报告。这一课讲清数据库里存了什么、为什么必须用命令行、第一个能跑通的命令序列，以及 Innovus 与 ICC2 的十六组命令对应。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -29,7 +29,7 @@
       <div class="hero-no">12</div>
       <h1>Innovus 起步：一个后端工具到底在管什么</h1>
       <p class="hero-en">Getting Started with Innovus</p>
-      <p class="hero-sum">后端工具不是"画图软件"，它管的是一个巨大的数据库和一套优化引擎。这一课讲清 GUI 与命令行的关系、设计数据库里存了什么、以及第一个能跑通的命令序列。</p>
+      <p class="hero-sum">后端工具不是"画图软件"，它管的是一个巨大的数据库、一个优化引擎和一堆报告。这一课讲清数据库里存了什么、为什么必须用命令行、第一个能跑通的命令序列，以及 Innovus 与 ICC2 的十六组命令对应。</p>
       <div class="hero-meta">
         <span class="pill">约 35 分钟</span>
         <span class="pill">课表学时 2</span>
@@ -38,12 +38,19 @@
     </div>
     <article id="article"><section class="ch" id="what" data-ch="what">
   <div class="ch-h"><span class="ch-n">01</span><h2>工具在管什么</h2></div>
-  <p>一个布局布线工具（Innovus / ICC2）本质是三样东西：</p>
+  <div class="goal"><span>本章目标</span>能说出 Innovus 里"设计、库、约束"三类数据各自存在哪、用一条 <code>dbGet</code> 查出来，并用纯命令行跑通一次初始化到存盘。</div>
+<p>一个布局布线工具（Innovus / ICC2）本质是三样东西：</p>
 <ol><li><strong>一个数据库</strong>：几万个单元、几十万条连线、几百层几何图形，全在里面。</li><li><strong>一个优化引擎</strong>：决定"放哪、怎么连、插不插缓冲器"。</li><li><strong>一堆报告</strong>：时序、拥塞、DRC、面积、功耗。</li></ol>
-<p>你敲的每条命令，都是在<strong>改数据库</strong>或者<strong>让引擎干活</strong>，然后<strong>读报告</strong>判断下一步。</p>
+<p>你敲的每条命令，都是在<strong>改数据库</strong>或者<strong>让引擎干活</strong>，然后<strong>读报告</strong>判断下一步。三件事循环，就是整个后端工作。</p>
+<p>数据库里其实装的是"一设计 + 三份资料"：</p>
+<div class="tbl"><table><thead><tr><th>组成</th><th>内容</th><th>从哪来</th><th>少了会怎样</th></tr></thead><tbody><tr><td>设计（design）</td><td>单元实例、连线、引脚、电源网络</td><td><code>.v</code> 网表 + <code>.def</code></td><td>没有东西可摆</td></tr><tr><td>库（library）</td><td>每个单元的尺寸、引脚、延迟</td><td><code>.lef</code> + <code>.lib</code>/<code>.db</code></td><td>不知道单元长什么样</td></tr><tr><td>约束（constraint）</td><td>时钟、IO 延迟、例外</td><td><code>.sdc</code> / MMMC</td><td>不知道要多快，优化没目标</td></tr><tr><td>工艺（tech）</td><td>层、线宽、间距、via</td><td>tech LEF + TLU+</td><td>不知道怎么画线</td></tr></tbody></table></div>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Innovus</span><span class="term-zh">Cadence 的布局布线工具</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>数字后端两大主流 PR 工具之一（另一个是 Synopsys 的 ICC2）。命令语言是 Tcl，所有操作都能写成脚本。<br>课程阶段三用 40nm 工艺走 Innovus；阶段四用 32nm 走 ICC2。<strong>两套工具，一套方法论。</strong></p></div>
+  <div class="term-b"><p>数字后端两大主流 PR（Place &amp; Route，布局布线）工具之一，另一个是 Synopsys 的 ICC2。命令语言是 Tcl，所有操作都能写成脚本。<br>课程阶段三用 40nm 走 Innovus，阶段四用 32nm 走 ICC2。<strong>两套工具，一套方法论</strong>：先想清"这一步在改什么数据"，再查命令名。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Instance</span><span class="term-zh">实例</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>网表里"用了一个单元"这件事的实体。<code>U1234</code> 是一个实例，它的类型（cell）是 <code>NAND2_X1</code>，位置是 (120.5, 340.2)。<br><strong>cell 是"图纸"，instance 是"按图纸造出来的那一颗"</strong>：一个 <code>INV_X1</code> 可以被实例化一万次，库里的定义只有一份。</p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
 </section>
@@ -51,57 +58,103 @@
   <div class="ch-h"><span class="ch-n">02</span><h2>GUI 和命令行：到底用哪个</h2></div>
   <p>新手最容易犯的错：以为要用鼠标拖。</p>
 <p>真实情况：</p>
-<ul><li><strong>GUI 用来"看"</strong>：看布局、看拥塞热图、看某条路径的走向。</li><li><strong>命令行/脚本用来"做"</strong>：所有设置、所有流程，都写成 <code>.tcl</code> 脚本跑。</li></ul>
-<p>原因很实际：一次 PR 要跑几小时，中间要改几十个参数。用鼠标点，你没法复现、没法对比、没法交接。<strong>脚本是唯一可复现的方式。</strong></p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 启动 Innovus（GUI + 命令行都在）</span><span class="ln ">innovus -no_gui -files run.tcl     # 纯命令行，服务器上跑批用这个</span><span class="ln ">innovus                            # 带界面，调试时用</span></code></pre></div>
+<ul><li><strong>GUI 用来"看"</strong>：看布局、看拥塞热图、看某条路径的走向、看 flyline。</li><li><strong>命令行/脚本用来"做"</strong>：所有设置、所有流程，都写成 <code>.tcl</code> 脚本跑。</li></ul>
+<p>原因不是"显得专业"，是三个很实际的工程需求：</p>
+<p><strong>1. 可重复。</strong> 同一份脚本，今天跑和下周跑结果一样；换个同事跑，结果也一样。用鼠标点的流程，第二次就复现不出来——你不知道自己当时点了哪几个按钮。</p>
+<p><strong>2. 可存档。</strong> 脚本是文本，能进版本管理（git），能 diff 出"这一版改了哪三个参数"。数据库存档（<code>.enc</code>）是二进制，只能整体回退，看不出改了什么。</p>
+<p><strong>3. 可批量。</strong> 想试 6 组利用率（0.60/0.65/0.70/0.75/0.80/0.85），脚本套一层循环就跑完；用 GUI 你要点 6 遍，还得手工记录每次的结果。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：两种启动方式，批处理跑脚本 vs 带界面调试</span><span class="ln cmt"># 用法：在 pnr/ 目录下执行；run.tcl 里写完整流程，日志重定向到 log/</span><span class="ln ">innovus -no_gui -files run.tcl -log log/run_0901.log -overwrite   # 无界面跑脚本，服务器上跑批用这个</span><span class="ln ">innovus                                                          # 带 GUI 启动，交互式调试用；进去后 source run.tcl</span></code></pre></div>
+<p>参数逐个说：</p>
+<ul><li><code>-no_gui</code>：不启动图形界面。省内存、能在没有显示器的服务器上跑，<strong>这是正式跑流程的唯一方式</strong>。</li><li><code>-files run.tcl</code>：启动后自动执行这个脚本。可以跟多个文件，按顺序执行。</li><li><code>-log log/xxx.log</code>：把终端输出写进日志。<strong>必须给</strong>，否则出问题没有证据。</li><li><code>-overwrite</code>：允许覆盖同名日志（不加时工具会拒绝写已存在的日志，批处理会直接退出）。</li></ul>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Batch Mode</span><span class="term-zh">批处理模式</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>不给图形界面、直接跑脚本的运行方式（<code>-no_gui</code>）。特点是可排队、可并行、日志完整。<br>公司里的常规做法：本地 GUI 调脚本，提交到计算集群用批处理跑全流程。<strong>你写的脚本要能在两种模式下都跑通</strong>，这是基本要求。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 凌晨两点，GUI 断了，跑了 5 小时的流程没了</div><div class="scene-b"><p>你在自己电脑上开着 GUI 跑布线，跑了 5 小时到 80%。凌晨两点 VPN 断了一下，X11 转发断开，进程跟着被杀。日志只写到一半，数据库没存。</p>
+<p>第二天早上你面对两个选择：重跑 5 小时，或者跟组长解释为什么延期。</p>
+<p>老手的做法从一开始就不一样：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把长任务丢到后台，断线也不影响</span><span class="ln cmt"># 用法：在服务器上执行；nohup 让进程脱离终端，日志照样落盘</span><span class="ln ">nohup innovus -no_gui -files run_route.tcl -log log/route_0901.log -overwrite &gt; /dev/null 2&gt;&amp;1 &amp;</span></code></pre></div>
+<p>公司里更常见的是提交到作业队列（LSF 的 <code>bsub</code>、SGE 的 <code>qsub</code>）：进程跑在计算节点上，本来就不跟着你的终端。命令不同，原则一样——<strong>长任务不能挂在你的一次 SSH 会话上</strong>。</p>
+<p>配合脚本里每阶段 <code>saveDesign</code>，最坏情况也只是从上一个存档重跑一小时，而不是从零开始。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="gui"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="db" data-ch="db">
   <div class="ch-h"><span class="ch-n">03</span><h2>数据库里有什么</h2></div>
   <p>打开一个设计后，数据库里至少存了这些：</p>
-<div class="tbl"><table><thead><tr><th>内容</th><th>说明</th><th>对应报告</th></tr></thead><tbody><tr><td>单元实例</td><td>每个标准单元的类型、坐标、朝向</td><td><code>report_area</code></td></tr><tr><td>连线（net）</td><td>谁连谁、走哪层、多长</td><td><code>report_congestion</code></td></tr><tr><td>引脚（pin）</td><td>IO 位置、方向</td><td><code>report_pin</code></td></tr><tr><td>电源网络</td><td>ring / stripe / rail</td><td><code>verifyPowerVia</code></td></tr><tr><td>时序图</td><td>每条路径的门延迟、线延迟</td><td><code>report_timing</code></td></tr><tr><td>约束</td><td>时钟、IO 延迟、false path</td><td><code>report_clocks</code></td></tr></tbody></table></div>
-<div class="scene"><div class="scene-h">工作场景 · 为什么"重跑一遍"要几小时</div><div class="scene-b"><p>因为数据库巨大。每次优化引擎动一下，都要重算几万个单元的时序和拥塞。</p>
-<p>所以老手的习惯是：<strong>小步试，快速验</strong>。先用 <code>-incremental</code> 跑局部，看报告有没有改善，再决定要不要全量重跑。全量重跑一次 3 小时，你一天只能试 2 次。</p></div></div>
+<div class="tbl"><table><thead><tr><th>内容</th><th>说明</th><th>对应报告</th></tr></thead><tbody><tr><td>单元实例</td><td>每个标准单元的类型、坐标、朝向</td><td><code>report_area</code></td></tr><tr><td>连线（net）</td><td>谁连谁、走哪层、多长</td><td><code>reportCongestion -hotSpot</code></td></tr><tr><td>引脚（pin/terminal）</td><td>IO 位置、方向、所在层</td><td><code>dbGet top.terms</code></td></tr><tr><td>电源网络</td><td>ring / stripe / rail</td><td><code>verifyPowerVia</code></td></tr><tr><td>时序图</td><td>每条路径的门延迟、线延迟</td><td><code>report_timing</code></td></tr><tr><td>约束</td><td>时钟、IO 延迟、false path</td><td><code>report_clocks</code></td></tr></tbody></table></div>
+<h3>用 <code>dbGet</code> 直接查数据库</h3>
+<p>Innovus 的所有数据都能用 <code>dbGet</code> 查。它的语法是 <code>dbGet 对象.属性</code>，可以在 Tcl 里当普通命令用：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：不打开 GUI，直接从数据库里数单元、查坐标、找特定实例</span><span class="ln cmt"># 用法：init_design 之后在 Innovus 命令行里敲；输出格式随版本略有差异，语义一致</span><span class="ln "> </span><span class="ln ">dbGet top.insts                    # 返回所有实例的句柄列表（一长串 0x... 的指针）</span><span class="ln ">llength [dbGet top.insts]          # 数一数有多少个实例，这是"单元数"的来源</span><span class="ln ">dbGet top.insts.name               # 只要名字，返回 u_core/u_alu/u_alu/add_1 这样的列表</span><span class="ln ">dbGet -p top.insts.name u_sram0    # 按名字过滤，只返回叫 u_sram0 的那个实例句柄</span><span class="ln ">dbGet [dbGet -p top.insts.name u_sram0].box   # 再取它的坐标框，四个数：llx lly urx ury</span><span class="ln ">dbGet top.nets.name                # 所有连线的名字，用来确认某个 net 在不在</span></code></pre></div>
+<p>为什么要会这个：报告不够用时，<code>dbGet</code> 是唯一能"自己造一份报告"的办法。比如"列出所有面积大于 1000µm² 的实例"，报告命令里没有，一行 <code>dbGet</code> 加 <code>foreach</code> 就能出来。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">dbGet</span><span class="term-zh">数据库查询命令</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Innovus 的 Tcl 数据库接口：<code>dbGet 对象.属性</code> 取数据，<code>dbSet 对象.属性 值</code> 改数据，<code>-p</code> 用来按值过滤。<br><strong>它相当于直接读内存里的数据库</strong>，比报告命令灵活，也比报告命令危险：<code>dbSet</code> 改错了不会有人拦你。</p></div>
+</div>
   <label class="ch-done"><input type="checkbox" data-mark="db"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="first" data-ch="first">
   <div class="ch-h"><span class="ch-n">04</span><h2>第一个能跑通的序列</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ---- 1. 读入设计 ----</span><span class="ln cmt"># 读网表（综合出来的 .v）</span><span class="ln ">read_netlist ../syn/netlist/ipa_top.v</span><span class="ln "> </span><span class="ln cmt"># 读物理库（标准单元和宏单元的 .lef）</span><span class="ln ">read_lef ../lib/lef/tsmc40_stdcell.lef</span><span class="ln ">read_lef ../lib/lef/sram_2048x64.lef</span><span class="ln "> </span><span class="ln cmt"># 读时序库（.lib，工具内部转成 .db）</span><span class="ln ">read_libs ../lib/lib/tsmc40_tt.lib</span><span class="ln "> </span><span class="ln cmt"># 读约束</span><span class="ln ">read_sdc ../constraints/ipa.sdc</span><span class="ln "> </span><span class="ln cmt"># 指定顶层模块名，并把网表和库"绑"起来</span><span class="ln ">set top_design ipa_top</span><span class="ln ">init_design</span><span class="ln "> </span><span class="ln cmt"># ---- 2. 看一眼是否读对了 ----</span><span class="ln ">report_area                    # 总面积、单元数</span><span class="ln ">report_clocks                  # 时钟有没有读到</span><span class="ln ">checkDesign -all               # 一致性检查，有 unconnected 会报出来</span><span class="ln "> </span><span class="ln cmt"># ---- 3. 存盘（重要：每步都存） ----</span><span class="ln ">saveDesign db/01_init.enc</span></code></pre></div>
+  <p>下面这一串是 Innovus 的"最小可运行流程"：从零到有一个能存盘的设计。<strong>顺序不能乱</strong>，每一段的作用写在注释里。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：Innovus 从零初始化一个设计的完整序列（MMMC 流程）</span><span class="ln cmt"># 用法：innovus -no_gui -files init.tcl；所有相对路径以 pnr/ 为当前目录</span><span class="ln "> </span><span class="ln cmt"># ---- 1. 读设计数据（此时还没有数据库）----</span><span class="ln ">read_verilog ../syn/netlist/ipa_top.v            # 读门级网表，建立逻辑连接关系</span><span class="ln ">read_lef ../lib/lef/tsmc40_tech.lef              # 先读 tech LEF：有哪些层、线宽、间距、via</span><span class="ln ">read_lef ../lib/lef/tsmc40_stdcell.lef           # 再读单元 LEF：每个单元的尺寸和引脚位置</span><span class="ln ">read_lef ../lib/lef/sram_2048x64.lef             # 宏单元 LEF，用不到 SRAM 时可以省</span><span class="ln ">read_mmmc ../constraints/mmmc.tcl                # 读 MMMC：库集合、约束模式、分析视图三件套</span><span class="ln "> </span><span class="ln cmt"># ---- 2. 建数据库（把上面这些绑成一个设计）----</span><span class="ln ">set init_top_cell ipa_top                        # 指定顶层单元名，必须和网表里的 module 一致</span><span class="ln ">init_design                                      # 建立内部数据库；这一步之后才能真正操作设计</span><span class="ln "> </span><span class="ln cmt"># ---- 3. 灌入已有的物理信息（可选）----</span><span class="ln ">read_def ../def/02_fp.def                        # 有现成 floorplan 就灌进来；没有则从空 die 开始</span><span class="ln "> </span><span class="ln cmt"># ---- 4. 自检：确认读对了 ----</span><span class="ln ">report_area                                      # 总面积、单元数；为 0 说明网表或库没读进来</span><span class="ln ">report_clocks                                    # 时钟列出来了吗？没有就是 MMMC/SDC 没生效</span><span class="ln ">checkDesign -all                                 # 一致性检查：悬空引脚、未连接端口、非法实例</span><span class="ln ">check_timing -include unconstrained              # 有没有完全没约束的端点</span><span class="ln "> </span><span class="ln cmt"># ---- 5. 存盘：这一步不做，前面全白干 ----</span><span class="ln ">saveDesign db/01_init.enc                        # 二进制存档，实际生成的目录叫 01_init.enc.dat/</span></code></pre></div>
+<p>几点必须解释清楚：</p>
+<ul><li><strong><code>read_lef</code> 要读两次</strong>：tech LEF 定"规则"，cell LEF 定"形状"。只读后者，工具知道单元多大但不知道怎么画线。</li><li><strong><code>read_mmmc</code> 替代了 <code>read_sdc</code></strong>：MMMC（Multi-Mode Multi-Corner，多模式多工艺角）把"用哪套库 + 用哪份约束 + 看哪个 corner"打包成分析视图。小项目也可以直接 <code>read_sdc</code>，但公司流程基本都用 MMMC。</li><li><strong><code>read_def</code> 必须在 <code>init_design</code> 之后</strong>：<code>init_design</code> 建空数据库，<code>read_def</code> 往里灌坐标。顺序反了会报"没有设计"。</li><li><strong><code>checkDesign</code> 不要跳</strong>：它会把"某个输入端口没接驱动"这种问题提前暴露，比在布线阶段发现便宜一百倍。</li></ul>
 <div class="pit"><div class="pit-h">常见坑 · 忘了 saveDesign，几小时白干</div><div class="pit-b"><p>Innovus 不会自动存。跑到一半崩溃、或者你自己想回退，没有存盘就只能从零开始。</p>
-<p><strong>规矩：每完成一个阶段就 <code>saveDesign db/NN_阶段名.enc</code>。</strong> 这样出问题可以 <code>restoreDesign db/05_cts.enc</code> 回到上一个可用状态。</p>
-<p><code>NN</code> 用序号，方便排序和回退。</p></div></div>
+<p><strong>规矩：每完成一个阶段就 <code>saveDesign db/NN_阶段名.enc</code>。</strong> 出问题可以 <code>restoreDesign db/05_cts.enc.dat ipa_top</code> 回到上一个可用状态。</p>
+<p><code>NN</code> 用序号，方便排序和回退。存档目录会越来越大（一个设计几个 GB），定期清理中间版本，但<strong>每个阶段的最后一版必须留</strong>。</p></div></div>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">.enc</span><span class="term-zh">Innovus 设计数据库</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>Innovus 自己的二进制存盘格式（enc.dat 目录）。存了设计的完整状态：布局、布线、约束、设置。<br>和它对应的是 ICC2 的 <code>.ndm</code>（库）+ block 数据库。格式不同，作用相同。</p></div>
+  <div class="term-b"><p>Innovus 自己的二进制存盘格式，实际是一个目录（<code>01_init.enc/</code> 里面若干文件）。存了设计的完整状态：布局、布线、约束、工具设置。<br>和它对应的是 ICC2 的 block 数据库（NDM 库 + <code>save_block</code>）。格式不同，作用相同：<strong>给流程留一个可回退的锚点。</strong></p></div>
 </div>
+<div class="pit"><div class="pit-h">常见坑 · 脚本里用了相对路径，换个目录就跑不了</div><div class="pit-b"><p>现象：在 <code>pnr/</code> 下跑得好好的脚本，<code>cd</code> 到别处再跑，报 <code>Cannot open file ../lib/...</code>。</p>
+<p>原因：路径是相对当前工作目录的。批处理系统提交任务时，工作目录经常不是你以为的那个。</p>
+<p>怎么改：脚本开头统一 <code>set PRJ [pwd]</code>，所有路径写成 <code>$PRJ/../lib/...</code>；或者在启动脚本里先 <code>cd</code> 到固定目录。<strong>路径问题占了新手报错的一半</strong>，一次性写对能省很多时间。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="first"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="icc2" data-ch="icc2">
   <div class="ch-h"><span class="ch-n">05</span><h2>与 ICC2 的对应关系</h2></div>
-  <p>工具不同，动作一样。这张表建议存下来：</p>
-<div class="tbl"><table><thead><tr><th>动作</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>读网表</td><td><code>read_netlist</code></td><td><code>read_verilog</code></td></tr><tr><td>读物理库</td><td><code>read_lef</code></td><td>建库时已包含</td></tr><tr><td>读时序库</td><td><code>read_libs</code></td><td>建库时已包含</td></tr><tr><td>初始化</td><td><code>init_design</code></td><td><code>link_design</code></td></tr><tr><td>存盘</td><td><code>saveDesign x.enc</code></td><td><code>save_block</code></td></tr><tr><td>布局规划</td><td><code>floorPlan</code></td><td><code>initialize_floorplan</code></td></tr><tr><td>布局</td><td><code>place_opt_design</code></td><td><code>place_opt</code></td></tr><tr><td>时钟树</td><td><code>ccopt_design</code></td><td><code>clock_opt</code></td></tr><tr><td>布线</td><td><code>routeDesign</code></td><td><code>route_auto</code></td></tr><tr><td>时序报告</td><td><code>report_timing</code></td><td><code>report_timing</code></td></tr></tbody></table></div>
-<div class="tip"><div class="tip-h">小技巧</div><p>面试常问"你会 Innovus 还是 ICC2"。正确答法是："我熟悉 PR 流程本身，两个工具的命令能对应上。"——因为公司换工具是常事，方法论才是你的资产。</p></div>
-<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：用 ICC2 走一遍同样的动作（本课程实测环境）</div><div class="lab-b"><p>如果你的环境是 ICC2（我们验证过的机器），对应命令：</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 打开库和 block</span><span class="ln ">open_lib ./work_dir</span><span class="ln ">open_block ipa_top</span><span class="ln "> </span><span class="ln cmt"># 看状态</span><span class="ln ">report_design -physical</span><span class="ln ">report_timing -max_paths 1</span><span class="ln "> </span><span class="ln cmt"># 存盘</span><span class="ln ">save_block</span></code></pre></div>
-<p>过关标准：能说出你敲的每条命令，在另一套工具里叫什么。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出后端工具管的三样东西（数据库、引擎、报告）</li><li>知道 GUI 用来看、脚本用来做</li><li>记得每个阶段结束必须 <code>saveDesign</code></li><li>能背出至少 6 组 Innovus / ICC2 命令对应</li></ul></div>
+  <p>工具不同，动作一样。这张表建议存下来，面试前看一遍：</p>
+<div class="tbl"><table><thead><tr><th>动作</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>启动并跑脚本</td><td><code>innovus -no_gui -files run.tcl</code></td><td><code>icc2_shell -f run.tcl</code></td></tr><tr><td>读网表</td><td><code>read_verilog</code> / <code>read_netlist</code></td><td><code>read_verilog</code></td></tr><tr><td>读物理库</td><td><code>read_lef</code>（tech + cell 各一次）</td><td><code>read_lef</code>（或建 NDM 时已包含）</td></tr><tr><td>读约束</td><td><code>read_mmmc</code> / <code>read_sdc</code></td><td><code>read_sdc</code></td></tr><tr><td>初始化设计</td><td><code>init_design</code></td><td><code>link_block</code></td></tr><tr><td>存盘</td><td><code>saveDesign db/x.enc</code></td><td><code>save_block</code></td></tr><tr><td>布局规划</td><td><code>floorPlan</code></td><td><code>initialize_floorplan</code></td></tr><tr><td>布局</td><td><code>place_opt_design</code></td><td><code>place_opt</code></td></tr><tr><td>时钟树</td><td><code>ccopt_design</code></td><td><code>clock_opt</code></td></tr><tr><td>布线</td><td><code>routeDesign</code></td><td><code>route_auto</code></td></tr><tr><td>布线后优化</td><td><code>optDesign -postRoute</code></td><td><code>route_opt</code></td></tr><tr><td>时序报告</td><td><code>report_timing</code></td><td><code>report_timing</code></td></tr><tr><td>QoR 汇总</td><td><code>report_qor</code></td><td><code>report_qor</code></td></tr><tr><td>面积报告</td><td><code>report_area</code></td><td><code>report_area</code></td></tr><tr><td>DRC 检查</td><td><code>verify_drc</code></td><td><code>check_routes</code></td></tr><tr><td>导出 DEF</td><td><code>defOut -floorplan</code></td><td><code>write_def</code></td></tr><tr><td>导出 GDSII</td><td><code>streamOut</code></td><td><code>write_gds</code></td></tr></tbody></table></div>
+<p>两点说明：</p>
+<ul><li>命令名在不同版本里会有细微差别（尤其 ICC2 的 application options 体系），上表是主流版本的动作对应，<strong>具体敲之前用 <code>man</code> 或 <code>help</code> 确认一次</strong>。</li><li>真正相通的是<strong>顺序和判断标准</strong>：先读库再 init、布局前必须有 floorplan、CTS 后必须看 skew。这些换工具也不会变。</li></ul>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">MMMC</span><span class="term-zh">多模式多工艺角</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Multi-Mode Multi-Corner。把"用哪套时序库（library set）+ 用哪份约束（constraint mode）+ 看哪个 corner（analysis view）"组合成若干分析视图，一次性管住所有场景。<br>典型配置：<code>func_ss</code>（功能模式 + 慢角，查 setup）、<code>func_ff</code>（功能模式 + 快角，查 hold）、<code>scan_ss</code>（测试模式 + 慢角）。<strong>少一个视图，就少一类签核场景。</strong></p></div>
+</div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：用纯命令行跑通一次初始化</div><div class="lab-b"><p><strong>任务</strong>：不用 GUI，把上面的序列跑一遍，产出 <code>db/01_init.enc</code>，并用 <code>dbGet</code> 报出单元数。</p>
+<p><strong>步骤</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：无界面启动 Innovus 并执行初始化脚本，日志落盘</span><span class="ln cmt"># 用法：在 pnr/ 目录下执行；先确认 ../syn/netlist/ipa_top.v 存在</span><span class="ln ">mkdir -p db log                                              # 建存档和日志目录</span><span class="ln ">innovus -no_gui -files init.tcl -log log/init.log -overwrite  # 跑脚本，全程无界面</span><span class="ln ">grep -i "error" log/init.log                                  # 先看有没有 error（warning 可以后看）</span><span class="ln ">ls db/                                                        # 确认 01_init.enc.dat 目录生成</span></code></pre></div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：在 Innovus 里恢复存档并查数据库，验证存盘真的有效</span><span class="ln cmt"># 用法：重新启动 innovus 后执行，或写在下一个脚本开头</span><span class="ln ">restoreDesign db/01_init.enc.dat ipa_top     # 恢复存档；第二个参数是顶层名</span><span class="ln ">puts "instances = [llength [dbGet top.insts]]"   # 打印实例数，应等于网表里的单元数</span><span class="ln ">puts "nets      = [llength [dbGet top.nets]]"    # 打印连线数</span></code></pre></div>
+<p><strong>过关标准</strong>：三个数对得上——<code>dbGet</code> 数出的实例数与 <code>report_area</code> 里的单元数一致、<code>report_clocks</code> 能看到时钟、日志里 error 数为 0。任何一项不对，先回去查输入，不要往下做 floorplan。</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>为什么后端流程强调"写脚本"而不是用 GUI 点？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">因为要可复现、可对比、可交接；一次运行几小时、参数几十个，脚本是唯一能重跑和版本管理的方式。</div>
+  <div class="q-a">因为要可复现、可存档、可批量：一次运行几小时、参数几十个，只有脚本能重跑、能 diff、能循环扫参数。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>-no_gui</code> 和 <code>-files</code> 分别是什么意思？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>-no_gui</code> 不启动图形界面（服务器批处理）；<code>-files</code> 启动后自动执行指定的 Tcl 脚本。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span><code>saveDesign</code> 为什么每个阶段都要做？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">工具不会自动存盘，崩溃或需要回退时没有存档就得从头再来。</div>
+  <div class="q-a">工具不会自动存盘，崩溃或需要回退时没有存档就得从头再来；每个阶段留一版才能精确回退。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>Innovus 的 <code>.enc</code> 和 ICC2 的数据库有什么区别？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">格式不同（Cadence 私有 vs Synopsys NDM），作用相同：保存设计的完整状态。</div>
+  <div class="q-a">格式不同（Cadence 私有目录 vs Synopsys NDM + block），作用相同：保存设计的完整状态。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span><code>init_design</code> 做了什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">把网表、物理库、时序库、约束绑定在一起，建立可操作的内部数据库。</div>
+  <div class="q-a">把网表、物理库、时序库、约束绑定在一起，建立可操作的内部数据库；之后才能读 DEF、做布局。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 <code>read_def</code> 要放在 <code>init_design</code> 之后？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>init_design</code> 建空数据库，<code>read_def</code> 往已有设计里灌坐标；反了就没有设计可灌。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>dbGet top.insts</code> 和 <code>dbGet top.insts.name</code> 有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">前者返回实例句柄列表（对象指针），后者返回名字列表；要取坐标得先拿句柄再取 <code>.box</code>。</div>
 </div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出后端工具管的三样东西（数据库、引擎、报告），以及数据库里的"一设计三资料"</li><li>能说出必须用命令行的三个理由：可重复、可存档、可批量</li><li>知道 <code>-no_gui</code>、<code>-files</code>、<code>-log</code>、<code>-overwrite</code> 四个参数各自的作用</li><li>能按正确顺序写出初始化序列，并说清 <code>read_lef</code> 为什么读两次</li><li>能用 <code>dbGet</code> 数出实例数、查出某个实例的坐标</li><li>记得每个阶段结束必须 <code>saveDesign</code>，并知道怎么 <code>restoreDesign</code> 回退</li><li>能背出至少 10 组 Innovus / ICC2 命令对应</li></ul></div>
   <label class="ch-done"><input type="checkbox" data-mark="icc2"><span>这一章我学完了</span></label>
 </section></article>
 

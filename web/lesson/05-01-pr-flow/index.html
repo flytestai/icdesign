@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>28nm 全流程（一）：把 PR 串成项目 · 27 | IC 后端学院</title>
-<meta name="description" content="前面学的是"每个阶段怎么做"，这一课讲"怎么把它们串成一条不会断的流水线"：目录怎么分、每步产物叫什么、怎么交接给 PT。">
+<title>28nm 全流程（一）：把 PR 串成项目 · 30 | IC 后端学院</title>
+<meta name="description" content="前面学的是"每个阶段怎么做"，这一课讲"怎么把它们串成一条不会断的流水线"：目录怎么分、每步产物叫什么、通过标准是什么、怎么交接给 PT、跑批脚本怎么写才能失败即停、断点续跑。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -26,10 +26,10 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-5">阶段五 · 28nm 全流程</a><span>/</span><b>28nm 全流程（一）：把 PR 串成项目</b></div>
     <div class="hero">
-      <div class="hero-no">27</div>
+      <div class="hero-no">30</div>
       <h1>28nm 全流程（一）：把 PR 串成项目</h1>
       <p class="hero-en">28nm PR Flow</p>
-      <p class="hero-sum">前面学的是"每个阶段怎么做"，这一课讲"怎么把它们串成一条不会断的流水线"：目录怎么分、每步产物叫什么、怎么交接给 PT。</p>
+      <p class="hero-sum">前面学的是"每个阶段怎么做"，这一课讲"怎么把它们串成一条不会断的流水线"：目录怎么分、每步产物叫什么、通过标准是什么、怎么交接给 PT、跑批脚本怎么写才能失败即停、断点续跑。</p>
       <div class="hero-meta">
         <span class="pill">约 40 分钟</span>
         <span class="pill">课表学时 4</span>
@@ -38,58 +38,173 @@
     </div>
     <article id="article"><section class="ch" id="project" data-ch="project">
   <div class="ch-h"><span class="ch-n">01</span><h2>PR 阶段的项目视角</h2></div>
-  <p>单机跑一个流程，和项目里跑一个流程，差别在这几点：</p>
-<div class="tbl"><table><thead><tr><th>单机练习</th><th>真实项目</th></tr></thead><tbody><tr><td>一个目录随便放</td><td>按阶段/日期分目录，可回溯</td></tr><tr><td>脚本改完就覆盖</td><td>脚本进版本管理，每次跑记录版本号</td></tr><tr><td>跑完看报告</td><td>每步产出固定格式报告，自动汇总成一张表</td></tr><tr><td>一个人跑</td><td>交接给别人能复现</td></tr></tbody></table></div>
+  <div class="goal"><span>本章目标</span>学完这一课，你能为一个 28nm 项目搭出可回溯的目录和脚本骨架，说清每个阶段的产物与通过标准，并把一套"网表 + SPEF + SDC + 报告 + 脚本版本"完整交给 STA。</div>
+<p>单机跑通一个设计，靠的是"我记得刚才点了什么"。项目里跑一个设计，靠的是"任何人拿到的目录，都能复现出同样的结果"。</p>
+<p>这两件事的差别，像<strong>装修工人</strong>和<strong>装修项目经理</strong>：</p>
+<ul><li>工人关心"这面墙怎么刷平"——对应 floorplan 怎么摆、CTS 怎么调。</li><li>项目经理关心"水电什么时候进场、瓷砖什么时候到、验收单谁签"——对应每个阶段的输入输出、交接物、通过标准。</li></ul>
+<p>后端工程师在项目里，一半时间是在做项目经理的事：<strong>管交付物</strong>，而不是敲命令。命令敲错可以重跑，交付物管错会让下游白干一周。</p>
+<div class="scene"><div class="scene-h">工作场景 · 一次交接会，三个问题全答不上来</div><div class="scene-b"><p>周五下午，STA 工程师来要数据："你们 PR 这版跑完了吗？给我网表、SPEF 和 SDC。"</p>
+<p>你打开 <code>pnr/out/</code>，里面有 <code>final.v</code>、<code>final.spef</code>、<code>final.sdc</code>，还有 <code>final_v2.v</code>、<code>final_old.spef</code>。你也不知道哪个是最后一版。</p>
+<p>STA 问了三句话：</p>
+<ol><li>"这三个文件是同一次导出的吗？"</li><li>"SPEF 对应的是哪次布线？"</li><li>"PR 用的约束和你要给我的这份，是同一个版本吗？"</li></ol>
+<p>你答不上来。STA 只能说："那我先不跑，你确认完再给我。"</p>
+<p>一个下午没了。<strong>这就是"会跑流程"和"能交付"的差距。</strong></p></div></div>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Run Directory</span><span class="term-zh">运行目录</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>每次跑流程新建一个带时间戳的目录（如 <code>run/20261122_1400/</code>），里面放本次的脚本副本、日志、报告、结果。<br>好处：任何时候都能回答"三天前那版是怎么跑的、结果是什么"。</p></div>
+  <div class="term-b"><p>每次跑流程新建一个带时间戳的目录（如 <code>run/20261122_1400/</code>），里面放本次的脚本副本、日志、报告、结果。它回答"三天前那版是怎么跑的、结果是什么"。</p></div>
 </div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Handoff</span><span class="term-zh">交接</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把一套完整、自洽、可复现的数据交给下游（STA、PV、封装）。"自洽"是关键：网表、SPEF、SDC 必须来自同一次运行。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Checkpoint</span><span class="term-zh">检查点</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>每个阶段结束时留下的"可回退状态"：数据库存盘 + 报告 + 日志 + 一个标记文件。出问题时从最近的检查点重跑，而不是从零开始。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Manifest</span><span class="term-zh">清单文件</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一次运行结束时生成的文本清单：工具版本、库版本、脚本 git 版本、输入文件校验和、各阶段产物路径、关键指标。它是这次运行的"身份证"。</p></div>
+</div>
+<p>单机练习和真实项目的差别，逐条列出来：</p>
+<div class="tbl"><table><thead><tr><th>单机练习</th><th>真实项目</th><th>不管的后果</th></tr></thead><tbody><tr><td>一个目录随便放</td><td>按阶段/日期分目录</td><td>找不到三天前那版</td></tr><tr><td>脚本改完就覆盖</td><td>脚本进 git，每次记录 commit</td><td>无法复现结果</td></tr><tr><td>跑完看屏幕</td><td>每步固定格式报告存档</td><td>出问题没有证据</td></tr><tr><td>一个人跑</td><td>交接给别人能复现</td><td>请假三天项目停摆</td></tr><tr><td>失败了从头再来</td><td>断点续跑</td><td>一次小错重跑一天</td></tr></tbody></table></div>
+<p><strong>算一笔时间账</strong>：一个万门设计全流程约 22 分钟，十万门约 6~10 小时。如果因为"没存盘"从第一步重跑，损失的是整轮时间；如果因为"网表和 SPEF 不同步"被 STA 退回，损失的是<strong>两个人</strong>的一轮时间。而每步存盘只要几十秒。</p>
   <label class="ch-done"><input type="checkbox" data-mark="project"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="tree" data-ch="tree">
   <div class="ch-h"><span class="ch-n">02</span><h2>推荐目录结构</h2></div>
-  <div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proj/28nm/</span><span class="ln ">├── rtl/                    # 只读</span><span class="ln ">├── syn/</span><span class="ln ">│   ├── scripts/            # 综合脚本</span><span class="ln ">│   ├── netlist/ipa_top.v   # ← PR 的输入</span><span class="ln ">│   └── reports/</span><span class="ln ">├── pnr/</span><span class="ln ">│   ├── scripts/</span><span class="ln ">│   │   ├── 01_init.tcl</span><span class="ln ">│   │   ├── 02_floorplan.tcl</span><span class="ln ">│   │   ├── 03_power.tcl</span><span class="ln ">│   │   ├── 04_place.tcl</span><span class="ln ">│   │   ├── 05_cts.tcl</span><span class="ln ">│   │   ├── 06_route.tcl</span><span class="ln ">│   │   └── 07_finish.tcl</span><span class="ln ">│   ├── db/                 # 每阶段存盘</span><span class="ln ">│   ├── out/                # def / gds / spef / v</span><span class="ln ">│   └── reports/</span><span class="ln ">├── sta/</span><span class="ln ">│   ├── scripts/</span><span class="ln ">│   └── reports/</span><span class="ln ">├── pv/</span><span class="ln ">└── run/</span><span class="ln ">    └── 20261122_1400/      # 每次跑的完整现场</span></code></pre></div>
-<p><strong>要点：脚本按阶段编号。</strong> 想重跑"从 CTS 开始"，只要 <code>restoreDesign db/04_place.enc</code> 再跑 05、06、07，不用从头来。</p>
+  <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proj/28nm/</span><span class="ln ">├── rtl/                       # RTL 源码，只读；PR 不改，出问题找前端</span><span class="ln ">├── syn/</span><span class="ln ">│   ├── scripts/               # 综合脚本</span><span class="ln ">│   ├── netlist/ipa_top.v      # ← PR 的输入（综合后的门级网表）</span><span class="ln ">│   └── reports/               # 综合的时序/面积报告，PR 对照用</span><span class="ln ">├── pnr/</span><span class="ln ">│   ├── scripts/</span><span class="ln ">│   │   ├── 00_setup.tcl       # 变量、路径、库版本，所有脚本都 source 它</span><span class="ln ">│   │   ├── 01_init.tcl        # 读库、读网表、读约束</span><span class="ln ">│   │   ├── 02_floorplan.tcl   # 边界、宏、row</span><span class="ln ">│   │   ├── 03_power.tcl       # 电源环、电源条、PG 连接</span><span class="ln ">│   │   ├── 04_place.tcl       # 布局 + 预 CTS 优化</span><span class="ln ">│   │   ├── 05_cts.tcl         # 时钟树</span><span class="ln ">│   │   ├── 06_route.tcl       # 布线 + 后优</span><span class="ln ">│   │   └── 07_finish.tcl      # filler、导出、最终报告</span><span class="ln ">│   ├── db/                    # 每阶段存盘：01_init.enc ... 07_finish.enc</span><span class="ln ">│   ├── out/                   # 交付物：def / v / spef / sdc</span><span class="ln ">│   ├── rpt/                   # 每阶段报告</span><span class="ln ">│   └── log/                   # 每阶段日志</span><span class="ln ">├── sta/</span><span class="ln ">│   ├── scripts/               # PrimeTime 脚本</span><span class="ln ">│   └── reports/</span><span class="ln ">├── pv/                        # DRC / LVS</span><span class="ln ">└── run/</span><span class="ln ">    └── 20261122_1400/         # 本次运行的完整现场（软链到上面各目录）</span></code></pre></div>
+<p>每个目录放什么、谁能删，必须写清楚：</p>
+<div class="tbl"><table><thead><tr><th>目录</th><th>放什么</th><th>谁写</th><th>谁读</th><th>能不能删</th></tr></thead><tbody><tr><td><code>rtl/</code></td><td>RTL 源码</td><td>前端</td><td>综合、验证</td><td>不能，只读</td></tr><tr><td><code>syn/netlist/</code></td><td>门级网表</td><td>综合</td><td>PR</td><td>不能，按版本保留</td></tr><tr><td><code>pnr/scripts/</code></td><td>分阶段 Tcl</td><td>PR</td><td>PR、接手人</td><td>不能，进 git</td></tr><tr><td><code>pnr/db/</code></td><td>阶段存盘</td><td>PR</td><td>PR</td><td>只保留最近 2~3 版</td></tr><tr><td><code>pnr/out/</code></td><td>交付物</td><td>PR</td><td>STA、PV、封装</td><td>按版本保留</td></tr><tr><td><code>pnr/rpt/</code></td><td>报告</td><td>PR</td><td>PR、review</td><td>随 run 目录保留</td></tr><tr><td><code>pnr/log/</code></td><td>日志</td><td>工具</td><td>所有人</td><td>至少留到项目结束</td></tr><tr><td><code>run/&lt;时间戳&gt;/</code></td><td>本次现场</td><td>脚本</td><td>追溯</td><td>项目结束前不删</td></tr></tbody></table></div>
+<p><strong>脚本按阶段编号</strong>，是整个结构的关键。想重跑"从 CTS 开始"，只要 <code>restoreDesign db/04_place.enc</code> 再跑 05、06、07，不用从头来。</p>
+<p>编号还有一个隐性好处：<strong>看文件名就知道依赖顺序</strong>。<code>05_cts.tcl</code> 一定在 <code>04_place.tcl</code> 之后，新人不用问人。</p>
+<p><code>scripts/</code> 和 <code>db/</code> 一定要分开，而且 <code>db/</code> 不进 git。脚本是文本、要版本管理、要 review；数据库是二进制、动辄几百 MB、每次跑都变。把 <code>.enc</code> 提交进 git，仓库几天就爆了。正确做法是脚本进 git，数据库靠 run 目录和 manifest 追溯。</p>
+<p><code>run/latest</code> 是一个软链，不是副本。它让你永远能一句 <code>cd run/latest</code> 找到最近一次，而不必记时间戳；但它也意味着<strong>删 run 目录前要先确认 latest 指向哪</strong>。软链指向已删除的目录时，<code>ls</code> 会报 "No such file or directory"，这是新手常见的惊吓。</p>
+<div class="pit"><div class="pit-h">常见坑 · 脚本互相 source，改一个变量全崩</div><div class="pit-b"><p>现象：<code>00_setup.tcl</code> 里改了 <code>DESIGN</code> 名字，跑到 <code>03_power.tcl</code> 报找不到网表。</p>
+<p>原因：有的脚本用 <code>$DESIGN</code>，有的写死了 <code>ipa_top</code>；或者 <code>00_setup.tcl</code> 没有被每个脚本 source。</p>
+<p>规矩：<strong>所有路径、名字、库版本只在 <code>00_setup.tcl</code> 里定义一次，其他脚本第一行 <code>source ./00_setup.tcl</code>。</strong> 禁止在 02~07 里出现硬编码的设计名。</p>
+<p>检查方法：<code>grep -n "ipa_top" pnr/scripts/*.tcl</code>，除了 <code>00_setup.tcl</code>，其他地方出现就是隐患。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="tree"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="naming" data-ch="naming">
+  <div class="ch-h"><span class="ch-n">03</span><h2>阶段命名与产物链</h2></div>
+  <p>命名不是审美问题，是<strong>可追溯性</strong>问题。推荐一条规则，全项目统一：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">&lt;两位阶段号&gt;_&lt;内容&gt;_&lt;时间戳&gt;.&lt;扩展名&gt;</span><span class="ln ">例：04_place_20261122_1400.enc</span><span class="ln ">    06_route_20261122_1400.def</span></code></pre></div>
+<p>三个字段各有作用：阶段号决定排序，内容决定"这是什么"，时间戳决定"哪一次"。</p>
+<p>产物是一条链，每一环都依赖上一环：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">netlist.v ──▶ 01_init.enc ──▶ 02_fp.enc ──▶ 03_power.enc ──▶ 04_place.enc</span><span class="ln ">                                                                  │</span><span class="ln ">                                                                  ▼</span><span class="ln ">final.spef ◀── final.def ◀── final.v ◀── 07_finish.enc ◀── 06_route.enc ◀── 05_cts.enc</span></code></pre></div>
+<p>链上的每一环都要能回答："我是从哪个上游来的、我下游是谁。" 这就是为什么 <code>db/</code> 里的文件名必须带阶段号，<code>out/</code> 里的文件名必须带时间戳。</p>
+<p>时间戳建议精确到分钟，不要只到天。同一天跑两版很常见（上午改 floorplan、下午重跑），只写日期就会互相覆盖。如果团队并发跑同一个设计，还要加人名或工位号，比如 <code>04_place_20261122_1400_zhang.enc</code>。</p>
+<p>交付版本再额外打一个语义化 tag：<code>v0.1</code> 表示第一次内部交付，<code>v0.2</code> 表示修完 floorplan，<code>v1.0</code> 表示送签核。tag 和 run 目录的对应关系写进交接邮件，别只存在脑子里。</p>
+<p><strong>磁盘要算一下</strong>：一个万门设计的 <code>.enc</code> 约 100~300 MB，八个阶段约 1.5~2.5 GB；跑十次就是 15~25 GB。十万门设计单个 <code>.enc</code> 可能 1~2 GB，不能无限留。</p>
+<p>保留策略（典型做法）：</p>
+<ul><li><code>db/</code>：只留每个阶段最新一版 + 上一版（回退用），旧的删。</li><li><code>out/</code>：每次交付的版本都留，按 <code>v0.1</code>、<code>v0.2</code> 打 tag。</li><li><code>log/</code>：全留，文本不占空间。</li><li><code>run/</code>：项目结束后归档到冷存储。</li></ul>
+  <label class="ch-done"><input type="checkbox" data-mark="naming"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="artifacts" data-ch="artifacts">
-  <div class="ch-h"><span class="ch-n">03</span><h2>每步的产物与检查</h2></div>
-  <div class="tbl"><table><thead><tr><th>步骤</th><th>产物</th><th>关键检查</th></tr></thead><tbody><tr><td>01 初始化</td><td><code>db/01_init.enc</code></td><td>单元数、时钟、<code>checkDesign</code></td></tr><tr><td>02 floorplan</td><td><code>db/02_fp.enc</code></td><td>利用率、宏位置、无重叠</td></tr><tr><td>03 power</td><td><code>db/03_power.enc</code></td><td>连通性、via 覆盖</td></tr><tr><td>04 place</td><td><code>db/04_place.enc</code></td><td>密度、拥塞、setup WNS</td></tr><tr><td>05 cts</td><td><code>db/05_cts.enc</code></td><td>skew、insertion delay、hold WNS</td></tr><tr><td>06 route</td><td><code>db/06_route.enc</code></td><td>DRC、open net</td></tr><tr><td>07 finish</td><td><code>out/*.def/.gds/.spef</code></td><td>最终 DRC、时序、面积</td></tr></tbody></table></div>
-<div class="tip"><div class="tip-h">小技巧</div><p>不是怕崩，是<strong>怕改错</strong>。</p>
-<p>比如 CTS 之后发现 floorplan 有问题，你可以 <code>restoreDesign db/02_fp.enc</code> 改完重跑 03~07；如果没有存盘，只能从 01 开始。</p>
-<p><strong>存盘的时间成本是 1 分钟，不存盘的代价是 4 小时。</strong></p></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>每步的产物与检查</h2></div>
+  <p>“跑完了”不算完，“检查通过”才算完。每个阶段都要有<strong>一条命令 + 一个数</strong>作为通过标准。</p>
+<div class="tbl"><table><thead><tr><th>阶段</th><th>产物</th><th>检查命令</th><th>通过标准</th></tr></thead><tbody><tr><td>01 初始化</td><td><code>db/01_init.enc</code></td><td><code>checkDesign</code> / <code>report_clocks</code></td><td>单元数与网表一致；时钟数正确；无 unresolved</td></tr><tr><td>02 floorplan</td><td><code>db/02_fp.enc</code></td><td><code>checkFPlan -reportUtil</code> / <code>report_area</code></td><td>利用率接近目标；宏无重叠；row 完整</td></tr><tr><td>03 power</td><td><code>db/03_power.enc</code></td><td><code>verifyPowerVia</code> / <code>checkPGConnectivity</code></td><td>PG 0 unconnected；via 覆盖完整</td></tr><tr><td>04 place</td><td><code>db/04_place.enc</code></td><td><code>report_qor</code> / <code>reportCongestion</code></td><td>WNS 可控；无大面积拥塞热点</td></tr><tr><td>05 cts</td><td><code>db/05_cts.enc</code></td><td><code>report_clock_timing -type skew</code></td><td>skew ≤ 目标 1.5 倍；hold 有基线</td></tr><tr><td>06 route</td><td><code>db/06_route.enc</code></td><td><code>check_routes</code>（按 short/open/spacing 分类看）</td><td>DRC 0 或只剩可解释少数；无 open</td></tr><tr><td>07 finish</td><td><code>out/*.def/.v/.spef/.sdc</code></td><td>文件自检 + 最终报告</td><td>四件套同戳；DRC 0；时序达标</td></tr></tbody></table></div>
+<p>三个最容易被糊弄过去的检查，单独说：</p>
+<p><strong>单元数</strong>。初始化后 <code>report_qor</code> 的单元数应该和网表里的实例数基本一致（差几个黑盒正常）。差 10% 说明网表读漏了，或者库里有单元没 link 上。这个数不对，后面所有结果都不用看。</p>
+<p><strong>WNS 的趋势，不是绝对值</strong>。place 后 WNS −0.3 ns、CTS 后 −0.2 ns、route 后 −0.1 ns，是健康的收敛趋势。如果 place 后 +0.5 ns、route 后 −0.8 ns，说明布线阶段引入了大量真实线延迟，要回头看布局和拥塞。</p>
+<p><strong>DRC 的类型</strong>。总数是 0 最好；不是 0 时，必须按类型分类（short / spacing / open / via）。short 和 open 是"硬伤"，磨不掉；spacing 和 via 才可能靠 <code>route_detail</code> 收敛。</p>
+<p>检查要尽量自动化。人眼每天看八份报告，第三天就会开始"扫一眼觉得差不多"。把通过标准写成断言（单元数偏差 &lt;1%、WNS 不回退超过 50 ps、DRC 不增加），让脚本打印 PASS/FAIL。<strong>人只负责解释 FAIL，不负责发现 FAIL。</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：每个阶段结束时统一产出"一页纸"检查报告</span><span class="ln cmt"># 用法：放在各阶段脚本末尾；报告文件名带阶段号，便于横向对比</span><span class="ln ">report_qor &gt; rpt/${STAGE}_qor.rpt                  ;# WNS/TNS/面积/利用率/单元数，一页看全</span><span class="ln ">report_timing -max_paths 20 &gt; rpt/${STAGE}_setup.rpt  ;# setup 最差 20 条，看趋势</span><span class="ln ">report_timing -delay_type min -max_paths 20 &gt; rpt/${STAGE}_hold.rpt  ;# hold 最差 20 条</span><span class="ln ">checkDesign -all &gt; rpt/${STAGE}_check.rpt          ;# 结构检查：悬空、多驱动、无负载（命令名以版本为准）</span></code></pre></div>
   <label class="ch-done"><input type="checkbox" data-mark="artifacts"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="handoff" data-ch="handoff">
-  <div class="ch-h"><span class="ch-n">04</span><h2>交接给 PT：要交什么</h2></div>
-  <p>PR 做完，STA 工程师（或者你自己）要用 PrimeTime 复签。需要三样东西：</p>
-<div class="tbl"><table><thead><tr><th>文件</th><th>内容</th><th>为什么需要</th></tr></thead><tbody><tr><td><code>final.v</code></td><td>布线后的网表</td><td>PT 要读设计</td></tr><tr><td><code>final.spef</code></td><td>寄生参数（R/C）</td><td>让 PT 用真实线延迟</td></tr><tr><td><code>ipa.sdc</code></td><td>约束</td><td>和 PR 用同一份，保证口径一致</td></tr></tbody></table></div>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># PR 侧导出</span><span class="ln ">write_verilog out/final.v</span><span class="ln ">write_parasitics -format SPEF -output out/final.spef</span></code></pre></div>
-<div class="pit"><div class="pit-h">常见坑 · 网表和 SPEF 不匹配</div><div class="pit-b"><p>现象：PT 读入后报大量 <code>cannot find pin</code> 或时序完全对不上。</p>
-<p>原因：网表是布线<strong>前</strong>导出的，SPEF 是布线<strong>后</strong>生成的（或者反过来）。两者单元名、连线名对不上。</p>
-<p><strong>规矩：网表和 SPEF 必须同一次运行、同一时刻导出。</strong> 导出后立刻用 <code>grep</code> 核对几个关键单元名是否都在。</p></div></div>
-<div class="scene"><div class="scene-h">工作场景 · 一次典型的交接事故</div><div class="scene-b"><p>PR 工程师交了网表和 SPEF，STA 一跑，WNS −2.3ns，完全不可能。</p>
-<p>排查发现：SPEF 是三天前那版（改过布局），网表是新的。<strong>延迟数据对不上，时序当然离谱。</strong></p>
-<p>从此这个团队的规定：导出脚本必须在同一条命令里同时产生 <code>.v</code> 和 <code>.spef</code>，并在文件名里带同一个时间戳。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能画出 28nm 项目的目录结构，并说明为什么脚本按阶段编号</li><li>知道每步该存什么盘、检查什么</li><li>能说出交接给 PT 的三件套</li><li>明白网表和 SPEF 必须同时导出</li></ul></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>交接给 PT：要交什么</h2></div>
+  <p>PR 做完，STA 要用 PrimeTime 复签。只交"网表 + SPEF + SDC"三件是不够的——出问题时需要报告和版本信息定位。完整的交接是六件：</p>
+<div class="tbl"><table><thead><tr><th>#</th><th>文件</th><th>内容</th><th>为什么必须</th></tr></thead><tbody><tr><td>1</td><td><code>final.v</code></td><td>布线后门级网表</td><td>PT 读设计；必须是布线后，不是布局前</td></tr><tr><td>2</td><td><code>final.spef</code></td><td>每根线的 R/C</td><td>让 PT 用真实延迟，而不是估算</td></tr><tr><td>3</td><td><code>final.sdc</code></td><td>约束</td><td>和 PR 内部用的同一版，口径一致</td></tr><tr><td>4</td><td><code>final.def</code></td><td>版图几何</td><td>PV 做 DRC/LVS；也用于 cross-check 单元位置</td></tr><tr><td>5</td><td>报告包</td><td>QoR / timing / DRC / skew</td><td>让 STA 知道 PR 自检结论，重点看哪里</td></tr><tr><td>6</td><td>脚本与版本</td><td>git commit、工具版本、库版本</td><td>复现和定位"是不是环境变了"</td></tr></tbody></table></div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：一次导出六件套里的前四件（Innovus 写法；ICC2 对照写在注释里）</span><span class="ln cmt"># 用法：07_finish.tcl 末尾执行；STAMP 由 00_setup.tcl 统一生成</span><span class="ln ">set STAMP 20261122_1400                                    ;# 统一时间戳，四份文件必须同源</span><span class="ln ">defOut -netlist -routing ./out/final_${STAMP}.def           ;# DEF：含布线和网表连接（ICC2: write_def）</span><span class="ln ">saveNetlist ./out/final_${STAMP}.v                          ;# 布线后网表（ICC2: write_verilog）</span><span class="ln ">write_sdc ./out/final_${STAMP}.sdc                          ;# 约束，从工具里导，不要拷输入那份（ICC2: write_sdc）</span><span class="ln ">rcOut -spef ./out/final_${STAMP}.spef                       ;# 寄生参数（ICC2: write_parasitics -format SPEF）</span></code></pre></div>
+<p>每份文件给谁、缺了会怎样：</p>
+<ul><li><strong><code>.v</code> + <code>.spef</code> 必须成对</strong>。只有网表没有 SPEF，PT 只能用估算线延迟（<code>set_wire_load_model</code>），结果和 PR 差很多；只有 SPEF 没有匹配网表，PT 会报大量 <code>cannot find pin</code>。</li><li><strong><code>.sdc</code> 必须从 PR 工具导</strong>。PR 过程中工具会补 <code>set_propagated_clock</code>、更新 uncertainty、加 case analysis。直接拷输入 SDC，PT 算的是另一套条件。</li><li><strong><code>.def</code> 不是给 PT 的，是给 PV 的</strong>。但交接时一起给，方便交叉核对"PT 读到的单元位置和版图是不是一致"。</li><li><strong>报告包是"论点"，不是"附件"</strong>。你要在交接邮件里写："这版 WNS −0.08 ns，只有 3 条违例，都在 u_core 到 SRAM 的路径上，建议 PT 重点看。" 而不是把 20 份报告一丢。</li></ul>
+<p>清单文件（manifest）建议每次自动生成：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 本次运行的身份证：工具、库、脚本、输入、产物、关键指标</span><span class="ln ">run_id       : 20261122_1400</span><span class="ln ">tool         : Innovus 21.1（以实际版本为准）</span><span class="ln ">pdk          : tsmc28 / NDM 或 LEF 版本号</span><span class="ln ">script_git   : a1b2c3d（pnr/scripts 的 commit）</span><span class="ln ">netlist_md5  : 9f2c...（输入网表校验和）</span><span class="ln ">cells        : 12026</span><span class="ln ">wns_setup    : -0.08 ns</span><span class="ln ">drc          : 0</span><span class="ln ">artifacts    : out/final_20261122_1400.{v,spef,sdc,def}</span></code></pre></div>
+<p><code>script_git</code> 和 <code>netlist_md5</code> 这两行最有价值：一周后有人问"这版和那版差在哪"，看这两个值就知道是不是同一套输入。</p>
+<div class="pit"><div class="pit-h">常见坑 · 网表和 SPEF 不匹配，STA 结果全废</div><div class="pit-b"><p>现象：PT 读入后报大量 <code>cannot find pin</code>，或者时序结果完全不合理（WNS −2.3 ns，PR 里明明是 +0.1）。</p>
+<p>原因：网表是布线<strong>前</strong>导出的，SPEF 是布线<strong>后</strong>生成的；或者反过来。两者的单元名、连线名对不上，PT 把延迟挂到了不存在的网络上。</p>
+<p>怎么查：比两个文件的生成时间；<code>grep</code> 几个关键单元名，看是否两边都有；看 manifest 里的时间戳是不是同一个。</p>
+<p>规矩：<strong>网表和 SPEF 必须同一次运行、同一时刻导出，文件名带同一个时间戳。</strong> 导出脚本里两行命令紧挨着写，中间不许插其他步骤。</p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · 交了一份"看起来最新"的 SDC</div><div class="pit-b"><p>现象：PT 跑出来 setup 比 PR 乐观 300 ps，怎么也对不上。</p>
+<p>原因：交的是综合用的 SDC，里面没有 PR 阶段补的 <code>set_propagated_clock</code>，时钟还是理想时钟，skew 被当成 0。</p>
+<p>规矩：SDC 从 PR 工具 <code>write_sdc</code> 导出，并在交接单上写清"来源：07_finish 导出"。不要从 <code>constraints/</code> 目录直接拷。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="handoff"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="batch" data-ch="batch">
+  <div class="ch-h"><span class="ch-n">06</span><h2>跑批工程化：让脚本自己停</h2></div>
+  <p>手工敲命令的问题是：<strong>错了不停</strong>。第三条命令失败了，第四条照样跑，最后你在第 20 步看到一个莫名其妙的错误。</p>
+<p>工程化的三条底线：</p>
+<ol><li><strong>失败即停</strong>：任何一步返回非零，整个流程立刻退出。</li><li><strong>日志不覆盖</strong>：每次运行一个日志文件，带时间戳。</li><li><strong>断点可续</strong>：每步成功留一个标记，重跑时跳过已完成的步骤。</li></ol>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">#!/bin/bash</span><span class="ln cmt"># 作用：PR 流程跑批驱动——建 run 目录、逐阶段执行、失败即停、留标记</span><span class="ln cmt"># 用法：bash run_flow.sh 2&gt;&amp;1 | tee -a log/driver.log；在 pnr/ 目录下执行</span><span class="ln ">set -euo pipefail                                   # -e 失败即停；-u 未定义变量报错；-o pipefail 管道失败也停</span><span class="ln ">STAMP=$(date +%Y%m%d_%H%M)                          # 本次运行的时间戳，所有产物共用</span><span class="ln ">RUN=run/${STAMP}                                    # 本次运行的现场目录</span><span class="ln ">mkdir -p "$RUN"/{db,out,rpt,log,done}               # 一次建好五类子目录</span><span class="ln ">ln -sfn "$RUN" run/latest                           # latest 永远指向最近一次，方便找</span><span class="ln ">cp scripts/*.tcl "$RUN"/                            # 复制脚本快照：以后改脚本不影响这次复现</span><span class="ln ">git rev-parse --short HEAD &gt; "$RUN"/script_git.txt  # 记录脚本版本，出问题能回到那个 commit</span><span class="ln "> </span><span class="ln ">for stage in 01_init 02_floorplan 03_power 04_place 05_cts 06_route 07_finish; do</span><span class="ln ">    if [ -f "$RUN/done/${stage}.done" ]; then       # 已有完成标记就跳过，实现断点续跑</span><span class="ln ">        echo "[skip] $stage"                        # 打印跳过原因，日志里能看出来</span><span class="ln ">        continue                                    # 进入下一阶段</span><span class="ln ">    fi</span><span class="ln ">    echo "[run ] $stage $(date +%H:%M:%S)"          # 记录开始时间，便于估算每步耗时</span><span class="ln ">    innovus -no_gui -files "${RUN}/${stage}.tcl" \</span><span class="ln ">        -log "${RUN}/log/${stage}.log"              # 每阶段独立日志，不覆盖</span><span class="ln ">    touch "$RUN/done/${stage}.done"                  # 只有上一条命令成功才会执行到这里</span><span class="ln ">done</span><span class="ln "> </span><span class="ln ">echo "[done] all stages, artifacts in $RUN/out"     # 全部完成提示</span></code></pre></div>
+<p>逐段解释为什么这么写：</p>
+<ul><li><code>set -euo pipefail</code>：没有它，<code>innovus</code> 失败了脚本还会继续跑下一阶段，最后你拿到的是"半新半旧"的数据库。<code>-u</code> 能抓住拼错的变量名（空字符串当路径用，会把文件写到根目录）。</li><li><code>RUN=run/${STAMP}</code>：所有产物进同一个目录，而不是散落在 <code>db/</code>、<code>out/</code>、<code>rpt/</code>。这样"这一次运行"是一个整体，可以打包、可以删。</li><li><code>cp scripts/*.tcl "$RUN"/</code>：脚本快照。<strong>这一条最容易被省略，也最有用</strong>——三个月后你改了脚本，想复现老结果，没有快照就永远回不去。</li><li><code>git rev-parse</code>：如果脚本在 git 里，记 commit 比拷文件更轻。两个都做最稳。</li><li><code>if [ -f done/... ]</code>：判断"完成"用<strong>标记文件</strong>，不用数据库文件的时间戳。原因见下一个坑。</li><li><code>touch done/...</code>：放在 <code>innovus</code> 之后、<code>set -e</code> 的保护下，只有成功才执行。这是"断点续跑"的核心。</li></ul>
+<p>工具版本也要记。在 <code>00_setup.tcl</code> 里加一行，或者在驱动里加：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把工具版本写进本次 run 目录，交接时一起给</span><span class="ln cmt"># 用法：在 run_flow.sh 建完目录之后执行</span><span class="ln ">innovus -version &gt; "$RUN/tool_version.txt" 2&gt;&amp;1     # 工具版本：PT/PR 对不上时第一个要查的</span><span class="ln ">echo "PDK=$PDK_VERSION" &gt;&gt; "$RUN/tool_version.txt"  # PDK 版本：库换了结果会变</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="batch"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="fail" data-ch="fail">
+  <div class="ch-h"><span class="ch-n">07</span><h2>失败与断点续跑</h2></div>
+  <p>流程跑到第 5 步失败，正确的处理顺序是：<strong>保留现场 → 看第一条错误 → 修脚本 → 从失败那步重跑</strong>。不是"删掉重来"。</p>
+<p>保留现场包括：日志不要覆盖、失败的数据库不要删（可能只写了一半，但能看出卡在哪）、把错误行号记进 issue。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：失败后的三件事——定位、隔离、续跑</span><span class="ln cmt"># 用法：在 run/&lt;时间戳&gt;/ 目录下执行</span><span class="ln ">grep -n "^Error\|^ERROR\|FATAL" log/05_cts.log | head -5   # 找第一条错误，不看最后一条</span><span class="ln ">ls -lh db/05_cts.enc                                        # 看失败阶段的库是不是只写了一半</span><span class="ln ">rm -f done/05_cts.done                                      # 删掉标记，让下一次重跑这一步</span><span class="ln ">bash ../../run_flow.sh                                      # 重跑：01~04 会跳过，从 05 开始</span></code></pre></div>
+<p>注意 <code>rm -f done/05_cts.done</code> 这一句：如果失败阶段留下了"完成标记"（比如上一次成功过，这次改脚本重跑失败），不删标记，下次会被跳过，你会在第 7 步用着一个旧的 CTS 结果。</p>
+<div class="pit"><div class="pit-h">常见坑 · 续跑时读了半成品数据库</div><div class="pit-b"><p>现象：断点续跑后，第 6 步报"database corrupted"，或者时序结果明显不对。</p>
+<p>原因：上一次在第 5 步中途失败，<code>05_cts.enc</code> 写了一半；但脚本用"文件存在"判断是否完成，于是跳过了重建，直接读半成品。</p>
+<p>规矩：<strong>判断完成用 <code>.done</code> 标记，不用文件是否存在。</strong> 标记只在命令成功返回后 <code>touch</code>。数据库文件存在不等于可用。</p>
+<p>另外：如果工具是"先删旧目录再写新目录"，失败时旧版本也没了。重要的阶段存盘前先 <code>cp -r</code> 一份上一版，或者写到临时目录再 <code>mv</code>。</p></div></div>
+<div class="pit"><div class="pit-h">常见坑 · 日志被覆盖，出事只剩最后一屏</div><div class="pit-b"><p>现象：流程失败，你想看两小时前的那条 warning，发现 <code>run.log</code> 里只有最后 200 行。</p>
+<p>原因：脚本用 <code>&gt;</code> 重定向，每次运行覆盖同一个日志；或者 <code>tee</code> 没带 <code>-a</code>。</p>
+<p>规矩：日志文件名带时间戳（<code>log/05_cts_20261122_1400.log</code>），驱动层再统一 <code>tee -a log/driver.log</code>。<strong>日志是事后唯一的证据，比数据库更值得保留。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="fail"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="in-work" data-ch="in-work">
+  <div class="ch-h"><span class="ch-n">08</span><h2>工作中怎么用：这条流水线在项目里的节奏</h2></div>
+  <p><strong>每周的节奏</strong>（典型）：</p>
+<ul><li>周一：拿到新网表，跑 01~04，看 WNS 趋势和拥塞，决定这周要不要改 floorplan。</li><li>周二到周三：CTS + route，收敛 DRC 和 hold。</li><li>周四：导出六件套，自查 manifest，发交接邮件。</li><li>周五：STA 复签，把违例反馈回来，排下周 ECO。</li></ul>
+<p><strong>谁读你的目录</strong>：STA 读 <code>out/</code>，PV 读 <code>def</code>，接手同事读 <code>scripts/</code> 和 <code>run/latest/</code>，leader 读 <code>rpt/</code> 里的一页纸 QoR。<strong>目录结构是给别人的接口</strong>，不是给自己看的。</p>
+<p><strong>评审会看什么</strong>：这版和上版的 WNS/TNS/面积/DRC 对比；每一步的检查是否都过；交接物是否齐全且同源。没有人会看你的命令敲得漂不漂亮。</p>
+<p><strong>做错了会怎样</strong>：目录乱，接手人要花两天重建上下文；版本不清，出问题无法复现；网表和 SPEF 不同步，STA 结论作废，整轮返工。<strong>流程工程化的价值不在"跑得快"，在"错了能定位、换人能接手"。</strong></p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：搭一个能续跑的 run 目录</div><div class="lab-b"><p><strong>任务</strong>：在 <code>~/backend_lab/28nm/pnr/</code> 下搭出本课的目录骨架，跑通 01~02 两个阶段，并模拟一次失败续跑。</p>
+<p><strong>步骤</strong>：</p>
+<ol><li>建目录：<code>mkdir -p scripts db out rpt log run done</code>。</li><li>把课程给的 <code>01_init.tcl</code>、<code>02_floorplan.tcl</code> 放进 <code>scripts/</code>，确认它们都 <code>source ./00_setup.tcl</code>。</li><li>写一个最小 <code>run_flow.sh</code>（照抄本课模板，阶段只留 01、02），跑一遍。</li><li>检查 <code>run/latest/</code> 下是否有 <code>done/01_init.done</code>、<code>done/02_floorplan.done</code>、两份日志、两份报告。</li><li>故意把 <code>02_floorplan.tcl</code> 里改一个错的库路径，删掉 <code>done/02_floorplan.done</code> 重跑，确认：01 被跳过、02 失败、脚本非零退出。</li><li>生成一份 manifest（工具版本、git commit、单元数、WNS），写进 <code>run/latest/manifest.txt</code>。</li></ol>
+<p><strong>过关标准</strong>：<code>bash run_flow.sh; echo $?</code> 在失败时返回非零；重跑时 01 显示 <code>[skip]</code>；<code>run/latest</code> 指向最新目录；manifest 里六个字段都有值。</p>
+<p><strong>如果环境里没有 Innovus license</strong>：用一个假的 <code>innovus</code> 脚本（打印参数、<code>sleep 1</code>、按参数决定返回 0 或 1）代替，专门练"失败即停 + 断点续跑"这套机制。机制和工具无关。</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>为什么按阶段编号写脚本、每步存盘？</div>
+  <div class="q-q"><span class="q-no"></span>为什么脚本要按阶段编号、每步存盘？</div>
   <button class="q-show" type="button">看答案</button>
   <div class="q-a">可以从任意阶段重跑，不必从头；改错时能快速回到上一个可用状态。</div>
 </div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>交接给 PT 需要哪三个文件？</div>
+  <div class="q-q"><span class="q-no"></span>交接给 PT 的六件套是什么？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">布线后网表 <code>.v</code>、寄生参数 <code>.spef</code>、约束 <code>.sdc</code>。</div>
+  <div class="q-a">布线后网表 <code>.v</code>、寄生 <code>.spef</code>、约束 <code>.sdc</code>、版图 <code>.def</code>、报告包、脚本与工具版本。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>网表和 SPEF 不匹配会有什么现象？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">PT 报找不到引脚，或时序结果完全不合理（因为延迟数据对应的是另一个版本）。</div>
+  <div class="q-a">PT 报大量找不到引脚，或时序完全不合理，因为延迟数据对应的是另一个版本的网表。</div>
 </div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>为什么要建带时间戳的 run 目录？</div>
   <button class="q-show" type="button">看答案</button>
-  <div class="q-a">留存每次运行的完整现场（脚本、日志、报告），可以回溯和复现。</div>
+  <div class="q-a">留存每次运行的完整现场（脚本快照、日志、报告、产物），可以回溯和复现。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>set -euo pipefail</code> 三个选项各管什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>-e</code> 命令失败即退出；<code>-u</code> 使用未定义变量报错；<code>-o pipefail</code> 管道中任一命令失败都算失败。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>断点续跑为什么用 <code>.done</code> 标记而不是判断文件存在？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">数据库文件可能存在但只写了一半；标记只在命令成功返回后创建，才代表这一步真的完成。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>SDC 为什么要从 PR 工具导出，而不是拷输入那份？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">PR 过程会补 propagated clock、uncertainty、case analysis；直接拷输入 SDC，PT 算的是另一套条件。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>manifest 里最该记哪两项？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">脚本 git commit 和输入网表校验和。它们能回答"这版和那版是不是同一套输入"。</div>
 </div></div>
-  <label class="ch-done"><input type="checkbox" data-mark="handoff"><span>这一章我学完了</span></label>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能画出 28nm 项目的目录结构，并说明每个目录放什么、谁能删</li><li>能说出脚本按阶段编号带来的两个好处（可续跑、依赖顺序清晰）</li><li>能给出每个阶段的产物和一条通过标准</li><li>能背出交接六件套，并解释网表与 SPEF 为什么必须同源</li><li>能写出"失败即停 + 日志不覆盖 + 标记续跑"的跑批脚本骨架</li><li>知道判断完成要用 <code>.done</code> 标记，而不是数据库文件是否存在</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="in-work"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">

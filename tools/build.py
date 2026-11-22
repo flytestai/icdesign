@@ -219,7 +219,7 @@ def render_code(lang, body):
         if s.startswith("#") or s.startswith("//") or s.startswith(";") or s.startswith("*"):
             cls = "cmt"
         lines.append(f'<span class="ln {cls}">{esc(ln) or " "}</span>')
-    return (f'<div class="code"><div class="code-h"><span class="code-lang">{esc(lang or "shell")}</span>'
+    return (f'<div class="code"><div class="code-h"><span class="code-lang">{esc(lang or "text")}</span>'
             f'<button class="copy" type="button">复制</button></div>'
             f'<pre><code>{"".join(lines)}</code></pre></div>')
 

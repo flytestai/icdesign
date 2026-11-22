@@ -6,146 +6,487 @@ title: 电源规划：给每个单元供上电
 en: Power Planning
 hours: 2
 minutes: 35
-tags: [Innovus, power plan, IR drop, via]
-summary: 电源网格不是"随便铺几条粗线"。线太细会掉压、太粗会挡线。这一课讲 ring / stripe / rail 三层结构，以及怎么用 via 阵列把电阻压下来。
+tags: [Innovus, power plan, IR drop, EM, via array]
+summary: 电源网格是芯片的供血管道。这一课讲清 pad → ring → stripe → followpin 这条路上电流怎么逐级变小、线宽怎么逐级变窄，三层结构各给多少量级，via 阵列为什么必须打满，以及用 IR drop、EM、均匀性、布线资源四条标准判断一版电源规划能不能用。
 ---
 
 ## 电从哪来，到哪去 {#path}
 
-一颗芯片的电从封装的电源引脚进来，经过：
+:::goal 拿到布局规划（floorplan），能画出从封装焊盘到单元内部的供电路径，说出每一段由哪层金属承担、电流和线宽为什么逐级变化，并判断一版电源规划缺了哪一段。
+:::
+
+一颗芯片的电源不是一个点，而是一张从封装通到晶体管的网。
+
+电从 PCB 上的稳压器出来，经封装焊球（bump）或键合线（wire bond）进入芯片，落到焊盘（pad）上；再沿输入输出（IO）环进入 core 外围的电源环（power ring），被分配到纵横交错的电源条带（power stripe），下到每一行标准单元的电源轨（follow pin / rail），最后进到单元内部。VDD 是电源、VSS 是地，两者成对出现。
+
+每一段都是金属，金属有电阻。电流流过电阻就掉电压，这个差值就是 **IR drop（电压降）**。整条路是串联的：环上掉 5mV、条带上掉 15mV、轨上掉 15mV，单元真正拿到的电压就比标称值低了一截。
+
+更关键的是，**电流在逐级变小**。总电流进入 core 后被 N 条 stripe 分掉，每条只剩 `I_total / N`；每条又供几百行，每行只有几十微安；每个单元只有几微安。所以线宽也必须逐级变窄。
 
 ```
-封装引脚 → IO 环 → 电源环（ring） → 电源条（stripe） → 单元电源轨（rail） → 单元内部
+封装焊球 / 引脚（bump / pad）
+   │  I_total：整颗芯片的电流
+   ▼
+IO 环（放焊盘和 ESD 保护）
+   │
+   ▼
+电源环 power ring（M5 竖 / M6 横，围着 core 一圈）
+   │  电流在这里被分到四个方向
+   ▼
+电源条带 power stripe（M5 竖 + M6 横，成网格）
+   │  每条分到 I_total / N
+   ▼
+单元电源轨 follow pin（M1，沿标准单元行拉通）
+   │  每行分到 I_row
+   ▼
+标准单元内部（M1 小段 + 晶体管）
+      I_cell：µA 级
 ```
 
-每一段都有电阻，每段都会掉一点电压。**后端能控制的是 ring 和 stripe 的宽度、密度，以及 via 的数量。**
+这张图可以当成自来水管网看：主干管最粗，进楼后变细，到水龙头只剩一根细管。**没有人在水龙头上装主干管，也没有人用细管从水厂直通小区**——线宽跟着电流走，这是电源规划最基本的形状。
+
+| 段 | 所在层 | 承担电流 | 典型宽度（40nm） | 由谁决定 |
+|---|---|---|---|---|
+| ring | M5 / M6 | 相邻两个供电 pad 之间的电流 | 3~8µm | pad 数量、EM（电迁移）限值 |
+| stripe | M5 / M6 | 总电流 ÷ 条数 | 1~3µm | 总电流、条数、EM 限值 |
+| follow pin | M1 | 一行单元的电流 | 0.1~0.3µm | 标准单元库、行高 |
+| 单元内部 | M1 及以下 | 几 µA | < 0.1µm | 库设计，后端不改 |
+
+:::term Power Grid (PG Mesh) | 电源网格
+由 ring、stripe、follow pin 和 via 组成的整体供电网络。它不是一个器件，而是覆盖全片的一张金属网；工具把它当成两个特殊网络（net）——VDD（电源）和 VSS（地）——来处理，不参与普通信号布线。
+:::
 
 :::term IR Drop | 电压降
-电流 × 电阻 = 电压差。芯片内部某点电压低于标称值，差值就是 IR drop。
+电流流过电阻产生的电压差，`V_drop = I × R`。静态 IR 的典型阈值是标称电压的 3%~5%，0.9V 的芯片就是 27~45mV。超过阈值，单元延迟变慢、噪声容限变差，严重时直接功能失效。
+:::
 
-典型阈值：不超过标称电压的 3%~5%。比如 1.0V 供电，drop 超过 50mV 就要担心了。
+:::scene 周一早上的 power plan review
+40nm 项目，core 500×500µm，0.9V 供电，功耗预算平均 80mA、峰值 120mA。布局规划（floorplan）昨天刚定，组长（leader）让你今天下班前交电源规划（power plan），明天开始布局（place）。
+
+你照着去年的脚本画完 ring 和 stripe，跑 `checkPGConnectivity`，看到 37 个悬空（floating）单元实例、12 个宏单元（macro）电源引脚没连上。把版图交换文件（DEF）丢给电源完整性（PI）同事做快速分析，回来说最差点 62mV。leader 只问三句：
+
+1. "环闭了吗？"
+2. "macro 的电源从哪进？"
+3. "这条 stripe 3µm 是怎么算出来的？"
+
+你答不上第三句——脚本里写的是 3，你只是没改。这一课就按这三句话展开。
 :::
 
 ## 三层结构 {#layers}
 
+三层不是三个孤立的部件，而是一棵倒过来的树：越靠上越粗、电流越大；越靠下越细、电流越小。三层的参数各有各的算法，不能互相替代。
+
 ### 1. Power Ring（电源环）
 
-围着核心区一圈，通常是上下两层金属各画一个环（M5/M6 横竖）。
+围着 core 一圈，通常用两层金属：M6 画上下两条横边，M5 画左右两条竖边。
+
+为什么分两层？横边和竖边在四个角相交，如果在同一层画，拐角处要拐弯、要占更多面积；分两层后，交叉点直接打 via 就能连通。
 
 ```tcl
-addRing -nets {VDD VSS} \
-        -type core_rings \
+# 作用：画 core ring，参数按"分段电流 ÷ EM 限值"来定
+# 用法：floorplan 定完、place 之前，在 Innovus 里 source 这个文件
+addRing -nets {VDD VSS} -type core_rings \
         -layer {top M6 bottom M6 left M5 right M5} \
         -width 4 -spacing 2 -offset 3
-# -width 4：环宽 4µm；-spacing 2：VDD 和 VSS 之间隔 2µm；-offset 3：距边界 3µm
+# -width 4   ：环宽 4µm；按环上相邻两个 VDD pad 之间的电流算，不是按总电流算
+# -spacing 2 ：VDD 与 VSS 环的间距 2µm，约为最小间距的 2 倍，防短路也防噪声耦合
+# -offset 3  ：环距 core 边界 3µm，给 seal ring（密封环）和边缘走线留位置
 ```
+
+**环宽的依据。** 假设一圈有 8 个 VDD pad，总电流 120mA，平均每个 pad 供 15mA。相邻两个 pad 之间那一段环，只承担这 15mA（再乘 1.3 的不均匀系数约 20mA）。EM 限值 5mA/µm 时，4µm 宽刚好够。
+
+如果只有 2 个 VDD pad，同样总电流下每段要承担 60mA，环就得做到 12µm 以上。**所以"环宽 4µm"不是工艺规定，是 pad 数量算出来的。** pad 少、电流大，环必须粗。
+
+**环必须闭合。** 环上留一个缺口，等于把 core 的供电切成两半：缺口另一侧的单元只能从远处绕电，压降立刻上一个台阶。四个角是漏画的高发区，因为 `-layer` 列表里漏写 `left` 或 `right` 时，工具不会报错，只是不画那两条边。
 
 ### 2. Power Stripe（电源条）
 
-从环往内部拉的网格，横竖交错。
+从环往 core 内部拉的网格。竖条通常走 M5，横条走 M6，**两个方向都要画**。
+
+只画竖条会怎样？两条竖条之间的单元，电流要先沿 follow pin 横向走到最近的竖条，横向路径可能长达半个间距（pitch）。pitch 40µm 时就是 20µm 的额外电阻，中间区域的电压明显低于条带底下。横条的作用是把竖条在另一个方向并联起来，让电流就近上楼。
 
 ```tcl
-addStripe -nets {VDD VSS} \
-          -layer M5 -direction vertical -width 2 -spacing 1.5 \
-          -set_to_set_distance 30 -start_from left
-# 每隔 30µm 一根竖条，宽 2µm
+# 作用：在 core 内铺竖条，再用另一层铺横条，形成网格（mesh）
+# 用法：addRing 之后执行；横条换 -direction horizontal、-layer M6
+addStripe -nets {VDD VSS} -layer M5 -direction vertical \
+          -width 3 -spacing 1.5 \
+          -set_to_set_distance 40 -start_from left -start_offset 20
+# -width 3                  ：条宽 3µm；由每条承担的峰值电流 ÷ EM 限值算出
+# -spacing 1.5              ：VDD 条与相邻 VSS 条的间距 1.5µm
+# -set_to_set_distance 40   ：同电位条带的间距（VDD 到下一条 VDD）40µm，即 pitch
+# -start_from left          ：从 core 左边界开始排；-start_offset 20 是第一条的起点
 ```
+
+**pitch 的依据。** pitch 越小，两条 stripe 之间的横向电阻越小、供电越均匀；但每一条都占布线轨道，pitch 太小会把信号通道切碎。40nm 项目常见 20~50µm，具体看这一层还剩多少轨道。
+
+**宽度的依据。** 每条 stripe 承担的峰值电流除以 EM 限值，就是最小宽度。下一节有完整手算。
+
+stripe 遇到宏单元（macro）有两个选择：连到 macro 的电源引脚，或者绕开。直接压过去会被 macro 的阻挡区（obstruction）截断，工具只画到边界，形成一条"断头路"——版图上看着有，电气上没连上。
 
 ### 3. Follow Pin / Rail（单元电源轨）
 
-每个标准单元行的电源轨。工具会沿着行自动连，不需要手画，但要检查连接：
+标准单元库已经把电源轨画在单元边界上：一行单元的顶部是 VDD、底部是 VSS（或反过来），相邻两行共用一条轨。
+
+follow pin 就是把这条轨沿整行拉通。它的宽度和位置**由库和行高决定，不是后端随便定的**：
+
+- 宽度 = 库里的 rail 宽度，40nm 典型 0.1~0.3µm；
+- 间距 = 行高（row height），40nm 典型 1.8~2.8µm（9~12 条布线轨道，track）；
+- 位置 = 每条行（row）的边界，必须严格对齐。
 
 ```tcl
-sroute -connect {corePin} -nets {VDD VSS} -layerChangeRange {M1 M6}
-# 把每行的 rail 连到 stripe 上
+# 作用：把每行的 follow pin 连到上层 stripe，同时连 macro 的电源引脚
+# 用法：place 之后、布线（route）之前执行；corePin 指标准单元轨，blockPin 指 macro
+sroute -connect {corePin blockPin} -nets {VDD VSS} -layerChangeRange {M1 M6}
+# -connect {corePin blockPin}：两类引脚都要连；只写 corePin 会漏掉 macro
+# -layerChangeRange {M1 M6}   ：允许从 M1 一路换层到 M6，中间每层都要打 via
 ```
+
+**不要把 follow pin 加宽来降 IR。** 加宽会盖住单元的信号引脚，设计规则检查（DRC）直接报金属重叠；而且轨的载流能力本来就不是瓶颈，瓶颈在上层 stripe。载流不够，加 stripe，不加轨。
+
+**follow pin 最怕错位。** 如果 floorplan 改了 row 的起点或高度，而 power plan 没重跑，轨就会差半行。表现是整行整行的单元电源引脚悬空（floating），`checkPGConnectivity` 报一大片 floating，版图与原理图一致性检查（LVS）会报开路（open）。
+
+:::term Power Ring | 电源环
+围着 core 边界的一圈粗金属，作用是把 pad 送进来的电流收集起来，再分配给内部的 stripe。通常横竖各用一层金属，四个角通过 via 连接，必须闭合。
+:::
+
+:::term Power Stripe | 电源条带
+从 ring 往 core 内部拉的条状金属，横竖两个方向组成网格。它决定了 core 内部各区域能不能就近取电，宽度按电流算、间距按均匀性和布线资源权衡。
+:::
+
+:::term Follow Pin / Rail | 单元电源轨
+沿标准单元行拉通的电源/地线，宽度和位置由单元库与行高决定。它是电源网络的最后一公里，直接贴在单元电源引脚上。
+:::
 
 ## Via 阵列：最容易被忽略的一步 {#via}
 
-不同层之间靠 via 连接。一层 via 就是一个小电阻，**一个 via 顶不住大电流，要打一片**。
+金属层之间靠 via（通孔）连接。很多人把 via 当成原理图里的"连接符号"，其实它是一个有电阻的塞子。
+
+40nm 典型值：一个单孔 via 的电阻约 5~15Ω；M1 的方块电阻约 0.08~0.1Ω/□，厚金属 M6 约 0.03Ω/□。也就是说，**一个 via 的电阻顶得上几十到几百个金属方块**。换成线长，0.1µm 宽的 M1 线走 100 个方块是 10µm 长——一个 via 等于十几微米长的线。
+
+一个交叉点只打 4 个 via，等于在这条路上串了 2Ω；打 64 个，才是 0.125Ω。**电源网络的低电阻是并联出来的，不是把线画粗画出来的。**
 
 ```
-❌ 单个 via：电阻大，电流集中，容易烧
-┌──────────┐
-│    ●     │
-└──────────┘
-
-✅ via 阵列：并联，电阻小，电流分散
-┌──────────┐
-│ ● ● ● ●  │
-│ ● ● ● ●  │
-│ ● ● ● ●  │
-└──────────┘
+M6  ────────── 横向 stripe ──────────
+         ● ● ● ● ● ●   ← via 阵列：重叠区按最小间距填满
+M5  │ │ │ │ │ │ │ │    竖向 stripe
+         ● ● ● ● ● ●
+M1  ═══════════════════  follow pin（与单元行严格对齐）
+    [ std cell ] [ std cell ] [ std cell ]
 ```
+
+### 算一次：一个 via 和一片 via 差多少
+
+一条 stripe 的峰值电流 13mA，单孔 via 电阻 8Ω：
+
+- 只打 1 个：`13mA × 8Ω = 104mV`，一个孔就把整个静态预算吃穿。
+- 打 4 个：并联 2Ω，`13mA × 2Ω = 26mV`，仍然是一块明显的压降。
+- 打 64 个（8×8）：并联 0.125Ω，`13mA × 0.125Ω ≈ 1.6mV`，可以忽略。
+
+结论：**via 阵列不是"多打几个更保险"，是把层间电阻从主导项压到可忽略项。** 64 个 via 在 4µm × 4µm 的重叠区里按 0.4µm 间距排得下，前提是工具真的去填。
+
+### 哪些交叉点必须打满
+
+1. ring 与 stripe 的每个交叉；
+2. 竖 stripe 与横 stripe 的每个交叉；
+3. stripe 与 follow pin 的交汇处（要通过 via stack 从 M6 下到 M1，中间每层都不能漏）；
+4. stripe 与 macro 电源引脚；
+5. ring 与 pad / IO 电源的连接处。
+
+从 M6 下到 M1 要连续打 M6-M5、M5-M4、M4-M3、M3-M2、M2-M1 五组 via，这叫 via stack（通孔堆叠）。漏掉中间任何一层，整条路就是断的——版图上金属都在，电气上不通。
 
 ```tcl
-# 给电源条和环之间批量加 via
+# 作用：给所有电源网络补 via 阵列，再检查覆盖率
+# 用法：所有 addStripe 跑完之后执行；补完 via 再 verify
 editPowerVia -nets {VDD VSS} -add_vias 1 -orthogonal_only 0
-# 或者用更细的控制
-addVia -nets {VDD VSS} -area {10 10 200 200} -layers {M5 M6} -via_pitch 2
+# -add_vias 1        ：在每个重叠区按规则尽量填满；参数名随版本略有差异，跑前 man 一下
+# -orthogonal_only 0 ：横竖交叉都打，不只打正交方向
+verifyPowerVia -nets {VDD VSS}
+# 输出会列出 via 覆盖率不足的交叉点；真实项目里这个数应接近 100%
 ```
 
-:::pitfall 忘了打 via，IR 分析直接炸
-现象：电源网格画得漂漂亮亮，RedHawk 一跑，某些点 IR drop 到 120mV。
+:::term Via Array | 通孔阵列
+在两层金属的重叠区里按最小间距排列的一组 via，并联后电阻成倍下降。电源网络的每个交叉点都应打成阵列，单孔或稀疏几个孔是典型的 IR drop 热点来源。
+:::
 
-原因：金属线没问题，但**层与层之间只有零星几个 via**，所有电流挤在那几个点上。
+:::pitfall via 只在交叉点中心打了一个
+现象：全片平均 IR 只有 2%，但某个 macro 角上 80mV；RedHawk 彩图上是一个针尖大的红点。
 
-对策：`verifyPowerVia` 检查 via 覆盖率，不足的地方补阵列。**电源网格看的是"瓶颈"，不是"平均"。**
+原因：那一处 M6 到 M5 只打了一个 via，13mA 全挤过 8Ω，局部掉 100mV。
+
+怎么查：`verifyPowerVia` 看覆盖率清单，再放大版图看交叉点的 via 数量。电源网络看的是**最差点**，平均值再漂亮也没用。
 :::
 
 ## 电源规划的四条判断标准 {#rules}
 
-| 指标 | 怎么查 | 合格标准 |
+| 标准 | 看什么 | 规划阶段的目标 | 超了先改什么 |
+|---|---|---|---|
+| IR drop | 最差点的静态压降 | ≤ 3%~5% 标称电压 | 补 via → 加 stripe → 加宽 |
+| EM | 电流 ÷ 线宽 | ≤ 工艺给的 mA/µm | 加宽或分流 |
+| 均匀性 | 全片最高与最低电压差 | 20~30mV 以内 | 调 pitch、补局部 stripe |
+| 布线资源 | 电源占用的轨道比例 | 10%~20% | 减宽、减条、换层 |
+
+### 标准一：电压降预算
+
+总预算按标称电压的 3%~5% 给。0.9V 的芯片就是 27~45mV。规划阶段先"分账"，每段都有明确目标：
+
+| 段落 | 预算 | 说明 |
 |---|---|---|
-| 覆盖率 | `checkPGConnectivity` | 没有悬空的 rail |
-| 宽度 | 看 stripe 宽度 vs 电流 | 电流密度不超限（EM） |
-| via 密度 | `verifyPowerVia` | 关键节点成阵列 |
-| 对信号的影响 | 看利用率变化 | 电源占用面积 <15% |
+| ring | 5mV | 电流最大，但路径短、线最宽 |
+| stripe | 15mV | 路径最长，通常是主要贡献 |
+| follow pin / rail | 15mV | 单元密集处电流集中 |
+| 余量 | 10mV | 留给动态压降和模型误差 |
+| 合计 | 45mV | 0.9V 的 5% |
 
-:::term EM | 电迁移
-Electromigration。金属线里电流密度太大时，电子会把金属原子"推着走"，时间长了线就断了。
+分账的好处是出问题知道找谁：如果 stripe 这段实测 30mV，就不用去怀疑 ring。
 
-规则给的是"每微米宽度允许多少 mA"。所以电源线宽不是随便定的，是按电流算出来的。
-:::
+注意静态和动态是两套账。动态 IR 的峰值电流可能是平均电流的 5~10 倍，机理和手算见第 33 课（IR Drop 与 RedHawk）。电源规划阶段用**峰值电流算 EM、用平均电流估静态 IR**，两个数都要。
 
-:::scene 电源做多了也麻烦
-新手容易过度设计：ring 宽 10µm、stripe 宽 5µm、间距 10µm，铺满全片。
+### 标准二：电流密度（EM）
 
-结果：电源占了 30% 的面积，标准单元没地方放，利用率被顶到 0.85，布线拥塞爆炸。
+EM（电迁移）是电流密度长期超限，电子把金属原子一点点推走，线逐渐变细直到断路。规则通常写成"每微米宽度允许多少 mA"：M1 约 0.5~1mA/µm，厚 M6 约 3~6mA/µm（典型值，以工艺文件 tech file 为准）。
 
-**电源规划的目标是"够用且不挡路"**，一般电源占用控制在 10%~15%。
-:::
+宽度下限就一条式子：
 
-:::lab 动手：算一条 stripe 够不够
-条件：某条竖直 stripe 要给 2000 个单元供电，每个单元平均电流 0.5µA，stripe 宽 2µm，工艺允许电流密度 0.8mA/µm。
-
-```bash
-python3 -c "
-n=2000; i_per=0.5e-3; w=2; dens=0.8
-I=n*i_per
-print('总电流 %.2f mA' % I)
-print('该宽度允许 %.2f mA' % (w*dens))
-print('是否够用:', 'YES' if I < w*dens else 'NO, 需要宽度 %.2f um' % (I/dens))
-"
+```
+最小线宽 = 峰值电流 ÷ EM 限值
 ```
 
-预期：总电流 1000mA，2µm 只允许 1.6mA → 严重不够，需要重新划分 stripe 密度（不是无限加宽，而是增加条数分摊电流）。
+via 也有 per-cut（每个孔）的电流限值。13mA 分到 64 个孔是 0.2mA/孔，很多工艺的 via 限值就在这个量级——所以 via 阵列同时解决电阻和 EM 两个问题，不是只为了降 IR。
 
-过关标准：能解释"为什么不是把这一条加宽到 1250µm"（答案是：要用多条 stripe 并联分摊，单条超宽会挡住信号布线）。
+温度越高，EM 限值越低。签核要用最高工作温度，不能用室温。
+
+### 标准三：供电均匀性
+
+看全片最高电压和最低电压的差，不是看平均值。目标：core 内 `max − min < 20~30mV`，约 0.9V 的 2%~3%。
+
+最差的位置有规律：
+
+- 离 pad 最远的 core 中心；
+- macro 的四角——电流集中，但电源引脚往往只有几个；
+- 被 macro 挡住、没有 stripe 穿过的"供电孤岛"；
+- 时钟树 buffer 密集区——时钟树综合（CTS）后这里会有脉冲电流。
+
+规划阶段没有全片电流图，可以用简化模型：把每条 stripe 当成电阻链，从馈电点累加到最远单元，看总压降。精度不高，但足以判断"这一版方向对不对"。
+
+### 标准四：布线资源占用
+
+电源占的是布线轨道。一对 VDD/VSS stripe，各宽 3µm、间距 1.5µm，在 40µm pitch 下占 `3 + 1.5 + 3 + 1.5 = 9µm`，即这一层 22.5% 的横向空间。
+
+层分配通常是这样：
+
+- M1：follow pin + 单元内部 + 引脚接入，不给信号长线；
+- M2 / M3：信号为主；
+- M4 / M5：信号 + 竖向 stripe；
+- M6 / M7：横向 stripe、时钟主干；
+- 最顶层：全局电源、时钟、大块走线。
+
+经验值：电源占全部布线资源的 10%~20%。超过 25%，place 开始拥塞；低于 8%，IR 很难过。看两个报告：`reportCongestion` 的溢出、`checkPlace` 的利用率。
+
+四条标准会互相打架：环加宽降 IR 但吃面积；pitch 加密更均匀但切碎通道；via 打满更可靠但可能违反包边规则。**电源规划的本质是在这四个约束里找一版都能过的解，不是把某一项做到极致。**
+
+:::term Electromigration (EM) | 电迁移
+金属线里电流密度长期超过限值时，电子把金属原子沿电流方向推走，形成空洞或小丘，最终断路或短路。规则以"每微米宽度允许的 mA 数"给出，是电源线宽的下限依据。
 :::
 
-:::check
-- 能说出电源从封装到单元的完整路径
-- 知道 ring / stripe / rail 三层各自作用
-- 会用 `addRing`、`addStripe`、`sroute` 三条命令
-- 知道 via 阵列为什么必须打
-- 能估算一条 stripe 的载流能力
+:::term Current Density | 电流密度
+单位截面积（或单位线宽）流过的电流。后端更常用"每微米线宽多少 mA"这种写法，因为它直接对应版图上量得到的宽度。
+:::
+
+:::term Power Integrity (PI) | 电源完整性
+研究"送到每个单元的电压是否稳定、干净"的一门分支，包含 IR drop、EM、电源噪声三件事。大项目里有专门的 PI 工程师做签核，PR 工程师负责实现。
+:::
+
+## 手算：一条 stripe 能供多少电流 {#calc}
+
+条件（课程设定值，量级取自 40nm）：
+
+| 参数 | 取值 | 说明 |
+|---|---|---|
+| 标称电压 | 0.9V | core 供电 |
+| 平均电流 | 80mA | 算静态 IR |
+| 峰值电流 | 120mA | 算 EM |
+| 竖向 stripe 条数 | 12 条 | 500µm 宽、40µm pitch |
+| 电流不均匀系数 | 1.3 | 中间条带比平均多 30% |
+| M6 EM 限值 | 5mA/µm | 厚金属，课程设定值 |
+| M6 方块电阻 | 0.03Ω/□ | 课程设定值 |
+| 条带长度 | 250µm | 从边缘 ring 到 core 中心 |
+
+**第一步，算每条承担的峰值电流。**
+
+```
+I_stripe = 120mA ÷ 12 × 1.3 = 13mA
+```
+
+**第二步，按 EM 算最小宽度。**
+
+```
+W_min = 13mA ÷ 5mA/µm = 2.6µm
+```
+
+**第三步，选 3µm**，留约 15% 余量。
+
+**第四步，算这条 stripe 的压降。** 电阻按方块数算：
+
+```
+R = 0.03Ω/□ × 250µm ÷ 3µm = 2.5Ω
+```
+
+电流沿条带一路被 follow pin 取走，不是全程 13mA；均匀取电时等效电阻约为全长的一半：
+
+```
+R_eff = 2.5Ω ÷ 2 = 1.25Ω
+V_drop = 13mA × 1.25Ω ≈ 16mV  （0.9V 的 1.8%）
+```
+
+加上 ring 5mV、via 2mV、rail 10mV，总计约 33mV，是 0.9V 的 3.7%——落在 3%~5% 预算内，但余量不厚。
+
+**如果为了省轨道把宽度改成 1µm：**
+
+```
+R = 0.03 × 250 ÷ 1 = 7.5Ω
+R_eff = 3.75Ω
+V_drop = 13mA × 3.75Ω ≈ 49mV  （5.4%，超预算）
+```
+
+同一套参数写成脚本，四档宽度一起比：
+
+```python
+# 作用：按 EM 和 IR 两条标准，逐条检查电源条带够不够宽
+# 用法：python3 check_stripe.py；改前四个参数即可做不同方案
+I_total = 120e-3      # 峰值总电流，A（120mA）
+n_stripe = 12         # 竖向 stripe 条数
+k_nonuniform = 1.3    # 电流不均匀系数：中间条带比平均多 30%
+em_limit = 5e-3       # A/µm，厚金属 M6 的 EM 限值（课程设定值）
+sheet = 0.03          # Ω/□，M6 方块电阻（课程设定值）
+L = 250               # µm，从馈电点到末端的长度
+Vdd = 0.9             # V
+
+for w in (1.0, 2.0, 3.0, 4.4):
+    I = I_total / n_stripe * k_nonuniform      # 每条峰值电流
+    need = I / em_limit                        # EM 要求的最小宽度
+    R = sheet * L / w                          # 全长电阻
+    drop = I * R / 2                           # 均匀取电，等效电阻减半
+    pct = drop / Vdd * 100
+    ok_em = "PASS" if w >= need else "FAIL"
+    ok_ir = "PASS" if pct < 3.0 else "FAIL"
+    print(f"w={w:4.1f}um  I={I*1e3:5.1f}mA  need={need:4.2f}um  "
+          f"R={R:5.2f}ohm  drop={drop*1e3:5.1f}mV ({pct:4.2f}%)  EM:{ok_em}  IR:{ok_ir}")
+```
+
+课程环境实测（Python 3）：
+
+```
+w= 1.0um  I= 13.0mA  need=2.60um  R= 7.50ohm  drop= 48.8mV (5.42%)  EM:FAIL  IR:FAIL
+w= 2.0um  I= 13.0mA  need=2.60um  R= 3.75ohm  drop= 24.4mV (2.71%)  EM:FAIL  IR:PASS
+w= 3.0um  I= 13.0mA  need=2.60um  R= 2.50ohm  drop= 16.2mV (1.81%)  EM:PASS  IR:PASS
+w= 4.4um  I= 13.0mA  need=2.60um  R= 1.70ohm  drop= 11.1mV (1.23%)  EM:PASS  IR:PASS
+```
+
+读法：2µm 这一档 IR 勉强过（2.71%），但 EM 不过——**两个标准是"与"的关系，不是"或"**。3µm 是同时满足两条的最小档。4.4µm 更稳，但多占 1.4µm 的轨道，这就是"余量"的价格。
+
+## 电源规划不改，后面只能补 {#downstream}
+
+电源规划在 place 之前定版。之后的每一步都在既定电网上做优化，不会再回头重画 ring 和 follow pin。
+
+| 项目 | place 之后 | route 之后 | 说明 |
+|---|---|---|---|
+| ring 宽度 | 很难 | 基本不能 | 重画可能压到 IO / seal ring |
+| 增加 stripe | 可以 | 要拆线重布 | 吃轨道，可能引入 DRC 和时序问题 |
+| follow pin | 不能 | 不能 | 由库和 row 决定，动不了 |
+| 补 via | 可以 | 可以 | 成本最低，任何时候都该补 |
+
+**对 CTS 的影响。** 时钟树综合（CTS）会插几百到上千个时钟缓冲器（clock buffer），它们同时翻转，形成脉冲电流。如果那一带的 rail 很弱，动态压降会让 buffer 延迟变大，偏斜（skew）直接变差。你在 CTS 报告里看到的 skew 超标，根因可能在电源——这也是为什么电源要在 CTS 之前就绪。
+
+**对 route 的影响。** 信号要轨道。电源多占 5%，可能就是把一条通道从 96 条挤到 91 条，拥塞热点的红线就是这么来的。第 20 课算通道容量时，先要扣掉穿过的电源线，原因就在这里。
+
+**补救的代价。** 如果签核（signoff）才发现 IR 不过，手段只有加 stripe、加去耦电容（decap）、降频。加 stripe 要拆掉已布好的线、重新做合法化（legalize）、重跑布线（route）和时序工程变更（timing ECO）；一个 500µm 的模块（block）也要两三天，还未必收得干净。规划阶段改一个参数只要十分钟。
+
+所以判断标准不是"现在 IR 够不够"，而是"**最坏场景下还够不够**"。峰值电流、最高温度、最差电压角，三个都按最坏取。
+
+## 常见翻车：五种 {#pitfalls}
+
+:::pitfall ring 没闭合
+现象：`checkPGConnectivity` 报一大片 floating，版图上环在某个角断了。
+
+原因：`addRing` 的 `-layer` 列表漏了 `left` 或 `right`；或者 ring 被 macro / IO 压断；也有人为了给信号留入口故意切口，后来忘了补。
+
+怎么查：沿 core 边界走一圈看四个角；看 floating 是否集中在某一侧；缺口附近的 via 覆盖率通常是 0。
+:::
+
+:::pitfall stripe 与 macro 电源引脚没连上
+现象：macro 附近 IR 热点；LVS 报 `VDD open`；`checkPGConnectivity` 列出 unconnected macro pin。
+
+原因：macro 的电源引脚在 M4/M5，stripe 停在 M6，中间没打 via stack；或者 stripe 被 macro 的阻挡区截断，画到边界就停了。
+
+怎么查：打开 macro 的物理库文件（LEF）看电源引脚在哪层；用 `sroute -connect {blockPin}` 专门连；放大到引脚位置看有没有 via。
+:::
+
+:::pitfall follow pin 与单元行错位
+现象：place 后单元电源引脚和 follow pin 差半行；LVS 大量 open；floating 按整行整行出现。
+
+原因：floorplan 改了 row 的起点或高度，power plan 没重跑；或者手改 DEF 的 `ROW` 语句没同步。
+
+怎么查：对比 DEF 里 `ROW` 的 y 坐标和 follow pin 的 y 坐标；如果 floating 是整行连续的，基本就是错位，不是个别单元问题。
+:::
+
+:::pitfall via 缺失导致 DRC / LVS 报错
+现象：`verifyPowerVia` 覆盖率 60%；LVS 报 `VSS open`；DRC 报 via 包边（enclosure）不足。
+
+原因：`addStripe` 之后没跑 `editPowerVia`；via 打在间距不足的地方被工具跳过；via stack 中间漏了一层。
+
+怎么查：按层统计 via 数量，看哪一层明显偏少；交叉点逐个放大；`verifyPowerVia` 的未覆盖清单逐条补。
+:::
+
+:::pitfall 电源做过头，place 拥塞
+现象：利用率 0.85，`reportCongestion` 大面积溢出，place 跑不动。
+
+原因：ring 10µm、stripe 5µm、pitch 10µm，全片铺满，电源占了 30% 的轨道。
+
+怎么查：算电源占用比例；对比 IR 估算，看是不是"多花三倍资源只换 1mV"。电源规划的目标是够用且不挡路，不是越粗越好。
+:::
+
+## 工作中怎么用：电源规划的交付物 {#in-work}
+
+**谁做**：布局布线（PR）工程师。大项目里 PI 工程师给电压预算和签核标准，PR 负责把网格画出来、把检查跑干净。
+
+**输入**：floorplan 后的 DEF、功耗预算（平均电流和峰值电流）、tech file 里的 EM / IR 规则、标准单元库的 rail 信息、macro 的电源引脚层号。
+
+**输出**：带电源网格（PG）的 DEF、可复查的 power plan 脚本、三份检查结果（连通性、via 覆盖率、估算压降），以及给静态时序分析（STA）和 PI 的分段电压预算。
+
+**评审会看四个数**：ring 宽度及依据、stripe 的 pitch 与宽度（width）、via 覆盖率、估算 IR 与资源占用。任何一个答不出"怎么算的"，都会被退回来。
+
+**做错了会怎样**：place 后发现 ring 缺口，要重跑 place；route 后补 stripe，两三天起步还可能带出 DRC；流片后才发现 IR 不够，只能降频或改版。电源是少数几个"上游十分钟、下游三天"的环节。
+
+:::lab 动手：给 200mA 的 block 选一版 stripe
+**任务**：把峰值电流从 120mA 改成 200mA，重新选条带宽度，并比较"加宽"和"加条数"两条路。
+
+**步骤**：
+1. 把上一节脚本存成 `check_stripe.py`，先跑一遍，确认 3µm 通过、1µm 失败。
+2. 把 `I_total` 改成 `200e-3`，其他不变，重跑，记下新的 `need` 和 3µm 那行的 IR。
+3. 把 `n_stripe` 改成 20，再跑，记下新的 `need`。
+4. 算两种方案的占用率：`条数 × (2×width + 2×spacing) ÷ core 宽度`。
+
+**过关标准**：能说出 200mA、12 条时最小宽度约 4.4µm；改成 20 条后 3µm 就够；并解释为什么不能无脑加密（占用率从约 30% 升到约 36%，挤掉信号通道）。
+
+课程环境没有 Innovus，`addRing` / `sroute` 跑不了；真实项目里你会看到 `checkPGConnectivity` 打印 floating 和 unconnected 的清单，格式随版本略有差异，看的是数量是否为 0。
 :::
 
 :::quiz
-IR drop 是什么？阈值大概多少？|电流在金属电阻上产生的电压降。一般要求不超过标称电压的 3%~5%。
-为什么电源 via 要打成阵列？|单个 via 电阻大、电流集中；阵列并联降低电阻、分散电流，避免局部过热和过大压降。
-`addRing` 的 `-width` 和 `-spacing` 分别控制什么？|环的金属宽度（载流能力）和 VDD/VSS 之间的间距（防止短路）。
-电源规划过度设计会带来什么问题？|占用过多面积，标准单元可用面积减少、利用率过高，导致布线拥塞和 DRC 违例。
-发现某点 IR drop 超标，应该先看什么？|先看 via 覆盖（瓶颈常在层间连接），再看 stripe 密度是否够、电流是否集中。
+电从封装到单元内部经过哪几段？|pad / IO 环 → power ring → power stripe → follow pin → 单元内部。每段都掉压，电流逐级变小，线宽也逐级变窄。
+ring 宽度由总电流决定吗？|不是。由环上相邻两个供电 pad 之间那一段承担的电流 ÷ EM 限值决定；pad 越少，每段电流越大，环要越宽。
+stripe 为什么横竖两个方向都要画？|只画一个方向时，两条之间的单元要沿 follow pin 横向绕到条带，路径长、压降大；两个方向成 mesh 才能就近取电、并联降阻。
+follow pin 载流不够，能不能直接加宽？|不能。宽度由标准单元库的 rail 决定，加宽会盖住信号引脚、违反 DRC；载流不够要靠上层 stripe。
+一个 via 8Ω、电流 13mA，打 1 个和打 64 个各掉多少压？|1 个掉 104mV；64 个并联 0.125Ω，掉约 1.6mV。
+四条判断标准是什么？|IR drop 预算、EM 电流密度、供电均匀性、布线资源占用。四条会互相拉扯，要找都能过的解。
+为什么电源规划必须在 place 之前定？|place 后 row 和单元位置固定，follow pin 动不了；route 后加 stripe 要拆线重布，代价两三天且可能带出 DRC / 时序问题。
+ring 没闭合会怎样？|core 的供电被切成两半，缺口另一侧只能从远处绕电，IR 急剧变差，checkPGConnectivity 会报一片 floating。
+:::
+
+:::check
+- 能画出 pad → ring → stripe → follow pin → cell 的路径，并说出每段电流和线宽为什么逐级变化
+- 能给出 ring 宽度的计算依据（分段电流 ÷ EM 限值），而不是"去年是 4µm"
+- 能解释 stripe pitch 与供电均匀性的关系，以及它如何占用布线资源
+- 能独立算一条 stripe 的宽度和压降：给定峰值电流、条数、EM 限值、方块电阻
+- 能说出 via 阵列在哪些交叉点必须打满，以及漏打会导致 IR 热点、LVS open、DRC 包边违例
+- 能列出四种翻车（ring 缺口、macro 没连、follow pin 错位、via 缺失）并说出对应的检查方法
 :::

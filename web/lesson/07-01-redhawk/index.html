@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>IR Drop 与 RedHawk：芯片为什么会死机 · 33 | IC 后端学院</title>
-<meta name="description" content="时序全绿、DRC 全清，芯片照样可能死机——因为电压不够。这一课讲静态/动态 IR drop、EM，以及 RedHawk 报告怎么看。">
+<title>IR Drop 与 RedHawk：芯片为什么会死机 · 36 | IC 后端学院</title>
+<meta name="description" content="时序全绿、DRC 全清，芯片照样可能死机——因为电压不够。这一课讲静态与动态 IR drop 的物理来源、一次 1A/10mΩ 的手算、RedHawk 需要的七类输入、报告的三要素、EM 的平均电流与峰值电流，以及课程环境没有 RedHawk 时怎么练。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
@@ -26,10 +26,10 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-7">阶段七 · 功耗与 RedHawk</a><span>/</span><b>IR Drop 与 RedHawk：芯片为什么会死机</b></div>
     <div class="hero">
-      <div class="hero-no">33</div>
+      <div class="hero-no">36</div>
       <h1>IR Drop 与 RedHawk：芯片为什么会死机</h1>
       <p class="hero-en">IR Drop & RedHawk</p>
-      <p class="hero-sum">时序全绿、DRC 全清，芯片照样可能死机——因为电压不够。这一课讲静态/动态 IR drop、EM，以及 RedHawk 报告怎么看。</p>
+      <p class="hero-sum">时序全绿、DRC 全清，芯片照样可能死机——因为电压不够。这一课讲静态与动态 IR drop 的物理来源、一次 1A/10mΩ 的手算、RedHawk 需要的七类输入、报告的三要素、EM 的平均电流与峰值电流，以及课程环境没有 RedHawk 时怎么练。</p>
       <div class="hero-meta">
         <span class="pill">约 35 分钟</span>
         <span class="pill">课表学时 2</span>
@@ -38,78 +38,176 @@
     </div>
     <article id="article"><section class="ch" id="cases" data-ch="cases">
   <div class="ch-h"><span class="ch-n">01</span><h2>两个真实故障</h2></div>
-  <p><strong>故障一：芯片跑低频正常，一上高频就随机死机。</strong> 原因：高频时电流瞬间变大，局部电压跌落超过 10%，触发器抓错数据。</p>
-<p><strong>故障二：芯片用了半年开始出问题，越来越频繁。</strong> 原因：电源线电流密度太大，金属被电迁移"烧"出空洞，电阻逐渐变大。</p>
+  <div class="goal"><span>本章目标</span>学完这一章，你能根据"什么时候出错"反推是动态 IR、静态 IR 还是 EM，并说出该查哪份报告。</div>
+<p><strong>故障一：跑一天偶发一次错误。</strong></p>
+<p>现象：常温、标称电压下跑功能测试，几小时才错一次，换个芯片可能一天都不错。加电压（比如从 0.9V 提到 0.95V）之后错误消失。降频也能缓解，但不能根治。</p>
+<p>机理：某个区域的电源网格在时钟沿同时翻转时撑不住，电压瞬间塌下去。触发器在低压下延迟变长，setup 不够，采到上一拍的数据。<strong>错误是概率性的，因为它取决于当时的翻转组合和工艺偏差。</strong></p>
+<p><strong>故障二：高温下失效。</strong></p>
+<p>现象：常温测试全过，放进 125℃ 烘箱跑一会儿就挂；或者芯片用了半年，出问题的频率越来越高。</p>
+<p>机理：前者是温度让阈值电压下降、漏电上升，局部电流变大，IR drop 恶化；后者是电迁移（EM）——电流把金属原子慢慢"推走"，电阻逐渐变大，直到某天断路。</p>
 <p>这两种都不是时序问题，也不是 DRC 问题，而是<strong>功耗完整性问题</strong>。</p>
 <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Power Integrity</span><span class="term-zh">功耗完整性</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>Power Integrity（PI）。研究"电能能不能干净、稳定地送到每个单元"。包含 IR drop、EM、电源噪声等。</p></div>
+  <div class="term-h"><span class="term-en">Power Integrity (PI)</span><span class="term-zh">功耗完整性</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>研究"电能能不能干净、稳定地送到每一个单元"。包含三件事：IR drop（电压掉多少）、EM（线能扛多久）、电源噪声（电压抖多厉害）。<br>它和时序是上下游关系：<strong>电压掉了，延迟就变；延迟变了，时序结论就作废。</strong></p></div>
 </div>
+<p>怎么和时序问题区分？看三个特征：</p>
+<div class="tbl"><table><thead><tr><th>特征</th><th>时序问题</th><th>功耗完整性问题</th></tr></thead><tbody><tr><td>复现性</td><td>稳定复现，同一输入必错</td><td>概率性，跑很久才错一次</td></tr><tr><td>对电压的敏感度</td><td>降压变差，但幅度可预测</td><td>降压急剧恶化，稍微抬压就好</td></tr><tr><td>对频率的敏感度</td><td>降频一定变好</td><td>降频有帮助，但可能仍错（静态 IR）</td></tr><tr><td>空间分布</td><td>集中在某条路径</td><td>集中在某个区域（hotspot）</td></tr></tbody></table></div>
   <label class="ch-done"><input type="checkbox" data-mark="cases"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="types" data-ch="types">
   <div class="ch-h"><span class="ch-n">02</span><h2>IR Drop 分两种</h2></div>
-  <div class="tbl"><table><thead><tr><th>类型</th><th>什么时候发生</th><th>典型阈值</th><th>工具</th></tr></thead><tbody><tr><td>静态 IR drop</td><td>平均电流引起</td><td>&lt; 3%~5% VDD</td><td>RedHawk / Voltus</td></tr><tr><td>动态 IR drop</td><td>时钟沿同时翻转，瞬间大电流</td><td>&lt; 8%~10% VDD</td><td>需要激励向量（VCD）</td></tr></tbody></table></div>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">静态：所有单元同时耗平均电流 → 电源网格上的平均压降</span><span class="ln ">动态：时钟上升沿，几万个触发器同时翻转 → 瞬时电流尖峰 → 局部电压塌陷</span></code></pre></div>
+  <div class="goal"><span>本章目标</span>学完这一章，你能用 <code>V = I × R</code> 和 <code>ΔV = L × di/dt</code> 各手算一次压降，并判断它占标称电压的百分比是否超标。</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">IR Drop</span><span class="term-zh">电压降</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>电流流过有电阻的电源网络时产生的电压损失。<code>V = I × R</code>，I 是电流，R 是从电源 pad 到该单元的等效电阻。<br>芯片内部不是一个电阻，是一张三维的网格（mesh），所以实际计算要解节点方程——这就是 RedHawk 这类工具做的事。</p></div>
+</div>
+<h3>静态 IR drop：电阻分压</h3>
+<p>所有单元都在消耗平均电流，电流从 pad 经过电源环（ring）、电源条（stripe）、via、再到单元，每一段都有电阻。</p>
+<p>手算一次最简模型：某条支路总电流 1A，从 pad 到该单元的等效电阻 10mΩ，标称电压 0.9V。</p>
+<ul><li><code>V_drop = 1A × 10mΩ = 10mV</code></li><li>占标称电压：<code>10mV / 900mV = 1.1%</code></li></ul>
+<p>看起来很小。但真实芯片的电流远不止 1A：</p>
+<div class="tbl"><table><thead><tr><th>电流</th><th>10mΩ 上的压降</th><th>占 0.9V</th></tr></thead><tbody><tr><td>1A</td><td>10mV</td><td>1.1%</td></tr><tr><td>3A</td><td>30mV</td><td>3.3%</td></tr><tr><td>5A</td><td>50mV</td><td>5.6%</td></tr></tbody></table></div>
+<p><strong>5.6% 已经超过静态 IR 的典型阈值（3%~5%）。</strong> 这就是为什么大电流模块（CPU 核、DSP、SerDes）附近的电源条要加密——不是为了"好看"，是为了把等效 R 降下来。R 减半，压降就减半。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Static IR Drop</span><span class="term-zh">静态电压降</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>按平均电流算出的压降，反映电源网格的"直流供电能力"。阈值通常取标称电压的 3%~5%（典型值，按项目规格）。<br>它不依赖激励波形，只需要每个单元的平均功耗，所以<strong>在没有 VCD 的时候也能算</strong>。</p></div>
+</div>
+<h3>动态 IR drop：di/dt 和电感</h3>
+<p>真正危险的不是平均电流，是<strong>瞬间电流</strong>。</p>
+<p>时钟沿到来的一瞬间，几万个触发器同时翻转。电流在几十到几百皮秒内从接近 0 冲到峰值。这个变化率 <code>di/dt</code> 会在电感上产生压降：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">ΔV = L × di/dt</span></code></pre></div>
+<p>手算：封装加片内的等效电感 100pH，电流在 1ns 内上升 1A。</p>
+<ul><li><code>di/dt = 1A / 1ns = 1 × 10⁹ A/s</code></li><li><code>ΔV = 100 × 10⁻¹² × 1 × 10⁹ = 0.1V = 100mV</code></li><li>占 0.9V：<strong>11%</strong></li></ul>
+<p>11% 已经超过动态 IR 的典型阈值（8%~10%）。而且这还没算电阻压降的叠加。</p>
+<p>更麻烦的是：<strong>动态压降发生在时钟沿附近，正好是触发器采样的时候。</strong> 静态压降是"整体矮一截"，动态压降是"关键时刻突然塌一下"，后者对时序的杀伤力大得多。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Dynamic IR Drop</span><span class="term-zh">动态电压降</span><i class="term-ico">点击看解释</i></div>
-  <div class="term-b"><p>芯片里最危险的不是平均功耗，而是<strong>瞬间电流</strong>。时钟沿到来的那一刻，几万个触发器同时动作，电流可以在几十皮秒内冲到峰值。<br>如果电源网格响应不过来（电感、电阻太大），局部电压会瞬间塌下去，触发器就可能抓错数据。</p></div>
+  <div class="term-b"><p>时钟沿附近瞬时大电流引起的局部电压塌陷。由 <code>L×di/dt</code> 和瞬态 <code>I(t)×R</code> 共同决定，通常要求控制在标称电压的 8%~10% 以内（典型值）。<br>分析它必须有真实翻转信息（VCD/FSDB），因为要知道"哪个信号在哪个时刻翻转"。</p></div>
 </div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Decoupling Capacitor (Decap)</span><span class="term-zh">去耦电容</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>放在单元附近的小电容，作用像"本地小水库"：瞬间大电流来时先由它供电，等电源网络反应过来再补上。<br>它降低的是动态压降，对静态压降没有帮助。<strong>decap 放得离负载越近越有效</strong>，放在芯片另一头基本没用。</p></div>
+</div>
+<div class="tbl"><table><thead><tr><th>维度</th><th>静态 IR</th><th>动态 IR</th></tr></thead><tbody><tr><td>电流</td><td>平均电流</td><td>瞬时峰值电流</td></tr><tr><td>公式</td><td><code>V = I × R</code></td><td><code>ΔV = L×di/dt + I(t)×R</code></td></tr><tr><td>需要什么</td><td>平均功耗（<code>report_power</code>）</td><td>真实翻转波形（VCD/FSDB）</td></tr><tr><td>典型阈值</td><td>3%~5% VDD</td><td>8%~10% VDD</td></tr><tr><td>修法</td><td>加 stripe/via、降 R</td><td>加 decap、降 di/dt、优化时钟树</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 拿平均功耗去算动态 IR</div><div class="pit-b"><p>现象：有人用 <code>report_power</code> 给出的总功耗除以电压得到平均电流，代入 <code>V=IR</code>，得出"IR drop 只有 2%，没问题"。流片后高频死机。</p>
+<p>原因：动态压降的峰值电流可能是平均电流的 5~10 倍。平均值看起来安全，峰值早就超了。</p>
+<p>规矩：静态和动态是两套分析。动态必须有 VCD；没有 VCD 时，只能做"假设翻转率"的趋势分析，结论必须标注"不能签核"。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="types"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="inputs" data-ch="inputs">
   <div class="ch-h"><span class="ch-n">03</span><h2>RedHawk 需要什么输入</h2></div>
-  <div class="tbl"><table><thead><tr><th>输入</th><th>内容</th><th>来源</th></tr></thead><tbody><tr><td>DEF</td><td>布局布线</td><td>PR 工具</td></tr><tr><td>LEF</td><td>单元物理</td><td>库</td></tr><tr><td>Liberty（.lib）</td><td>功耗模型</td><td>库</td></tr><tr><td>SPEF</td><td>寄生 RC</td><td>PR/RCX</td></tr><tr><td>Power intent（UPF）</td><td>电源域与开关</td><td>低功耗设计</td></tr><tr><td>激励（VCD/FSDB）</td><td>实际翻转活动</td><td>仿真</td></tr></tbody></table></div>
-<div class="pit"><div class="pit-h">常见坑 · 没有 VCD，做不了动态 IR</div><div class="pit-b"><p>静态 IR 只需要平均功耗（<code>report_power</code> 就能给）。动态 IR 必须有<strong>真实翻转信息</strong>——哪个信号什么时候翻转。</p>
-<p>没有 VCD 时，工具只能用"假设翻转率"（比如 20%），结果只能做趋势参考，不能签核。</p>
-<p><strong>所以动态 IR 分析要和验证团队要仿真波形，这是跨团队协作的典型场景。</strong></p></div></div>
+  <div class="goal"><span>本章目标</span>学完这一章，你能列出一份完整的输入清单，并说出每一样由哪个团队提供、缺了会怎样。</div>
+<p>RedHawk 本身不做设计，它只做"给定版图和电流，解出每个节点的电压"。所以输入的质量决定结论的质量。</p>
+<div class="tbl"><table><thead><tr><th>输入</th><th>内容</th><th>谁给</th><th>缺了会怎样</th></tr></thead><tbody><tr><td>DEF（设计交换格式）</td><td>布局布线后的物理信息（单元位置、电源网格、布线）</td><td>PR 工具导出</td><td>完全没有几何，跑不了</td></tr><tr><td>LEF（库交换格式）</td><td>单元和宏的物理抽象（尺寸、引脚、阻挡层）</td><td>库</td><td>无法建 3D 模型</td></tr><tr><td>Liberty（时序功耗库，.lib）</td><td>功耗模型（内部功耗、漏电、输入电容）</td><td>库</td><td>算不出每个单元耗多少电</td></tr><tr><td>SPEF（寄生参数格式）</td><td>寄生 RC</td><td>提取工具（StarRC/QRC）</td><td>电源网络的 R 不准，压降偏乐观</td></tr><tr><td>功耗活动文件（VCD/FSDB/SAIF）</td><td>每个信号什么时候翻转</td><td>仿真/验证团队</td><td>动态 IR 只能靠假设翻转率</td></tr><tr><td>电源网络描述（UPF，统一电源格式）</td><td>电源域、开关、always-on 区域</td><td>低功耗设计</td><td>多电源域设计算不对</td></tr><tr><td>工艺技术文件（tech file / EM 规则）</td><td>各层电阻率、电流密度上限</td><td>foundry</td><td>算不了 EM，也算不准 R</td></tr></tbody></table></div>
+<p>三件事必须提前确认：</p>
+<ol><li><strong>DEF 和 SPEF 是同一版</strong>。版图改了但 SPEF 没重提，压降会算错，而且不会报错。</li><li><strong>VCD 覆盖了最坏场景</strong>。仿真跑的是"平均负载"还是"峰值负载"？后者才有意义。一个只跑 idle 模式的 VCD，动态 IR 一定是"全绿"。</li><li><strong>电源网格是完整的</strong>。有些流程在 early stage 只摆了部分 stripe，这时候算出来的压降没有参考价值。</li></ol>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：开工前逐项确认七类输入都在、且版本对得上</span><span class="ln cmt"># 用法：在项目 power/ 目录下执行，缺一项就先补，不要急着跑</span><span class="ln ">ls -l def/top.def lef/*.lef lib/*.lib spef/top.spef</span><span class="ln cmt"># 说明：几何与模型四件套，路径按项目实际改</span><span class="ln ">ls -l activity/*.vcd upf/top.upf tech/em_rules.tcl</span><span class="ln cmt"># 说明：激励、电源意图、EM 规则；缺任何一项，结论都不完整</span><span class="ln ">md5sum def/top.def spef/top.spef &gt; input.md5</span><span class="ln cmt"># 说明：算校验和存证，确认 DEF 和 SPEF 是同一次导出的那一对</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 用 idle 模式的 VCD 做动态 IR</div><div class="pit-b"><p>现象：动态 IR 报告全绿，最大压降 2.1%，签核通过。芯片回来后跑高负载应用就死机。</p>
+<p>原因：VCD 来自一个只做初始化的测试用例，大部分模块没开。翻转率极低，峰值电流自然小。</p>
+<p>怎么查：看 VCD 覆盖的模块清单和总翻转次数，和"最坏场景"的设计规格对比。<strong>动态 IR 的结论只对生成它的那个场景成立</strong>，换场景必须重跑。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="inputs"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="report" data-ch="report">
   <div class="ch-h"><span class="ch-n">04</span><h2>报告怎么看</h2></div>
-  <p>RedHawk 输出通常是热图 + 统计表：</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Voltage Drop Summary (VDD, static)</span><span class="ln ">  Max drop      : 42.3 mV  (4.2% of 1.0V)</span><span class="ln ">  Location      : (1240, 860)  near u_core/u_dsp</span><span class="ln ">  Avg drop      : 18.7 mV</span><span class="ln ">  Violating instances : 37</span></code></pre></div>
-<p>三件事：</p>
-<ol><li><strong>最大压降是多少、占标称电压的百分比</strong>。</li><li><strong>在哪个位置、哪个模块附近</strong> —— 这决定怎么修。</li><li><strong>有多少个单元超过阈值</strong> —— 决定严重程度。</li></ol>
-<div class="scene"><div class="scene-h">工作场景 · 定位到具体模块之后怎么修</div><div class="scene-b"><p>报告说压降最大在 <code>u_dsp</code> 附近，三种修法按代价排：</p>
-<ol><li><strong>加电源条密度</strong>：在那个区域多打几条 stripe（最直接）。</li><li><strong>加 via</strong>：如果是层间瓶颈，补 via 阵列。</li><li><strong>降局部功耗</strong>：让 dsp 模块降低翻转率（改设计）、或分散布局（挪一部分逻辑走）。</li></ol>
-<p><strong>先看是"供电不够"还是"用电太猛"，对策完全不同。</strong></p></div></div>
+  <div class="goal"><span>本章目标</span>学完这一章，你能从一份压降报告里读出三个数：最大压降及其百分比、位置、超标单元数，并据此提出修法。</div>
+<p>RedHawk 的输出通常是"热图 + 统计表 + 违例清单"三件套。下面是一份<strong>示意</strong>报告（数值是构造的，不是实测，真实报告字段名以你项目版本为准）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Voltage Drop Summary (VDD, static)</span><span class="ln ">  Max drop            : 42.3 mV  (4.70% of 0.90V)</span><span class="ln ">  Location            : (1240.5, 860.2)  near u_core/u_dsp</span><span class="ln ">  Avg drop            : 18.7 mV</span><span class="ln ">  Violating instances : 37   (threshold 4.0%)</span><span class="ln ">  Total instances     : 128430</span></code></pre></div>
+<p>四行信息，每行都有用：</p>
+<ol><li><strong>Max drop 和百分比</strong>：决定"过不过"。42.3mV / 4.70% 已经超过 4% 的阈值。</li><li><strong>Location</strong>：决定"从哪修"。带坐标和模块名，可以直接回到版图上找。</li><li><strong>Avg drop</strong>：判断是"局部热点"还是"整体供电不足"。平均 18.7mV、最大 42.3mV，说明是局部问题，不是全局。</li><li><strong>Violating instances / Total</strong>：37 / 128430 = 0.03%，说明问题集中在很小的区域，修起来有针对性。</li></ol>
+<h3>热图怎么看</h3>
+<p>热图（heat map）是一张俯视图，颜色代表压降。看三件事：</p>
+<ul><li><strong>红色区域在哪</strong>：是不是集中在某个 macro 旁边、某个高翻转模块、或者电源条稀疏的角落。</li><li><strong>红色区域的形状</strong>：圆形热点多半是局部电流大；条状热点多半是电源条断了或太窄。</li><li><strong>和布局对照</strong>：热点是不是正好在几个大 macro 的夹缝里——那里常常既缺 stripe 又被 macro 挡住。</li></ul>
+<h3>分布怎么读</h3>
+<p>比"最大值"更有信息量的是分布：</p>
+<div class="tbl"><table><thead><tr><th>压降区间</th><th>单元数</th><th>含义</th></tr></thead><tbody><tr><td>0~2%</td><td>118000</td><td>绝大多数，正常</td></tr><tr><td>2~4%</td><td>10393</td><td>偏高但可接受，关注趋势</td></tr><tr><td>4~5%</td><td>35</td><td>超标，必须修</td></tr><tr><td>&gt; 5%</td><td>2</td><td>严重，优先修</td></tr></tbody></table></div>
+<p><strong>如果 2~4% 区间特别大</strong>，说明整体供电偏紧，加几条 stripe 就能整体下移；<strong>如果只有 &gt;5% 的极少数</strong>，说明是局部孤例，改那一个区域就够。</p>
+<div class="scene"><div class="scene-h">工作场景 · 定位到 u_dsp 之后怎么修</div><div class="scene-b"><p>报告说压降最大在 <code>u_core/u_dsp</code> 附近，三种修法按代价排：</p>
+<ol><li><strong>加密电源条</strong>：在那个区域多打几条 stripe，或把现有 stripe 加宽。最直接，通常当天见效。</li><li><strong>补 via 阵列</strong>：如果瓶颈在层间（比如 M5 到 M6 只有一个 via），补一排 via 能把等效电阻降一个数量级。</li><li><strong>降局部功耗</strong>：让 dsp 降低翻转率（改设计）、或把它的一部分逻辑挪走、或加 clock gating。代价最大，但根治。</li></ol>
+<p><strong>先判断是"供电不够"还是"用电太猛"</strong>：看该区域的电流密度图。电流密度正常但压降大 → 供电网络问题（加 stripe/via）；电流密度也高 → 用电问题（降功耗/分散）。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="report"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="em" data-ch="em">
   <div class="ch-h"><span class="ch-n">05</span><h2>EM：电迁移</h2></div>
-  <p>电流密度超过限值，金属原子被电子"推走"，形成空洞或小丘，最终断路或短路。</p>
-<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">允许电流 ≈ 线宽 × 工艺给的电流密度上限（mA/µm）</span></code></pre></div>
-<p>所以电源线宽不是随便定的，是按电流算出来的（03-04 算过）。</p>
-<div class="tbl"><table><thead><tr><th>检查项</th><th>位置</th><th>修法</th></tr></thead><tbody><tr><td>电源线 EM</td><td>stripe / ring</td><td>加宽、加并联条</td></tr><tr><td>信号线 EM</td><td>大驱动输出</td><td>加宽、降低驱动</td></tr><tr><td>via EM</td><td>过孔</td><td>加 via 数量</td></tr></tbody></table></div>
+  <div class="goal"><span>本章目标</span>学完这一章，你能说清平均电流和峰值电流各管什么、为什么 via 最先坏、以及三种修法。</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Electromigration (EM)</span><span class="term-zh">电迁移</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>电流密度超过限值时，金属原子被电子流"推着"慢慢迁移，在某个地方留下空洞（void）、在另一个地方堆成小丘（hillock）。空洞让电阻变大，最后断路；小丘可能顶破绝缘层，造成短路。<br>它是<strong>累积性失效</strong>：不是一上电就坏，而是跑几个月到几年才坏。</p></div>
+</div>
+<p>一个类比：水管里水流太急，管壁会被冲刷变薄。EM 就是"电子风"把金属原子吹走。水流越急（电流密度越大）、时间越长，坏得越快。</p>
+<h3>平均电流 vs 峰值电流</h3>
+<div class="tbl"><table><thead><tr><th>电流</th><th>决定什么</th><th>对应失效</th></tr></thead><tbody><tr><td>平均电流（RMS）</td><td>长期寿命</td><td>原子慢慢迁移，几个月到几年后断路</td></tr><tr><td>峰值电流</td><td>瞬时能力</td><td>局部焦耳热、熔断（毫秒级）</td></tr></tbody></table></div>
+<p>所以 EM 检查要跑两遍：<strong>平均电流查寿命，峰值电流查熔断。</strong> 只看一个都不完整。</p>
+<p>寿命有个经验公式（Black's equation，布莱克方程）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">MTTF = A × J⁻ⁿ × exp(Ea / kT)</span></code></pre></div>
+<p><code>MTTF</code> 是平均失效时间，<code>J</code> 是电流密度，<code>n</code> 通常取 1~2，<code>Ea</code> 是激活能，<code>k</code> 是玻尔兹曼常数，<code>T</code> 是绝对温度。</p>
+<p>不用背公式，但要读出三件事：<strong>电流密度翻倍，寿命掉到 1/2 到 1/4；温度升高，寿命指数下降；所以高温测试能加速暴露 EM 问题。</strong></p>
+<h3>为什么 via 是薄弱点</h3>
+<p>一条宽线能扛 10mA，但它和上层连接的地方可能只有两三个 via。电流在 via 处被"挤"进很小的截面，电流密度瞬间放大几倍。再加上 via 的阻挡层（barrier）很薄、拐角处电场集中，所以<strong>EM 违例经常第一个出现在 via 上</strong>。</p>
+<p>修法也就很直接：</p>
+<div class="tbl"><table><thead><tr><th>检查项</th><th>位置</th><th>修法</th></tr></thead><tbody><tr><td>电源线 EM</td><td>stripe / ring</td><td>加宽、加并联条、换成更高层金属</td></tr><tr><td>信号线 EM</td><td>大驱动单元的输出</td><td>加宽、降低驱动强度、插缓冲分担</td></tr><tr><td>via EM</td><td>层间连接</td><td>加 via 数量（阵列）、换更大的 via</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 只修了线宽，没修 via</div><div class="pit-b"><p>现象：EM 报告里同一条 net 反复违例，加宽了线还是红。</p>
+<p>原因：瓶颈在 via，不在线。线宽加倍但 via 数量没变，电流还是挤在那几个孔里。</p>
+<p>怎么查：报告里看违例对象是 <code>layer</code> 还是 <code>via</code>；版图上数一下这条 net 在换层处的 via 个数。<strong>加 via 通常比加线宽便宜，优先做。</strong></p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="em"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="summary" data-ch="summary">
   <div class="ch-h"><span class="ch-n">06</span><h2>一节可以背下来的结论</h2></div>
-  <div class="tbl"><table><thead><tr><th>现象</th><th>病因</th><th>查什么</th></tr></thead><tbody><tr><td>低频正常、高频死机</td><td>动态 IR drop</td><td>时钟沿附近的电压波形</td></tr><tr><td>用久了出问题</td><td>EM</td><td>电流密度报告</td></tr><tr><td>局部区域功能异常</td><td>静态 IR drop</td><td>压降热图 + 该区域电源密度</td></tr><tr><td>上电时序异常</td><td>power gating 时序</td><td>UPF + switch 控制信号</td></tr></tbody></table></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能区分静态/动态 IR drop，知道各自阈值量级</li><li>知道 RedHawk 需要哪六类输入，尤其是 VCD 的作用</li><li>会读压降报告的三要素（最大值、位置、违例单元数）</li><li>知道 EM 的成因和三种修法</li><li>能根据"什么时候出问题"反推病因</li></ul></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>静态 IR drop 和动态 IR drop 的区别？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">静态由平均电流引起（阈值 3%~5%）；动态由时钟沿瞬间大电流引起（阈值 8%~10%），需要 VCD 激励。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>为什么做动态 IR 必须有 VCD？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">因为要知道每个信号真实的翻转时间和翻转率，否则算不出瞬时电流尖峰。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>压降最大点在 <code>u_dsp</code> 附近，三种修法是什么？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">加密电源条、补 via 阵列、降低该模块功耗或分散布局。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>EM 是什么？怎么预防？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">电迁移：电流密度过大导致金属原子迁移、最终断路。预防靠按电流算线宽、加并联条、增加 via 数量。</div>
-</div><div class="q-item">
-  <div class="q-q"><span class="q-no"></span>"芯片用了半年才开始出问题"最可能是什么原因？</div>
-  <button class="q-show" type="button">看答案</button>
-  <div class="q-a">EM（电迁移）导致电阻逐渐变大，是累积性失效，不是设计逻辑错误。</div>
-</div></div>
+  <div class="goal"><span>本章目标</span>学完这一章，你能用五句话向别人解释"为什么时序全绿还会死机"。</div>
+<div class="tbl"><table><thead><tr><th>现象</th><th>病因</th><th>先查什么</th></tr></thead><tbody><tr><td>低频正常、高频随机错</td><td>动态 IR drop</td><td>时钟沿附近的电压波形、VCD 场景</td></tr><tr><td>用久了越来越容易错</td><td>EM</td><td>平均电流密度报告、via</td></tr><tr><td>某个区域功能异常、降压更明显</td><td>静态 IR drop</td><td>压降热图、该区域 stripe/via 密度</td></tr><tr><td>上电时序异常、某块不工作</td><td>power gating 时序</td><td>UPF、switch 控制信号、always-on 网络</td></tr><tr><td>高温才失效</td><td>温度 + IR/漏电正反馈</td><td>高温 corner 的 IR 与功耗</td></tr></tbody></table></div>
+<p>五条可以背下来的结论：</p>
+<ol><li><strong>时序全绿不等于芯片能工作。</strong> 电压掉 10%，单元延迟可能涨 10%~20%，setup 直接崩。</li><li><strong>静态 IR 看平均电流和网格电阻，动态 IR 看 di/dt 和 decap。</strong> 两者阈值不同，修法不同。</li><li><strong>动态 IR 必须有真实激励。</strong> 假设翻转率只能看趋势，不能签核。</li><li><strong>EM 是累积失效。</strong> 平均电流定寿命，峰值电流定熔断，via 是最先坏的地方。</li><li><strong>修 IR 三件事：加 stripe、补 via、加 decap；修 EM 三件事：加宽、并联、加 via。</strong></li></ol>
+<p>这张表的用法：拿到一个"芯片不稳定"的现象，先按第一列定位到最像的一行，再去看对应的报告。<strong>不要一上来就重跑时序</strong>——时序工具看不到电压，它只会告诉你"在标称电压下没问题"。</p>
+<p>评审时被问"你怎么排除是 IR drop"，答案就是这张表：说出你查了哪一行、看了哪个数、结论是什么。<strong>能排除，和能修，是两种能力，前者更值钱。</strong></p>
   <label class="ch-done"><input type="checkbox" data-mark="summary"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="offline" data-ch="offline">
+  <div class="ch-h"><span class="ch-n">07</span><h2>课程环境怎么练：没有 RedHawk 怎么办</h2></div>
+  <div class="goal"><span>本章目标</span>学完这一章，你能在没有 RedHawk license 的情况下，用输入清单和报告样例完成一次"纸面分析"，并明确说出哪些结论不能下。</div>
+<p>课程环境里没有 RedHawk，也不会有真实的工艺 PDK 和 VCD。<strong>所以这一课不能"跑一遍看看"，只能练"读"和"算"。</strong> 这不是偷懒，真实项目里 80% 的时间也是在看报告和判断，而不是点按钮。</p>
+<h3>能练的三件事</h3>
+<ol><li><strong>列输入清单</strong>：拿到一个项目目录，逐项确认七类输入是否存在、版本是否一致。这是最容易出错、也最容易被跳过的一步。</li><li><strong>读样例报告</strong>：用上面那份示意报告，练"三个数 + 一个判断"——最大压降多少、在哪、超标几个、属于局部还是整体。</li><li><strong>手算量级</strong>：给电流和电阻算 <code>V=IR</code>，给电感和 di/dt 算 <code>L×di/dt</code>，判断百分比。<strong>能手算出量级，就不会被报告里的小数点骗。</strong></li></ol>
+<h3>明确不能做的事</h3>
+<ul><li>不能生成真实热图（需要完整 DEF + tech file + 求解器）。</li><li>不能得出"这个设计能签核"的结论（没有工艺数据和激励）。</li><li>不能引用具体公司的压降数字（那些是保密数据）。</li></ul>
+<p><strong>如果面试被问"你做过 IR drop 吗"，正确的答法是</strong>："我读过 RedHawk 的报告，能解释静态/动态的区别和三个关键数；完整跑过一次需要 PDK 和 VCD，我在课程环境里没有条件，但我能列出输入清单并判断报告是否可信。"——这比编一个"我跑过"要安全得多。</p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：用一份报告做纸面诊断</div><div class="lab-b"><p><strong>任务</strong>：用课程环境 <code>~/backend_lab/soc/power/</code> 下的样例报告（<code>ir_static_summary.rpt</code>、<code>em_violation.rpt</code>，都是构造的样例数据），完成一次诊断并写 150 字结论。</p>
+<p><strong>步骤</strong>：</p>
+<ol><li>打开 <code>ir_static_summary.rpt</code>，抄下 max drop（mV 和 %）、location、violating instances。</li><li>算 <code>max drop / 标称电压</code>，判断是否超过 4%。</li><li>看违例单元数和总数，算占比，判断是局部还是整体。</li><li>打开 <code>em_violation.rpt</code>，统计违例按 <code>layer</code> / <code>via</code> 分类的条数。</li><li>按"供电不够 / 用电太猛"二分，给出至少两条修法并排序。</li></ol>
+<p><strong>过关标准</strong>：结论里必须包含"超阈值多少、集中在哪个模块、是局部还是整体、先加 stripe 还是先补 via、为什么"。<strong>不能出现"建议进一步分析"这种没有结论的话。</strong></p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>静态 IR 和动态 IR 的物理来源分别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">静态是平均电流在电源网格电阻上的分压（V=IR）；动态是瞬时电流变化在电感上的压降（L×di/dt）加上瞬态 IR。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>1A 电流、10mΩ 电阻、0.9V 标称电压，压降占多少？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">10mV，占 1.1%。电流到 5A 就是 50mV、5.6%，超过静态阈值。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么动态 IR 必须有 VCD？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">要知道每个信号在什么时刻翻转，才能算出瞬时峰值电流；没有 VCD 只能用假设翻转率，结论只能看趋势。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>RedHawk 的七类输入里，哪两类最容易被忽略？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">功耗活动文件（VCD/FSDB/SAIF）和电源网络描述（UPF）；前者决定动态分析是否成立，后者决定多电源域是否算对。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>一份压降报告要读哪三个数？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">最大压降及占标称电压的百分比、发生位置（坐标 + 模块）、超标单元数及占比。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>EM 的平均电流和峰值电流各决定什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">平均电流（RMS）决定长期寿命，峰值电流决定瞬时熔断和局部过热。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 via 是 EM 的薄弱点？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">电流在 via 处被挤进很小的截面，电流密度放大数倍；阻挡层薄、拐角电场集中，所以最先失效。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>"芯片用了半年才开始出错"最可能是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">EM 累积失效，电阻逐渐变大；不是逻辑 bug，也不是时序约束问题。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能根据"什么时候出错、对电压/频率的敏感度"区分时序问题和功耗完整性问题</li><li>能手算 <code>V=IR</code> 和 <code>L×di/dt</code>，并判断百分比是否超过 3%~5% / 8%~10%</li><li>能列出 RedHawk 的七类输入，说出每类由谁提供、缺了会怎样</li><li>能从报告里读出最大压降、位置、超标数，并判断局部还是整体</li><li>能说清平均电流与峰值电流的分工，以及 via 为什么最先坏</li><li>能背出五条结论，并向别人解释"时序全绿为什么还会死机"</li><li>能明确说出课程环境里哪些结论不能下，以及为什么</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="offline"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
