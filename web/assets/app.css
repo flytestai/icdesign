@@ -393,3 +393,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* 终端输入框占位提示：深色底上要压暗，不能抢输出的注意力 */
 .sbx-in::placeholder{color:#4a5f74;opacity:1}
+
+/* 表格与代码块在窄屏横向滚动时给一条可见的滚动条，提示"右边还有内容" */
+.tbl::-webkit-scrollbar,.code pre::-webkit-scrollbar{height:6px}
+.tbl::-webkit-scrollbar-thumb,.code pre::-webkit-scrollbar-thumb{background:#c3d2e0;border-radius:3px}
+.tbl,.code pre{-webkit-overflow-scrolling:touch;scrollbar-width:thin}
