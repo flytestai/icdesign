@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PrimeTime 签核：自己给自己签字不算数 · 28 | IC 后端学院</title>
+<meta name="description" content="布局布线工具自己算的时序不能作为签核依据。这一课讲 PT 怎么读设计、约束怎么写、报告怎么读、OCV 为什么要更悲观，以及违例怎么反馈回 PR。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="05-02-pt">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-5">阶段五 · 28nm 全流程</a><span>/</span><b>PrimeTime 签核：自己给自己签字不算数</b></div>
+    <div class="hero">
+      <div class="hero-no">28</div>
+      <h1>PrimeTime 签核：自己给自己签字不算数</h1>
+      <p class="hero-en">PrimeTime Signoff</p>
+      <p class="hero-sum">布局布线工具自己算的时序不能作为签核依据。这一课讲 PT 怎么读设计、约束怎么写、报告怎么读、OCV 为什么要更悲观，以及违例怎么反馈回 PR。</p>
+      <div class="hero-meta">
+        <span class="pill">约 65 分钟</span>
+        <span class="pill">课表学时 14</span>
+        <span class="pill tag">PT</span><span class="pill tag">STA</span><span class="pill tag">SDC</span><span class="pill tag">OCV</span><span class="pill tag">签核</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么要用 PT 再算一遍</h2></div>
+  <p>布局布线工具内部也有时序引擎，为什么还要 PrimeTime？</p>
+<div class="tbl"><table><thead><tr><th>原因</th><th>说明</th></tr></thead><tbody><tr><td>独立性</td><td>自己检查自己不可信，同一套引擎的系统性偏差会被继承</td></tr><tr><td>精度</td><td>PT 的延迟计算模型更严格（尤其是 OCV、串扰）</td></tr><tr><td>行业标准</td><td>流片签字用的是 PT 报告，foundry 也认这个</td></tr><tr><td>约束解析</td><td>PT 对 SDC 的解析最严格，能暴露约束写法问题</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">STA</span><span class="term-zh">静态时序分析</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Static Timing Analysis。不跑仿真，靠遍历所有路径 + 计算延迟来判断时序是否满足。<br>优点是快（几分钟覆盖几百万条路径）、完备（不漏路径）；缺点是不能验证功能，只能验证时序。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="read" data-ch="read">
+  <div class="ch-h"><span class="ch-n">02</span><h2>读入三件套</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># pt_shell 里执行</span><span class="ln ">set link_path "* /pdk/db/tsmc28_tt.db /pdk/db/sram_2048x64.db"</span><span class="ln cmt"># link_path 里必须包含所有用到的库，否则单元解析不出来</span><span class="ln "> </span><span class="ln ">read_verilog ./final.v</span><span class="ln ">link_design</span><span class="ln cmt"># 读网表并解析单元</span><span class="ln "> </span><span class="ln ">read_sdc ./ipa.sdc</span><span class="ln cmt"># 读约束</span><span class="ln "> </span><span class="ln ">read_parasitics -format SPEF ./final.spef</span><span class="ln cmt"># 读寄生参数（这一步决定时序精度）</span><span class="ln "> </span><span class="ln cmt"># 检查</span><span class="ln ">check_timing</span><span class="ln cmt"># 会报：没有时钟、没有输入延迟、未约束的路径…… 必须清干净</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · link_path 漏库，时序全错</div><div class="pit-b"><p>现象：PT 报一堆 <code>Cannot find cell 'SRAM_2048x64'</code>，或者把这些单元当成黑盒（延迟按 0 算），时序看起来"特别好"。</p>
+<p><strong>时序看起来过于乐观，第一反应就该怀疑库没读全。</strong></p>
+<p>检查：<code>report_design -library</code> 看实际用了哪些库，和网表里的单元列表对比。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="read"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="sdc" data-ch="sdc">
+  <div class="ch-h"><span class="ch-n">03</span><h2>约束怎么写（SDC 核心五条）</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 定义时钟：周期 2.0ns，占空比 50%</span><span class="ln ">create_clock -name clk_core -period 2.0 [get_ports clk]</span><span class="ln "> </span><span class="ln cmt"># 2. 时钟不确定性：给 jitter 和 skew 留余量（签核时更保守）</span><span class="ln ">set_clock_uncertainty -setup 0.15 [get_clocks clk_core]</span><span class="ln ">set_clock_uncertainty -hold  0.08 [get_clocks clk_core]</span><span class="ln "> </span><span class="ln cmt"># 3. 输入延迟：数据从芯片外进来，要算上游器件的延迟</span><span class="ln ">set_input_delay -clock clk_core -max 1.2 [get_ports data_in*]</span><span class="ln ">set_input_delay -clock clk_core -min 0.3 [get_ports data_in*]</span><span class="ln "> </span><span class="ln cmt"># 4. 输出延迟：数据出去后要在外部器件建立前到达</span><span class="ln ">set_output_delay -clock clk_core -max 1.0 [get_ports data_out*]</span><span class="ln "> </span><span class="ln cmt"># 5. 例外路径：这些路径不用按单周期算</span><span class="ln ">set_false_path -from [get_ports rst_n]            # 复位不需要时序</span><span class="ln ">set_multicycle_path 2 -setup -from [get_cells u_slow/*] -to [get_cells u_slow/*]</span><span class="ln cmt"># 多周期：这条路径允许 2 个周期完成（慢速模块）</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Clock Uncertainty</span><span class="term-zh">时钟不确定性</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>约束里给时钟加的"额外悲观量"。包含两部分：时钟源抖动（jitter）和时钟树偏斜（skew）的残余。<br><code>set_clock_uncertainty -setup 0.15</code> 的意思是：<strong>算 setup 时，假设时钟比理想情况早到 0.15ns</strong>，逼工具留出余量。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · false_path 用多了，等于骗自己</div><div class="pit-b"><p><code>set_false_path</code> 是告诉工具"这条路径不用检查"。用对了是效率（复位、测试逻辑），用错了是掩盖问题。</p>
+<p>真实事故：有人为了让报告变绿，把一条真实的跨时钟域路径设成 false path。流片后功能错，几百万打水漂。</p>
+<p><strong>规矩：每一条 false_path 都要写注释说明理由，并且 Review 时逐条过。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="sdc"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="report" data-ch="report">
+  <div class="ch-h"><span class="ch-n">04</span><h2>报告怎么读</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_timing -max_paths 20 -slack_lesser_than 0 &gt; rpt/viol.rpt</span><span class="ln cmt"># 只报 slack &lt; 0 的路径</span><span class="ln "> </span><span class="ln ">report_qor &gt; rpt/qor.rpt</span><span class="ln cmt"># 汇总：WNS / TNS / 违例路径数 / 面积 / 单元数</span><span class="ln "> </span><span class="ln ">report_constraint -all_violators &gt; rpt/all_viol.rpt</span><span class="ln cmt"># 所有类型的违例（setup / hold / max_transition / max_cap ...）</span></code></pre></div>
+<p>一条路径报告的骨架：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Startpoint: u_core/u_reg[3]/CK          ← 起点（时钟引脚）</span><span class="ln ">Endpoint:   u_core/u_alu/out_reg[7]/D   ← 终点（数据引脚）</span><span class="ln ">Path Group: clk_core</span><span class="ln ">Path Type:  max                          ← max = setup 检查</span><span class="ln "> </span><span class="ln ">  Point                     Incr     Path</span><span class="ln ">  -------------------------------------------------</span><span class="ln ">  clock clk_core (rise)     0.00     0.00</span><span class="ln ">  u_core/u_reg[3]/CK        0.00     0.00</span><span class="ln ">  u_core/u_reg[3]/Q         0.12     0.12     ← 单元延迟</span><span class="ln ">  u_core/u_alu/U12/Z        0.85     0.97     ← 组合逻辑</span><span class="ln ">  u_core/u_alu/out_reg[7]/D 0.00     0.97</span><span class="ln ">  data arrival time                  0.97</span><span class="ln "> </span><span class="ln ">  clock clk_core (rise)     2.00     2.00     ← 下一个时钟沿</span><span class="ln ">  clock uncertainty        -0.15     1.85</span><span class="ln ">  library setup time       -0.08     1.77     ← T_setup</span><span class="ln ">  data required time                 1.77</span><span class="ln ">  -------------------------------------------------</span><span class="ln ">  data required time                 1.77</span><span class="ln ">  data arrival time                 -0.97</span><span class="ln ">  -------------------------------------------------</span><span class="ln ">  slack (MET)                        0.80</span></code></pre></div>
+<p><strong>读报告的三步</strong>：</p>
+<ol><li>看 <code>slack</code>：正负、多少。</li><li>看 <code>data arrival</code> 和 <code>required</code> 的差在哪一段：是单元延迟太大，还是时钟余量吃太多。</li><li>看路径上的单元：哪一级贡献最大（<code>Incr</code> 列）。</li></ol>
+<div class="scene"><div class="scene-h">工作场景 · WNS 是负的，怎么回答组长</div><div class="scene-b"><p>组长问："WNS −0.12ns，为什么？"</p>
+<p>错误回答："工具优化不够，我再跑一遍。"（等于没说）</p>
+<p>正确回答："最差路径在 <code>u_core/u_alu</code> 到 <code>out_reg[7]</code>，arrival 1.89、required 1.77，差 0.12。看 Incr 列，中间那条 32 位加法器占了 0.85ns，是主因。修法有两个：拆进位链，或者把这段逻辑往上游挪，减少线延迟。"</p>
+<p><strong>能定位到具体单元和具体原因，才叫会看报告。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="report"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="ocv" data-ch="ocv">
+  <div class="ch-h"><span class="ch-n">05</span><h2>OCV：签核为什么更悲观</h2></div>
+  <p>真实芯片里，同一个单元在不同位置、不同批次的延迟会有偏差。OCV（On-Chip Variation）就是把这个偏差算进去。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">set_timing_derate -early 0.95     # 早路径（hold 检查用）快 5%</span><span class="ln ">set_timing_derate -late  1.05     # 晚路径（setup 检查用）慢 5%</span></code></pre></div>
+<p>效果：setup 检查时把数据路径算慢 5%、时钟路径算快 5%（更悲观）；hold 相反。</p>
+<div class="tbl"><table><thead><tr><th>模式</th><th>含义</th><th>复杂度</th></tr></thead><tbody><tr><td>OCV</td><td>统一 derate</td><td>简单，偏悲观</td></tr><tr><td>AOCV</td><td>按逻辑深度分级 derate</td><td>中等</td></tr><tr><td>POCV / LVF</td><td>按统计分布算</td><td>最准，先进工艺必用</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Derate</span><span class="term-zh">降额系数</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>在计算延迟时乘一个系数，模拟工艺偏差。<code>1.05</code> 表示"实际可能比标称慢 5%"。<br><strong>derate 加得越狠，签核越保守</strong>：容易过不了，但过了就真能工作。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="ocv"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="eco" data-ch="eco">
+  <div class="ch-h"><span class="ch-n">06</span><h2>违例怎么反馈回 PR</h2></div>
+  <p>PT 发现违例，不能直接改版图。流程是：</p>
+<ol><li>PT 输出 ECO 清单（哪些单元要换、哪些要插 buffer）。</li><li>PR 工具读入 ECO，做局部修改。</li><li>重新导出网表/SPEF，回 PT 复算。</li></ol>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># PT 侧生成 ECO</span><span class="ln ">fix_eco_timing -type setup -methods {size_cell}</span><span class="ln ">write_changes -format icctcl -output eco.tcl</span><span class="ln "> </span><span class="ln cmt"># PR 侧应用（ICC2）</span><span class="ln ">source eco.tcl</span></code></pre></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>第一轮修掉 80%，第二轮修掉剩下的一半，第三轮处理边角。</p>
+<p>如果三轮还收敛不了，说明问题不在时序优化，而在<strong>约束、库、或架构</strong>（比如频率定得太高）。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="eco"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="criteria" data-ch="criteria">
+  <div class="ch-h"><span class="ch-n">07</span><h2>签核标准</h2></div>
+  <div class="tbl"><table><thead><tr><th>指标</th><th>要求</th><th>说明</th></tr></thead><tbody><tr><td>setup WNS</td><td>≥ 0（建议留 50~100ps）</td><td>最差路径不能违例</td></tr><tr><td>hold WNS</td><td>≥ 0（建议留 30~50ps）</td><td>hold 更危险，必须留余量</td></tr><tr><td>TNS</td><td>0</td><td>所有违例之和</td></tr><tr><td>max_transition</td><td>全部达标</td><td>信号边沿不能太慢</td></tr><tr><td>max_capacitance</td><td>全部达标</td><td>负载不能超过驱动能力</td></tr></tbody></table></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>知道为什么必须用 PT 复签</li><li>会读入网表/约束/SPEF 并跑 <code>check_timing</code></li><li>能写出 SDC 五条核心约束</li><li>能读懂一条路径报告并定位瓶颈</li><li>理解 OCV/derate 的作用</li><li>知道 ECO 流程和签核标准</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么布局布线工具自己算的时序不能签核？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">缺乏独立性（同一引擎的系统偏差会被继承），且精度和约束解析不如 PT 严格；流片签字以 PT 为准。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>check_timing</code> 报"没有时钟"说明什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">约束没读进去，或时钟端口名写错，后面所有时序结果都不可信。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>set_clock_uncertainty -setup 0.15</code> 的含义？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">算 setup 时假设时钟提前 0.15ns 到达，逼工具留出余量。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>一条路径 arrival 1.89、required 1.77，slack 是多少？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">−0.12ns（违例）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>PT 发现违例后怎么让版图改？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">生成 ECO（换单元/插 buffer），PR 工具读入执行，再导出网表/SPEF 回 PT 复算，通常 2~3 轮收敛。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="criteria"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/05-01-pr-flow/">← 28nm 全流程（一）：把 PR 串成项目</a><a class="nav-btn" href="/lesson/05-03-pv/">物理验证：DRC / LVS / ERC / Antenna →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

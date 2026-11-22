@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ICC2：换一套工具，把同一件事再做一遍 · 24 | IC 后端学院</title>
+<meta name="description" content="ICC2 的设计数据库（NDM）和 Innovus 完全不同，库要先"建"出来。这一课讲 NDM 是什么、怎么建、和 Innovus 的命令怎么对应。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="04-01-icc2">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-4">阶段四 · ICC2 32nm 项目</a><span>/</span><b>ICC2：换一套工具，把同一件事再做一遍</b></div>
+    <div class="hero">
+      <div class="hero-no">24</div>
+      <h1>ICC2：换一套工具，把同一件事再做一遍</h1>
+      <p class="hero-en">ICC2 Fundamentals</p>
+      <p class="hero-sum">ICC2 的设计数据库（NDM）和 Innovus 完全不同，库要先"建"出来。这一课讲 NDM 是什么、怎么建、和 Innovus 的命令怎么对应。</p>
+      <div class="hero-meta">
+        <span class="pill">约 35 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">ICC2</span><span class="pill tag">NDM</span><span class="pill tag">建库</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么换工具会卡住</h2></div>
+  <p>会用 Innovus 不等于会用 ICC2。差的不只是命令名，而是<strong>数据组织方式</strong>：</p>
+<div class="tbl"><table><thead><tr><th>维度</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>库格式</td><td>直接读 <code>.lef</code> + <code>.lib</code></td><td>必须先合成 <strong>NDM</strong></td></tr><tr><td>设计存盘</td><td><code>.enc</code> 目录</td><td>block 数据库（在 lib 里）</td></tr><tr><td>时序视图</td><td>读 <code>.lib</code> 即可</td><td>NDM 里必须有 timing view</td></tr><tr><td>命令风格</td><td><code>place_opt_design</code></td><td><code>place_opt</code></td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">NDM</span><span class="term-zh">Milkyway/NDM 库</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Synopsys 的库格式。一个 NDM 里可以同时装：物理视图（来自 LEF）、时序视图（来自 .db）、工艺信息（来自 .tf）。<br><strong>关键：如果 NDM 里只有物理视图没有时序视图，<code>place_opt</code> 会直接失败</strong>（报 <code>OPT-041</code>），因为它没法算时序。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="build" data-ch="build">
+  <div class="ch-h"><span class="ch-n">02</span><h2>建库：ICC2 的第一道关</h2></div>
+  <p>造 NDM 要用 <code>icc2_lm_shell</code>（Library Manager），不是 <code>icc2_shell</code>。这是一条容易踩空的坑：<strong>两个 shell 的命令集是互补的</strong>。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 在 icc2_lm_shell 里执行</span><span class="ln ">create_workspace -technology /pdk/tsmc32.tf tsmc32_ts</span><span class="ln "> </span><span class="ln ">read_lef /pdk/lef/tsmc32_stdcell.lef        # 先读物理</span><span class="ln ">read_db  /pdk/db/tsmc32_tt.db               # 再读时序</span><span class="ln "> </span><span class="ln ">check_workspace                              # 检查一致性</span><span class="ln ">commit_workspace -output /pdk/ndm/tsmc32_ts.ndm   # 提交成 NDM</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 建库时 check_workspace 不过，commit 会失败</div><div class="pit-b"><p>常见原因：LEF 和 .db 里的单元对不上（比如某个单元只在 .db 里有，LEF 里没有）。</p>
+<p><strong>处理办法</strong>：把冲突单元从库里剔掉（<code>remove_lib_cell</code>），或者补一份匹配的 LEF。我们实测时踢掉了 3 个单元（LOGIC0/LOGIC1/TAPCELL），因为它们引脚名或物理信息不一致，剔掉不影响综合（DC 会改用反相器做 tie）。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="build"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="mapping" data-ch="mapping">
+  <div class="ch-h"><span class="ch-n">03</span><h2>命令对照表</h2></div>
+  <div class="tbl"><table><thead><tr><th>动作</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>建库</td><td>无需（直接读 lef/lib）</td><td><code>create_workspace</code> + <code>commit_workspace</code></td></tr><tr><td>打开设计</td><td><code>restoreDesign x.enc</code></td><td><code>open_lib</code> + <code>open_block</code></td></tr><tr><td>读网表</td><td><code>read_netlist</code></td><td><code>read_verilog</code> + <code>link_design</code></td></tr><tr><td>Floorplan</td><td><code>floorPlan</code></td><td><code>initialize_floorplan</code></td></tr><tr><td>摆宏</td><td><code>placeInstance</code></td><td><code>set_cell_location</code></td></tr><tr><td>电源</td><td><code>addRing</code> / <code>addStripe</code></td><td><code>create_power_straps</code> / <code>create_pg_ring</code></td></tr><tr><td>布局</td><td><code>place_opt_design</code></td><td><code>place_opt</code></td></tr><tr><td>CTS</td><td><code>ccopt_design</code></td><td><code>clock_opt</code></td></tr><tr><td>布线</td><td><code>routeDesign</code></td><td><code>route_auto</code></td></tr><tr><td>布线后优化</td><td><code>optDesign -postRoute</code></td><td><code>route_opt</code></td></tr><tr><td>存盘</td><td><code>saveDesign</code></td><td><code>save_block</code></td></tr><tr><td>导出 DEF</td><td><code>defOut</code></td><td><code>write_def</code></td></tr><tr><td>导出网表</td><td><code>saveNetlist</code></td><td><code>write_verilog</code></td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>不要死记名字，记<strong>动作</strong>：读入、存盘、布局、时钟、布线、优化、导出。七个动作 × 两个工具 = 十四行表，比背课本容易。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="mapping"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="opt041" data-ch="opt041">
+  <div class="ch-h"><span class="ch-n">04</span><h2>一个真实的坑：OPT-041</h2></div>
+  <p>我们第一次跑 <code>place_opt</code> 时报错：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: OPT-041 Scenario Manager creation failed</span></code></pre></div>
+<p>官方文档会说"时序场景创建失败"，于是你会去查 NDM 有没有 timing view。<strong>但我们查了，有。</strong></p>
+<p>真正的原因在上一行日志：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">NEX-018: no valid parasitic for default corner (LATE)</span></code></pre></div>
+<p><strong>缺的是寄生参数模型（TLU+）</strong>，不是时序视图。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">read_parasitic_tech -tlup /pdk/tlup/tsmc32.tlup -layermap /pdk/tlup/layer.map -name tt</span><span class="ln ">set_parasitic_parameters -early_spec tt -late_spec tt</span><span class="ln cmt"># 必须在 link_design 之后设置</span></code></pre></div>
+<div class="scene"><div class="scene-h">工作场景 · 这个坑的教学价值</div><div class="scene-b"><p>报错信息经常"指错方向"。<code>OPT-041</code> 看起来是场景问题，实际是寄生问题。</p>
+<p><strong>排查原则：不要只看最后一条错误，往上翻 5 行看第一条。</strong> 后面往往是连锁反应。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>知道 NDM 里必须同时有物理视图和时序视图</li><li>记得建库用 <code>icc2_lm_shell</code> 而不是 <code>icc2_shell</code></li><li>能说出至少 8 组 Innovus/ICC2 命令对应</li><li>遇到 <code>OPT-041</code> 先查寄生参数</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>NDM 里缺时序视图会怎样？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>place_opt</code> / <code>clock_opt</code> 起不来（优化器需要时序信息）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>建库为什么要在 <code>icc2_lm_shell</code> 里做？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">因为 <code>read_lef</code>/<code>read_db</code>/<code>create_workspace</code> 这些库管理命令只在 lm_shell 里有（<code>icc2_shell</code> 有 <code>create_lib</code> 但没有 lef/db 读取）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>OPT-041</code> 的真实原因可能是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">常见是缺寄生参数模型（NEX-018），不是时序视图缺失。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Innovus 的 <code>.enc</code> 和 ICC2 的 block 数据库有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>.enc</code> 是独立目录存盘；ICC2 的 block 存在 lib 里，要先 <code>open_lib</code> 再 <code>open_block</code>。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="opt041"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-12-chipfinish/">← ChipFinish：收尾这一步，决定能不能送厂</a><a class="nav-btn" href="/lesson/04-02-icc2-flow/">ICC2 全流程实战：从空目录到导出版图 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

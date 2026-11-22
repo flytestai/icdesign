@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>时序路径调试：从 WNS 数字走到那一个单元 · 32 | IC 后端学院</title>
+<meta name="description" content="报告上写着 WNS -0.35ns，然后呢？这一课把一条路径拆成五个时间点，给出五步定位法、四类"假违例"的识别方法，以及"该修还是该 waive"的判断标准。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="06-02-path-debug">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-6">阶段六 · STA 静态时序分析</a><span>/</span><b>时序路径调试：从 WNS 数字走到那一个单元</b></div>
+    <div class="hero">
+      <div class="hero-no">32</div>
+      <h1>时序路径调试：从 WNS 数字走到那一个单元</h1>
+      <p class="hero-en">Debugging a Timing Path</p>
+      <p class="hero-sum">报告上写着 WNS -0.35ns，然后呢？这一课把一条路径拆成五个时间点，给出五步定位法、四类"假违例"的识别方法，以及"该修还是该 waive"的判断标准。</p>
+      <div class="hero-meta">
+        <span class="pill">约 38 分钟</span>
+        <span class="pill">课表学时 3</span>
+        <span class="pill tag">STA</span><span class="pill tag">路径分析</span><span class="pill tag">report_timing</span><span class="pill tag">假违例</span><span class="pill tag">时序预算</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么报告看不懂</h2></div>
+  <p><code>report_timing</code> 的输出有几十行，新人往往从头读到尾，读完还是不知道问题在哪。</p>
+<p>原因只有一个：<strong>不知道工具在算什么式子。</strong></p>
+<p>工具只算一个减法：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">slack = 要求时间（required） - 到达时间（arrival）</span></code></pre></div>
+<ul><li><strong>arrival</strong>：数据从起点出发，经过一路上所有门和线，到达终点花了多久；</li><li><strong>required</strong>：数据最晚必须在什么时候到（由时钟周期减去捕获端的建立时间等推出来）；</li><li>两个一减，负的就是违例。</li></ul>
+<p>所以看报告只需要找两件事：<strong>哪个环节吃掉了时间</strong>、<strong>能不能少花一点</strong>。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Slack</span><span class="term-zh">余量</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p><code>slack = required - arrival</code>。正数表示还有富余，负数表示来不及。<br>WNS（Worst Negative Slack）= 所有违例里最差的那个负数，是"这个设计有多糟"的唯一指标。TNS（Total Negative Slack）= 所有负 slack 之和，是"总共欠多少"。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="anatomy" data-ch="anatomy">
+  <div class="ch-h"><span class="ch-n">02</span><h2>一条路径的五个时间点</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">launch 时钟沿                数据出发                 数据到达         捕获时钟沿</span><span class="ln ">     |                          |                        |                 |</span><span class="ln ">     t0 ──── 时钟树延迟 ──► t1 ── 组合逻辑 ──► t2 ── 建立时间 ──► t3 = t0+T-skew</span><span class="ln ">                                    ↑</span><span class="ln ">                              这一段的延迟就是你要抢的时间</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>时间点</th><th>名字</th><th>报告里的行</th></tr></thead><tbody><tr><td>t0</td><td>时钟源（clock source）</td><td><code>clock clk (rise edge) 0.00</code></td></tr><tr><td>t1</td><td>launch 触发器时钟引脚</td><td><code>u_a/reg_a[3]/CK</code></td></tr><tr><td>t2</td><td>数据到终点 D 引脚</td><td><code>u_b/reg_b[3]/D</code></td></tr><tr><td>t3</td><td>要求到达时间</td><td><code>data required time</code></td></tr><tr><td>—</td><td>到达时间</td><td><code>data arrival time</code></td></tr></tbody></table></div>
+<p>报告里真正的信息量在<strong>中间那几十行</strong>：每一个门的延迟、每一段线的延迟。<strong>找到最贵的那一行，就是找到修的方向。</strong></p>
+  <label class="ch-done"><input type="checkbox" data-mark="anatomy"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="five" data-ch="five">
+  <div class="ch-h"><span class="ch-n">03</span><h2>五步定位法</h2></div>
+  <p>不要一上来就改。按这五步走，10 分钟定位，比瞎试两小时强。</p>
+<p><strong>第 1 步：确认这条违例是真的</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_timing -delay_type max -max_paths 1 -path_type full_clock_expanded</span></code></pre></div>
+<p>看三样东西：</p>
+<ul><li>Startpoint / Endpoint 是不是<strong>真的在同一个时钟域</strong>；</li><li>时钟是不是<strong>你定义的那个</strong>（不是默认的虚拟时钟）；</li><li>路径上有没有 <code>false path</code> 标记（有标记的违例不计入 WNS）。</li></ul>
+<p><strong>第 2 步：找最贵的一段</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_timing -max_paths 1 -sort_by slack -fields {slack arrival required}</span><span class="ln cmt"># 重点看哪一行 Incr 最大：一个门的延迟 0.3ns 就很可疑（一般是 0.03~0.1）</span></code></pre></div>
+<p><strong>第 3 步：判断是哪一类问题</strong></p>
+<div class="tbl"><table><thead><tr><th>现象</th><th>判断</th><th>下一步</th></tr></thead><tbody><tr><td>某一行 Incr 特别大（&gt; 0.3ns）</td><td>驱动不足 / 负载太大</td><td>看这一级的 fanout</td></tr><tr><td>逻辑级数 &gt; 30</td><td>结构问题（组合逻辑太深）</td><td>找设计者改 RTL，或加 pipeline</td></tr><tr><td>线延迟占比 &gt; 50%</td><td>布局太远 / 拥塞绕线</td><td>加约束把它拉近，或改 floorplan</td></tr><tr><td>时钟树延迟差 &gt; 0.3ns</td><td>skew 大</td><td>回 CTS 阶段（见 OptCts 课）</td></tr></tbody></table></div>
+<p><strong>第 4 步：算一次"至少要多快"</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">假设周期 2.0ns，现在 slack -0.35ns</span><span class="ln ">需要省出 0.35ns</span><span class="ln ">可行手段：换驱动（省 0.10）+ 挪近（省 0.15）+ 减一级逻辑（省 0.12）= 0.37 ✅</span><span class="ln ">不可能：只靠换驱动省 0.35（一个门最多省 0.1）</span></code></pre></div>
+<p><strong>第 5 步：改一处，重跑，只改一处</strong></p>
+<p>改三个地方一起跑，你永远不知道哪个起了作用。<strong>一次只改一处，记录数据</strong>。</p>
+<div class="pit"><div class="pit-h">常见坑 · 一次改五个参数</div><div class="pit-b"><p>新人看到违例，同时改利用率、max_density、buffer 列表、skew 目标、SDC 时钟不确定性，然后重跑。</p>
+<p>结果：变好了，但不知道为什么好；下次换个设计，同样的参数组合失效了。</p>
+<p><strong>一次只改一个变量</strong>，是调试的唯一纪律。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="five"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="fake" data-ch="fake">
+  <div class="ch-h"><span class="ch-n">04</span><h2>四类"假违例"：不是设计的问题，是约束的问题</h2></div>
+  <p>签核时最常见的浪费：花两天修一堆根本不是问题的违例。</p>
+<div class="tbl"><table><thead><tr><th>类型</th><th>症状</th><th>怎么确认</th><th>怎么处理</th></tr></thead><tbody><tr><td>假路径</td><td>异步复位、跨时钟域、测试逻辑被报违例</td><td>路径起点终点时钟不同源</td><td><code>set_false_path</code></td></tr><tr><td>多周期</td><td>逻辑本身允许多个周期算完（如乘法器）</td><td>设计者确认功能允许</td><td><code>set_multicycle_path</code></td></tr><tr><td>未约束</td><td>路径完全没出现在报告里（被忽略）</td><td><code>report_timing -unconstrained</code></td><td>补 input/output delay</td></tr><tr><td>时钟定义错</td><td>时钟周期写成实际的一半/两倍</td><td><code>report_clocks</code> 看周期</td><td>改 SDC</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">False Path</span><span class="term-zh">假路径</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>物理上存在连接，但功能上永远不会有信号通过（或者不需要在这个时钟周期内通过）。告诉工具"别检查它"，可以省下大量无意义的违例。<br><strong>风险</strong>：<code>set_false_path</code> 写错会把真违例藏起来。所以每一条 false path 都要有人签字确认，不能"先设上再说"。</p></div>
+</div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 典型的四类约束写法</span><span class="ln ">set_false_path -from [get_ports rst_n]                      ;# 异步复位</span><span class="ln ">set_false_path -from [get_clocks clk_a] -to [get_clocks clk_b]  ;# 跨时钟域（同步器已处理）</span><span class="ln ">set_multicycle_path 2 -setup -from [get_cells u_mul/*] -to [get_cells u_acc/*]</span><span class="ln ">set_clock_uncertainty 0.05 [get_clocks clk]                 ;# 抖动预算</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="fake"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="filter" data-ch="filter">
+  <div class="ch-h"><span class="ch-n">05</span><h2>六种过滤，把范围缩小到一条路径</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1) 只看最差的 10 条</span><span class="ln ">report_timing -max_paths 10</span><span class="ln "> </span><span class="ln cmt"># 2) 只看经过某个单元的路径</span><span class="ln ">report_timing -through [get_pins u_core/u_alu/U2317/Z]</span><span class="ln "> </span><span class="ln cmt"># 3) 只看从某个寄存器出发的</span><span class="ln ">report_timing -from [get_cells u_core/reg_a_reg[3]]</span><span class="ln "> </span><span class="ln cmt"># 4) 只看到达某个寄存器的</span><span class="ln ">report_timing -to [get_cells u_core/reg_b_reg[3]]</span><span class="ln "> </span><span class="ln cmt"># 5) 只看某个时钟域的</span><span class="ln ">report_timing -group clk_500m</span><span class="ln "> </span><span class="ln cmt"># 6) 按 slack 排序，只看负的</span><span class="ln ">report_timing -slack_lesser_than 0 -max_paths 50</span></code></pre></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>当你怀疑"是不是某个单元特别慢"，用 <code>-through</code> 一查就知道它出现在多少条关键路径上。</p>
+<p>出现在 200 条违例路径里的单元，换掉它比修 200 条路径划算得多。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="filter"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="budget" data-ch="budget">
+  <div class="ch-h"><span class="ch-n">06</span><h2>逻辑级数与时序预算：手算一次就懂</h2></div>
+  <p>2ns 周期（500MHz）下，一个触发器到下一个触发器之间能放多少级逻辑？</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">周期                    2.000 ns</span><span class="ln ">- 时钟不确定性          -0.050</span><span class="ln ">- 触发器 setup 时间      -0.080</span><span class="ln ">- 触发器 clk-&gt;q 延迟     -0.110</span><span class="ln ">- 时钟 skew             -0.100</span><span class="ln ">- 布线余量（估）        -0.300</span><span class="ln ">────────────────────────────────</span><span class="ln ">= 留给组合逻辑          1.360 ns</span><span class="ln "> </span><span class="ln ">如果一级 NAND2 平均 0.045ns：1.360 / 0.045 ≈ 30 级</span><span class="ln ">实际留 20% 余量：约 24 级</span></code></pre></div>
+<p>这就是为什么"逻辑级数超过 30 基本必违例"。这个数不是玄学，是算出来的。</p>
+<div class="note"><div class="note-h">我们的实测：+1.00ns 是怎么来的</div><p>万门设计在 ICC2 里 <code>place_opt</code> 之后 setup WNS +1.00ns（周期 2ns，也就是用了 50% 的时间预算）。</p>
+<p>这不是"工具很强"，而是<strong>布局阶段插了 2636 个 buffer 换来的</strong>：单元数从 9390 涨到 12026，面积从 270×270 缩到 222×222（因为时序驱动会把逻辑拉近）。</p>
+<p><strong>代价要看清</strong>：省下来的面积换成了 buffer 的面积和功耗；WNS 好看，但 dynamic power 上去了。真实项目里这两个要一起权衡。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="budget"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="decide" data-ch="decide">
+  <div class="ch-h"><span class="ch-n">07</span><h2>该修还是该 waive：一个判断表</h2></div>
+  <p>不是所有违例都值得修。按这个顺序判断：</p>
+<div class="tbl"><table><thead><tr><th>情况</th><th>处理</th><th>理由</th></tr></thead><tbody><tr><td>hold 违例</td><td><strong>必须修</strong></td><td>跟频率无关，降频也救不了，硅片上一定出错</td></tr><tr><td>setup 违例且路径真实</td><td>修</td><td>影响良率与最高频率</td></tr><tr><td>setup 违例在 false path 上</td><td>waive（加约束）</td><td>功能上不会发生</td></tr><tr><td>违例 &lt; 周期的 1%（20ps 级）</td><td>可 waive（记录在案）</td><td>在工艺波动范围内，修的成本高于收益</td></tr><tr><td>测试/DFT 逻辑违例</td><td>通常 waive</td><td>测试模式频率低</td></tr><tr><td>违例在 spare cell 上</td><td>waive</td><td>备用单元不参与功能</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · waive 不写记录</div><div class="pit-b"><p>"这条我们 waive 了"——三个月后没人记得为什么 waive。签核报告里出现一条违例，审核的人会一路追到底。</p>
+<p><strong>规矩</strong>：每条 waive 都要写进签核报告的 waiver 表，包含路径名、slack、原因、批准人。</p></div></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：读一份真实的 timing 报告并手算</div><div class="lab-b"><p>模拟终端里有一份完整的路径报告：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~/backend_lab/soc/pnr/reports</span><span class="ln ">cat timing.rpt</span></code></pre></div>
+<p>报告里关键几行：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">  u_core/u_alu/reg_a[3]/Q              0.11       0.11</span><span class="ln ">  u_core/u_alu/U12/ZN                  0.04       0.15</span><span class="ln ">  u_core/u_alu/U57/ZN                  0.06       0.21</span><span class="ln ">  u_core/u_alu/U88/Z                   0.09       0.30</span><span class="ln ">  ...</span><span class="ln ">  data arrival time                               0.32</span><span class="ln ">  data required time                              1.90</span><span class="ln ">  slack (MET)                                     1.58</span></code></pre></div>
+<p>手算验证：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">arrival  = 0.11 + 0.04 + 0.06 + 0.09 + 0.02 = 0.32   ✅ 与报告一致</span><span class="ln ">required = 2.00（周期）- 0.05（uncertainty）- 0.05（setup）= 1.90  ✅</span><span class="ln ">slack    = 1.90 - 0.32 = 1.58  ✅</span></code></pre></div>
+<p>再用命令抽数：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep -E "slack|data (arrival|required)" timing.rpt</span><span class="ln ">awk '/data arrival time/ {print "arrival =", $4}' timing.rpt</span></code></pre></div>
+<p>过关标准：能拿任意一份 report_timing，手算出 arrival / required / slack 三个数，并和报告对上。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 <code>slack = required - arrival</code>，并指出报告里哪两行是这两个数</li><li>能按五步定位法，从 WNS 走到"最贵的那一行"</li><li>能识别四类假违例，并写出对应的约束语句</li><li>能用手算得出"2ns 周期大概能放多少级逻辑"</li><li>知道 hold 必须修、setup 在 false path 上可以 waive，且 waive 必须留记录</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>slack = required - arrival</code> 里，required 由什么决定？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">由捕获时钟到达时间减去触发器 setup 时间（以及不确定性、skew 等）决定，本质是"数据最晚必须什么时候到"。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>一条路径上某一行 Incr 是 0.35ns，其他都是 0.05ns，说明什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">这一级有问题：通常驱动不足、负载过大或线太长，是优先要修的点。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>report_timing -through</code> 用来干什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">只看经过指定引脚/单元的路径，用来确认某个可疑单元出现在多少条关键路径上。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>hold 违例为什么必须修，不能 waive？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">它与时钟周期无关，硅片上一定会发生竞争，降频也救不了，属于功能性错误。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>waive 一条违例时最低要求是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">写进签核报告的 waiver 表：路径、slack、原因、批准人，缺一不可。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="decide"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/06-01-sta-deep/">← STA 深水区：时钟组、跨时钟域与悲观度</a><a class="nav-btn" href="/lesson/07-01-redhawk/">IR Drop 与 RedHawk：芯片为什么会死机 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

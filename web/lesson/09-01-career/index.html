@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>求职：把做过的事讲成别人听得懂的价值 · 35 | IC 后端学院</title>
+<meta name="description" content="简历不是流水账，面试不是背书。这一课给简历公式、项目描述模板、20 道高频题的答法要点，以及模拟面试的流程。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="09-01-career">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-9">阶段九 · 求职</a><span>/</span><b>求职：把做过的事讲成别人听得懂的价值</b></div>
+    <div class="hero">
+      <div class="hero-no">35</div>
+      <h1>求职：把做过的事讲成别人听得懂的价值</h1>
+      <p class="hero-en">Resume & Interview</p>
+      <p class="hero-sum">简历不是流水账，面试不是背书。这一课给简历公式、项目描述模板、20 道高频题的答法要点，以及模拟面试的流程。</p>
+      <div class="hero-meta">
+        <span class="pill">约 50 分钟</span>
+        <span class="pill">课表学时 4</span>
+        <span class="pill tag">简历</span><span class="pill tag">面试</span><span class="pill tag">求职</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="resume" data-ch="resume">
+  <div class="ch-h"><span class="ch-n">01</span><h2>简历：一行字要回答三个问题</h2></div>
+  <p>后端简历最容易犯的错：写成流程说明书。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">❌ 参与 IPA 项目后端设计，使用 Innovus 完成 floorplan、placement、CTS、routing。</span></code></pre></div>
+<p>这句话的问题：<strong>没有规模、没有指标、没有你的贡献。</strong></p>
+<p>改成：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">✅ IPA 图像加速器（9390 单元 / 6 个 SRAM / 40nm）后端实现：</span><span class="ln ">   floorplan 阶段重排宏单元通道，使布线 DRC 从 6000 降至 0；</span><span class="ln ">   全流程 21.7 分钟收敛，WNS +1.00ns，面积 222.5×222.2µm。</span></code></pre></div>
+<p>公式：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">做了什么（设计 + 规模 + 工艺） + 遇到了什么问题 + 你做了什么动作 + 量化结果</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">STAR</span><span class="term-zh">情境-任务-行动-结果</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Situation / Task / Action / Result。面试答题和写简历都用这个结构。<br>关键在 A 和 R：<strong>你具体做了什么动作，带来了什么可量化的变化。</strong></p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="resume"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="project" data-ch="project">
+  <div class="ch-h"><span class="ch-n">02</span><h2>项目描述模板</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">markdown</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">### IPA 图像加速器后端实现（40nm, 9390 cells）</span><span class="ln ">- 输入：RTL 综合网表 + SDC 约束 + Nangate45/TSMC40 库</span><span class="ln ">- 我做的事：</span><span class="ln ">  1. Floorplan：6 个 SRAM 靠边对齐，按出线数算通道宽度（20µm），设 halo</span><span class="ln ">  2. 电源：ring + stripe 覆盖，via 阵列补齐，IR 预估 3.8%</span><span class="ln ">  3. 布局与 CTS：pin_density_aware 开启，skew 目标 80ps，实际 62ps</span><span class="ln ">  4. 布线：route_auto + route_opt + incremental detail</span><span class="ln ">- 结果：DRC 0、open net 0、WNS +1.00ns、hold −0.07ns、FM 2560/2560 等价</span><span class="ln ">- 复盘：第一版通道只有 10µm，DRC 6000；改到 20µm 后首轮即 0</span></code></pre></div>
+<p><strong>最后一行"复盘"最有价值</strong>：它证明你不是照流程点按钮，而是理解了因果。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="project"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="questions" data-ch="questions">
+  <div class="ch-h"><span class="ch-n">03</span><h2>20 道高频面试题</h2></div>
+  <h3>概念类</h3>
+<div class="tbl"><table><thead><tr><th>问题</th><th>考点</th><th>答法要点</th></tr></thead><tbody><tr><td>setup 和 hold 的区别</td><td>时序基础</td><td>setup 看下一个时钟沿之前数据是否稳定；hold 看当前沿之后数据是否保持</td></tr><tr><td>为什么降频救不了 hold</td><td>公式理解</td><td>hold 公式里没有时钟周期，只和逻辑延迟、T_hold、skew 有关</td></tr><tr><td>什么是 skew，越大越好还是越小越好</td><td>时钟树</td><td>到达时间差；不是越小越好，要留 useful skew 空间，且过小会插过多 buffer</td></tr><tr><td>利用率定多少合适</td><td>floorplan</td><td>0.6~0.75；过高拥塞，过低浪费面积</td></tr><tr><td>宏单元怎么摆</td><td>floorplan</td><td>靠边、对齐、pin 朝内、留通道（按出线数算）、加 halo</td></tr><tr><td>为什么必须做 CTS</td><td>时钟树</td><td>不建树 skew 巨大，hold 无法收敛</td></tr><tr><td>IR drop 分几种</td><td>功耗完整性</td><td>静态（平均电流，3~5%）和动态（瞬时电流，8~10%）</td></tr></tbody></table></div>
+<h3>工具类</h3>
+<div class="tbl"><table><thead><tr><th>问题</th><th>考点</th><th>答法要点</th></tr></thead><tbody><tr><td>Innovus 和 ICC2 的区别</td><td>工具广度</td><td>数据组织不同（.enc vs NDM+block），命令可一一对应，方法论相同</td></tr><tr><td>NDM 里缺时序视图会怎样</td><td>ICC2</td><td>place_opt/clock_opt 起不来，报 OPT-041</td></tr><tr><td>怎么修 setup 违例</td><td>优化手段</td><td>upsize、换 LVT、插 buffer、挪位置、useful skew、降频（最后）</td></tr><tr><td>怎么修 hold 违例</td><td>优化手段</td><td>插延迟单元、调 skew、删多余 buffer</td></tr><tr><td>PT 和 PR 工具自带 STA 的差别</td><td>签核</td><td>独立性、精度、约束解析严格程度、行业认可</td></tr><tr><td>怎么做 ECO</td><td>流程</td><td>PT 出 ECO 清单，PR 读入执行，重新导出网表/SPEF 复算</td></tr></tbody></table></div>
+<h3>排错类</h3>
+<div class="tbl"><table><thead><tr><th>问题</th><th>考点</th><th>答法要点</th></tr></thead><tbody><tr><td>place_opt 报 OPT-041 怎么查</td><td>排错</td><td>往上翻日志找第一条错误，常见是缺寄生模型（NEX-018）</td></tr><tr><td>DRC 清不干净怎么办</td><td>排错</td><td>先看分布，判断是布局问题还是孤例；分类统计 + 区域聚类</td></tr><tr><td>时序突然变差怎么定位</td><td>排错</td><td>对比基线、看约束是否变、看库 corner、看是否换了版本</td></tr><tr><td>报 command not found</td><td>环境</td><td>which、echo $PATH、确认 shell（bash 用 export，tcsh 用 setenv）</td></tr><tr><td>网表和 SPEF 不匹配的现象</td><td>流程</td><td>报找不到引脚、时序不合理；必须同一次运行同时导出</td></tr></tbody></table></div>
+  <label class="ch-done"><input type="checkbox" data-mark="questions"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="mock" data-ch="mock">
+  <div class="ch-h"><span class="ch-n">04</span><h2>模拟面试怎么练</h2></div>
+  <p>三步，每步 20 分钟：</p>
+<ol><li><strong>自我介绍（2 分钟）</strong>：一句话背景 + 一个项目 + 一个亮点。不要从大学讲起。</li><li><strong>项目深挖（10 分钟）</strong>：对方会问"为什么这么做""如果改条件会怎样"。<strong>答不上来就说"这块我当时没深入，我的理解是…"，别编。</strong></li><li><strong>基础题抽查（8 分钟）</strong>：上面 20 题随机抽 5 道。</li></ol>
+<div class="pit"><div class="pit-h">常见坑 · 面试时说"我们团队"</div><div class="pit-b"><p>面试官只关心<strong>你</strong>做了什么。</p>
+<p>错误："我们做了 floorplan 优化。" 正确："我负责 floorplan，具体做了三件事：算通道宽度、调宏单元朝向、加 halo。结果 DRC 从 6000 降到 0。"</p>
+<p><strong>把"我们"换成"我"，把动作说具体。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="mock"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="apply" data-ch="apply">
+  <div class="ch-h"><span class="ch-n">05</span><h2>投递与谈薪</h2></div>
+  <div class="tbl"><table><thead><tr><th>渠道</th><th>特点</th></tr></thead><tbody><tr><td>内推</td><td>命中率最高，优先找师兄师姐、前同事</td></tr><tr><td>招聘网站</td><td>量大但竞争激烈，简历要针对 JD 改关键词</td></tr><tr><td>公司官网</td><td>大厂必投，流程正规</td></tr><tr><td>猎头</td><td>3 年以上经验更有效</td></tr></tbody></table></div>
+<p>谈薪三条：</p>
+<ol><li><strong>先问范围</strong>："这个岗位的预算区间是多少？"（很多 HR 会直接给）</li><li><strong>报区间不报单点</strong>："期望 25~30K"，给自己留空间。</li><li><strong>拿总包比</strong>：月薪 × 几个月 + 签字费 + 股票，别只比月薪。</li></ol>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用公式写出自己的项目描述（规模 + 问题 + 动作 + 量化结果）</li><li>20 道高频题至少能答出 15 道</li><li>知道模拟面试的三段结构</li><li>会把"我们"改成"我"，把动作说具体</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>简历里的项目描述应该包含哪四要素？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">设计规模与工艺、遇到的问题、你做的具体动作、可量化的结果。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>"为什么降频救不了 hold" 该怎么答？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">hold 公式是 T_logic ≥ T_hold + skew，不含时钟周期，所以降频无效。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>面试官问"最大的难点是什么"，怎么答才有说服力？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">讲一个具体问题：现象、你怎么定位、做了什么、结果如何（最好带数字）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么简历最后要写"复盘"？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">证明你理解因果而不是照流程操作，能说出"第一版为什么错、改了什么就好了"。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>谈薪时为什么要报区间？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">给自己留谈判空间，也避免因单点报价过低或过高直接出局。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="apply"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/08-01-experience/">← 工程经验：新手最容易踩的 12 个坑</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

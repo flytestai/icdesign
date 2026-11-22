@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>修时序：六种手段和它们的代价 · 18 | IC 后端学院</title>
+<meta name="description" content="违例不是"点一下优化就没了"。这一课讲六种修时序手段的适用场景与代价，以及一条最容易踩的坑：先修 hold 还是先修 setup。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="03-07-fix-timing">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>修时序：六种手段和它们的代价</b></div>
+    <div class="hero">
+      <div class="hero-no">18</div>
+      <h1>修时序：六种手段和它们的代价</h1>
+      <p class="hero-en">Timing Closure</p>
+      <p class="hero-sum">违例不是"点一下优化就没了"。这一课讲六种修时序手段的适用场景与代价，以及一条最容易踩的坑：先修 hold 还是先修 setup。</p>
+      <div class="hero-meta">
+        <span class="pill">约 55 分钟</span>
+        <span class="pill">课表学时 6</span>
+        <span class="pill tag">时序</span><span class="pill tag">优化</span><span class="pill tag">ECO</span><span class="pill tag">hold</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="table" data-ch="table">
+  <div class="ch-h"><span class="ch-n">01</span><h2>六种手段一张表</h2></div>
+  <div class="tbl"><table><thead><tr><th>手段</th><th>怎么做</th><th>有效场景</th><th>代价</th></tr></thead><tbody><tr><td>换大驱动单元（upsize）</td><td><code>X1</code> → <code>X4</code></td><td>驱动能力不足、线长</td><td>面积↑、功耗↑</td></tr><tr><td>换低阈值单元（LVT）</td><td><code>_HVT</code> → <code>_LVT</code></td><td>逻辑本身慢</td><td>漏电↑（静态功耗涨）</td></tr><tr><td>插缓冲器（buffer）</td><td>长线中间插</td><td>线延迟占主导</td><td>面积↑、拥塞↑</td></tr><tr><td>删缓冲器</td><td>去掉多余的</td><td>hold 违例</td><td>可能影响驱动</td></tr><tr><td>挪位置（placement ECO）</td><td>把单元靠近</td><td>线太长</td><td>可能造成新拥塞</td></tr><tr><td>调 skew（useful skew）</td><td>时钟晚到/早到</td><td>局部紧张路径</td><td>会影响相邻路径</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">ECO</span><span class="term-zh">工程变更单</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Engineering Change Order。指在不动整体流程的前提下，对设计做小范围修改（换一个单元、插一个 buffer、挪一个位置）。<br>后端 80% 的时序修复是靠 ECO 完成的，因为重跑全流程太慢。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="table"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="upsize" data-ch="upsize">
+  <div class="ch-h"><span class="ch-n">02</span><h2>手段一：upsize 与换阈值电压</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 换单元尺寸（同一功能，驱动能力更强）</span><span class="ln ">ecoChangeCell -inst u_core/u_alu/add_32/U12 -cell NAND2_X4</span><span class="ln "> </span><span class="ln cmt"># 换阈值电压（同尺寸，更快但漏电更大）</span><span class="ln ">ecoChangeCell -inst u_core/u_alu/U15 -cell NAND2_X1_LVT</span><span class="ln "> </span><span class="ln cmt"># 批量：把所有驱动不足的单元换大一档（慎用，会连锁）</span><span class="ln ">setOptMode -effort high</span><span class="ln ">optDesign -preCTS -drv</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Vt</span><span class="term-zh">阈值电压</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>晶体管的"开启门槛"。门槛低（LVT）→ 开得快 → 延迟小，但关不严 → 漏电大；门槛高（HVT）→ 慢但省电。<br>库里通常有 HVT / SVT / LVT 三档，后端按路径紧张程度混用，这叫 <strong>multi-Vt 优化</strong>。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · LVT 用太多，功耗爆炸</div><div class="pit-b"><p>LVT 单元速度快，新手容易"全都换 LVT，时序立刻好了"。</p>
+<p>结果：静态功耗（leakage）涨 3~5 倍，芯片发热超标，签核阶段被功耗报告打回来。</p>
+<p><strong>正确做法：只有真正紧张的路径才用 LVT，其余保持 HVT/SVT。</strong> 一般 LVT 占比控制在 10%~20%。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="upsize"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="buffer" data-ch="buffer">
+  <div class="ch-h"><span class="ch-n">03</span><h2>手段二：插 buffer</h2></div>
+  <p>长线（比如跨越大半个芯片的连线）延迟主要由线电阻电容决定，插 buffer 把长线切成几段，能显著降延迟。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 工具自动插（推荐）</span><span class="ln ">optDesign -preCTS -buffering</span><span class="ln "> </span><span class="ln cmt"># 手工插（精确控制时用）</span><span class="ln ">insertBuffer -net u_core/net_1234 -location 120 340 -cell BUF_X2</span></code></pre></div>
+<div class="scene"><div class="scene-h">工作场景 · 什么时候该怀疑"线太长"</div><div class="scene-b"><p>看时序报告的路径延迟构成：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Data path:</span><span class="ln ">  u_reg/Q -&gt; u_alu/A     net delay 0.62ns  (78%)   ← 线延迟占大头</span><span class="ln ">  u_alu/Z -&gt; u_reg2/D    cell delay 0.18ns (22%)</span></code></pre></div>
+<p>线延迟占 70% 以上 → 说明问题在"距离"，不在"逻辑"。这时候 upsize 收效有限，应该挪位置或插 buffer。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="buffer"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="move" data-ch="move">
+  <div class="ch-h"><span class="ch-n">04</span><h2>手段三：挪位置</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 把某个单元挪到指定坐标（placement ECO）</span><span class="ln ">placeInstance u_core/u_alu/U20 180 260</span><span class="ln "> </span><span class="ln cmt"># 或者让工具重新做局部布局</span><span class="ln ">refinePlace</span></code></pre></div>
+<p>挪位置是<strong>最有效但最危险</strong>的手段：挪对了线长直线下降，挪错了会造成新拥塞，甚至把别的路径搞崩。</p>
+<p>规矩：<strong>一次只挪几个，挪完立刻看拥塞和时序报告。</strong></p>
+  <label class="ch-done"><input type="checkbox" data-mark="move"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="skew" data-ch="skew">
+  <div class="ch-h"><span class="ch-n">05</span><h2>手段四：useful skew</h2></div>
+  <p>这是 CTS 阶段的"高级技巧"，但概念现在就要懂。</p>
+<p>同一时钟沿，A→B 路径差 0.1ns。如果让 B 的时钟<strong>晚到 0.1ns</strong>，B 就多出 0.1ns 时间接收数据，路径就过了。</p>
+<p>代价：B 发出的路径（B→C）少了 0.1ns，可能变违例。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">setUsefulSkewMode -maxSkew 0.15 -usefulSkewMode yes</span><span class="ln ">optDesign -postCTS -hold</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Useful Skew</span><span class="term-zh">有用偏斜</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>故意制造 skew，把时间从"有余量的路径"借给"紧张的路径"。<br>它不是免费的：借来的时间一定从别处扣。所以只在<strong>局部</strong>用，且要检查被扣的那条路径还够不够。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="skew"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="order" data-ch="order">
+  <div class="ch-h"><span class="ch-n">06</span><h2>最容易踩的坑：先修 hold 还是先修 setup</h2></div>
+  <p><strong>正确顺序：先修 setup，再修 hold。</strong></p>
+<p>原因：</p>
+<ol><li>修 setup 常用 upsize / 挪位置 / 插 buffer，这些动作会<strong>改变路径延迟</strong>，可能让已经修好的 hold 又坏。</li><li>修 hold 常用插延迟单元，这些单元<strong>几乎不影响 setup</strong>（只加在快路径上）。</li></ol>
+<p>所以先做"影响面大"的 setup，再做"影响面小"的 hold。</p>
+<div class="pit"><div class="pit-h">常见坑 · 顺序搞反，白干两轮</div><div class="pit-b"><p>新手常做：先花两小时把 hold 修干净，再去修 setup。修 setup 时插了 buffer、换了单元，hold 又冒出 200 条违例。</p>
+<p>回头再修 hold，又影响 setup……来回两三轮，一天没了。</p>
+<p><strong>记住：setup → hold → 最后再整体验一遍。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="order"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="flow" data-ch="flow">
+  <div class="ch-h"><span class="ch-n">07</span><h2>时序修复的标准动作序列</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 先看全局：违例分布</span><span class="ln ">reportTiming -max_paths 50 -slack_lesser_than 0 &gt; rpt/viol_pre.rpt</span><span class="ln "> </span><span class="ln cmt"># 2. 修 setup（preCTS 阶段）</span><span class="ln ">setOptMode -effort high -fixFanoutLoad true</span><span class="ln ">optDesign -preCTS</span><span class="ln "> </span><span class="ln cmt"># 3. CTS 之后修 setup + drv</span><span class="ln ">optDesign -postCTS</span><span class="ln "> </span><span class="ln cmt"># 4. 修 hold（postCTS）</span><span class="ln ">setOptMode -holdTargetSlack 0.05     # 留 50ps 余量，别卡在 0</span><span class="ln ">optDesign -postCTS -hold</span><span class="ln "> </span><span class="ln cmt"># 5. 布线后再来一轮（postRoute）</span><span class="ln ">optDesign -postRoute</span><span class="ln ">optDesign -postRoute -hold</span><span class="ln "> </span><span class="ln cmt"># 6. 最终验证</span><span class="ln ">timeDesign -postRoute -outDir rpt/final</span></code></pre></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>如果修到 slack = 0.000，任何一点工艺偏差（OCV、电压波动）都会让它变负。</p>
+<p><strong>签核不是"刚好过"，是"留出安全边际"。</strong> 一般 hold 留 30~50ps，setup 留 50~100ps。</p></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：从报告判断该用哪种手段</div><div class="lab-b"><p>给三条路径的延迟构成，判断修法：</p>
+<div class="tbl"><table><thead><tr><th>路径</th><th>单元延迟</th><th>线延迟</th><th>判断</th></tr></thead><tbody><tr><td>A</td><td>0.85ns</td><td>0.10ns</td><td>?</td></tr><tr><td>B</td><td>0.30ns</td><td>0.70ns</td><td>?</td></tr><tr><td>C</td><td>0.20ns</td><td>0.05ns（但 fanout = 48）</td><td>?</td></tr></tbody></table></div>
+<p>参考答案：</p>
+<ul><li>A：单元延迟占绝对主导 → 换 LVT 或 upsize 逻辑链上的关键单元。</li><li>B：线延迟占主导 → 挪位置 / 插 buffer，upsize 效果有限。</li><li>C：延迟不大但 fanout 极高 → 插 buffer 树（fanout 负载问题）。</li></ul>
+<p>过关标准：能说出每条路径"为什么选这个手段"，而不是笼统说"优化一下"。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能列出六种修时序手段及各自代价</li><li>知道 LVT 用太多会导致漏电爆炸</li><li>会从延迟构成判断该用哪种手段</li><li>记得"先 setup 后 hold"的顺序和原因</li><li>知道签核要留余量而不是卡 0</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>upsize 和换 LVT 的区别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">upsize 是同功能换更大驱动（面积↑），换 LVT 是同尺寸换低阈值（速度快但漏电↑）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>线延迟占总延迟 70% 以上，应该优先做什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">挪位置或插 buffer 把长线切开，upsize 效果有限。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么修时序要先 setup 后 hold？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">修 setup 的动作（upsize/挪位置/插 buffer）会改变延迟、可能破坏 hold；修 hold 的延迟单元对 setup 影响小。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>optDesign -postCTS -hold</code> 里 <code>-hold</code> 的作用？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">只做 hold 修复（插延迟单元），不动 setup。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么要设 holdTargetSlack 0.05 而不是 0？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">留安全边际，防止工艺偏差/电压波动让 slack 变负。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="flow"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-06-setup-hold/">← setup 与 hold：用"拍照"讲明白时序</a><a class="nav-btn" href="/lesson/03-08-cts/">CTS 时钟树：让时钟同时到达 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

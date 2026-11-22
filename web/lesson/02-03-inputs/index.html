@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>开工前要拿到什么：设计数据准备与自检 · 11 | IC 后端学院</title>
+<meta name="description" content="后端项目 80% 的"莫名报错"其实是输入数据不全或版本不对。这一课把 7 类输入文件讲清楚：各自是什么、少了会报什么错、怎么在开工前一次性查完。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="02-03-inputs">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>开工前要拿到什么：设计数据准备与自检</b></div>
+    <div class="hero">
+      <div class="hero-no">11</div>
+      <h1>开工前要拿到什么：设计数据准备与自检</h1>
+      <p class="hero-en">Design Data Preparation & Sanity Checks</p>
+      <p class="hero-sum">后端项目 80% 的"莫名报错"其实是输入数据不全或版本不对。这一课把 7 类输入文件讲清楚：各自是什么、少了会报什么错、怎么在开工前一次性查完。</p>
+      <div class="hero-meta">
+        <span class="pill">约 38 分钟</span>
+        <span class="pill">课表学时 3</span>
+        <span class="pill tag">输入数据</span><span class="pill tag">lib</span><span class="pill tag">lef</span><span class="pill tag">tluplus</span><span class="pill tag">sdc</span><span class="pill tag">自检</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="seven" data-ch="seven">
+  <div class="ch-h"><span class="ch-n">01</span><h2>一个项目开工，桌上应该有 7 样东西</h2></div>
+  <p>综合和 PR 不是"给个网表就能跑"。工具要同时知道三件事：<strong>逻辑长什么样、物理长什么样、时间要求是什么</strong>。拆开就是下面这张表。</p>
+<div class="tbl"><table><thead><tr><th>#</th><th>输入</th><th>常见后缀</th><th>谁给</th><th>少了会怎样（真实报错）</th></tr></thead><tbody><tr><td>1</td><td>RTL 或综合后网表</td><td><code>.v</code> <code>.sv</code></td><td>前端 / 综合</td><td><code>Cannot find design 'xxx'</code></td></tr><tr><td>2</td><td>时序库</td><td><code>.lib</code> <code>.db</code></td><td>工艺厂 / 库团队</td><td><code>Unable to resolve reference 'INV_X1'</code>（单元全变黑盒）</td></tr><tr><td>3</td><td>物理库 LEF</td><td><code>.lef</code></td><td>工艺厂</td><td>单元没有尺寸，布局器无法摆放</td></tr><tr><td>4</td><td>工艺技术文件</td><td><code>.tf</code> <code>.techlef</code></td><td>工艺厂</td><td>建库失败，没有层定义</td></tr><tr><td>5</td><td>寄生参数模型</td><td><code>.tluplus</code> <code>.itf</code> <code>.qrc</code></td><td>工艺厂</td><td><code>NEX-018 no valid parasitic</code> → 优化器起不来</td></tr><tr><td>6</td><td>时序约束</td><td><code>.sdc</code></td><td>设计者 / 前端</td><td>时序全是 0，报告毫无意义</td></tr><tr><td>7</td><td>功耗意图（低功耗项目）</td><td><code>.upf</code> <code>.cpf</code></td><td>架构 / 设计者</td><td>电源域不识别，隔离单元不插</td></tr></tbody></table></div>
+<div class="scene"><div class="scene-h">工作场景 · 拿到一个"跑不起来"的工程</div><div class="scene-b"><p>同事交接给你一个工程，说"脚本都在，直接跑就行"。你跑第一步就报：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: Unable to resolve reference 'DFF_X1' in design 'soc_top'. (LINK-5)</span></code></pre></div>
+<p>看着像脚本问题，其实是 <strong>link_library 指错了目录，或者 .db 版本和网表不匹配</strong>。会查输入数据的人 10 分钟解决；不会的人重装工具。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="seven"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="libdb" data-ch="libdb">
+  <div class="ch-h"><span class="ch-n">02</span><h2>`.lib` 和 `.db`：一个是菜谱，一个是压缩包</h2></div>
+  <div class="tbl"><table><thead><tr><th></th><th><code>.lib</code></th><th><code>.db</code></th></tr></thead><tbody><tr><td>格式</td><td>纯文本，能打开看</td><td>二进制，打不开</td></tr><tr><td>内容</td><td>完全一样：每个单元的面积、引脚电容、延迟查找表</td><td>同左</td></tr><tr><td>谁生成</td><td>工艺厂 / 库团队</td><td>用 Library Compiler 从 <code>.lib</code> 转</td></tr><tr><td>工具读哪个</td><td>部分工具能直接读</td><td>综合与 PR 主要读这个（快很多）</td></tr></tbody></table></div>
+<p><code>.lib</code> 里能看到的东西（这是真正有用的部分）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cell (INV_X1) {</span><span class="ln ">  area : 0.760;                       # 面积，算利用率要用</span><span class="ln ">  pin (A)  { direction : input;  capacitance : 0.0021; }   # 输入电容，算驱动能力</span><span class="ln ">  pin (ZN) { direction : output;</span><span class="ln ">    timing () {</span><span class="ln ">      related_pin : "A";</span><span class="ln ">      cell_rise (delay_template_7x7) { ... }   # 输入转换时间 × 负载 -&gt; 延迟，一张查找表</span><span class="ln ">    }</span><span class="ln ">  }</span><span class="ln ">}</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">查找表（lookup table, LUT）</span><span class="term-zh">延迟是怎么算出来的</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>标准单元的延迟不是一个固定数字，而是<strong>输入信号变化快慢（transition）× 输出带多大负载（capacitance）</strong> 的函数。工艺厂把它做成一张 7×7 的表存在 <code>.lib</code> 里，工具查表 + 插值得到延迟。<br>这就是为什么"换一个 corner、换一个负载"延迟就变了——不是工具在猜，是在查不同的表。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · 用了 <code>.lib</code> 但版本是 ss 的，时序全"过"</div><div class="pit-b"><p>典型事故：综合用 <code>tt</code>（typical），PR 用了 <code>ss</code>（slow），PT 又用回 <code>tt</code>。三次报告的 WNS 各不相同，签字的人以为都过了。</p>
+<p><strong>规矩：全流程记录 corner。</strong> 每个阶段日志第一行打印用的是哪个库文件，归档时一起存。签核用的 corner 必须写在报告封面。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="libdb"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lef" data-ch="lef">
+  <div class="ch-h"><span class="ch-n">03</span><h2>LEF：单元的"占地证"</h2></div>
+  <p>LEF 描述物理形状，分两种，都必须有：</p>
+<div class="tbl"><table><thead><tr><th>类型</th><th>文件名常见</th><th>内容</th></tr></thead><tbody><tr><td>技术 LEF（tech LEF）</td><td><code>tech.lef</code> / <code>*.techlef</code></td><td>有哪些金属层、每层的最小线宽/间距、via 定义</td></tr><tr><td>宏 LEF（macro LEF）</td><td><code>*_macro.lef</code> / <code>*.lef</code></td><td>每个标准单元的尺寸、引脚位置、阻挡层</td></tr></tbody></table></div>
+<p>一个单元在 LEF 里的样子：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">MACRO INV_X1</span><span class="ln ">  CLASS CORE ;                 # 标准单元（CORE），不是 IO 也不是宏</span><span class="ln ">  ORIGIN 0 0 ;</span><span class="ln ">  SIZE 0.76 BY 1.4 ;           # 宽 0.76um、高 1.4um —— 行高由它决定</span><span class="ln ">  PIN A</span><span class="ln ">    DIRECTION INPUT ;</span><span class="ln ">    PORT</span><span class="ln ">      LAYER metal1 ;</span><span class="ln ">      RECT 0.10 0.30 0.20 1.10 ;   # 引脚在 metal1 上的矩形位置</span><span class="ln ">    END</span><span class="ln ">  END A</span><span class="ln ">END INV_X1</span></code></pre></div>
+<div class="note"><div class="note-h">为什么行高是 1.4um</div><p>因为库里的标准单元都是 1.4um 高（<code>SIZE ... BY 1.4</code>）。<strong>行高由库决定，不由你决定。</strong> 你算"能放几行"时用的就是这个数：芯片高度 ÷ 1.4 = 行数。</p>
+<p>我们实测的万门设计 222.2um 高，正好 153 行：222.2 ÷ 1.4 ≈ 158（去掉边距后 153）。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lef"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="parasitic" data-ch="parasitic">
+  <div class="ch-h"><span class="ch-n">04</span><h2>寄生参数模型：为什么缺了优化器直接不干活</h2></div>
+  <p>这一项最容易被漏，因为<strong>缺了不一定马上报错，可能到优化阶段才炸</strong>。</p>
+<div class="tbl"><table><thead><tr><th>文件</th><th>工具</th><th>用途</th></tr></thead><tbody><tr><td><code>.itf</code> / <code>.tluplus</code></td><td>ICC2 / Innovus</td><td>每层金属的电阻、电容、边缘电容参数</td></tr><tr><td><code>.qrc</code> / <code>.captable</code></td><td>StarRC / QRC</td><td>高精度提取用的电容表</td></tr></tbody></table></div>
+<p>我们踩过的真实案例（手册里有完整记录）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: Design has atleast one corner with no Parasitic information. (OPT-906)</span></code></pre></div>
+<p>原因不是"没做提取"，而是<strong>建库时没把 TLU+ 绑进 corner</strong>。修法两步：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">read_parasitic_tech -tlup ./tlup/NangateOpenCellLibrary.tlup \</span><span class="ln ">                    -layermap ./tlup/NangateOpenCellLibrary.layermap -name nt</span><span class="ln ">set_parasitic_parameters -early_spec nt -late_spec nt    # 必须绑到 corner 上</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 只 <code>read_parasitic_tech</code> 不 <code>set_parasitic_parameters</code></div><div class="pit-b"><p>第一条命令只是"把文件读进内存"，第二条才是"告诉 corner 用它"。少了第二条，优化器依然认为没有寄生信息，照样报 <code>OPT-906</code>。</p>
+<p>我们在这上面卡了一整轮，日志里 <code>NEX-018</code> 和 <code>OPT-906</code> 前后脚出现，真正的原因是后者。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="parasitic"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="sdc" data-ch="sdc">
+  <div class="ch-h"><span class="ch-n">05</span><h2>SDC：最小可用的约束集</h2></div>
+  <p>一个能跑起来的 SDC 只需要五类语句。<strong>先跑通这五条，再谈别的。</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1) 时钟：周期 2ns = 500MHz。没有这一条，所有时序都是 0</span><span class="ln ">create_clock -name clk -period 2.0 [get_ports clk]</span><span class="ln "> </span><span class="ln cmt"># 2) 时钟不确定性：PLL 抖动 + 时钟树 skew 的预算，先给周期的 5%</span><span class="ln ">set_clock_uncertainty 0.05 [get_clocks clk]</span><span class="ln "> </span><span class="ln cmt"># 3) 输入延迟：外部器件把数据送进来要多久</span><span class="ln ">set_input_delay 0.30 -clock clk [all_inputs]</span><span class="ln "> </span><span class="ln cmt"># 4) 输出延迟：外部器件要求数据多快到位</span><span class="ln ">set_output_delay 0.30 -clock clk [all_outputs]</span><span class="ln "> </span><span class="ln cmt"># 5) 例外：复位是异步的，不该做时序检查</span><span class="ln ">set_false_path -from [get_ports rst_n]</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>少了哪条</th><th>后果</th></tr></thead><tbody><tr><td><code>create_clock</code></td><td>所有路径 unconstrained，报告显示"无违例"——<strong>假的</strong></td></tr><tr><td><code>set_input_delay</code> / <code>set_output_delay</code></td><td>输入输出路径按 0 延迟算，签核时全线违例</td></tr><tr><td><code>set_clock_uncertainty</code></td><td>时序过于乐观，实际芯片回来会 fail</td></tr><tr><td><code>set_false_path</code></td><td>异步复位路径报一堆假违例，掩盖真问题</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">SDC</span><span class="term-zh">Synopsys Design Constraints</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>时序约束文件，本质是一串 Tcl 命令。它不描述电路，只描述"这块电路要在多快下工作、哪些路径不用管"。<br><strong>SDC 写错比不写更危险</strong>：不写，工具会说"没有约束"；写错，工具会一本正经地给你一份"全过"的报告。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="sdc"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="check" data-ch="check">
+  <div class="ch-h"><span class="ch-n">06</span><h2>开工前的 5 项自检（10 分钟，省两天）</h2></div>
+  <p>每次拿到新工程，按这个顺序查一遍：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1) 库到底读了哪些？单元数对不对？</span><span class="ln ">report_lib tt_1v0_25c</span><span class="ln cmt">#    看 cell count，Nangate45 应该是 130 多个；如果是 0，库没读进来</span><span class="ln "> </span><span class="ln cmt"># 2) 网表里有没有"找不到的单元"（黑盒）？</span><span class="ln ">link_design</span><span class="ln ">report_design -physical</span><span class="ln cmt">#    有 unresolved reference 就是库不全，别往下跑</span><span class="ln "> </span><span class="ln cmt"># 3) 时钟读到了吗？</span><span class="ln ">report_clocks</span><span class="ln cmt">#    必须能看到你 SDC 里定义的那个时钟名</span><span class="ln "> </span><span class="ln cmt"># 4) 有没有完全没约束的路径？</span><span class="ln ">report_timing -unconstrained</span><span class="ln cmt">#    有输出就说明 SDC 漏了 input/output delay</span><span class="ln "> </span><span class="ln cmt"># 5) 面积与利用率合理吗？</span><span class="ln ">report_area</span><span class="ln cmt">#    单元数为 0 或面积为 0，说明前面某步没生效</span></code></pre></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>把这五条存成 <code>check_inputs.tcl</code>，每次新工程第一件事就是 <code>source check_inputs.tcl</code>。</p>
+<p>老手和新手的差别不在会不会修 DRC，而在<strong>新工程上手的前十分钟</strong>：老手先查输入，新手直接跑流程，然后花两天查一个"库版本不对"的问题。</p></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：算一次"这个库能放多少单元"</div><div class="lab-b"><p>用 <code>.lib</code> 里的面积和 LEF 里的尺寸做一次手算，理解利用率的来源。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 在模拟终端里跑（数据来自真实 Nangate45）</span><span class="ln ">cd ~/pdk/nangate45/lib</span><span class="ln ">grep -A2 "cell (INV_X1)" NangateOpenCellLibrary_typical.lib | head -3</span><span class="ln cmt"># 看到 area : 0.760</span></code></pre></div>
+<p>然后手算：</p>
+<ul><li>芯片 222.5 × 222.2 um = 49440 um²</li><li>12026 个单元，平均面积按 2.0 um² 估 = 24052 um²</li><li>利用率 = 24052 / 49440 ≈ <strong>48.6%</strong>（和我们实测 49.8% 对得上）</li></ul>
+<p>过关标准：能说出"利用率 = 单元总面积 ÷ 芯片面积"，并解释为什么利用率不是越高越好（&gt;85% 布不通）。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能背出 7 类输入文件，以及每一类缺了会报什么错</li><li>知道 <code>.lib</code> 是文本、<code>.db</code> 是二进制、内容相同</li><li>知道 tech LEF 和 macro LEF 分别给什么</li><li>能写出 SDC 最小五条</li><li>遇到 <code>OPT-906</code> 知道先查寄生参数有没有绑到 corner</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>.lib</code> 和 <code>.db</code> 的内容有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">没有区别，都是同一个库；.lib 是文本可读，.db 是二进制，工具读 .db 更快。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>只有 tech LEF 没有 macro LEF 会怎样？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">工具知道有哪些层、线宽间距，但不知道每个标准单元多大、引脚在哪，无法布局布线。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>OPT-906</code> 报"没有寄生信息"，最常见的原因是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">寄生文件没读，或者读了没绑到 corner（缺 set_parasitic_parameters）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>SDC 里少了 create_clock 会怎样？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">所有路径都 unconstrained，报告显示"无违例"，但这是假的，签核必挂。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么利用率不是越高越好？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">超过 80~85% 后布线资源不够，拥塞和 DRC 会爆炸，反而要花更多时间收敛；经验值 50~70% 比较稳。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="check"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-02-flow/">← 后端八阶段：谁给谁交付什么</a><a class="nav-btn" href="/lesson/03-01-innovus/">Innovus 起步：一个后端工具到底在管什么 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>setup 与 hold：用"拍照"讲明白时序 · 17 | IC 后端学院</title>
+<meta name="description" content="这是后端最核心的两个概念，也是最容易被讲糊涂的。这一课用拍照、接力赛两个比喻，配合公式和手算例子，让你第一次真正搞懂 setup/hold 在算什么。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="03-06-setup-hold">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>setup 与 hold：用"拍照"讲明白时序</b></div>
+    <div class="hero">
+      <div class="hero-no">17</div>
+      <h1>setup 与 hold：用"拍照"讲明白时序</h1>
+      <p class="hero-en">Setup & Hold</p>
+      <p class="hero-sum">这是后端最核心的两个概念，也是最容易被讲糊涂的。这一课用拍照、接力赛两个比喻，配合公式和手算例子，让你第一次真正搞懂 setup/hold 在算什么。</p>
+      <div class="hero-meta">
+        <span class="pill">约 55 分钟</span>
+        <span class="pill">课表学时 6</span>
+        <span class="pill tag">时序</span><span class="pill tag">setup</span><span class="pill tag">hold</span><span class="pill tag">skew</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="camera" data-ch="camera">
+  <div class="ch-h"><span class="ch-n">01</span><h2>触发器就是一台照相机</h2></div>
+  <p>数字电路里，绝大多数数据都在<strong>触发器（Flip-Flop）</strong>之间传递。触发器的工作方式像一台定时拍照的相机：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">        ┌─────────┐</span><span class="ln ">数据 D ─▶│         │</span><span class="ln ">        │  触发器  │──▶ 输出 Q</span><span class="ln ">时钟 ──▶│         │</span><span class="ln ">        └─────────┘</span><span class="ln ">        ↑</span><span class="ln ">     时钟上升沿 = 按下快门</span></code></pre></div>
+<p><strong>快门按下的那一瞬间，D 端的数据必须已经稳定，并且之后还要保持一小会儿稳定</strong>，拍出来的照片才不是糊的。</p>
+<p>这两个"稳定窗口"就是 setup 和 hold：</p>
+<div class="tbl"><table><thead><tr><th>名称</th><th>中文</th><th>要求</th><th>物理含义</th></tr></thead><tbody><tr><td>Setup</td><td>建立时间</td><td>数据必须在时钟沿<strong>之前</strong> T_setup 就稳定</td><td>相机需要预热对焦</td></tr><tr><td>Hold</td><td>保持时间</td><td>数据必须在时钟沿<strong>之后</strong> T_hold 内保持稳定</td><td>快门关闭前别动</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Setup Time</span><span class="term-zh">建立时间</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>时钟沿到来之前，数据必须已经稳定的最短时间。不满足叫 <strong>setup violation</strong>，俗称"setup 违例"。<br>后果：数据没来得及传到，触发器抓到了旧值 → 功能错。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Hold Time</span><span class="term-zh">保持时间</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>时钟沿到来之后，数据必须继续保持稳定的最短时间。不满足叫 <strong>hold violation</strong>。<br>后果：新数据来得太早，把本该抓的旧值冲掉了 → 功能错。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="camera"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="setup" data-ch="setup">
+  <div class="ch-h"><span class="ch-n">02</span><h2>setup 在算什么</h2></div>
+  <p>一条路径从"发射触发器"到"接收触发器"，中间要经过组合逻辑（与门、加法器……）。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">      ┌────┐        ┌──────────┐        ┌────┐</span><span class="ln ">CLK ─▶│ FF │──Q────▶│ 组合逻辑  │───────▶│ FF │◀─ CLK</span><span class="ln ">      │ A  │        │  (延迟 T) │        │ B  │</span><span class="ln ">      └────┘        └──────────┘        └────┘</span></code></pre></div>
+<p>数据从 A 出发，要在<strong>下一个时钟沿之前</strong>赶到 B，并且提前 T_setup 站稳。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">要求：T_clk_period ≥ T_launch_clk + T_logic + T_setup - T_capture_clk</span><span class="ln ">整理：T_clk_period ≥ T_logic + T_setup + (T_launch_clk - T_capture_clk)</span><span class="ln ">                                    └────── skew ──────┘</span></code></pre></div>
+<p>用大白话：<strong>一个时钟周期里，数据要跑完组合逻辑、还要提前站稳。</strong></p>
+<p>所以：</p>
+<ul><li>逻辑越复杂（T_logic 大）→ 越容易 setup 违例 → 需要降频或拆分逻辑。</li><li>频率越高（周期越短）→ 越容易 setup 违例。</li></ul>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Slack</span><span class="term-zh">裕量</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>实际时间 − 需要时间。正数表示有余量，负数表示违例。<br><code>slack = T_period − (T_logic + T_setup + skew)</code><br>- slack = +0.2ns：还有 0.2ns 余量，安全。<br>- slack = −0.15ns：差 0.15ns，必须修。<br><strong>报时序报告时，大家看的就是这个数。</strong></p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="setup"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="hold" data-ch="hold">
+  <div class="ch-h"><span class="ch-n">03</span><h2>hold 在算什么</h2></div>
+  <p>同一个时钟沿，数据从 A 出发，<strong>不能太快</strong>到达 B——因为 B 还在抓上一个值，新数据太早到会把它冲掉。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">要求：T_launch_clk + T_logic ≥ T_capture_clk + T_hold</span><span class="ln ">整理：T_logic ≥ T_hold + (T_capture_clk - T_launch_clk)</span></code></pre></div>
+<p>用大白话：<strong>数据不能跑太快，得等接收端把当前值抓稳。</strong></p>
+<div class="pit"><div class="pit-h">常见坑 · 为什么 hold 违例和频率无关</div><div class="pit-b"><p>这是新手最容易搞混的一点。</p>
+<p>看公式：<code>T_logic ≥ T_hold + skew</code>。里面<strong>没有 T_clk_period</strong>。</p>
+<p>所以：</p>
+<ul><li>降频能救 setup（周期变长），<strong>救不了 hold</strong>。</li><li>hold 违例只能靠加延迟（插 buffer）或调 skew 来修。</li></ul>
+<p>面试高频题："hold 违例能靠降频解决吗？" 答案：不能。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="hold"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="example" data-ch="example">
+  <div class="ch-h"><span class="ch-n">04</span><h2>手算一个例子</h2></div>
+  <p>条件：</p>
+<ul><li>时钟周期 2.0ns（500MHz）</li><li>组合逻辑延迟 1.6ns</li><li>触发器 T_setup = 0.15ns，T_hold = 0.08ns</li><li>时钟 skew = 0.10ns（接收端晚到 0.10ns，对 setup 不利）</li><li>线延迟忽略</li></ul>
+<p>setup 检查：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">slack = 2.0 − (1.6 + 0.15 + 0.10) = 2.0 − 1.85 = +0.15ns  ✅ 通过</span></code></pre></div>
+<p>hold 检查（假设最短路径延迟 0.20ns）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">slack = 0.20 − (0.08 + 0.10) = 0.20 − 0.18 = +0.02ns  ✅ 勉强通过</span></code></pre></div>
+<p>如果把频率提到 800MHz（周期 1.25ns）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">setup slack = 1.25 − 1.85 = −0.60ns  ❌ 严重违例</span><span class="ln ">hold slack  = +0.02ns                ✅ 不变</span></code></pre></div>
+<p><strong>这就是"降频救 setup、救不了 hold"的数值证明。</strong></p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Skew</span><span class="term-zh">时钟偏斜（重要）</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>同一个时钟到达两个触发器的时间差。<br>- <strong>正 skew</strong>（接收端晚到）：对 setup 有利（多给时间），对 hold 不利。<br>- <strong>负 skew</strong>（接收端早到）：对 setup 不利，对 hold 有利。<br>CTS 的目标不是"skew = 0"，而是"把 skew 控制在可控范围内，并留给紧张的路径一点余地"。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 为什么后端工程师天天盯着 slack</div><div class="scene-b"><p>流片前 review，投影上就是一页 slack 表：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Path Group   WNS      TNS    Violating Paths</span><span class="ln ">clk_core     -0.02    0.00   1</span><span class="ln ">clk_ddr      +0.31    0.00   0</span></code></pre></div>
+<p>WNS（Worst Negative Slack）= 最差那条的 slack。只要 WNS 是负的，就不能签核。</p>
+<p>组长只问一句："WNS 为什么是负的？哪条路径？" 你要能立刻答出来。</p></div></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：自己写一个时序计算器</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">python3 - &lt;&lt;'EOF'</span><span class="ln ">def check(period, t_logic, t_setup, t_hold, skew, t_logic_min):</span><span class="ln ">    setup = period - (t_logic + t_setup + skew)</span><span class="ln ">    hold  = t_logic_min - (t_hold + skew)</span><span class="ln ">    print(f"周期 {period}ns  逻辑 {t_logic}ns  skew {skew}ns")</span><span class="ln ">    print(f"  setup slack = {setup:+.3f}ns  {'PASS' if setup&gt;=0 else 'FAIL'}")</span><span class="ln ">    print(f"  hold  slack = {hold:+.3f}ns  {'PASS' if hold&gt;=0 else 'FAIL'}")</span><span class="ln "> </span><span class="ln ">check(2.0, 1.6, 0.15, 0.08, 0.10, 0.20)   # 500MHz</span><span class="ln ">check(1.25, 1.6, 0.15, 0.08, 0.10, 0.20)  # 800MHz</span><span class="ln ">check(2.0, 1.6, 0.15, 0.08, -0.10, 0.20)  # skew 改成负的</span><span class="ln ">EOF</span></code></pre></div>
+<p>预期：第一组两个都 PASS；第二组 setup FAIL、hold 仍 PASS；第三组 setup 更容易过、hold 变差。</p>
+<p>过关标准：能解释第三组为什么 setup 变好、hold 变差（提示：负 skew 让接收端早到）。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用拍照比喻讲清 setup 和 hold</li><li>记得两条公式，并且知道 skew 符号怎么影响</li><li>能证明"降频救不了 hold"</li><li>知道 slack 的含义和 WNS 是什么</li><li>能手算一条路径的 slack</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>setup 和 hold 分别检查什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">setup 检查数据是否在时钟沿前足够早稳定；hold 检查数据在时钟沿后是否保持足够久。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么降频不能修 hold？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">hold 公式里没有时钟周期，只和逻辑延迟、T_hold、skew 有关。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>正 skew 对 setup 和 hold 分别有什么影响？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">对 setup 有利（接收端晚到，等于多给时间），对 hold 不利（数据更容易冲掉旧值）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>WNS 是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">Worst Negative Slack，所有违例路径中最差的那个 slack 值，是签核的关键指标。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>一条路径 setup slack = −0.08ns，有哪几种修法？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">减小逻辑延迟（拆逻辑/换快单元）、增大驱动（upsize）、缩短线长（挪位置）、调 skew（useful skew）、降频（最后手段）。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="example"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-05-place/">← Placement：几万个单元怎么摆</a><a class="nav-btn" href="/lesson/03-07-fix-timing/">修时序：六种手段和它们的代价 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

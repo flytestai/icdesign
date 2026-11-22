@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>这门课教什么，以及怎么学才不白学 · 00 | IC 后端学院</title>
+<meta name="description" content="先花 30 分钟把地图看清楚：后端工程师一天在干什么、这门课 9 个阶段各自解决什么问题、网站上的每一课怎么用。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="00-01-start">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-0">阶段零 · 导学</a><span>/</span><b>这门课教什么，以及怎么学才不白学</b></div>
+    <div class="hero">
+      <div class="hero-no">00</div>
+      <h1>这门课教什么，以及怎么学才不白学</h1>
+      <p class="hero-en">Orientation</p>
+      <p class="hero-sum">先花 30 分钟把地图看清楚：后端工程师一天在干什么、这门课 9 个阶段各自解决什么问题、网站上的每一课怎么用。</p>
+      <div class="hero-meta">
+        <span class="pill">约 30 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">导学</span><span class="pill tag">学习路径</span><span class="pill tag">环境</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="what" data-ch="what">
+  <div class="ch-h"><span class="ch-n">01</span><h2>先说清楚：数字后端到底是干什么的</h2></div>
+  <p>你写的 Verilog 代码，本质是一段<strong>逻辑描述</strong>——"如果 A 和 B 同时为 1，输出就是 1"。这段描述再正确，也只是一段文本，芯片工厂看不懂，也没法生产。</p>
+<p>数字后端（Digital Backend，也叫物理设计 Physical Design）要做的，是把这段文本变成<strong>一张可以送到工厂去生产的版图</strong>：每个晶体管放在哪、哪根线走哪一层、多宽、多长。这张版图的文件格式叫 GDSII，工厂拿到它就能开模生产。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Physical Design</span><span class="term-zh">物理设计</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把"逻辑上应该怎么连"变成"物理上真的放在哪、怎么连"。它不改变电路功能，只决定这块芯片<strong>跑多快、多大、多耗电、能不能造出来</strong>。行业里简称 PD。</p></div>
+</div>
+<p>打个比方：</p>
+<div class="tbl"><table><thead><tr><th>阶段</th><th>类比</th><th>产出</th></tr></thead><tbody><tr><td>前端设计</td><td>写菜谱：先放油、再放盐</td><td>RTL 代码</td></tr><tr><td>逻辑综合</td><td>把菜谱翻译成"需要哪些食材、多少克"</td><td>门级网表</td></tr><tr><td><strong>数字后端</strong></td><td><strong>决定厨房怎么摆、锅放哪、人走哪条道不撞</strong></td><td><strong>GDSII 版图</strong></td></tr><tr><td>制造</td><td>照图纸施工</td><td>晶圆</td></tr></tbody></table></div>
+<p>所以后端工程师不是"画图的"，而是<strong>在速度、面积、功耗、可制造性之间做取舍的人</strong>。这四个指标合称 PPA（Performance / Power / Area）。</p>
+<div class="scene"><div class="scene-h">工作场景 · 一天的真实工作</div><div class="scene-b"><p>早上 9 点，打开终端，连上公司服务器。昨天跑完的布线报告出来了：有 37 个 DRC 违例（设计规则违例，意思是"这个形状工厂造不出来"）。</p>
+<p>你先看违例分布——集中在某个宏单元周围，说明是布局时没给够通道。改布局参数，重跑局部布线，两小时后降到 3 个。剩下 3 个是电源线太窄，得回去改电源规划。</p>
+<p>下午开会，前端问你："这条路径为什么差 0.2ns？"你打开时序报告，指出是时钟树偏斜（skew）太大。会后你调 CTS 参数。</p>
+<p><strong>这一整天你没有写一行 RTL，但芯片能不能按时流片，取决于你。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="path" data-ch="path">
+  <div class="ch-h"><span class="ch-n">02</span><h2>这门课的 9 个阶段，各自解决什么问题</h2></div>
+  <p>课表一共 113 学时，分 9 个阶段。<strong>不要跳阶段</strong>，因为后一个阶段默认你会前一个阶段的东西。</p>
+<div class="tbl"><table><thead><tr><th>阶段</th><th>内容</th><th>学时</th><th>学完你能做什么</th></tr></thead><tbody><tr><td>一</td><td>Linux 与 Tcsh</td><td>18</td><td>在终端里自由操作文件、批量处理文本、写脚本一键跑流程</td></tr><tr><td>二</td><td>后端基本概念</td><td>4</td><td>说清楚一颗芯片从代码到版图经过哪些步骤、每步交付什么</td></tr><tr><td>三</td><td>Innovus 40nm 项目</td><td>41</td><td>独立走完 floorplan → 电源 → 布局 → CTS → 布线 → 收尾</td></tr><tr><td>四</td><td>ICC2 32nm 项目</td><td>16</td><td>换一套工具把同一件事再做一遍，理解"工具不同、方法相同"</td></tr><tr><td>五</td><td>28nm 全流程</td><td>20</td><td>把 PR、PT、PV 串成一条项目流水线</td></tr><tr><td>六</td><td>STA 静态时序分析</td><td>6</td><td>自己算 setup/hold，自己读报告，自己判断能不能签核</td></tr><tr><td>七</td><td>功耗与 RedHawk</td><td>2</td><td>看懂 IR drop 与 EM，知道芯片为什么会烫、会烧</td></tr><tr><td>八</td><td>工程经验</td><td>4</td><td>避开新手 90% 会踩的坑</td></tr><tr><td>九</td><td>求职</td><td>4</td><td>写简历、答面试题、讲清楚你做过什么</td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>因为后端工具<strong>没有图形界面也能干活</strong>，而且服务器上根本没有鼠标给你用。你以后每天要做的事是：登录服务器 → 进入工程目录 → 改一个配置文件 → 敲一条命令 → 等 3 小时 → 看报告 → 再改。这一整套动作全部在终端里完成。</p>
+<p>Linux 不熟的人，卡住的往往不是"不懂后端"，而是"文件找不到、路径写错了、权限不够"。这门课把这块单独抽出来讲透。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="path"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="how" data-ch="how">
+  <div class="ch-h"><span class="ch-n">03</span><h2>这个网站怎么用</h2></div>
+  <p>每一课的结构是固定的，你按顺序走就行：</p>
+<ol><li><strong>本章目标</strong>（蓝色框）：一句话告诉你这一章学完能得到什么。</li><li><strong>工作场景</strong>（绿色框）：这件事在真实项目里什么时候用、谁在催你。先建立"为什么要学"的直觉。</li><li><strong>概念讲解</strong>：尽量用生活里的类比，配图和表。</li><li><strong>术语卡</strong>（灰边框，点一下展开）：英文原名 + 中文 + 白话解释。<strong>行业里就是用英文，改不了，但你可以记住它。</strong></li><li><strong>代码块</strong>：每一行都有注释。<code>#</code> 开头的灰色行就是注释，告诉你这行在干嘛、为什么要这么写。</li><li><strong>动手</strong>（蓝色框）：照着敲一遍。<strong>一定要自己敲，不要复制粘贴</strong>，手指的记忆比眼睛可靠。</li><li><strong>常见坑</strong>（橙色框）：别人踩过的错，连报错原文都给你，遇到了直接对。</li><li><strong>自测</strong>：先自己想，再点开答案。答不上来就回去重读那一节。</li></ol>
+<p>页面左边是目录，右边滚动时左边会高亮当前章节。每章底部有"这一章我学完了"的勾选框，勾上会同步到服务器——换台电脑用同一个浏览器还能接着看。</p>
+<div class="pit"><div class="pit-h">常见坑 · 把"看过"当成"学过"</div><div class="pit-b"><p>这是 0 基础学员最大的坑：视频看完了、文章读完了，一上手发现什么都不会。</p>
+<p>判断标准很简单：<strong>能不能不看资料，从空目录开始把这件事做出来。</strong> 所以每一课的"动手"部分都有明确的过关标准，做到才算学完，做不到就再做一遍。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="how"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="terms" data-ch="terms">
+  <div class="ch-h"><span class="ch-n">04</span><h2>英文术语怎么记</h2></div>
+  <p>后端领域的术语基本全是英文缩写，原因很现实：工具是英文的，报告是英文的，跟海外团队对接也是英文。你不需要"英语好"，你需要<strong>把 200 个高频词变成条件反射</strong>。</p>
+<p>三个方法，按顺序用：</p>
+<ol><li><strong>先记中文意思，再记英文缩写</strong>。比如先知道"时钟树偏斜"是什么，再记它叫 skew。</li><li><strong>拆词</strong>。setup = 建立（数据要在时钟来之前站稳）；hold = 保持（时钟来了数据不能马上跑）。拆开就懂了。</li><li><strong>在场景里记</strong>。术语卡都配了"什么时候会用到"，别孤立背单词。</li></ol>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Skew</span><span class="term-zh">时钟偏斜</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>同一个时钟信号，到达两个触发器的时间不一样，差值就叫 skew。就像广播体操的喇叭，操场这头听到"一二三四"比那头早 0.1 秒。<br>skew 太大会让某些路径的时序变差，但<strong>故意做出一点 skew 反而能救命</strong>（叫 useful skew）。第五阶段会详细讲。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="terms"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="prep" data-ch="prep">
+  <div class="ch-h"><span class="ch-n">05</span><h2>你需要准备什么</h2></div>
+  <ul><li>一台能上网的电脑（Windows / Mac 都行）。</li><li>一个 SSH 客户端。Windows 用 MobaXterm 或 PowerShell 自带的 <code>ssh</code>，Mac 直接用终端。</li><li>课程服务器账号（老师会发）。没有服务器也能学：阶段一、二的概念部分在任意 Linux 上都能练，装个虚拟机或用 WSL 都行。</li></ul>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：确认你的终端能用</div><div class="lab-b"><p>打开终端（Windows 按 <code>Win+R</code> 输入 <code>powershell</code> 回车），敲：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 问系统：现在是谁在操作</span><span class="ln ">whoami</span><span class="ln "> </span><span class="ln cmt"># 问系统：当前在哪个目录</span><span class="ln ">pwd</span><span class="ln "> </span><span class="ln cmt"># 问系统：这个目录里有什么</span><span class="ln ">ls</span></code></pre></div>
+<p>预期输出类似：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">weizhen</span><span class="ln ">/home/weizhen</span><span class="ln ">Desktop  Documents  Downloads</span></code></pre></div>
+<p>三条命令分别回答三个最基础的问题：<strong>我是谁、我在哪、这儿有什么</strong>。后面所有操作都建立在这三个问题上。</p>
+<p>如果 <code>whoami</code> 都报"命令不存在"，说明你打开的不是终端而是别的东西（比如记事本），回去重新开。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出"数字后端"和"前端设计"的分工差别</li><li>知道 9 个阶段里哪三个阶段是工具实操、哪三个阶段是理论与签核</li><li>在自己电脑上成功敲出 <code>whoami</code>、<code>pwd</code>、<code>ls</code></li><li>理解为什么这门课要先学 18 学时 Linux</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>数字后端交付给工厂的最终文件叫什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">GDSII（版图文件）。工厂拿到它才能开模生产。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>PPA 分别指什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">Performance（性能/速度）、Power（功耗）、Area（面积）。后端工作的核心就是在三者之间取舍。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么"看过课程"不等于"学会"？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">因为后端的技能是操作性的。判断标准是：不看资料，能不能从空目录把流程跑出来。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>"skew" 中文是什么？为什么它不总是坏事？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">时钟偏斜。同一时钟到达不同触发器的时间差。故意制造偏斜（useful skew）可以把紧张路径的时间"借"给别的路径，反而帮助收敛。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="prep"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/00-02-howto/">这个站怎么用：三种练法、题库、术语与进度 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

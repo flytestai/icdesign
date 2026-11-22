@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>实战：用 Tcsh 写一个真正能用的跑批脚本 · 07 | IC 后端学院</title>
+<meta name="description" content="把前两课拼起来：读懂公司的 .cshrc、会用 module 切工具版本、写出一个带参数/日志/时间戳/失败判断的跑批脚本。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="01-06-runscript">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcsh</a><span>/</span><b>实战：用 Tcsh 写一个真正能用的跑批脚本</b></div>
+    <div class="hero">
+      <div class="hero-no">07</div>
+      <h1>实战：用 Tcsh 写一个真正能用的跑批脚本</h1>
+      <p class="hero-en">Tcsh in Practice</p>
+      <p class="hero-sum">把前两课拼起来：读懂公司的 .cshrc、会用 module 切工具版本、写出一个带参数/日志/时间戳/失败判断的跑批脚本。</p>
+      <div class="hero-meta">
+        <span class="pill">约 38 分钟</span>
+        <span class="pill">课表学时 2.5</span>
+        <span class="pill tag">tcsh</span><span class="pill tag">脚本</span><span class="pill tag">module</span><span class="pill tag">自动化</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="cshrc" data-ch="cshrc">
+  <div class="ch-h"><span class="ch-n">01</span><h2>公司的 .cshrc 里到底写了什么</h2></div>
+  <p>新账号登进去第一件事，是看 <code>.cshrc</code>。它决定了你这一整个终端里工具能不能用。</p>
+<p>一个典型的芯片公司 <code>.cshrc</code>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ~/.cshrc</span><span class="ln ">set path = ( $HOME/bin /usr/local/bin /usr/bin /bin $path )</span><span class="ln "> </span><span class="ln cmt"># 工具安装根目录</span><span class="ln ">setenv PDK_ROOT    /home/proj/pdk/28nm</span><span class="ln ">setenv PROJ_ROOT   /home/proj/28nm/backend</span><span class="ln "> </span><span class="ln cmt"># license 服务器</span><span class="ln ">setenv LM_LICENSE_FILE 27000@lic.company.com</span><span class="ln "> </span><span class="ln cmt"># 别名</span><span class="ln ">alias ll 'ls -lht'</span><span class="ln ">alias cd.. 'cd ..'</span><span class="ln "> </span><span class="ln cmt"># 加载项目专用环境</span><span class="ln ">if ( -f $PROJ_ROOT/setup.csh ) then</span><span class="ln ">    source $PROJ_ROOT/setup.csh</span><span class="ln ">endif</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">.cshrc</span><span class="term-zh">登录配置脚本</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>每次开新终端时自动执行的文件，放在家目录。它做的事情就是"把环境准备好"：PATH、license、别名、项目变量。<br><code>.cshrc</code> 是给交互式终端用的；<code>.login</code> 只在登录时执行一次。日常改环境改 <code>.cshrc</code> 就够。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · 改坏 .cshrc，终端打不开</div><div class="pit-b"><p>如果在 <code>.cshrc</code> 里写了死循环或者语法错误，新开的每个终端都会卡住或狂报错。</p>
+<p><strong>改之前先备份</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cp ~/.cshrc ~/.cshrc.bak</span></code></pre></div>
+<p>如果已经改坏了：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 用一个不读 .cshrc 的 shell 进去修</span><span class="ln ">tcsh -f</span><span class="ln cmt"># 或者用 bash</span><span class="ln ">bash</span><span class="ln ">vim ~/.cshrc</span></code></pre></div></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="cshrc"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="module" data-ch="module">
+  <div class="ch-h"><span class="ch-n">02</span><h2>module：一人一套工具版本</h2></div>
+  <p>大公司不会让你手动 <code>set path</code>。他们用 <strong>module</strong> 系统：一堆工具版本登记在册，你按需加载。</p>
+<div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">module avail                 # 列出所有可加载的模块</span><span class="ln ">module avail synopsys        # 只看 synopsys 相关</span><span class="ln "> </span><span class="ln ">module load synopsys/dc/R-2020.09     # 加载某个版本的综合工具</span><span class="ln ">module load cadence/innovus/21.1      # 加载 Innovus</span><span class="ln "> </span><span class="ln ">module list                  # 看当前加载了哪些</span><span class="ln ">module unload synopsys/dc/R-2020.09   # 卸载</span><span class="ln ">module purge                 # 全部卸载，回到干净状态</span><span class="ln ">module switch innovus/20.1 innovus/21.1   # 换版本</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Module</span><span class="term-zh">模块系统</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>管理"同一软件多个版本共存"的工具。<code>module load</code> 实际上就是帮你改 PATH、LD_LIBRARY_PATH 等一堆环境变量，让你在多个版本之间秒切。<br>好处：不用手写 export，不会互相污染。用完 <code>module purge</code> 就干净了。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 两个项目要用不同版本的 ICC2</div><div class="scene-b"><p>A 项目用 2019 版，B 项目用 2021 版，同一个人同一天都要跑。</p>
+<p>没有 module 的话，你改 PATH 改到疯。有 module：</p>
+<div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">module purge</span><span class="ln ">module load icc2/2019.03</span><span class="ln cmt"># 跑 A 项目</span><span class="ln ">...</span><span class="ln ">module purge</span><span class="ln ">module load icc2/2021.06</span><span class="ln cmt"># 跑 B 项目</span></code></pre></div>
+<p><strong>这就是为什么公司都上 module。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="module"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="script" data-ch="script">
+  <div class="ch-h"><span class="ch-n">03</span><h2>写一个真正能用的跑批脚本</h2></div>
+  <p>新手写的脚本通常长这样：</p>
+<div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">dc_shell -f syn.tcl</span></code></pre></div>
+<p>问题：没日志、没时间戳、不看退出码、跑一半失败也不知道。</p>
+<p>合格的版本：</p>
+<div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">#!/bin/tcsh -f</span><span class="ln cmt"># ------------------------------------------------------------</span><span class="ln cmt"># run_syn.csh : 跑综合，自动建时间戳目录、写日志、判断成败</span><span class="ln cmt"># 用法: ./run_syn.csh &lt;top_name&gt;</span><span class="ln cmt"># ------------------------------------------------------------</span><span class="ln "> </span><span class="ln cmt"># 1. 参数检查：没给参数就直接退出，别带着空变量往下跑</span><span class="ln ">if ( $#argv &lt; 1 ) then</span><span class="ln ">    echo "usage: $0 &lt;top_name&gt;"</span><span class="ln ">    exit 1</span><span class="ln ">endif</span><span class="ln ">set TOP = $1</span><span class="ln "> </span><span class="ln cmt"># 2. 环境检查：工具在不在</span><span class="ln ">which dc_shell &gt;&amp; /dev/null</span><span class="ln ">if ( $status != 0 ) then</span><span class="ln ">    echo "[ERROR] dc_shell not found in PATH"</span><span class="ln ">    exit 2</span><span class="ln ">endif</span><span class="ln "> </span><span class="ln cmt"># 3. 建带时间戳的运行目录，避免覆盖上一次结果</span><span class="ln ">set STAMP = `date +%Y%m%d_%H%M`</span><span class="ln ">set RUNDIR = ./run/$STAMP</span><span class="ln ">mkdir -p $RUNDIR</span><span class="ln ">echo "[INFO] run dir = $RUNDIR"</span><span class="ln "> </span><span class="ln cmt"># 4. 生成这一次要用的 tcl（把 top 名字注入进去）</span><span class="ln ">sed "s/@TOP@/$TOP/g" ../scripts/syn.tcl &gt; $RUNDIR/syn.tcl</span><span class="ln "> </span><span class="ln cmt"># 5. 跑，日志进文件（&gt;&amp; 是 tcsh 的"输出+错误都重定向"）</span><span class="ln ">cd $RUNDIR</span><span class="ln ">dc_shell -f syn.tcl &gt; syn.log &amp;</span><span class="ln ">set PID = $!</span><span class="ln ">echo "[INFO] pid = $PID, log = $RUNDIR/syn.log"</span><span class="ln ">wait $PID</span><span class="ln ">set RC = $status</span><span class="ln "> </span><span class="ln cmt"># 6. 判断结果：退出码 + 日志里有没有 Error</span><span class="ln ">if ( $RC != 0 ) then</span><span class="ln ">    echo "[FAIL] dc_shell exit code = $RC"</span><span class="ln ">    grep -i "error" syn.log | head -5</span><span class="ln ">    exit $RC</span><span class="ln ">endif</span><span class="ln "> </span><span class="ln ">set ERRCNT = `grep -ci "^Error" syn.log`</span><span class="ln ">if ( $ERRCNT &gt; 0 ) then</span><span class="ln ">    echo "[WARN] found $ERRCNT lines starting with Error, check syn.log"</span><span class="ln ">endif</span><span class="ln "> </span><span class="ln ">echo "[DONE] $TOP synthesized at $STAMP"</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Exit Code</span><span class="term-zh">退出码 / 返回码</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>每个命令执行完都会返回一个数字给 shell：0 表示成功，非 0 表示失败（不同数字代表不同错误）。<br>脚本里用 <code>$status</code>（tcsh）或 <code>$?</code>（bash）读它。<strong>上一句执行完立刻读，读晚了会被下一条命令覆盖。</strong></p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · tcsh 里 <code>&gt;&amp;</code> 和 bash 的 <code>2&gt;&amp;1</code> 不一样</div><div class="pit-b"><div class="tbl"><table><thead><tr><th>目的</th><th>bash</th><th>tcsh</th></tr></thead><tbody><tr><td>输出+错误都到文件</td><td><code>cmd &gt; log 2&gt;&amp;1</code></td><td><code>cmd &gt;&amp; log</code></td></tr><tr><td>输出+错误都丢掉</td><td><code>cmd &gt; /dev/null 2&gt;&amp;1</code></td><td><code>cmd &gt;&amp; /dev/null</code></td></tr></tbody></table></div>
+<p>在 tcsh 脚本里写 <code>2&gt;&amp;1</code> 会报 <code>Ambiguous output redirect</code>。这是从 bash 抄脚本时最常见的错误。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en"><code>$#argv</code> / <code>$1</code> / <code>$0</code></span><span class="term-zh"><code>$#argv</code> / <code>$1</code> / <code>$0</code></span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>- <code>$#argv</code>：参数个数。<code>if ( $#argv &lt; 1 )</code> 就是"没给参数"。<br>- <code>$1</code>、<code>$2</code>：第 1、2 个参数。<br>- <code>$0</code>：脚本自己的名字。<br>- <code>$*</code>：所有参数。<br>写脚本一定要先检查参数个数，否则 <code>$1</code> 为空时后面的命令会做奇怪的事（比如 <code>rm -rf $DIR/</code> 变成 <code>rm -rf /</code>）。</p></div>
+</div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：跑通这个脚本（用假工具）</div><div class="lab-b"><p>没有 DC 也能练。把工具换成一个假脚本：</p>
+<div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 造一个假 dc_shell，模拟成功/失败</span><span class="ln ">mkdir -p ~/demo/bin &amp;&amp; cd ~/demo/bin</span><span class="ln ">cat &gt; dc_shell &lt;&lt;'EOF'</span><span class="ln cmt">#!/bin/bash</span><span class="ln ">echo "Fake DC: synthesizing..."</span><span class="ln ">sleep 1</span><span class="ln ">if [ "$1" = "-f" ]; then echo "Synopsys Design Compiler (fake) done"; fi</span><span class="ln ">exit 0</span><span class="ln ">EOF</span><span class="ln ">chmod +x dc_shell</span><span class="ln ">set path = ( ~/demo/bin $path )</span><span class="ln "> </span><span class="ln cmt"># 2. 造一个最小 tcl</span><span class="ln ">mkdir -p ~/demo/scripts</span><span class="ln ">echo 'puts "top = @TOP@"' &gt; ~/demo/scripts/syn.tcl</span><span class="ln "> </span><span class="ln cmt"># 3. 把上面那个 run_syn.csh 存到 ~/demo/run_syn.csh，然后跑</span><span class="ln ">cd ~/demo</span><span class="ln ">chmod +x run_syn.csh</span><span class="ln ">./run_syn.csh ipa_top</span></code></pre></div>
+<p>预期输出：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">[INFO] run dir = ./run/20261122_2015</span><span class="ln ">[INFO] pid = 12345, log = ./run/20261122_2015/syn.log</span><span class="ln ">[DONE] ipa_top synthesized at 20261122_2015</span></code></pre></div>
+<p>过关标准：</p>
+<ol><li>不带参数跑，应该打印 usage 并退出（<code>echo $status</code> 应为 1）。</li><li>把假 dc_shell 的 <code>exit 0</code> 改成 <code>exit 3</code>，脚本应该打印 <code>[FAIL]</code> 并以非 0 退出。</li></ol></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="script"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="debug" data-ch="debug">
+  <div class="ch-h"><span class="ch-n">04</span><h2>脚本跑一半停了，怎么查</h2></div>
+  <p>三个动作按顺序做：</p>
+<ol><li><strong>看日志尾部</strong>：<code>tail -50 syn.log</code>。tcsh 脚本本身不打印的错，通常在工具日志里。</li><li><strong>加 <code>-x</code> 跟踪</strong>：<code>tcsh -x run_syn.csh ipa_top</code>，会把每一行执行前后的变量值打出来。<strong>这是查"为什么 if 没进去"的唯一可靠办法。</strong></li><li><strong>看退出码</strong>：<code>echo $status</code>。0 和非 0 是两套排查路径。</li></ol>
+<div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 只跟踪某一段：临时打开再关掉</span><span class="ln ">set echo    # 打开回显</span><span class="ln ">... 你要看的几行 ...</span><span class="ln ">unset echo  # 关掉</span></code></pre></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能读懂公司 <code>.cshrc</code> 里每一行的作用</li><li>会用 <code>module avail / load / list / purge</code></li><li>能写出带"参数检查 + 时间戳目录 + 日志 + 退出码判断"的跑批脚本</li><li>知道 tcsh 里 <code>&gt;&amp;</code> 对应 bash 的 <code>2&gt;&amp;1</code></li><li>会用 <code>tcsh -x</code> 调试脚本</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>tcsh 里把输出和错误都重定向到日志，应该怎么写？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>cmd &gt;&amp; log</code></div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>$#argv</code> 是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">脚本收到的参数个数。常用来做参数检查。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么要用时间戳建 run 目录？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">避免覆盖上一次结果，出问题时能回溯"当时那一版跑的是什么"。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>tcsh -x script.csh</code> 有什么用？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">打开跟踪模式，逐行打印执行的命令和变量展开结果，用来定位脚本在哪一步走错。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>$status</code> 是什么？什么时候必须立刻读？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">上一条命令的退出码（0 成功，非 0 失败）。必须紧接着读，因为下一条命令会覆盖它。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="debug"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-05-tcsh/">← Tcsh 基础：芯片公司的默认 Shell</a><a class="nav-btn" href="/lesson/01-07-version/">版本管理与自动化：git、make 和日志归档 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

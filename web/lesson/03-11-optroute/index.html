@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OptRoute：把 DRC 从几千条磨到零 · 22 | IC 后端学院</title>
+<meta name="description" content="全局布线通了不等于做完。DRC、时序回退、串扰、天线，四类问题都在布线后集中爆发。这一课讲五类 DRC 的成因、OptRoute 的三种模式、增量布线的正确用法，以及我们实测 6000→0 的真实路径。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="03-11-optroute">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>OptRoute：把 DRC 从几千条磨到零</b></div>
+    <div class="hero">
+      <div class="hero-no">22</div>
+      <h1>OptRoute：把 DRC 从几千条磨到零</h1>
+      <p class="hero-en">Routing Optimization (OptRoute)</p>
+      <p class="hero-sum">全局布线通了不等于做完。DRC、时序回退、串扰、天线，四类问题都在布线后集中爆发。这一课讲五类 DRC 的成因、OptRoute 的三种模式、增量布线的正确用法，以及我们实测 6000→0 的真实路径。</p>
+      <div class="hero-meta">
+        <span class="pill">约 42 分钟</span>
+        <span class="pill">课表学时 3</span>
+        <span class="pill tag">布线</span><span class="pill tag">OptRoute</span><span class="pill tag">DRC</span><span class="pill tag">拥塞</span><span class="pill tag">天线</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>`route_auto` 返回 0，不代表布线做完了</h2></div>
+  <p><code>route_auto</code>（Innovus 是 <code>routeDesign</code>）做完，你通常会看到"布线完成"。但这时报告里至少有四类问题：</p>
+<div class="tbl"><table><thead><tr><th>问题</th><th>典型数量</th><th>后果</th></tr></thead><tbody><tr><td>DRC 违例</td><td>几十到几千</td><td>签核不过，必须清零</td></tr><tr><td>setup 恶化</td><td>新增几十条</td><td>布线后线延迟吃掉了余量</td></tr><tr><td>串扰（crosstalk）</td><td>未检</td><td>信号互相干扰，功能可能出错</td></tr><tr><td>天线违例</td><td>几十条</td><td>工艺厂要求修，否则栅氧会被击穿</td></tr></tbody></table></div>
+<div class="scene"><div class="scene-h">工作场景 · "不是已经布通了吗，怎么还有 6000 个 DRC"</div><div class="scene-b"><p>你第一次看到 <code>Total number of DRCs: 6000</code> 会以为工具坏了。</p>
+<p>其实这是正常的：全局布线只保证"每个连接有路可走"，细节布线才真的把线画在具体的轨道上。6000 条里绝大多数是<strong>同一类问题</strong>——引脚访问冲突（pin access），一个单元的多个引脚挤在一起，线出不来。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">DRC</span><span class="term-zh">Design Rule Check，设计规则检查</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>工艺厂规定的一堆"物理上不许这样画"的规则：两条线不能太近（spacing）、线不能太细（width）、不能有尖角（notch）、不同层的连接必须用 via 等。<br>DRC 违例不是"工具算错了"，是<strong>你画出来的版图真的违反了工厂的制造能力</strong>。所以必须清零。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="types" data-ch="types">
+  <div class="ch-h"><span class="ch-n">02</span><h2>五类 DRC，认清成因才知道怎么修</h2></div>
+  <div class="tbl"><table><thead><tr><th>类型</th><th>英文</th><th>典型报错</th><th>成因</th><th>修法</th></tr></thead><tbody><tr><td>间距</td><td>spacing</td><td><code>Metal2 spacing &lt; 0.07</code></td><td>两条线太近</td><td>让工具重布局部；挪单元</td></tr><tr><td>短路</td><td>short</td><td><code>Net A shorted to net B</code></td><td>两条不同网的线碰上了</td><td>增量布线路由重解</td></tr><tr><td>开路</td><td>open</td><td><code>Net A has unconnected pin</code></td><td>线没连到引脚</td><td>检查引脚是否被挡住</td></tr><tr><td>宽度</td><td>width / notch</td><td><code>Metal1 width &lt; 0.065</code></td><td>线太细或有缺口</td><td>加宽/合并；通常工具自动修</td></tr><tr><td>引脚访问</td><td>pin access</td><td><code>ZRT-045: pin access conflict</code></td><td>单元引脚太密，出线互相打架</td><td><strong>布局优化</strong>（见下）</td></tr></tbody></table></div>
+<div class="note"><div class="note-h">为什么"引脚访问冲突"最难修</div><p>一个 <code>AOI222_X1</code> 有 6 个引脚挤在 0.76×1.4um 的框里。如果周围单元摆得太密、或者电源轨占了可用的 metal1，线就没法从引脚出来。</p>
+<p>这类 DRC 有个特点：<strong>它不随布线轮数减少</strong>。我们实测第 1 轮 6000 条里，95% 是这一类；单纯增加 <code>route_detail</code> 轮数从 6000 只降到 156 就卡住了。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="types"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="modes" data-ch="modes">
+  <div class="ch-h"><span class="ch-n">03</span><h2>三种 OptRoute，代价差很多</h2></div>
+  <div class="tbl"><table><thead><tr><th>模式</th><th>Innovus</th><th>ICC2</th><th>改什么</th><th>耗时</th><th>何时用</th></tr></thead><tbody><tr><td>局部增量</td><td><code>routeDesign -incremental</code></td><td><code>route_detail -incremental true</code></td><td>只重布有问题的局部</td><td>分钟级</td><td>已经基本干净，磨最后几十条</td></tr><tr><td>全局优化</td><td><code>optDesign -postRoute</code></td><td><code>route_opt</code></td><td>重布 + 调尺寸 + 修时序</td><td>十几分钟</td><td>DRC 收敛后，修时序</td></tr><tr><td>完全重布</td><td><code>routeDesign</code></td><td><code>route_auto</code></td><td>全部推倒重来</td><td>最长</td><td>前面改动太大，增量已无意义</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 一上来就跑 <code>route_opt</code></div><div class="pit-b"><p><code>route_opt</code> 会同时动布线、单元尺寸和缓冲器。如果 DRC 还有几千条，它会在一个很脏的版图上做优化——<strong>结果通常是 DRC 没修好，时序也被搅乱</strong>。</p>
+<p>正确顺序：<strong>先增量布线把 DRC 磨到 100 以内，再跑 <code>route_opt</code> 修时序，最后再增量磨 DRC 到 0。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="modes"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="incremental" data-ch="incremental">
+  <div class="ch-h"><span class="ch-n">04</span><h2>增量布线的正确用法：一轮一记录</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ICC2：循环 10 轮，每轮出一份报告 —— 关键是"每轮都留证据"</span><span class="ln ">set it 1</span><span class="ln ">while {$it &lt;= 10} {</span><span class="ln ">  route_detail -incremental true</span><span class="ln ">  redirect check_routes_$it.rpt { check_routes }</span><span class="ln cmt">  # 从报告里抽 DRC 总数，打印到屏幕，方便一眼看趋势</span><span class="ln ">  set fh [open check_routes_$it.rpt r]</span><span class="ln ">  set txt [read $fh]; close $fh</span><span class="ln ">  regexp {Total number of DRCs\s*:\s*(\d+)} $txt -&gt; n</span><span class="ln ">  puts "@@@ round $it  DRC = $n"</span><span class="ln ">  if {$n == 0} { break }        ;# 归零就提前退出，别白跑</span><span class="ln ">  incr it</span><span class="ln ">}</span></code></pre></div>
+<p>为什么必须每轮存报告：</p>
+<ol><li>判断"还在收敛"还是"卡住了"（连续三轮数字不变 = 卡住，别再加轮数）；</li><li>出问题时能定位是哪一轮引入的新违例；</li><li>汇报时给的是曲线，不是"我跑了十轮就好了"。</li></ol>
+  <label class="ch-done"><input type="checkbox" data-mark="incremental"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="real" data-ch="real">
+  <div class="ch-h"><span class="ch-n">05</span><h2>我们实测的收敛曲线（真实数据）</h2></div>
+  <p>万门设计（ipa_top，9390 单元，纯物理流程）第一次跑出来 6000 条 DRC。逐轮记录如下：</p>
+<div class="tbl"><table><thead><tr><th>轮次</th><th>DRC</th><th>本轮做了什么</th></tr></thead><tbody><tr><td>0（route_auto 后）</td><td>6000</td><td>全局布线刚结束，几乎全是引脚访问冲突</td></tr><tr><td>1</td><td>156</td><td>第一次 <code>route_detail</code>，清了绝大多数</td></tr><tr><td>2</td><td>119</td><td>增量</td></tr><tr><td>3</td><td>72</td><td>增量</td></tr><tr><td>4</td><td>58</td><td>增量</td></tr><tr><td>5</td><td>47</td><td>增量</td></tr><tr><td>6</td><td>25</td><td>增量</td></tr><tr><td>7</td><td>17</td><td>增量</td></tr><tr><td>8</td><td>12</td><td>增量</td></tr><tr><td>9</td><td><strong>0</strong></td><td>增量，归零</td></tr></tbody></table></div>
+<div class="note"><div class="note-h">关键发现：6000→156 是"布线"的功劳，156→0 是"布局"的功劳</div><p>只加布线轮数，卡在 156 下不去。真正的解法是回到布局端改三个开关：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">set_app_options -name place.coarse.pin_density_aware -value true   ;# 多引脚单元周围留通道</span><span class="ln ">create_placement -effort high</span><span class="ln ">legalize_placement</span><span class="ln ">refine_placement                                                   ;# 局部再挪一次</span></code></pre></div>
+<p>改完重跑，第 1 轮就直接是 156 → 后续每轮都在降。<strong>这就是"DRC 的根因在布局，不在布线"的含义。</strong></p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="real"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="congestion" data-ch="congestion">
+  <div class="ch-h"><span class="ch-n">06</span><h2>拥塞：布线做不下去的真正原因</h2></div>
+  <p>DRC 是"已经画错了"，拥塞是"根本画不下"。看这两个数：</p>
+<div class="tbl"><table><thead><tr><th>指标</th><th>含义</th><th>红线</th></tr></thead><tbody><tr><td>overflow</td><td>某区域需要的布线轨道数 - 实际可用轨道数</td><td>&gt; 0 就是拥塞</td></tr><tr><td>congestion %</td><td>该区域轨道占用率</td><td>&gt; 90% 高危</td></tr></tbody></table></div>
+<p>诊断顺序（照这个顺序查，别乱试）：</p>
+<ol><li><strong>看热图</strong>：拥塞集中在哪？是一个角落（宏单元周围）、还是全芯片均匀（利用率太高）；</li><li><strong>看是不是宏单元通道太窄</strong>：宏和宏之间只留 5um，但那里要过 3000 根线 → 加宽通道；</li><li><strong>看是不是引脚密度问题</strong>：某个区域多引脚单元（AOI/OAI/MUX）堆在一起 → 打开 <code>pin_density_aware</code>；</li><li><strong>最后才降利用率</strong>：从 0.5 降到 0.4，面积变大但能布通。<strong>这是最贵的修法</strong>，放最后。</li></ol>
+<div class="pit"><div class="pit-h">常见坑 · 拥塞了就降利用率</div><div class="pit-b"><p>降利用率能让 DRC 变好，但芯片面积变大、线变长、功耗变高、成本上升。</p>
+<p>先试便宜的：挪宏单元、加通道、开 pin_density_aware、调 <code>place.coarse.max_density</code>。这些都不行，再降利用率。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="congestion"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="antenna" data-ch="antenna">
+  <div class="ch-h"><span class="ch-n">07</span><h2>天线效应：一个容易被忽略的硬违例</h2></div>
+  <p>制造过程中，长金属线像天线一样收集电荷，可能击穿晶体管的栅氧化层。规则是：<strong>接到栅极的金属面积不能超过栅面积的某个倍数</strong>。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 检查</span><span class="ln ">check_routes -antenna          # 或 verifyAntenna</span><span class="ln cmt"># 修：让工具在长线中间断开，跳到更高层再下来（跳线）</span><span class="ln ">route_detail -fix_antenna true</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>修法</th><th>原理</th><th>代价</th></tr></thead><tbody><tr><td>跳线（layer jumping）</td><td>长线中途换到高层再回来，减小同层面积</td><td>多两个 via，占用布线资源</td></tr><tr><td>插二极管</td><td>加一个反向二极管泄放电荷</td><td>面积增加，需要库支持</td></tr></tbody></table></div>
+  <label class="ch-done"><input type="checkbox" data-mark="antenna"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="signoff" data-ch="signoff">
+  <div class="ch-h"><span class="ch-n">08</span><h2>布线后必须回签的两个数</h2></div>
+  <p>布完不是结束，要重新看：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_timing -delay_type max -max_paths 10    # setup 有没有被线延迟拖崩</span><span class="ln ">report_timing -delay_type min -max_paths 10    # hold 有没有变差</span><span class="ln ">check_routes                                    # DRC 是否为 0</span></code></pre></div>
+<div class="note"><div class="note-h">我们实测的布线后数据</div><p>12026 单元（时序驱动流程）：<code>route_auto</code> 首轮 DRC 就是 <strong>0</strong>，<code>route_opt</code> 保持 0，10 轮增量全 0；12860 条网 open 0；setup WNS +1.00ns。</p>
+<p>对比纯物理流程：首轮 6000，磨 9 轮才 0。<strong>差别不在布线，在于前面有没有做时序驱动的布局。</strong></p></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：从 DRC 报告判断"该不该再加一轮"</div><div class="lab-b"><p>给定三份连续报告的数字（模拟终端里的 <code>drc.rpt</code> 就是这个格式）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">iteration  DRC   opens   short</span><span class="ln ">8          17    0       0</span><span class="ln ">9          12    0       0</span><span class="ln ">10         0     0       0</span></code></pre></div>
+<p>换个情形：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">iteration  DRC   opens   short</span><span class="ln ">7          25    0       3</span><span class="ln ">8          25    0       3</span><span class="ln ">9          25    0       3</span></code></pre></div>
+<p>判断：第二种情况<strong>再加轮数没用</strong>，因为 short 数量三轮不变，说明是结构性问题（某个区域真的挤不下），要回去改布局或加通道。</p>
+<p>在模拟终端里把这份表读出来：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~/backend_lab/soc/pnr/reports</span><span class="ln ">cat drc.rpt</span><span class="ln ">awk 'NR&gt;2 {print $1, $2}' drc.rpt      # 只看轮次和 DRC 数</span><span class="ln ">awk '$4 &gt; 0 {print "有 short:", $1}' drc.rpt   # 哪几轮有短路</span></code></pre></div>
+<p>过关标准：能说出"连续三轮数字不变 = 结构性问题，加轮数无效"。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出五类 DRC 和各自成因</li><li>知道引脚访问冲突要靠改布局解决，不是加布线轮数</li><li>能写出 Innovus / ICC2 的三种布线优化模式对应命令</li><li>知道正确顺序：增量磨 DRC → route_opt 修时序 → 再增量磨到 0</li><li>能判断"还在收敛"和"已经卡住"</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 <code>route_auto</code> 完成后还有几千条 DRC？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">全局布线只保证"有路可走"，细节布线才把线画到具体轨道上；大量违例来自引脚访问冲突等局部资源竞争。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>引脚访问冲突为什么加布线轮数也修不掉？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">它源于布局——多引脚单元周围没有留出线通道。必须回布局端打开 pin_density_aware、refine_placement 才能解决。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>DRC 还在几千条时能跑 route_opt 吗？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">不建议。脏版图上做优化会同时搅乱时序和布线，正确顺序是先增量磨到 100 以内再优化。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>连续三轮 DRC 数字完全一样说明什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">说明不是随机收敛问题，而是结构性资源不足（拥塞/引脚访问），继续加轮数无效，要改布局。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>天线违例的两种修法是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">跳线（中途换高层减小同层金属面积）和插二极管（泄放电荷）。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="signoff"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-10-optcts/">← OptCts：时钟树做完只是开始</a><a class="nav-btn" href="/lesson/03-12-chipfinish/">ChipFinish：收尾这一步，决定能不能送厂 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

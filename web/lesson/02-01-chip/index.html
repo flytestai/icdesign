@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>芯片是怎么造出来的：从沙子到 GDSII · 09 | IC 后端学院</title>
+<meta name="description" content="后端工程师如果不懂制造，就会做出"设计上完美、工厂造不出来"的版图。这一课用最直白的方式讲清晶圆、光刻、工艺节点和标准单元库。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="02-01-chip">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>芯片是怎么造出来的：从沙子到 GDSII</b></div>
+    <div class="hero">
+      <div class="hero-no">09</div>
+      <h1>芯片是怎么造出来的：从沙子到 GDSII</h1>
+      <p class="hero-en">How a Chip Is Made</p>
+      <p class="hero-sum">后端工程师如果不懂制造，就会做出"设计上完美、工厂造不出来"的版图。这一课用最直白的方式讲清晶圆、光刻、工艺节点和标准单元库。</p>
+      <div class="hero-meta">
+        <span class="pill">约 32 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">基础概念</span><span class="pill tag">制造</span><span class="pill tag">工艺</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="overview" data-ch="overview">
+  <div class="ch-h"><span class="ch-n">01</span><h2>先看全景：一颗芯片要过五道关</h2></div>
+  <div class="tbl"><table><thead><tr><th>阶段</th><th>谁做</th><th>产出</th><th>一句话</th></tr></thead><tbody><tr><td>1. 规格</td><td>产品/架构</td><td>Spec 文档</td><td>这颗芯片要干什么</td></tr><tr><td>2. 前端设计</td><td>设计工程师</td><td>RTL 代码</td><td>用 Verilog 描述逻辑</td></tr><tr><td>3. 验证</td><td>验证工程师</td><td>测试平台 + 覆盖率报告</td><td>证明逻辑没写错</td></tr><tr><td>4. 综合 + 后端</td><td>综合/PD 工程师</td><td>门级网表 → GDSII</td><td>把逻辑变成版图</td></tr><tr><td>5. 制造 + 封测</td><td>晶圆厂 / 封测厂</td><td>芯片</td><td>照图施工</td></tr></tbody></table></div>
+<p>后端在第 4 关的末段。<strong>你的下游是工厂，所以你必须懂工厂的规矩</strong>——这就是为什么后端有那么多"设计规则"。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">GDSII</span><span class="term-zh">版图数据格式</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一种几十年前定下来的二进制文件格式，描述每一层（金属、多晶硅、扩散区）上的几何图形。工厂的机器读它来制作掩模版。<br>它是后端的最终交付物。文件通常几百 MB 到几 GB。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="overview"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="fab" data-ch="fab">
+  <div class="ch-h"><span class="ch-n">02</span><h2>制造到底在做什么</h2></div>
+  <p>不用记工艺细节，理解三件事就够：</p>
+<ol><li><strong>晶圆（Wafer）是一片圆形的硅片</strong>，直径常见 300mm。一片晶圆上会排几百上千个同样的芯片（die）。</li><li><strong>光刻（Lithography）是用光"印"图形</strong>：先把光刻胶涂在晶圆上，用掩模版（mask）挡光曝光，被照到的地方性质改变，洗掉后留下图形。一层图形对应一张掩模版，先进工艺有 60~80 层。</li><li><strong>一层一层叠起来</strong>：先做晶体管（底层），再用金属一层层连线（M1、M2、…、M8）。后端做的就是决定每层金属上画什么。</li></ol>
+<div class="scene"><div class="scene-h">工作场景 · 为什么后端要关心"工厂能不能造"</div><div class="scene-b"><p>你画了一根 0.02µm 宽的线，逻辑上完全正确，但工厂的机器最细只能画 0.04µm。这根线造出来会断，或者和旁边的线粘在一起。</p>
+<p>所以工厂会给一份<strong>设计规则（Design Rule）</strong>：最小线宽多少、两根线最小间距多少、一个孔最小多大。后端跑完布线必须做 <strong>DRC（Design Rule Check）</strong>，把所有违规的地方找出来改掉。</p>
+<p><strong>DRC 不是"工具挑刺"，是"工厂的验收标准"。</strong></p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">DRC</span><span class="term-zh">设计规则检查</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Design Rule Check。检查版图是否满足工厂的几何约束：线宽、间距、包围、密度等。<br>DRC 不干净 = 工厂拒收 = 不能流片。所以它是后端的硬门槛，通常要清到 0。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="fab"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="node" data-ch="node">
+  <div class="ch-h"><span class="ch-n">03</span><h2>工艺节点：40nm / 32nm / 28nm 是什么意思</h2></div>
+  <p>这个数字大致指晶体管"栅极长度"的量级，越小越先进：</p>
+<div class="tbl"><table><thead><tr><th>节点</th><th>大致年代</th><th>特点</th><th>课程里在哪用</th></tr></thead><tbody><tr><td>40nm</td><td>2008 前后</td><td>成熟、便宜、规则相对宽松</td><td>阶段三，Innovus 项目</td></tr><tr><td>32nm</td><td>2010 前后</td><td>开始有明显的光刻效应</td><td>阶段四，ICC2 项目</td></tr><tr><td>28nm</td><td>2011 前后</td><td>长期主力，手机芯片大量用</td><td>阶段五，全流程实战</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 节点数字不等于"实际尺寸"</div><div class="pit-b"><p>"28nm 工艺"里最小的线不一定是 28nm，金属间距、氧化层厚度都另有数字。<strong>节点更像一个"代际名字"</strong>，不同厂家的 28nm 规则也不完全一样。</p>
+<p>所以换工艺 = 换一整套库和规则，不能拿 40nm 的经验直接套 28nm。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="node"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lib" data-ch="lib">
+  <div class="ch-h"><span class="ch-n">04</span><h2>标准单元库：后端的乐高积木</h2></div>
+  <p>后端不画晶体管。你用的是<strong>标准单元（Standard Cell）</strong>：工厂预先做好、验证过的一批小功能块——与门、或门、触发器、缓冲器，高度统一（比如都是 1.4µm 高），宽度不同。</p>
+<p>一排排摆好，就成了版图的主体。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">┌──┬────┬──┬──────┬──┬────┐   ← 一行（row），高度固定</span><span class="ln ">│INV│ NAND│DFF│  AOI  │BUF│</span><span class="ln ">├──┴────┴──┴──────┴──┴────┤</span><span class="ln ">│  ...  下一行 ...          │</span><span class="ln ">└──────────────────────────┘</span></code></pre></div>
+<p>一个库通常有几百个单元，同一种功能还分不同"驱动能力"（X1、X2、X4…），驱动强的面积大、延迟小。<strong>选哪个，就是后端和综合的日常决策。</strong></p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Standard Cell</span><span class="term-zh">标准单元</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>预先设计好、高度统一的基础逻辑单元。后端把它们摆成行、连上线，就构成了芯片。<br>与它相对的是 <strong>Macro（宏单元）</strong>，比如 SRAM、PLL，面积大、形状不规则，需要单独摆放并预留通道。</p></div>
+</div>
+<p>后端要用到的库文件有四种，缺一不可：</p>
+<div class="tbl"><table><thead><tr><th>文件</th><th>内容</th><th>给谁用</th></tr></thead><tbody><tr><td><code>.lib</code> / <code>.db</code></td><td>时序、功耗、面积模型</td><td>综合、STA</td></tr><tr><td><code>.lef</code></td><td>物理抽象：多大、引脚在哪</td><td>布局布线</td></tr><tr><td><code>.tf</code> / tech lef</td><td>工艺信息：层、线宽、间距规则</td><td>布局布线</td></tr><tr><td><code>.gds</code></td><td>完整版图</td><td>最终交付、DRC/LVS</td></tr></tbody></table></div>
+<div class="scene"><div class="scene-h">工作场景 · 缺库文件，流程一步都跑不动</div><div class="scene-b"><p>真实项目里，"库没齐"是最常见的阻塞。比如综合报 <code>Cannot find cell 'NAND2_X1'</code>——<code>.db</code> 里没有这个单元；或者布线索要 <code>.lef</code> 里的引脚位置，没有就报 <code>no pin location</code>。</p>
+<p>老手接手新项目第一件事不是跑流程，而是<strong>核对这四类文件是否齐全、版本是否匹配</strong>。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lib"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="signoff" data-ch="signoff">
+  <div class="ch-h"><span class="ch-n">05</span><h2>为什么要有 signoff（签核）</h2></div>
+  <p>流片一次几百万到几千万。错了就是全废，没有"打个补丁重来"。</p>
+<p>所以流片前有一整套签核流程，每一份报告都必须"绿"：</p>
+<div class="tbl"><table><thead><tr><th>签核项</th><th>检查什么</th><th>不过会怎样</th></tr></thead><tbody><tr><td>时序（STA）</td><td>每条路径的 setup/hold</td><td>芯片跑不到目标频率，或直接不工作</td></tr><tr><td>DRC</td><td>工厂能不能造出来</td><td>工厂拒收，或良率归零</td></tr><tr><td>LVS</td><td>版图和网表是否一致</td><td>连线错了，功能全错</td></tr><tr><td>IR Drop</td><td>电源网络压降</td><td>局部电压不够，芯片死机</td></tr><tr><td>EM</td><td>电流密度</td><td>金属被电迁移"烧断"，用几个月就坏</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Signoff</span><span class="term-zh">签核</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>流片前的最后一道确认：所有检查项都通过，负责人签字放行。<br>签核用的工具通常比设计时用的更严格（比如设计时用 ICC2 内部 STA，签核必须用 PrimeTime），因为"自己检查自己"不够可信。</p></div>
+</div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出芯片从规格到成品的五道关，以及后端在第几关</li><li>能解释 GDSII、DRC、标准单元、Macro 四个词</li><li>知道 40/32/28nm 各自在课程的哪个阶段用</li><li>能列出后端需要的四类库文件及各自用途</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>后端交付给工厂的最终文件格式是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">GDSII。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>DRC 检查的是什么？不通过会怎样？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">检查版图是否满足工厂的几何设计规则（线宽、间距、密度等）。不通过工厂拒收，无法流片。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>标准单元和宏单元有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">标准单元高度统一、成行摆放，是基础逻辑；宏单元（如 SRAM）面积大、形状不规则，需要单独摆放并预留通道。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>.db</code> 和 <code>.lef</code> 分别给谁用？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>.db</code>（时序/功耗模型）给综合和 STA；<code>.lef</code>（物理抽象：尺寸、引脚位置）给布局布线。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么签核要用 PrimeTime 而不是布局布线工具自带的时序分析？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">因为"自己检查自己"不可信，签核需要独立工具交叉验证，避免同一套引擎的系统性偏差。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="signoff"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-07-version/">← 版本管理与自动化：git、make 和日志归档</a><a class="nav-btn" href="/lesson/02-02-flow/">后端八阶段：谁给谁交付什么 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

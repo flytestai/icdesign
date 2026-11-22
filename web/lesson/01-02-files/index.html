@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>文件操作与权限：为什么你的脚本"跑不了" · 03 | IC 后端学院</title>
+<meta name="description" content="复制、移动、删除、查看文件；搞懂 rwx 权限和 755/644 这两个天天见的数字，从此不再被 "Permission denied" 卡住。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="01-02-files">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcsh</a><span>/</span><b>文件操作与权限：为什么你的脚本"跑不了"</b></div>
+    <div class="hero">
+      <div class="hero-no">03</div>
+      <h1>文件操作与权限：为什么你的脚本"跑不了"</h1>
+      <p class="hero-en">Files & Permissions</p>
+      <p class="hero-sum">复制、移动、删除、查看文件；搞懂 rwx 权限和 755/644 这两个天天见的数字，从此不再被 "Permission denied" 卡住。</p>
+      <div class="hero-meta">
+        <span class="pill">约 40 分钟</span>
+        <span class="pill">课表学时 3</span>
+        <span class="pill tag">Linux</span><span class="pill tag">文件</span><span class="pill tag">权限</span><span class="pill tag">chmod</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="types" data-ch="types">
+  <div class="ch-h"><span class="ch-n">01</span><h2>文件不止一种</h2></div>
+  <p><code>ls -l</code> 输出的第一列看着像乱码，其实第一位就告诉你这是什么：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">drwxr-xr-x   2 weizhen weizhen  4096 Nov 22 10:12 scripts</span><span class="ln ">-rw-r--r--   1 weizhen weizhen  1820 Nov 22 10:12 run.tcl</span><span class="ln ">lrwxrwxrwx   1 weizhen weizhen    18 Nov 22 10:12 latest -&gt; runs/20261122</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>第一位</th><th>类型</th><th>说明</th></tr></thead><tbody><tr><td><code>-</code></td><td>普通文件</td><td>文本、网表、报告、压缩包</td></tr><tr><td><code>d</code></td><td>目录</td><td>directory，能进去的"文件夹"</td></tr><tr><td><code>l</code></td><td>符号链接</td><td>快捷方式，指向别处</td></tr></tbody></table></div>
+<p>后面那串 <code>rwxr-xr-x</code> 是权限，本节后半段专门讲。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Symlink</span><span class="term-zh">符号链接</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一个"指向另一个文件的文件"，类似 Windows 的快捷方式。删掉链接不会删掉原文件。<br>工程里常用来做"最新版本"指针：<code>latest -&gt; runs/20261122</code>，脚本永远读 <code>latest/</code>，就不用每次改路径。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="types"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="cpmv" data-ch="cpmv">
+  <div class="ch-h"><span class="ch-n">02</span><h2>复制、移动、重命名、删除</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cp run.tcl run_backup.tcl</span><span class="ln cmt"># copy：把 run.tcl 复制一份，命名 run_backup.tcl</span><span class="ln "> </span><span class="ln ">cp -r scripts/ scripts_bak/</span><span class="ln cmt"># -r = recursive，目录必须加 -r，否则报 "omitting directory"</span><span class="ln "> </span><span class="ln ">cp -p run.tcl /tmp/</span><span class="ln cmt"># -p = preserve，保留原文件的修改时间和权限（备份时很有用）</span><span class="ln "> </span><span class="ln ">mv run.tcl scripts/</span><span class="ln cmt"># move：把文件移到 scripts 目录下</span><span class="ln "> </span><span class="ln ">mv run.tcl run_v2.tcl</span><span class="ln cmt"># mv 同时承担"重命名"的职责（同一目录内移动就是改名）</span><span class="ln "> </span><span class="ln ">rm run_backup.tcl</span><span class="ln cmt"># remove：删除文件</span><span class="ln "> </span><span class="ln ">rm -r old_runs/</span><span class="ln cmt"># 删目录必须 -r</span><span class="ln "> </span><span class="ln ">rm -f *.log</span><span class="ln cmt"># -f = force，不询问直接删</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · <code>rm -rf</code> 是这门课里最危险的命令</div><div class="pit-b"><p><code>rm -rf /path/to/dir</code> 会<strong>不问、不回收、不提示</strong>地删掉整个目录。Linux 没有回收站。</p>
+<p>三个保命习惯：</p>
+<ol><li><strong>删之前先 <code>ls</code> 看一眼</strong>。<code>ls old_runs/</code> 确认内容，再 <code>rm -r old_runs/</code>。</li><li><strong>变量要加引号</strong>。<code>rm -rf $DIR/</code> 如果 <code>$DIR</code> 是空的，就变成了 <code>rm -rf /</code>。</li><li><strong>路径用绝对路径，别用通配符</strong>。<code>rm -rf run/*</code> 手滑打成 <code>rm -rf run /*</code>，中间多一个空格，删的就是整个根目录。</li></ol></div></div>
+<div class="scene"><div class="scene-h">工作场景 · 为什么老工程师删文件前总要 ls 一下</div><div class="scene-b"><p>不是谨慎，是被坑过。芯片工程一个目录几十 GB、跑了三天的结果，删错了重跑要三天。所以行业里有个默认规矩：<strong>先看后删，能改后缀就别删</strong>（<code>mv old old.bak</code> 比 <code>rm -r old</code> 安全得多）。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="cpmv"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="view" data-ch="view">
+  <div class="ch-h"><span class="ch-n">03</span><h2>看文件内容：cat / less / head / tail</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cat run.tcl</span><span class="ln cmt"># 把整个文件打到屏幕上。小文件用；几千行的报告会刷屏</span><span class="ln "> </span><span class="ln ">less timing.rpt</span><span class="ln cmt"># 分页查看大文件。空格往下翻，b 往上翻，/keyword 搜索，q 退出</span><span class="ln cmt"># 后端看报告基本都用 less，不用 cat</span><span class="ln "> </span><span class="ln ">head -20 timing.rpt</span><span class="ln cmt"># 只看前 20 行（默认 10 行）</span><span class="ln "> </span><span class="ln ">tail -50 run.log</span><span class="ln cmt"># 只看最后 50 行。跑批时最常用——最新日志永远在末尾</span><span class="ln "> </span><span class="ln ">tail -f run.log</span><span class="ln cmt"># -f = follow，实时盯着日志增长。命令还在跑的时候用这个</span><span class="ln cmt"># 退出按 Ctrl + C</span></code></pre></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>跑一个要 3 小时的流程，不要等 3 小时后再看。开两个终端：一个跑流程，一个 <code>tail -f run.log</code>。日志里出现 <code>Error</code> 就立刻停下排查，别浪费三小时。</p>
+<p>想只挑错误行：<code>grep -i error run.log</code>（下一课讲 grep）。</p></div>
+<div class="sbx" data-preset="basic">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>模拟终端</b><span class="sbx-tip">试：cp pnr.tcl pnr_bak.tcl、mv、rm、chmod 755、ls -l</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">[autumn@eda ~]$</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入命令，按回车运行" aria-label="模拟终端输入"></div>
+  </div>
+  <div class="sbx-f">这里跑的是浏览器里的模拟环境：命令、输出、报错都按真实 Linux 的行为写，练手够用；真机上的路径与权限另有差异。</div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="view"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="perm" data-ch="perm">
+  <div class="ch-h"><span class="ch-n">04</span><h2>权限：rwx 到底是什么</h2></div>
+  <p><code>ls -l</code> 的那串 <code>-rw-r--r--</code> 拆成四段看：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">-      rw-        r--        r--</span><span class="ln ">类型   属主权限    属组权限    其他人权限</span></code></pre></div>
+<p>三个字母对应三种动作：</p>
+<div class="tbl"><table><thead><tr><th>字母</th><th>含义</th><th>对文件</th><th>对目录</th></tr></thead><tbody><tr><td><code>r</code></td><td>read 读</td><td>能看内容</td><td>能列出里面有什么（<code>ls</code>）</td></tr><tr><td><code>w</code></td><td>write 写</td><td>能修改</td><td>能在里面新建/删除文件</td></tr><tr><td><code>x</code></td><td>execute 执行</td><td>能当程序运行</td><td>能进去（<code>cd</code>）</td></tr></tbody></table></div>
+<p>所以 <code>-rw-r--r--</code> 的意思是：<strong>属主能读写，同组和其他人只能读。</strong></p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Permission</span><span class="term-zh">权限</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>谁能对某个文件做什么。Linux 用三组 rwx 表示，分别对应"文件的主人 / 同组的同事 / 其他所有人"。<br>权限不对，工具就读不到库、脚本就跑不起来——这是新手最常遇到的"环境问题"，其实 90% 是权限问题。</p></div>
+</div>
+<h3>数字表示法：755 和 644</h3>
+<p>r=4，w=2，x=1，三个加起来就是一个数字：</p>
+<div class="tbl"><table><thead><tr><th>权限</th><th>数字</th><th>常见用途</th></tr></thead><tbody><tr><td><code>rwx</code></td><td>4+2+1 = <strong>7</strong></td><td>目录、可执行脚本</td></tr><tr><td><code>rw-</code></td><td>4+2 = <strong>6</strong></td><td>普通文本文件</td></tr><tr><td><code>r-x</code></td><td>4+1 = <strong>5</strong></td><td>只读可执行的目录</td></tr><tr><td><code>r--</code></td><td>4</td><td>只读文件（如 RTL、库文件）</td></tr></tbody></table></div>
+<p>于是：</p>
+<ul><li><strong>755</strong> = <code>rwxr-xr-x</code>：我能改，别人能进能读。<strong>目录和脚本的标准权限。</strong></li><li><strong>644</strong> = <code>rw-r--r--</code>：我能改，别人只能读。<strong>普通文件的标准权限。</strong></li></ul>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">chmod 755 run.sh</span><span class="ln cmt"># 把 run.sh 变成"可执行"——脚本跑不了的第一解法</span><span class="ln "> </span><span class="ln ">chmod 644 config.tcl</span><span class="ln cmt"># 普通配置文件</span><span class="ln "> </span><span class="ln ">chmod +x run.sh</span><span class="ln cmt"># 另一种写法：只加执行位，不动其他权限</span><span class="ln "> </span><span class="ln ">chmod -R 755 scripts/</span><span class="ln cmt"># -R = 递归，把整个目录下所有东西都改掉（慎用）</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · Permission denied：脚本明明在，为什么跑不了</div><div class="pit-b"><p>现象：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">$ ./run.sh</span><span class="ln ">-bash: ./run.sh: Permission denied</span></code></pre></div>
+<p>原因：文件没有 <code>x</code>（执行）权限。<code>ls -l run.sh</code> 会看到 <code>-rw-r--r--</code>，没有 x。</p>
+<p>解法：<code>chmod +x run.sh</code>，再 <code>ls -l</code> 确认变成 <code>-rwxr-xr-x</code>。</p>
+<p>顺带一个更隐蔽的版本：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">$ ./run.sh</span><span class="ln ">-bash: ./run.sh: /usr/bin/tcsh^M: bad interpreter</span></code></pre></div>
+<p>这是文件里混进了 Windows 的换行符（<code>^M</code>）。解法：<code>dos2unix run.sh</code>，或者 <code>sed -i 's/\r$//' run.sh</code>。<strong>从 Windows 传到 Linux 的脚本，十有八九要过这一道。</strong></p></div></div>
+<div class="scene"><div class="scene-h">工作场景 · EDA 工具报 "cannot open library"</div><div class="scene-b"><p>你跑综合，报错：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Error: Cannot open library file 'slow.db'. (LCSH-3)</span></code></pre></div>
+<p>文件明明在啊？看权限：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">ls -l lib/slow.db</span><span class="ln cmt"># ---------- 1 weizhen weizhen 1820000 ... slow.db</span></code></pre></div>
+<p>权限是 <code>----------</code>（000），谁都读不了。<code>chmod 644 lib/slow.db</code> 之后正常。</p>
+<p>这类问题在跨团队拷库、从压缩包解压时特别常见——<strong>解压工具的 umask 设置不同，出来的文件权限就不一样</strong>。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="perm"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="owner" data-ch="owner">
+  <div class="ch-h"><span class="ch-n">05</span><h2>小组：属主和属组</h2></div>
+  <p><code>ls -l</code> 中间两列是属主（owner）和属组（group）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">-rw-r--r-- 1 weizhen  pdteam  1820 Nov 22 10:12 run.tcl</span><span class="ln ">             属主      属组</span></code></pre></div>
+<p>多人协作时，同一组的同事需要能改你的文件，就会把文件属组设成 <code>pdteam</code> 并给组写权限（<code>664</code>）。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">chown weizhen:pdteam run.tcl     # 改属主和属组（通常要 sudo）</span><span class="ln ">chgrp pdteam run.tcl             # 只改属组</span><span class="ln ">id                               # 看自己属于哪些组</span></code></pre></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：亲手制造一次（再解决）Permission denied</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~/demo 2&gt;/dev/null || { mkdir -p ~/demo &amp;&amp; cd ~/demo; }</span><span class="ln "> </span><span class="ln cmt"># 1. 写一个最小脚本</span><span class="ln ">echo 'echo hello-from-script' &gt; hello.sh</span><span class="ln "> </span><span class="ln cmt"># 2. 看它的权限：应该是 -rw-r--r--</span><span class="ln ">ls -l hello.sh</span><span class="ln "> </span><span class="ln cmt"># 3. 直接跑，观察报错</span><span class="ln ">./hello.sh</span><span class="ln cmt"># 预期：-bash: ./hello.sh: Permission denied</span><span class="ln "> </span><span class="ln cmt"># 4. 加执行权限</span><span class="ln ">chmod +x hello.sh</span><span class="ln ">ls -l hello.sh</span><span class="ln cmt"># 预期：-rwxr-xr-x</span><span class="ln "> </span><span class="ln cmt"># 5. 再跑</span><span class="ln ">./hello.sh</span><span class="ln cmt"># 预期输出：hello-from-script</span></code></pre></div>
+<p>过关标准：能解释第 3 步为什么失败、第 4 步改了什么、为什么第 5 步就成功了。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用 <code>ls -l</code> 第一列判断文件类型和权限</li><li>能说出 755 / 644 对应的 rwx 组合，以及各自用在什么文件上</li><li>遇到过 <code>Permission denied</code> 时知道先 <code>ls -l</code> 再 <code>chmod +x</code></li><li>知道 <code>rm -rf</code> 的三个保命习惯</li><li>会用 <code>tail -f</code> 盯日志</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>-rw-r--r--</code> 里属主有什么权限？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">读和写（rw-），不能执行。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>755 展开成 rwx 是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">rwxr-xr-x：属主读写执行，同组读执行，其他人读执行。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么删目录必须加 <code>-r</code>？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>-r</code> 是递归。不加的话 rm 认为目录不是普通文件，会报 "omitting directory" 并跳过。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>脚本报 <code>bad interpreter: ^M</code> 是什么原因？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">文件里混入了 Windows 换行符（CRLF）。用 dos2unix 或 sed 去掉 \r。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>chmod +x</code> 和 <code>chmod 755</code> 有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>+x</code> 只给三组都加上执行位，其他权限不变；<code>755</code> 是把权限整体重设为 rwxr-xr-x。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="owner"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-01-terminal/">← 终端与文件系统：我是谁、我在哪、这儿有什么</a><a class="nav-btn" href="/lesson/01-03-text/">文本处理三件套：grep / sed / awk →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

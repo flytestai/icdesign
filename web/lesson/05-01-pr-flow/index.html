@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>28nm 全流程（一）：把 PR 串成项目 · 27 | IC 后端学院</title>
+<meta name="description" content="前面学的是"每个阶段怎么做"，这一课讲"怎么把它们串成一条不会断的流水线"：目录怎么分、每步产物叫什么、怎么交接给 PT。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="05-01-pr-flow">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-5">阶段五 · 28nm 全流程</a><span>/</span><b>28nm 全流程（一）：把 PR 串成项目</b></div>
+    <div class="hero">
+      <div class="hero-no">27</div>
+      <h1>28nm 全流程（一）：把 PR 串成项目</h1>
+      <p class="hero-en">28nm PR Flow</p>
+      <p class="hero-sum">前面学的是"每个阶段怎么做"，这一课讲"怎么把它们串成一条不会断的流水线"：目录怎么分、每步产物叫什么、怎么交接给 PT。</p>
+      <div class="hero-meta">
+        <span class="pill">约 40 分钟</span>
+        <span class="pill">课表学时 4</span>
+        <span class="pill tag">流程</span><span class="pill tag">28nm</span><span class="pill tag">交接</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="project" data-ch="project">
+  <div class="ch-h"><span class="ch-n">01</span><h2>PR 阶段的项目视角</h2></div>
+  <p>单机跑一个流程，和项目里跑一个流程，差别在这几点：</p>
+<div class="tbl"><table><thead><tr><th>单机练习</th><th>真实项目</th></tr></thead><tbody><tr><td>一个目录随便放</td><td>按阶段/日期分目录，可回溯</td></tr><tr><td>脚本改完就覆盖</td><td>脚本进版本管理，每次跑记录版本号</td></tr><tr><td>跑完看报告</td><td>每步产出固定格式报告，自动汇总成一张表</td></tr><tr><td>一个人跑</td><td>交接给别人能复现</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Run Directory</span><span class="term-zh">运行目录</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>每次跑流程新建一个带时间戳的目录（如 <code>run/20261122_1400/</code>），里面放本次的脚本副本、日志、报告、结果。<br>好处：任何时候都能回答"三天前那版是怎么跑的、结果是什么"。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="project"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="tree" data-ch="tree">
+  <div class="ch-h"><span class="ch-n">02</span><h2>推荐目录结构</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proj/28nm/</span><span class="ln ">├── rtl/                    # 只读</span><span class="ln ">├── syn/</span><span class="ln ">│   ├── scripts/            # 综合脚本</span><span class="ln ">│   ├── netlist/ipa_top.v   # ← PR 的输入</span><span class="ln ">│   └── reports/</span><span class="ln ">├── pnr/</span><span class="ln ">│   ├── scripts/</span><span class="ln ">│   │   ├── 01_init.tcl</span><span class="ln ">│   │   ├── 02_floorplan.tcl</span><span class="ln ">│   │   ├── 03_power.tcl</span><span class="ln ">│   │   ├── 04_place.tcl</span><span class="ln ">│   │   ├── 05_cts.tcl</span><span class="ln ">│   │   ├── 06_route.tcl</span><span class="ln ">│   │   └── 07_finish.tcl</span><span class="ln ">│   ├── db/                 # 每阶段存盘</span><span class="ln ">│   ├── out/                # def / gds / spef / v</span><span class="ln ">│   └── reports/</span><span class="ln ">├── sta/</span><span class="ln ">│   ├── scripts/</span><span class="ln ">│   └── reports/</span><span class="ln ">├── pv/</span><span class="ln ">└── run/</span><span class="ln ">    └── 20261122_1400/      # 每次跑的完整现场</span></code></pre></div>
+<p><strong>要点：脚本按阶段编号。</strong> 想重跑"从 CTS 开始"，只要 <code>restoreDesign db/04_place.enc</code> 再跑 05、06、07，不用从头来。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="tree"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="artifacts" data-ch="artifacts">
+  <div class="ch-h"><span class="ch-n">03</span><h2>每步的产物与检查</h2></div>
+  <div class="tbl"><table><thead><tr><th>步骤</th><th>产物</th><th>关键检查</th></tr></thead><tbody><tr><td>01 初始化</td><td><code>db/01_init.enc</code></td><td>单元数、时钟、<code>checkDesign</code></td></tr><tr><td>02 floorplan</td><td><code>db/02_fp.enc</code></td><td>利用率、宏位置、无重叠</td></tr><tr><td>03 power</td><td><code>db/03_power.enc</code></td><td>连通性、via 覆盖</td></tr><tr><td>04 place</td><td><code>db/04_place.enc</code></td><td>密度、拥塞、setup WNS</td></tr><tr><td>05 cts</td><td><code>db/05_cts.enc</code></td><td>skew、insertion delay、hold WNS</td></tr><tr><td>06 route</td><td><code>db/06_route.enc</code></td><td>DRC、open net</td></tr><tr><td>07 finish</td><td><code>out/*.def/.gds/.spef</code></td><td>最终 DRC、时序、面积</td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>不是怕崩，是<strong>怕改错</strong>。</p>
+<p>比如 CTS 之后发现 floorplan 有问题，你可以 <code>restoreDesign db/02_fp.enc</code> 改完重跑 03~07；如果没有存盘，只能从 01 开始。</p>
+<p><strong>存盘的时间成本是 1 分钟，不存盘的代价是 4 小时。</strong></p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="artifacts"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="handoff" data-ch="handoff">
+  <div class="ch-h"><span class="ch-n">04</span><h2>交接给 PT：要交什么</h2></div>
+  <p>PR 做完，STA 工程师（或者你自己）要用 PrimeTime 复签。需要三样东西：</p>
+<div class="tbl"><table><thead><tr><th>文件</th><th>内容</th><th>为什么需要</th></tr></thead><tbody><tr><td><code>final.v</code></td><td>布线后的网表</td><td>PT 要读设计</td></tr><tr><td><code>final.spef</code></td><td>寄生参数（R/C）</td><td>让 PT 用真实线延迟</td></tr><tr><td><code>ipa.sdc</code></td><td>约束</td><td>和 PR 用同一份，保证口径一致</td></tr></tbody></table></div>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># PR 侧导出</span><span class="ln ">write_verilog out/final.v</span><span class="ln ">write_parasitics -format SPEF -output out/final.spef</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 网表和 SPEF 不匹配</div><div class="pit-b"><p>现象：PT 读入后报大量 <code>cannot find pin</code> 或时序完全对不上。</p>
+<p>原因：网表是布线<strong>前</strong>导出的，SPEF 是布线<strong>后</strong>生成的（或者反过来）。两者单元名、连线名对不上。</p>
+<p><strong>规矩：网表和 SPEF 必须同一次运行、同一时刻导出。</strong> 导出后立刻用 <code>grep</code> 核对几个关键单元名是否都在。</p></div></div>
+<div class="scene"><div class="scene-h">工作场景 · 一次典型的交接事故</div><div class="scene-b"><p>PR 工程师交了网表和 SPEF，STA 一跑，WNS −2.3ns，完全不可能。</p>
+<p>排查发现：SPEF 是三天前那版（改过布局），网表是新的。<strong>延迟数据对不上，时序当然离谱。</strong></p>
+<p>从此这个团队的规定：导出脚本必须在同一条命令里同时产生 <code>.v</code> 和 <code>.spef</code>，并在文件名里带同一个时间戳。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能画出 28nm 项目的目录结构，并说明为什么脚本按阶段编号</li><li>知道每步该存什么盘、检查什么</li><li>能说出交接给 PT 的三件套</li><li>明白网表和 SPEF 必须同时导出</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么按阶段编号写脚本、每步存盘？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">可以从任意阶段重跑，不必从头；改错时能快速回到上一个可用状态。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>交接给 PT 需要哪三个文件？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">布线后网表 <code>.v</code>、寄生参数 <code>.spef</code>、约束 <code>.sdc</code>。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>网表和 SPEF 不匹配会有什么现象？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">PT 报找不到引脚，或时序结果完全不合理（因为延迟数据对应的是另一个版本）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么要建带时间戳的 run 目录？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">留存每次运行的完整现场（脚本、日志、报告），可以回溯和复现。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="handoff"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/04-03-upf/">← 低功耗与 UPF：让芯片省电的四种手段</a><a class="nav-btn" href="/lesson/05-02-pt/">PrimeTime 签核：自己给自己签字不算数 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

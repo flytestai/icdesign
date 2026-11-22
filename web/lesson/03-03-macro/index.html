@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>宏单元摆放实战：通道宽度的算法 · 14 | IC 后端学院</title>
+<meta name="description" content="宏单元不是"放边上就行"。通道留多宽可以直接算出来：按出线数量估轨道数。这一课给公式、给检查方法、给真实踩坑记录。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="03-03-macro">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>宏单元摆放实战：通道宽度的算法</b></div>
+    <div class="hero">
+      <div class="hero-no">14</div>
+      <h1>宏单元摆放实战：通道宽度的算法</h1>
+      <p class="hero-en">Macro Placement</p>
+      <p class="hero-sum">宏单元不是"放边上就行"。通道留多宽可以直接算出来：按出线数量估轨道数。这一课给公式、给检查方法、给真实踩坑记录。</p>
+      <div class="hero-meta">
+        <span class="pill">约 40 分钟</span>
+        <span class="pill">课表学时 3</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">floorplan</span><span class="pill tag">宏单元</span><span class="pill tag">拥塞</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>宏单元为什么难</h2></div>
+  <p>标准单元小、均匀、可以随便挪。宏单元（SRAM、PLL、模拟 IP）不一样：</p>
+<ul><li><strong>大</strong>：一个 SRAM 可能占 5% 的芯片面积。</li><li><strong>硬</strong>：形状固定、引脚位置固定、不能旋转任意角度（只能 90° 翻转）。</li><li><strong>吸线</strong>：一个 SRAM 可能有 200 个引脚，全往一个方向出线。</li></ul>
+<p>所以宏单元周围是拥塞的高发区。<strong>拥塞不是布线工具无能，是布局没给够空间。</strong></p>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="calc" data-ch="calc">
+  <div class="ch-h"><span class="ch-n">02</span><h2>通道要留多宽：一个能用的估算</h2></div>
+  <p>思路：数一数这个通道要过多少根线，再看每根线占多少横向空间。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">通道宽度 ≈ (穿过该通道的连线数 × 每线间距) ÷ 可用金属层数 + 余量</span></code></pre></div>
+<p>举例：两个 SRAM 之间的竖直通道，中间要过 300 根线，工艺 M2~M5 可用于横向走线（4 层），每根线间距 0.2µm：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">单层能过：300 / 4 = 75 根</span><span class="ln ">需要宽度：75 × 0.2 = 15 µm</span><span class="ln ">加 30% 余量：≈ 20 µm</span></code></pre></div>
+<p>所以这个通道至少留 20µm。工具默认给的 <code>-channel</code> 有时候是 10µm，不够。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Channel</span><span class="term-zh">通道</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>两个宏单元之间（或宏单元与边界之间）留给走线的空间。太窄 → 拥塞；太宽 → 浪费面积。<br><strong>经验值：小设计 10~20µm，中等设计 20~40µm，大 SRAM 密集区 40µm 以上。</strong></p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 用 flyline 判断摆得对不对</div><div class="scene-b"><p>Innovus 有个可视化功能叫 <strong>flyline</strong>：把每条连线的两端用直线连起来。</p>
+<p>摆完宏单元，打开 flyline 看一眼：</p>
+<ul><li>线密集交叉、形成"蜘蛛网" → 摆错了，连接多的模块离得太远。</li><li>线基本平行、短 → 摆得不错。</li></ul>
+<p>这比看数字直观得多，也是 review 时最常用的说服材料。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="calc"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="rules" data-ch="rules">
+  <div class="ch-h"><span class="ch-n">03</span><h2>摆放的四条硬规则</h2></div>
+  <ol><li><strong>靠边</strong>：宏单元贴芯片边缘放，中间留给标准单元。中间放一个 SRAM，等于把标准单元区切成两半。</li><li><strong>对齐</strong>：几个 SRAM 的边对齐，形成整齐的通道。错位会产生"死角"，那里永远布不通。</li><li><strong>朝向</strong>：pin 一律朝向标准单元区。Innovus 里用 <code>MY</code>（上下镜像）、<code>MX</code>（左右镜像）调。</li><li><strong>留 halo</strong>：宏单元周围设一个"禁放区"（halo / blockage），防止标准单元贴着它摆，把通道堵死。</li></ol>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 摆宏单元并指定朝向</span><span class="ln ">placeInstance u_sram0 50 80 MY</span><span class="ln ">placeInstance u_sram1 50 260 MY</span><span class="ln "> </span><span class="ln cmt"># 给宏单元加 halo（四周各留 8µm 不放标准单元）</span><span class="ln ">createPlaceBlockage -type halo -box 50 80 180 200 -name halo_sram0</span><span class="ln cmt"># box 格式：llx lly urx ury（左下角 + 右上角坐标）</span><span class="ln "> </span><span class="ln cmt"># 或者用更简单的方式：设置宏单元周围的 keepout margin</span><span class="ln ">setPlaceMode -place_global_module_padding {u_sram0 8 u_sram1 8}</span><span class="ln "> </span><span class="ln cmt"># 检查：有没有重叠、有没有超出边界</span><span class="ln ">checkFPlan -reportUtil</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Halo / Blockage</span><span class="term-zh">保护环 / 禁布区</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>- <strong>Halo</strong>：宏单元周围一圈不许放标准单元的区域，防止挤死通道。<br>- <strong>Blockage</strong>：明确禁止布线/摆放的区域，常用于电源网格下方或特殊 IP 周围。<br>区别：halo 是"给这个宏单元留的缓冲"，blockage 是"这块地不许用"。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · 宏单元贴太近，布线阶段无解</div><div class="pit-b"><p>现象：布线跑到 70% 卡住，报</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Routing congestion detected in region (1200, 800) - (1800, 1400)</span></code></pre></div>
+<p>打开热图，红色区域正是两个 SRAM 之间的 6µm 缝隙。</p>
+<p>此时的选择只有两个：把 SRAM 挪开（重做布局+CTS，8 小时），或者硬着头皮让工具拆线（DRC 清不干净，最后还是要重做）。</p>
+<p><strong>结论：floorplan 阶段多花 30 分钟算通道，能省后面 8 小时。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="rules"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="checklist" data-ch="checklist">
+  <div class="ch-h"><span class="ch-n">04</span><h2>检查清单（摆完必做）</h2></div>
+  <div class="tbl"><table><thead><tr><th>检查项</th><th>怎么做</th><th>通过标准</th></tr></thead><tbody><tr><td>重叠</td><td><code>checkFPlan</code></td><td>无 overlap</td></tr><tr><td>出界</td><td><code>checkFPlan</code></td><td>全部在 core 内</td></tr><tr><td>利用率</td><td><code>report_area</code></td><td>与目标差 &lt;5%</td></tr><tr><td>通道</td><td>目视 + flyline</td><td>无 &lt;10µm 的窄缝</td></tr><tr><td>朝向</td><td>看 pin 位置</td><td>全部朝标准单元区</td></tr><tr><td>halo</td><td><code>reportPlaceBlockage</code></td><td>关键宏单元都有</td></tr></tbody></table></div>
+  <label class="ch-done"><input type="checkbox" data-mark="checklist"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="real" data-ch="real">
+  <div class="ch-h"><span class="ch-n">05</span><h2>一个真实的数字</h2></div>
+  <p>我们在一套 45nm 开源库上跑过万门设计（9390 单元、6 个 SRAM 通道）。第一版没算通道，直接按默认间距摆：</p>
+<ul><li>布线 DRC：<strong>6000 条</strong></li><li>局部拥塞：红色区域 5 处</li></ul>
+<p>改成"按出线数算通道 + halo + 对齐"之后：</p>
+<ul><li>布线 DRC：<strong>0</strong>（同一套布线参数）</li></ul>
+<p><strong>这就是 floorplan 的威力：不是优化出来的，是布局对了自然就通了。</strong></p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：算通道宽度</div><div class="lab-b"><p>条件：某通道要过 420 根信号线，可用 4 层金属横向走线，线间距 0.16µm，余量 30%。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">python3 -c "</span><span class="ln ">n=420; layers=4; pitch=0.16; margin=1.3</span><span class="ln ">per=n/layers; w=per*pitch*margin</span><span class="ln ">print('单层线数', per)</span><span class="ln ">print('需要通道宽度 %.1f um' % w)</span><span class="ln ">"</span></code></pre></div>
+<p>预期：单层 105 根，通道 ≈ 21.8µm。</p>
+<p>过关标准：把层数改成 2 层，算出需要多宽，并解释"为什么减少层数会让通道变宽"。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>会用"线数 ÷ 层数 × 间距 × 余量"估算通道宽度</li><li>知道 halo 和 blockage 的区别</li><li>会看 flyline 判断宏单元摆得好不好</li><li>记得摆完跑 <code>checkFPlan</code></li><li>能说出宏单元贴太近的两个后果</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>通道宽度怎么估算？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">穿过通道的线数 ÷ 可用金属层数 × 线间距 × 安全余量（约 1.3）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>halo 和 blockage 有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">halo 是围绕宏单元的一圈禁止摆放区（防挤死通道）；blockage 是任意指定区域的禁止摆放/布线。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么宏单元要"靠边对齐"？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">靠边能把完整区域留给标准单元；对齐能形成整齐通道，避免死角。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>flyline 用来判断什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">直观判断宏单元相对位置是否合理——连接多的模块应该靠近，线应该短而平行。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>布局阶段没留够通道，布线阶段能补救吗？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">基本不能。布线只能绕线，绕不开物理空间不足，最终要么大量 DRC，要么回头重做 floorplan。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="real"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-02-floorplan/">← Floorplan：先定房子的格局</a><a class="nav-btn" href="/lesson/03-04-power/">电源规划：给每个单元供上电 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

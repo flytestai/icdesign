@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>文本处理三件套：grep / sed / awk · 04 | IC 后端学院</title>
+<meta name="description" content="后端的报告全是文本。学会从几十万行报告里精确捞出"哪条路径违例、差多少"，是效率分水岭。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="01-03-text">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcsh</a><span>/</span><b>文本处理三件套：grep / sed / awk</b></div>
+    <div class="hero">
+      <div class="hero-no">04</div>
+      <h1>文本处理三件套：grep / sed / awk</h1>
+      <p class="hero-en">grep, sed, awk</p>
+      <p class="hero-sum">后端的报告全是文本。学会从几十万行报告里精确捞出"哪条路径违例、差多少"，是效率分水岭。</p>
+      <div class="hero-meta">
+        <span class="pill">约 45 分钟</span>
+        <span class="pill">课表学时 3.5</span>
+        <span class="pill tag">Linux</span><span class="pill tag">grep</span><span class="pill tag">sed</span><span class="pill tag">awk</span><span class="pill tag">管道</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>后端的一天，就是在文本里捞针</h2></div>
+  <p>时序报告动辄几十万行，DRC 报告几万条，日志几百兆。你不可能用眼睛找。</p>
+<p>真实场景长这样：</p>
+<ul><li>早上看时序：<code>report_timing</code> 出来 30 万行，你只想知道"最差的那条差多少"。</li><li>中午看 DRC：<code>calibre</code> 报告 8000 条违例，你想知道"有几类、各多少条"。</li><li>下午看日志：跑了 4 小时的流程挂在某一步，你要在 200MB 日志里找到第一个 <code>Error</code>。</li></ul>
+<p>这三个动作对应三个命令：<strong>awk 取数、grep 过滤、sed 改写</strong>。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Pipeline</span><span class="term-zh">管道</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把上一个命令的输出，直接当成下一个命令的输入。写法是一个竖线 <code>|</code>。<br><code>cat a.log | grep error | wc -l</code> 读作："把 a.log 的内容，交给 grep 筛出含 error 的行，再交给 wc 数行数"。<br>管道是 Unix 最伟大的设计：每个工具只做一件小事，串起来就能干大事。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="redirect" data-ch="redirect">
+  <div class="ch-h"><span class="ch-n">02</span><h2>重定向：把输出送到该去的地方</h2></div>
+  <p>默认情况下，命令的输出打在屏幕上（标准输出 stdout），报错也打在屏幕上（标准错误 stderr）。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">ls &gt; filelist.txt</span><span class="ln cmt"># &gt; 覆盖写入：把 ls 的结果写进 filelist.txt，屏幕什么都不显示</span><span class="ln "> </span><span class="ln ">ls &gt;&gt; filelist.txt</span><span class="ln cmt"># &gt;&gt; 追加写入：接在文件末尾，不覆盖</span><span class="ln "> </span><span class="ln ">run.sh &gt; run.log 2&gt;&amp;1</span><span class="ln cmt"># 把正常输出和错误输出都写进 run.log</span><span class="ln cmt"># 2&gt;&amp;1 的意思是"把 2 号（stderr）指向 1 号（stdout）该去的地方"</span><span class="ln cmt"># 这是跑批最常见的写法，一定要背下来</span><span class="ln "> </span><span class="ln ">run.sh &gt; /dev/null 2&gt;&amp;1</span><span class="ln cmt"># 全部丢掉（/dev/null 是系统的黑洞），只关心成功与否</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · <code>&gt; run.log</code> 会清空文件</div><div class="pit-b"><p>如果你本来想追加，用了 <code>&gt;</code>，之前 3 小时的日志瞬间没了。</p>
+<ul><li>想追加：<code>&gt;&gt;</code></li><li>想保留现场再重跑：先 <code>mv run.log run_$(date +%m%d_%H%M).log</code>，再跑</li></ul></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="redirect"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="grep" data-ch="grep">
+  <div class="ch-h"><span class="ch-n">03</span><h2>grep：把想要的行挑出来</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep error run.log</span><span class="ln cmt"># 打印所有含 "error" 的行（区分大小写，Error 不会被匹配）</span><span class="ln "> </span><span class="ln ">grep -i error run.log</span><span class="ln cmt"># -i = ignore case，忽略大小写。日志里 Error / ERROR / error 混着出现时必须加</span><span class="ln "> </span><span class="ln ">grep -n error run.log</span><span class="ln cmt"># -n = number，带上行号。方便回头用 vim 跳到那一行</span><span class="ln "> </span><span class="ln ">grep -c error run.log</span><span class="ln cmt"># -c = count，只输出命中多少行，不输出内容</span><span class="ln "> </span><span class="ln ">grep -v error run.log</span><span class="ln cmt"># -v = invert，反过来：打印"不含 error"的行</span><span class="ln "> </span><span class="ln ">grep -A 3 "Error" run.log</span><span class="ln cmt"># -A 3 = after，命中行后面再带 3 行。看报错上下文必用</span><span class="ln "> </span><span class="ln ">grep -B 2 "Error" run.log</span><span class="ln cmt"># -B 2 = before，前面带 2 行</span><span class="ln "> </span><span class="ln ">grep -E "setup|hold" timing.rpt</span><span class="ln cmt"># -E = 扩展正则，用 | 表示"或"。这一行等价于筛出含 setup 或 hold 的行</span><span class="ln "> </span><span class="ln ">grep -rn "create_clock" scripts/</span><span class="ln cmt"># -r = 递归整个目录，-n 带行号。找"哪个脚本里定义了这个时钟"</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Regular Expression</span><span class="term-zh">正则表达式</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一种描述"文本模式"的小语言。常用的几个：<br>| 写法 | 含义 |<br>|---|---|<br>| <code>^abc</code> | 以 abc 开头 |<br>| <code>abc$</code> | 以 abc 结尾 |<br>| <code>.</code> | 任意一个字符 |<br>| <code>.*</code> | 任意多个字符 |<br>| <code>[0-9]</code> | 一个数字 |<br>| <code>\|</code>（在 -E 下是 <code>|</code>） | 或 |<br>不用一次学全。<strong>先会 <code>^</code>、<code>$</code>、<code>[0-9]</code>，就够应付 80% 的报告提取。</strong></p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 在 200MB 日志里找第一个错误</div><div class="scene-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep -n -m 1 -i "error" run.log</span><span class="ln cmt"># -m 1 = max count，找到第一个就停（日志大时必须加，否则要扫完）</span><span class="ln "> </span><span class="ln ">grep -n -A 5 -i "error" run.log | head -40</span><span class="ln cmt"># 带上下文看前 40 行，基本能定位病因</span></code></pre></div>
+<p>老手不看最后一个错误，看<strong>第一个</strong>错误——后面的错误常常是第一个引起的连锁反应。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="grep"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="sed" data-ch="sed">
+  <div class="ch-h"><span class="ch-n">04</span><h2>sed：替换和筛选行</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">sed -n '10,20p' timing.rpt</span><span class="ln cmt"># -n 加 p：只打印第 10 到 20 行（p = print）</span><span class="ln "> </span><span class="ln ">sed -n '/Startpoint/,/Endpoint/p' timing.rpt</span><span class="ln cmt"># 打印从 "Startpoint" 到 "Endpoint" 之间的所有行</span><span class="ln cmt"># 这是读时序报告最实用的一条命令：一条路径的完整信息全在这两行之间</span><span class="ln "> </span><span class="ln ">sed 's/old/new/' file</span><span class="ln cmt"># 把每行第一个 old 换成 new（只换第一个）</span><span class="ln "> </span><span class="ln ">sed 's/old/new/g' file</span><span class="ln cmt"># g = global，一行里全部替换</span><span class="ln "> </span><span class="ln ">sed -i 's/0\.5/0.6/g' config.tcl</span><span class="ln cmt"># -i = in-place，直接改文件（小心，先不加 -i 看一眼输出）</span><span class="ln "> </span><span class="ln ">sed '/^#/d' config.tcl</span><span class="ln cmt"># d = delete，删掉所有以 # 开头的注释行</span><span class="ln "> </span><span class="ln ">sed -i 's/\r$//' run.sh</span><span class="ln cmt"># 去掉 Windows 换行符。从 Windows 拷脚本过来必用</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · <code>sed -i</code> 没有撤销</div><div class="pit-b"><p><code>sed -i</code> 是直接改磁盘上的文件，改错了没法 Ctrl+Z。</p>
+<p>保命做法：<strong>先去 <code>-i</code> 跑一遍看输出</strong>，确认替换对了再加 <code>-i</code>。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">sed 's/0.5/0.6/g' config.tcl | head -20     # 只看，不改</span><span class="ln ">sed -i.bak 's/0.5/0.6/g' config.tcl         # 改，同时留一份 config.tcl.bak</span></code></pre></div></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="sed"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="awk" data-ch="awk">
+  <div class="ch-h"><span class="ch-n">05</span><h2>awk：按列取数，做小计算</h2></div>
+  <p>awk 把每一行按空格（或指定分隔符）切成若干列，<code>$1</code> 是第一列，<code>$2</code> 第二列，<code>$NF</code> 是最后一列，<code>$0</code> 是整行。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">awk '{print $1}' file</span><span class="ln cmt"># 打印每行第一列</span><span class="ln "> </span><span class="ln ">awk '{print $NF}' file</span><span class="ln cmt"># NF = number of fields，最后一列</span><span class="ln "> </span><span class="ln ">awk '{print $1, $3}' file</span><span class="ln cmt"># 打印第 1 和第 3 列，中间用空格分隔</span><span class="ln "> </span><span class="ln ">awk 'NR==5' file</span><span class="ln cmt"># NR = 行号，只打印第 5 行</span><span class="ln "> </span><span class="ln ">awk 'NR&gt;=10 &amp;&amp; NR&lt;=20' file</span><span class="ln cmt"># 打印 10 到 20 行，效果同 sed -n '10,20p'</span><span class="ln "> </span><span class="ln ">awk '/setup/ {print $2}' report</span><span class="ln cmt"># 只对含 setup 的行，打印它的第 2 列</span><span class="ln "> </span><span class="ln ">awk '{sum+=$2} END {print sum}' num.txt</span><span class="ln cmt"># 把第 2 列累加，最后打印总和</span><span class="ln "> </span><span class="ln ">awk '{print $2}' num.txt | sort -n | tail -1</span><span class="ln cmt"># 取第 2 列，按数值排序，取最大的那个 → 一行拿到"最差 slack"</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Field</span><span class="term-zh">字段 / 列</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一行文本里被分隔符（默认空格、Tab）切开的一段。<code>$1</code> 是第一段。<br>报告类文本的规律很强：<strong>同一个位置的数字含义固定</strong>。所以 <code>awk '{print $2}'</code> 这种"取第 2 列"的写法，在报告提取里极其常用。</p></div>
+</div>
+<div class="sbx" data-preset="text">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>模拟终端</b><span class="sbx-tip">试：grep slack timing.rpt、awk '{print $1}' paths.rpt、cat drc.rpt</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">[autumn@eda ~]$</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入命令，按回车运行" aria-label="模拟终端输入"></div>
+  </div>
+  <div class="sbx-f">这里跑的是浏览器里的模拟环境：命令、输出、报错都按真实 Linux 的行为写，练手够用；真机上的路径与权限另有差异。</div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="awk"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="combo" data-ch="combo">
+  <div class="ch-h"><span class="ch-n">06</span><h2>组合技：从时序报告里提取最差 slack</h2></div>
+  <p>真实报告长这样（<code>report_timing</code> 的摘录）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Startpoint: u_core/u_reg[3]</span><span class="ln ">            (rising edge-triggered flip-flop clocked by clk)</span><span class="ln ">Endpoint:   u_core/u_alu/out_reg[7]</span><span class="ln ">            (rising edge-triggered flip-flop clocked by clk)</span><span class="ln ">Path Group: clk</span><span class="ln ">Path Type:  max</span><span class="ln ">...</span><span class="ln ">slack (VIOLATED) -0.213</span></code></pre></div>
+<p>想一句话回答"最差 slack 是多少"：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep "slack" timing.rpt | awk '{print $NF}' | sort -n | head -1</span><span class="ln cmt"># grep 挑出所有 slack 行 → awk 取最后一列（数字） → 数值排序 → 取最小</span><span class="ln cmt"># 输出：-0.213</span></code></pre></div>
+<p>想统计各类违例数：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep -c "VIOLATED" timing.rpt        # 违例路径条数</span><span class="ln ">grep -o "slack (VIOLATED)" timing.rpt | wc -l   # 同上，另一种写法</span></code></pre></div>
+<p>想看所有违例路径的起点：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep -A 2 "slack (VIOLATED)" timing.rpt | grep "Startpoint" | awk '{print $2}' | sort | uniq -c | sort -rn | head</span><span class="ln cmt"># 输出形如： 12 u_core/u_reg[3]  ← 说明这个寄存器贡献了 12 条违例</span></code></pre></div>
+<div class="scene"><div class="scene-h">工作场景 · 这段脚本组长真的会用</div><div class="scene-b"><p>布局布线跑完，报告 30 万行。组长问："最差多少？有几条违例？集中在哪？"</p>
+<p>你把上面三条命令贴过去，30 秒回答完。<strong>这就是"会用 Linux"和"不会用"的差距</strong>——不是知识差距，是效率差距。</p></div></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：自己造一份报告并分析</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~/demo 2&gt;/dev/null || { mkdir -p ~/demo &amp;&amp; cd ~/demo; }</span><span class="ln "> </span><span class="ln cmt"># 造一份假的时序报告</span><span class="ln ">cat &gt; timing.rpt &lt;&lt;'EOF'</span><span class="ln ">Startpoint: u_core/u_reg[3]</span><span class="ln ">Endpoint:   u_core/u_alu/out_reg[7]</span><span class="ln ">slack (VIOLATED) -0.213</span><span class="ln ">Startpoint: u_core/u_reg[9]</span><span class="ln ">Endpoint:   u_core/u_alu/out_reg[1]</span><span class="ln ">slack (VIOLATED) -0.087</span><span class="ln ">Startpoint: u_core/u_reg[9]</span><span class="ln ">Endpoint:   u_core/mem/rd_reg[2]</span><span class="ln ">slack (MET) 0.412</span><span class="ln ">EOF</span><span class="ln "> </span><span class="ln cmt"># 1. 有几条违例</span><span class="ln ">grep -c VIOLATED timing.rpt</span><span class="ln "> </span><span class="ln cmt"># 2. 最差 slack</span><span class="ln ">grep slack timing.rpt | awk '{print $NF}' | sort -n | head -1</span><span class="ln "> </span><span class="ln cmt"># 3. 违例集中在哪个起点</span><span class="ln ">grep -A 1 "VIOLATED" timing.rpt | grep Startpoint | awk '{print $2}' | sort | uniq -c</span></code></pre></div>
+<p>预期输出：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">2</span><span class="ln ">-0.213</span><span class="ln ">      1 u_core/u_reg[3]</span><span class="ln ">      1 u_core/u_reg[9]</span></code></pre></div>
+<p>过关标准：不改脚本，把第 3 条改成"按起点统计违例数并从多到少排序"（提示：末尾加 <code>| sort -rn</code>）。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能写出"输出和错误都进日志"的那一行（<code>&gt; run.log 2&gt;&amp;1</code>）</li><li>会用 <code>grep -n -i -c -v -A/-B</code> 五个选项</li><li>会用 <code>sed -n '/A/,/B/p'</code> 截取一段报告</li><li>会用 <code>awk '{print $NF}'</code> 取最后一列并配合 <code>sort -n | head -1</code> 找最小值</li><li>知道 <code>sed -i</code> 有风险，会先不加 <code>-i</code> 验证</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>run.sh &gt; run.log 2&gt;&amp;1</code> 里 <code>2&gt;&amp;1</code> 是什么意思？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">把标准错误（文件描述符 2）重定向到标准输出（1）当前指向的地方，也就是同一个日志文件。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>grep -A 3 Error</code> 和 <code>grep -B 3 Error</code> 有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">-A 是命中行之后多显示 3 行（after），-B 是之前多显示 3 行（before）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>怎么打印一份报告里从 Startpoint 到 Endpoint 之间的内容？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>sed -n '/Startpoint/,/Endpoint/p' report</code></div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>awk '{print $NF}'</code> 里的 NF 是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">Number of Fields，当前行的字段总数，所以 $NF 就是最后一列。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么在 200MB 日志里找错误要加 <code>-m 1</code>？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>-m 1</code> 命中第一个就停止，避免扫完整个文件；而且第一个错误通常才是根因。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="combo"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-02-files/">← 文件操作与权限：为什么你的脚本"跑不了"</a><a class="nav-btn" href="/lesson/01-04-process/">进程、后台任务与环境变量 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

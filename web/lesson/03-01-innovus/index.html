@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Innovus 起步：一个后端工具到底在管什么 · 12 | IC 后端学院</title>
+<meta name="description" content="后端工具不是"画图软件"，它管的是一个巨大的数据库和一套优化引擎。这一课讲清 GUI 与命令行的关系、设计数据库里存了什么、以及第一个能跑通的命令序列。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="03-01-innovus">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>Innovus 起步：一个后端工具到底在管什么</b></div>
+    <div class="hero">
+      <div class="hero-no">12</div>
+      <h1>Innovus 起步：一个后端工具到底在管什么</h1>
+      <p class="hero-en">Getting Started with Innovus</p>
+      <p class="hero-sum">后端工具不是"画图软件"，它管的是一个巨大的数据库和一套优化引擎。这一课讲清 GUI 与命令行的关系、设计数据库里存了什么、以及第一个能跑通的命令序列。</p>
+      <div class="hero-meta">
+        <span class="pill">约 35 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">工具</span><span class="pill tag">数据库</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="what" data-ch="what">
+  <div class="ch-h"><span class="ch-n">01</span><h2>工具在管什么</h2></div>
+  <p>一个布局布线工具（Innovus / ICC2）本质是三样东西：</p>
+<ol><li><strong>一个数据库</strong>：几万个单元、几十万条连线、几百层几何图形，全在里面。</li><li><strong>一个优化引擎</strong>：决定"放哪、怎么连、插不插缓冲器"。</li><li><strong>一堆报告</strong>：时序、拥塞、DRC、面积、功耗。</li></ol>
+<p>你敲的每条命令，都是在<strong>改数据库</strong>或者<strong>让引擎干活</strong>，然后<strong>读报告</strong>判断下一步。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Innovus</span><span class="term-zh">Cadence 的布局布线工具</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>数字后端两大主流 PR 工具之一（另一个是 Synopsys 的 ICC2）。命令语言是 Tcl，所有操作都能写成脚本。<br>课程阶段三用 40nm 工艺走 Innovus；阶段四用 32nm 走 ICC2。<strong>两套工具，一套方法论。</strong></p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="gui" data-ch="gui">
+  <div class="ch-h"><span class="ch-n">02</span><h2>GUI 和命令行：到底用哪个</h2></div>
+  <p>新手最容易犯的错：以为要用鼠标拖。</p>
+<p>真实情况：</p>
+<ul><li><strong>GUI 用来"看"</strong>：看布局、看拥塞热图、看某条路径的走向。</li><li><strong>命令行/脚本用来"做"</strong>：所有设置、所有流程，都写成 <code>.tcl</code> 脚本跑。</li></ul>
+<p>原因很实际：一次 PR 要跑几小时，中间要改几十个参数。用鼠标点，你没法复现、没法对比、没法交接。<strong>脚本是唯一可复现的方式。</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 启动 Innovus（GUI + 命令行都在）</span><span class="ln ">innovus -no_gui -files run.tcl     # 纯命令行，服务器上跑批用这个</span><span class="ln ">innovus                            # 带界面，调试时用</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="gui"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="db" data-ch="db">
+  <div class="ch-h"><span class="ch-n">03</span><h2>数据库里有什么</h2></div>
+  <p>打开一个设计后，数据库里至少存了这些：</p>
+<div class="tbl"><table><thead><tr><th>内容</th><th>说明</th><th>对应报告</th></tr></thead><tbody><tr><td>单元实例</td><td>每个标准单元的类型、坐标、朝向</td><td><code>report_area</code></td></tr><tr><td>连线（net）</td><td>谁连谁、走哪层、多长</td><td><code>report_congestion</code></td></tr><tr><td>引脚（pin）</td><td>IO 位置、方向</td><td><code>report_pin</code></td></tr><tr><td>电源网络</td><td>ring / stripe / rail</td><td><code>verifyPowerVia</code></td></tr><tr><td>时序图</td><td>每条路径的门延迟、线延迟</td><td><code>report_timing</code></td></tr><tr><td>约束</td><td>时钟、IO 延迟、false path</td><td><code>report_clocks</code></td></tr></tbody></table></div>
+<div class="scene"><div class="scene-h">工作场景 · 为什么"重跑一遍"要几小时</div><div class="scene-b"><p>因为数据库巨大。每次优化引擎动一下，都要重算几万个单元的时序和拥塞。</p>
+<p>所以老手的习惯是：<strong>小步试，快速验</strong>。先用 <code>-incremental</code> 跑局部，看报告有没有改善，再决定要不要全量重跑。全量重跑一次 3 小时，你一天只能试 2 次。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="db"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="first" data-ch="first">
+  <div class="ch-h"><span class="ch-n">04</span><h2>第一个能跑通的序列</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ---- 1. 读入设计 ----</span><span class="ln cmt"># 读网表（综合出来的 .v）</span><span class="ln ">read_netlist ../syn/netlist/ipa_top.v</span><span class="ln "> </span><span class="ln cmt"># 读物理库（标准单元和宏单元的 .lef）</span><span class="ln ">read_lef ../lib/lef/tsmc40_stdcell.lef</span><span class="ln ">read_lef ../lib/lef/sram_2048x64.lef</span><span class="ln "> </span><span class="ln cmt"># 读时序库（.lib，工具内部转成 .db）</span><span class="ln ">read_libs ../lib/lib/tsmc40_tt.lib</span><span class="ln "> </span><span class="ln cmt"># 读约束</span><span class="ln ">read_sdc ../constraints/ipa.sdc</span><span class="ln "> </span><span class="ln cmt"># 指定顶层模块名，并把网表和库"绑"起来</span><span class="ln ">set top_design ipa_top</span><span class="ln ">init_design</span><span class="ln "> </span><span class="ln cmt"># ---- 2. 看一眼是否读对了 ----</span><span class="ln ">report_area                    # 总面积、单元数</span><span class="ln ">report_clocks                  # 时钟有没有读到</span><span class="ln ">checkDesign -all               # 一致性检查，有 unconnected 会报出来</span><span class="ln "> </span><span class="ln cmt"># ---- 3. 存盘（重要：每步都存） ----</span><span class="ln ">saveDesign db/01_init.enc</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 忘了 saveDesign，几小时白干</div><div class="pit-b"><p>Innovus 不会自动存。跑到一半崩溃、或者你自己想回退，没有存盘就只能从零开始。</p>
+<p><strong>规矩：每完成一个阶段就 <code>saveDesign db/NN_阶段名.enc</code>。</strong> 这样出问题可以 <code>restoreDesign db/05_cts.enc</code> 回到上一个可用状态。</p>
+<p><code>NN</code> 用序号，方便排序和回退。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">.enc</span><span class="term-zh">Innovus 设计数据库</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Innovus 自己的二进制存盘格式（enc.dat 目录）。存了设计的完整状态：布局、布线、约束、设置。<br>和它对应的是 ICC2 的 <code>.ndm</code>（库）+ block 数据库。格式不同，作用相同。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="first"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="icc2" data-ch="icc2">
+  <div class="ch-h"><span class="ch-n">05</span><h2>与 ICC2 的对应关系</h2></div>
+  <p>工具不同，动作一样。这张表建议存下来：</p>
+<div class="tbl"><table><thead><tr><th>动作</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>读网表</td><td><code>read_netlist</code></td><td><code>read_verilog</code></td></tr><tr><td>读物理库</td><td><code>read_lef</code></td><td>建库时已包含</td></tr><tr><td>读时序库</td><td><code>read_libs</code></td><td>建库时已包含</td></tr><tr><td>初始化</td><td><code>init_design</code></td><td><code>link_design</code></td></tr><tr><td>存盘</td><td><code>saveDesign x.enc</code></td><td><code>save_block</code></td></tr><tr><td>布局规划</td><td><code>floorPlan</code></td><td><code>initialize_floorplan</code></td></tr><tr><td>布局</td><td><code>place_opt_design</code></td><td><code>place_opt</code></td></tr><tr><td>时钟树</td><td><code>ccopt_design</code></td><td><code>clock_opt</code></td></tr><tr><td>布线</td><td><code>routeDesign</code></td><td><code>route_auto</code></td></tr><tr><td>时序报告</td><td><code>report_timing</code></td><td><code>report_timing</code></td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>面试常问"你会 Innovus 还是 ICC2"。正确答法是："我熟悉 PR 流程本身，两个工具的命令能对应上。"——因为公司换工具是常事，方法论才是你的资产。</p></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：用 ICC2 走一遍同样的动作（本课程实测环境）</div><div class="lab-b"><p>如果你的环境是 ICC2（我们验证过的机器），对应命令：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 打开库和 block</span><span class="ln ">open_lib ./work_dir</span><span class="ln ">open_block ipa_top</span><span class="ln "> </span><span class="ln cmt"># 看状态</span><span class="ln ">report_design -physical</span><span class="ln ">report_timing -max_paths 1</span><span class="ln "> </span><span class="ln cmt"># 存盘</span><span class="ln ">save_block</span></code></pre></div>
+<p>过关标准：能说出你敲的每条命令，在另一套工具里叫什么。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出后端工具管的三样东西（数据库、引擎、报告）</li><li>知道 GUI 用来看、脚本用来做</li><li>记得每个阶段结束必须 <code>saveDesign</code></li><li>能背出至少 6 组 Innovus / ICC2 命令对应</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么后端流程强调"写脚本"而不是用 GUI 点？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">因为要可复现、可对比、可交接；一次运行几小时、参数几十个，脚本是唯一能重跑和版本管理的方式。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>saveDesign</code> 为什么每个阶段都要做？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">工具不会自动存盘，崩溃或需要回退时没有存档就得从头再来。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Innovus 的 <code>.enc</code> 和 ICC2 的数据库有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">格式不同（Cadence 私有 vs Synopsys NDM），作用相同：保存设计的完整状态。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>init_design</code> 做了什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">把网表、物理库、时序库、约束绑定在一起，建立可操作的内部数据库。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="icc2"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-03-inputs/">← 开工前要拿到什么：设计数据准备与自检</a><a class="nav-btn" href="/lesson/03-02-floorplan/">Floorplan：先定房子的格局 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

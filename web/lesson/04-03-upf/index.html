@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>低功耗与 UPF：让芯片省电的四种手段 · 26 | IC 后端学院</title>
+<meta name="description" content="功耗分动态和静态，降功耗有四种主流手段。UPF 用一份文件把"哪里能断电、断电时怎么隔离"讲给工具听。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="04-03-upf">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-4">阶段四 · ICC2 32nm 项目</a><span>/</span><b>低功耗与 UPF：让芯片省电的四种手段</b></div>
+    <div class="hero">
+      <div class="hero-no">26</div>
+      <h1>低功耗与 UPF：让芯片省电的四种手段</h1>
+      <p class="hero-en">Low Power & UPF</p>
+      <p class="hero-sum">功耗分动态和静态，降功耗有四种主流手段。UPF 用一份文件把"哪里能断电、断电时怎么隔离"讲给工具听。</p>
+      <div class="hero-meta">
+        <span class="pill">约 45 分钟</span>
+        <span class="pill">课表学时 4</span>
+        <span class="pill tag">低功耗</span><span class="pill tag">UPF</span><span class="pill tag">clock gating</span><span class="pill tag">power gating</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="source" data-ch="source">
+  <div class="ch-h"><span class="ch-n">01</span><h2>功耗从哪来</h2></div>
+  <div class="tbl"><table><thead><tr><th>类型</th><th>公式</th><th>什么时候耗</th><th>怎么降</th></tr></thead><tbody><tr><td>动态功耗</td><td>P = α·C·V²·f</td><td>信号翻转时</td><td>降电压、降频率、减少翻转</td></tr><tr><td>静态功耗（漏电）</td><td>与工艺、Vt 有关</td><td>一直耗，哪怕不动</td><td>用高 Vt 单元、断电</td></tr></tbody></table></div>
+<p>α 是翻转率，C 是电容，V 是电压，f 是频率。<strong>注意电压是平方项</strong>——所以降压最有效。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Leakage</span><span class="term-zh">漏电</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>晶体管关断时仍有微小电流漏过。工艺越先进，漏电占比越高（28nm 以下可能占 30%~50%）。<br>所以先进工艺里"静态功耗"是必须单独优化的一项。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="source"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="four" data-ch="four">
+  <div class="ch-h"><span class="ch-n">02</span><h2>四种手段</h2></div>
+  <h3>1. Clock Gating（时钟门控）</h3>
+<p>最常用、收益最大。模块不工作时，把它的时钟关掉。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">❌ 不加门控：时钟一直在翻转，即使数据不变也在耗电</span><span class="ln ">CLK ────────────────▶ [FF] [FF] [FF]</span><span class="ln "> </span><span class="ln ">✅ 加门控：enable 为 0 时时钟停止</span><span class="ln ">CLK ──▶ [ICG] ──────▶ [FF] [FF] [FF]</span><span class="ln ">         ▲</span><span class="ln ">       enable</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">ICG</span><span class="term-zh">集成时钟门控单元</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Integrated Clock Gating cell。一个带使能端的时钟门控单元。综合工具会自动插入（<code>set_clock_gating_style</code>），后端只需保证它被正确摆放和连接。<br>典型收益：时钟网络功耗降低 20%~40%。</p></div>
+</div>
+<h3>2. Power Gating（电源关断）</h3>
+<p>整个模块断电，漏电直接归零。代价：断电后数据丢失，重新上电要复位。</p>
+<p>需要三类特殊单元：</p>
+<div class="tbl"><table><thead><tr><th>单元</th><th>作用</th></tr></thead><tbody><tr><td>Switch（开关）</td><td>控制电源通断，通常用 PMOS 大管</td></tr><tr><td>Isolation（隔离）</td><td>断电模块的输出不能悬空，要钳位到固定值</td></tr><tr><td>Retention（保持）</td><td>需要保留状态的触发器，用特殊单元</td></tr></tbody></table></div>
+<h3>3. Multi-Vt（多阈值）</h3>
+<p>关键路径用 LVT（快但漏电大），非关键路径用 HVT（慢但省电）。这个前面讲过，是最容易落地的省电手段。</p>
+<h3>4. DVFS（动态电压频率调节）</h3>
+<p>按负载调电压和频率。手机芯片常用：玩游戏时高频高压，待机时低频低压。</p>
+<p>后端要支持多电压域（multi-voltage domain），复杂度最高。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="four"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="upf" data-ch="upf">
+  <div class="ch-h"><span class="ch-n">03</span><h2>UPF：把电源意图写成文件</h2></div>
+  <p>工具不知道"这块能断电"，你得告诉它。UPF（Unified Power Format）就是这份说明书。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 定义一个电源域：u_core 可以在关机时断电</span><span class="ln ">create_power_domain PD_CORE -elements {u_core}</span><span class="ln "> </span><span class="ln cmt"># 定义电源网络</span><span class="ln ">create_supply_net VDD      -domain PD_CORE</span><span class="ln ">create_supply_net VDD_GATED -domain PD_CORE</span><span class="ln ">create_supply_port VDD     -domain PD_CORE -direction in</span><span class="ln "> </span><span class="ln cmt"># 电源开关：用 header switch 控制 VDD → VDD_GATED</span><span class="ln ">create_power_switch SW_CORE \</span><span class="ln ">    -domain PD_CORE \</span><span class="ln ">    -input_supply_port  {VDD VDD} \</span><span class="ln ">    -output_supply_port {VOUT VDD_GATED} \</span><span class="ln ">    -control_port       {SLEEP sleep_ctrl} \</span><span class="ln ">    -on_state           {on_state VDD {!SLEEP}}</span><span class="ln "> </span><span class="ln cmt"># 隔离策略：断电时把输出钳到 0</span><span class="ln ">set_isolation ISO_CORE \</span><span class="ln ">    -domain PD_CORE \</span><span class="ln ">    -isolation_power_net VDD \</span><span class="ln ">    -clamp_value 0</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">UPF</span><span class="term-zh">统一电源格式</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一种用 Tcl 语法描述"电源域、开关、隔离、保持"的标准文件（IEEE 1801）。<br>综合、布局布线、验证工具都读它，保证大家对"电源怎么接"理解一致。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · 忘了加 isolation，仿真过、硅片上挂</div><div class="pit-b"><p>断电域的输出如果直接连到常开域，断电时会输出不确定电平（悬空），常开域可能收到错误值甚至短路电流。</p>
+<p>UPF 里写了 <code>set_isolation</code> 只是"声明"，还要在实现时真正插入 isolation 单元：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 综合阶段</span><span class="ln ">insert_isolation</span><span class="ln cmt"># 或后端阶段检查</span><span class="ln ">check_mv_design -isolation</span></code></pre></div>
+<p><strong>"声明了但没插单元"是低功耗设计最常见的低级错误。</strong></p></div></div>
+<div class="scene"><div class="scene-h">工作场景 · 低功耗项目的 review 问题</div><div class="scene-b"><ol><li>"哪些域能断电？断电时输出怎么处理？"（UPF 里的 isolation 策略）</li><li>"clock gating 覆盖率多少？"（一般要求 &gt;90% 的触发器有时钟门控）</li><li>"LVT 占比多少？"（&gt;30% 要担心漏电）</li><li>"多电压域之间的信号有没有电平转换器？"（level shifter）</li></ol>
+<p>四个问题答不上来，说明你只是跑了流程，没理解功耗设计。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出动态功耗公式和四个变量</li><li>知道四种降功耗手段及各自代价</li><li>理解 ICG / isolation / retention / level shifter 四个单元的作用</li><li>知道 UPF 是"声明"，还要真正插入单元</li><li>能回答低功耗 review 的四个问题</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>动态功耗公式里为什么降电压最有效？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">电压是平方项（V²），降 10% 电压，动态功耗降约 19%。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Clock gating 的原理和收益？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">用 ICG 在模块不工作时停掉时钟，减少翻转；时钟网络功耗通常降 20%~40%。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Power gating 需要哪三类特殊单元？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">电源开关（switch）、隔离单元（isolation）、保持单元（retention）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>UPF 里写了 isolation 就够了吗？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">不够，还要在实现时真正插入 isolation 单元，并用 <code>check_mv_design</code> 验证。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Multi-Vt 优化的取舍是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">LVT 快但漏电大，HVT 慢但省电；只在关键路径用 LVT，占比一般控制在 10%~20%。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="upf"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/04-02-icc2-flow/">← ICC2 全流程实战：从空目录到导出版图</a><a class="nav-btn" href="/lesson/05-01-pr-flow/">28nm 全流程（一）：把 PR 串成项目 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>工程经验：新手最容易踩的 12 个坑 · 34 | IC 后端学院</title>
+<meta name="description" content="这一课不教新知识，只讲别人已经踩过的坑。每一条都能帮你省下半天到一周的时间。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="08-01-experience">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-8">阶段八 · 工程经验</a><span>/</span><b>工程经验：新手最容易踩的 12 个坑</b></div>
+    <div class="hero">
+      <div class="hero-no">34</div>
+      <h1>工程经验：新手最容易踩的 12 个坑</h1>
+      <p class="hero-en">Field Notes</p>
+      <p class="hero-sum">这一课不教新知识，只讲别人已经踩过的坑。每一条都能帮你省下半天到一周的时间。</p>
+      <div class="hero-meta">
+        <span class="pill">约 45 分钟</span>
+        <span class="pill">课表学时 4</span>
+        <span class="pill tag">经验</span><span class="pill tag">排错</span><span class="pill tag">review</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="twelve" data-ch="twelve">
+  <div class="ch-h"><span class="ch-n">01</span><h2>十二个坑</h2></div>
+  <h3>1. 不存盘就跑下一步</h3>
+<p><code>.enc</code> / <code>save_block</code> 没做，崩溃或想回退时从零开始。<strong>每阶段必存，文件名带序号。</strong></p>
+<h3>2. 用 <code>rm -rf</code> 清目录</h3>
+<p><code>rm -rf run/*</code> 手滑成 <code>rm -rf run /*</code>，删的是根目录。<strong>先 <code>ls</code> 再删，变量加引号。</strong></p>
+<h3>3. 约束没读对就开始优化</h3>
+<p>时钟周期写错、false path 漏设、库 corner 用错。跑 4 小时才发现方向全错。<strong>先 <code>report_clocks</code> + <code>check_timing</code>。</strong></p>
+<h3>4. 利用率定太高</h3>
+<p>0.85 看起来很"省面积"，实际布不通。<strong>第一版 0.60~0.65，跑完看拥塞再调。</strong></p>
+<h3>5. 宏单元通道没算</h3>
+<p>默认间距摆下去，布线阶段拥塞爆炸。<strong>按出线数算通道（03-03），留 halo。</strong></p>
+<h3>6. 跳过 CTS 直接布线</h3>
+<p>hold 违例 −10ns 级别，怎么修都修不完。<strong>CTS 是 hold 收敛的前提。</strong></p>
+<h3>7. 先修 hold 再修 setup</h3>
+<p>修 setup 时插的 buffer 会把 hold 又搞坏，来回两三轮。<strong>顺序：setup → hold → 复验。</strong></p>
+<h3>8. 网表和 SPEF 不同版本</h3>
+<p>PT 报找不到引脚，或时序离谱。<strong>同一条命令同时导出，文件名带同一时间戳。</strong></p>
+<h3>9. LVT 用太多</h3>
+<p>时序一好就全换 LVT，漏电涨 3~5 倍，功耗签核被打回。<strong>LVT 占比 10%~20%。</strong></p>
+<h3>10. DRC 卡在几百条就乱调参数</h3>
+<p>剩下的是孤例，批量调参数只会引入新问题。<strong>分类统计 + 按区域聚类，一类一类修。</strong></p>
+<h3>11. 报错只看最后一行</h3>
+<p><code>OPT-041</code> 那一行是结果，真正的病因在上五行（<code>NEX-018</code>）。<strong>往上翻，找第一条错误。</strong></p>
+<h3>12. 改完不记录</h3>
+<p>"我记得改过 utilization" —— 改到多少？哪一版？没有记录就等于没改过。<strong>每次运行写一个 <code>README.txt</code>：改了什么、为什么、结果如何。</strong></p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Regression</span><span class="term-zh">回归</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把一整套流程脚本化，每次改动后全量重跑一遍，对比指标有没有变差。<br>这是把"手工调参"变成"工程"的关键手段：<strong>没有回归，你永远不知道这次改动是变好还是变坏。</strong></p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="twelve"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="debug" data-ch="debug">
+  <div class="ch-h"><span class="ch-n">02</span><h2>排错方法论</h2></div>
+  <p>遇到问题，按这个顺序走，不要跳：</p>
+<ol><li><strong>看第一条错误</strong>，不看最后一条。</li><li><strong>确认输入</strong>：网表、库、约束、脚本版本对不对。</li><li><strong>缩小范围</strong>：能不能用更小的设计复现？（counter 能不能跑？）</li><li><strong>对比基线</strong>：和上一次成功的运行比，改了什么？</li><li><strong>二分手动验证</strong>：把流程切一半跑（只到 place），看问题在哪一半出现。</li></ol>
+<div class="scene"><div class="scene-h">工作场景 · 一个真实的排错过程</div><div class="scene-b"><p>现象：ICC2 <code>place_opt</code> 报 <code>OPT-041</code>。</p>
+<ul><li>第 1 步：往上翻日志，发现 <code>NEX-018 no valid parasitic</code>。</li><li>第 2 步：确认输入 —— NDM 有 timing view，但没读 TLU+。</li><li>第 3 步：缩小范围 —— 用 counter 小设计试，同样报错，说明是环境问题不是设计问题。</li><li>第 4 步：对比基线 —— 上一版流程没读寄生，也能跑（因为没开 place_opt）。</li><li>第 5 步：补 <code>read_parasitic_tech</code> + <code>set_parasitic_parameters</code>，通过。</li></ul>
+<p><strong>整个过程 40 分钟，其中 30 分钟花在"往上翻日志"和"缩小范围"。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="debug"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="review" data-ch="review">
+  <div class="ch-h"><span class="ch-n">03</span><h2>Review 该准备什么</h2></div>
+  <p>被 review 时，组长通常按这个顺序问：</p>
+<div class="tbl"><table><thead><tr><th>顺序</th><th>问题</th><th>你要能给出</th></tr></thead><tbody><tr><td>1</td><td>设计规模？</td><td>单元数、面积、利用率、macro 数量</td></tr><tr><td>2</td><td>现在什么状态？</td><td>做到哪个阶段，卡在哪</td></tr><tr><td>3</td><td>关键指标？</td><td>WNS/TNS、DRC 数、面积、功耗</td></tr><tr><td>4</td><td>最大的风险？</td><td>哪条路径最紧、哪个区域最拥塞</td></tr><tr><td>5</td><td>下一步计划？</td><td>具体动作 + 预计耗时</td></tr></tbody></table></div>
+<p><strong>准备一页纸</strong>：规模、状态、指标、风险、计划。比讲半小时流程有用。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="review"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="handoff" data-ch="handoff">
+  <div class="ch-h"><span class="ch-n">04</span><h2>交接的习惯</h2></div>
+  <p>给别人交东西时，至少包含：</p>
+<ol><li><strong>怎么跑</strong>：一条命令，或者一个 <code>run.sh</code>。</li><li><strong>输入在哪</strong>：网表、库、约束的路径。</li><li><strong>产物在哪</strong>：报告、def、gds。</li><li><strong>已知问题</strong>：哪些违例是已知的、为什么可以接受。</li><li><strong>上次运行结果</strong>：关键指标数字。</li></ol>
+<div class="tip"><div class="tip-h">小技巧</div><div class="code"><div class="code-h"><span class="code-lang">markdown</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ipa_top PR 交接</span><span class="ln ">- 脚本: pnr/scripts/01~07_*.tcl</span><span class="ln ">- 运行: cd pnr &amp;&amp; ./run_all.sh</span><span class="ln ">- 输入: syn/netlist/ipa_top.v, constraints/ipa.sdc</span><span class="ln ">- 结果: 单元 12026, 面积 222.5x222.2um, WNS +1.00ns, DRC 0</span><span class="ln ">- 已知问题: 3 条 max_transition 违例已 waiver（原因见 waiver.txt）</span><span class="ln ">- 复现: run/20261122_1400/</span></code></pre></div>
+<p><strong>五行字，能省对方两小时。</strong></p></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能背出至少 8 个坑及对应预防动作</li><li>掌握"看第一条错误 → 确认输入 → 缩小范围 → 对比基线"的排错顺序</li><li>知道 review 要准备哪五项</li><li>会写五行交接文档</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么排错要看第一条错误而不是最后一条？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">后面的错误常常是第一条引起的连锁反应，修了第一条其余的往往自动消失。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>DRC 卡在几百条时应该怎么做？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">按规则类型统计、按区域聚类，分类逐类修；批量调参数会引入新问题。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>网表和 SPEF 版本不一致会有什么现象？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">PT 报找不到引脚，或时序结果完全不合理。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>review 时被问"最大的风险是什么"，应该怎么答？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">指出具体的最紧路径或最拥塞区域，并说明打算怎么处理、预计多久。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>交接文档最少要包含哪几项？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">怎么跑、输入在哪、产物在哪、已知问题、上次关键指标。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="handoff"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/07-01-redhawk/">← IR Drop 与 RedHawk：芯片为什么会死机</a><a class="nav-btn" href="/lesson/09-01-career/">求职：把做过的事讲成别人听得懂的价值 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

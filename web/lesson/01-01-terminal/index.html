@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>终端与文件系统：我是谁、我在哪、这儿有什么 · 02 | IC 后端学院</title>
+<meta name="description" content="从零开始认识终端：文件系统为什么是一棵树、绝对路径和相对路径的区别、cd/pwd/ls 三件套，以及在真实芯片工程里目录为什么长成那样。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="01-01-terminal">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcsh</a><span>/</span><b>终端与文件系统：我是谁、我在哪、这儿有什么</b></div>
+    <div class="hero">
+      <div class="hero-no">02</div>
+      <h1>终端与文件系统：我是谁、我在哪、这儿有什么</h1>
+      <p class="hero-en">Terminal & Filesystem</p>
+      <p class="hero-sum">从零开始认识终端：文件系统为什么是一棵树、绝对路径和相对路径的区别、cd/pwd/ls 三件套，以及在真实芯片工程里目录为什么长成那样。</p>
+      <div class="hero-meta">
+        <span class="pill">约 40 分钟</span>
+        <span class="pill">课表学时 3</span>
+        <span class="pill tag">Linux</span><span class="pill tag">终端</span><span class="pill tag">路径</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>终端是什么，为什么后端离不开它</h2></div>
+  <p>终端（Terminal）是一个<strong>用打字代替点击</strong>的窗口。你在里面输入一行命令，回车，机器执行，把结果打回给你。</p>
+<p>图形界面（GUI）不是更友好吗？在芯片行业有三个现实原因让终端成为主流：</p>
+<ol><li><strong>服务器没有显示器</strong>。你用的不是自己电脑，而是一台放在机房的机器，几十个人共用。你只能远程打字进去。</li><li><strong>流程要跑几个小时甚至几天</strong>。图形界面一断线就全没了，命令行可以挂在后台、写到日志、第二天来看。</li><li><strong>一条命令胜过一百次点击</strong>。批量改 500 个文件、循环跑 20 组参数，只有脚本能做到。</li></ol>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Shell</span><span class="term-zh">壳</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>终端里真正理解你命令的那个程序。它把 <code>ls</code> 翻译成系统调用，再把结果排版好给你看。Linux 上最常见的是 bash，芯片公司大量用 tcsh（第六课讲）。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 你入职第一天的操作</div><div class="scene-b"><p>组长给你一个账号和一句话："工程在 <code>/home/proj/28nm/backend</code>，你先看看目录结构。"</p>
+<p>你打开终端，<code>ssh</code> 登进去，然后：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd /home/proj/28nm/backend     # 进入工程目录</span><span class="ln ">ls                             # 看看有什么</span></code></pre></div>
+<p>就这两个动作，决定了你接下来三个月能不能找到东西。找不到目录的人，后面所有工具都跑不起来。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="tree" data-ch="tree">
+  <div class="ch-h"><span class="ch-n">02</span><h2>文件系统是一棵树</h2></div>
+  <p>Linux 里所有东西都挂在一棵树上，树根叫 <code>/</code>（读作"根目录"）。用户的家目录、硬盘、U 盘、甚至设备，全都是这棵树上的一个节点。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">/                          ← 根，所有东西的起点</span><span class="ln ">├── home/                  ← 所有用户的家</span><span class="ln ">│   ├── weizhen/           ← 你的家目录，登录后就站在这</span><span class="ln ">│   │   ├── proj/          ← 你自己建的工程</span><span class="ln ">│   │   └── .bashrc        ← 隐藏文件（点开头就是隐藏）</span><span class="ln ">│   └── lisi/</span><span class="ln ">├── usr/                   ← 装软件的地方</span><span class="ln ">│   ├── bin/               ← 大部分命令在这</span><span class="ln ">│   └── Synopsys/          ← EDA 工具安装目录</span><span class="ln ">├── etc/                   ← 系统配置文件</span><span class="ln ">└── tmp/                   ← 临时文件，重启可能被清空</span></code></pre></div>
+<p><strong>树上的每个位置都有一条唯一的"路径"</strong>，就像你家的地址。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Path</span><span class="term-zh">路径</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>从某个起点走到目标文件所经过的一串目录名。用 <code>/</code> 分隔。<br>- <strong>绝对路径</strong>：从根开始写，<code>/home/weizhen/proj</code>。无论你当前在哪，它都指向同一个地方——像"上海市浦东新区XX路1号"。<br>- <strong>相对路径</strong>：从当前位置开始写，<code>proj/rtl</code>。你在不同目录下执行，指向的地方不一样——像"出门左转第二家"。</p></div>
+</div>
+<p>四个必须背下来的符号：</p>
+<div class="tbl"><table><thead><tr><th>符号</th><th>含义</th><th>例子</th></tr></thead><tbody><tr><td><code>/</code></td><td>根目录，或者路径分隔符</td><td><code>cd /</code> 回到根</td></tr><tr><td><code>~</code></td><td>当前用户的家目录</td><td><code>cd ~</code> 等于 <code>cd /home/weizhen</code></td></tr><tr><td><code>.</code></td><td>当前目录</td><td><code>./run.sh</code> 运行当前目录下的脚本</td></tr><tr><td><code>..</code></td><td>上一级目录</td><td><code>cd ..</code> 退一层</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 路径写错，是新手第一个 90% 会犯的错</div><div class="pit-b"><p>现象：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">$ cd proj</span><span class="ln ">-bash: cd: proj: No such file or directory</span></code></pre></div>
+<p>三种原因，按概率排：</p>
+<ol><li>你不在自己以为的目录里。先 <code>pwd</code> 确认。</li><li>目录名拼错，或者大小写不对（Linux 区分大小写，<code>Proj</code> ≠ <code>proj</code>）。</li><li>你用了相对路径，但起点不对。不确定就用<strong>绝对路径</strong>，从 <code>/</code> 开始写，最不容易错。</li></ol></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="tree"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="three" data-ch="three">
+  <div class="ch-h"><span class="ch-n">03</span><h2>三件套：pwd、ls、cd</h2></div>
+  <p>这三个命令你一天要敲几百遍。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">pwd</span><span class="ln cmt"># print working directory：打印"我现在在哪"</span><span class="ln cmt"># 输出：/home/weizhen</span><span class="ln "> </span><span class="ln ">ls</span><span class="ln cmt"># list：列出当前目录的内容</span><span class="ln cmt"># 输出：proj  Downloads  Documents</span><span class="ln "> </span><span class="ln ">ls -l</span><span class="ln cmt"># -l = long format，长格式：权限、大小、修改时间都给你</span><span class="ln cmt"># 输出的第一列 drwxr-xr-x 是权限（第三课讲）</span><span class="ln "> </span><span class="ln ">ls -a</span><span class="ln cmt"># -a = all，连隐藏文件一起显示（点开头的配置文件全在这）</span><span class="ln "> </span><span class="ln ">ls -lh</span><span class="ln cmt"># -h = human readable，把字节数变成 4.0K / 1.2M 这种人能读的单位</span><span class="ln cmt"># 后端常用组合：ls -lht  按时间倒序，最新的在最上面</span><span class="ln "> </span><span class="ln ">cd proj</span><span class="ln cmt"># change directory：进入 proj 目录</span><span class="ln "> </span><span class="ln ">cd ..</span><span class="ln cmt"># 回上一级</span><span class="ln "> </span><span class="ln ">cd ~</span><span class="ln cmt"># 回家目录</span><span class="ln "> </span><span class="ln ">cd -</span><span class="ln cmt"># 回到"上一次所在的目录"，来回切换两个目录时特别好用</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Flag / 选项</span><span class="term-zh">Flag / 选项</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>命令后面 <code>-l</code>、<code>-a</code> 这种带减号的叫选项（flag / option），用来改变命令的行为。可以连写：<code>ls -lh</code> = <code>ls -l -h</code>。<br>记不住选项不用背，<code>ls --help</code> 或 <code>man ls</code> 会列全。<strong><code>man</code> 是 manual 的缩写</strong>，装软件后查用法第一选择。</p></div>
+</div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：在树上走一遍</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~              # 回到家目录</span><span class="ln ">pwd               # 确认：/home/weizhen</span><span class="ln ">mkdir demo        # make directory，建一个叫 demo 的目录</span><span class="ln ">cd demo           # 进去</span><span class="ln ">pwd               # 确认：/home/weizhen/demo</span><span class="ln ">cd ..             # 退出来</span><span class="ln ">pwd               # 又回到 /home/weizhen</span><span class="ln ">ls -l             # 看到 demo 目录，第一列是 drwxr-xr-x</span></code></pre></div>
+<p>过关标准：能不看笔记，连续做出"进目录 → 确认位置 → 退回来"这一套，并且知道每一步 <code>pwd</code> 会输出什么。</p></div></div>
+<div class="sbx" data-preset="basic">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>模拟终端</b><span class="sbx-tip">试：pwd、ls -l、cd backend_lab/soc/pnr、cd ..</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">[autumn@eda ~]$</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入命令，按回车运行" aria-label="模拟终端输入"></div>
+  </div>
+  <div class="sbx-f">这里跑的是浏览器里的模拟环境：命令、输出、报错都按真实 Linux 的行为写，练手够用；真机上的路径与权限另有差异。</div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="three"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="real" data-ch="real">
+  <div class="ch-h"><span class="ch-n">04</span><h2>真实芯片工程的目录长什么样</h2></div>
+  <p>你可能以为工程目录是随便建的。事实上，<strong>目录结构本身就是流程的一部分</strong>——工具的输出放错地方，下一环就找不到输入。</p>
+<p>一个典型的数字后端工程：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proj/                          ← 项目根</span><span class="ln ">├── rtl/                       ← 前端给的 RTL 代码（只读，别改）</span><span class="ln ">├── syn/                       ← 综合：脚本、网表、时序库</span><span class="ln ">│   ├── scripts/               ← .tcl 脚本</span><span class="ln ">│   ├── netlist/               ← 综合出来的 .v 网表</span><span class="ln ">│   └── reports/               ← 面积、时序报告</span><span class="ln ">├── pnr/                       ← 布局布线（Place &amp; Route）</span><span class="ln ">│   ├── scripts/</span><span class="ln ">│   ├── db/                    ← 工具的数据库（Innovus 的 .enc、ICC2 的 .ndm）</span><span class="ln ">│   ├── def/                   ← 版图交换格式</span><span class="ln ">│   └── reports/</span><span class="ln ">├── sta/                       ← 静态时序分析（PrimeTime）</span><span class="ln ">├── pv/                        ← 物理验证（DRC/LVS）</span><span class="ln ">├── lib/                       ← 标准单元库、宏单元库</span><span class="ln ">├── lef/                       ← 物理抽象（每个单元多大、引脚在哪）</span><span class="ln ">└── run/                       ← 跑批日志，按日期分目录</span></code></pre></div>
+<p>注意三件事：</p>
+<ol><li><strong>每一层都分 <code>scripts / 输出 / reports</code></strong>。脚本和数据不混在一起，否则改脚本时容易误删结果。</li><li><strong><code>rtl/</code> 是只读的</strong>。前端交付的代码你不能改，改了就和前端对不上账。</li><li><strong><code>run/</code> 按日期分</strong>。<code>run/20261122_0930/</code> 这种命名让你三天后还能找回"当时到底跑了哪一版"。</li></ol>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Netlist</span><span class="term-zh">网表</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>综合之后得到的"门级连接表"：里面不再是你写的 <code>always</code> 块，而是一堆标准单元（与门、或门、触发器）以及它们之间的连线。文件名通常是 <code>.v</code>。<br>后端所有工作的起点就是这个网表——它已经确定了"用哪些门、怎么连"，后端只决定"放在哪"。</p></div>
+</div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：搭一个属于你的工程骨架</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~</span><span class="ln ">mkdir -p myproj/{rtl,syn/{scripts,netlist,reports},pnr/{scripts,db,reports},sta,pv,lib,lef,run}</span><span class="ln cmt"># -p = parents，一次建多层目录，父目录不存在就自动建</span><span class="ln "> </span><span class="ln ">cd myproj</span><span class="ln ">find . -type d | sort</span><span class="ln cmt"># find 会递归列出所有目录，检查是不是都建对了</span></code></pre></div>
+<p>预期输出（顺序可能略有不同）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">.</span><span class="ln ">./lef</span><span class="ln ">./lib</span><span class="ln ">./pnr</span><span class="ln ">./pnr/db</span><span class="ln ">./pnr/reports</span><span class="ln ">./pnr/scripts</span><span class="ln ">./pv</span><span class="ln ">./rtl</span><span class="ln ">./run</span><span class="ln ">./sta</span><span class="ln ">./syn</span><span class="ln ">./syn/netlist</span><span class="ln ">./syn/reports</span><span class="ln ">./syn/scripts</span></code></pre></div>
+<p>过关标准：<code>find . -type d | wc -l</code> 输出 13（含根目录自己）。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="real"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="pattern" data-ch="pattern">
+  <div class="ch-h"><span class="ch-n">05</span><h2>命令的通用规律</h2></div>
+  <p>Linux 命令基本都是一个模子：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">命令名  [选项]  [参数]</span><span class="ln ">ls      -lh      /home/weizhen</span></code></pre></div>
+<ul><li><strong>选项</strong>以 <code>-</code> 开头，控制"怎么干"。</li><li><strong>参数</strong>是"对谁干"，通常是文件或目录。</li><li>顺序不能反：<code>ls -lh /home</code> 对；<code>ls /home -lh</code> 大部分情况也能跑，但会让人困惑。</li></ul>
+<p>三个救命键：</p>
+<div class="tbl"><table><thead><tr><th>按键</th><th>作用</th></tr></thead><tbody><tr><td><code>Tab</code></td><td>自动补全。路径敲一半按 Tab，补不出说明路径错了——<strong>这是最有效的排错手段</strong></td></tr><tr><td><code>↑</code> / <code>↓</code></td><td>翻历史命令。别重复敲长命令</td></tr><tr><td><code>Ctrl + C</code></td><td>强制中断当前命令。命令卡住、刷屏停不下来时用</td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><p><code>cd /home/wei&lt;Tab&gt;</code> 会自动补成 <code>cd /home/weizhen/</code>。补不出来，说明你记的路径是错的。<strong>养成每敲两三个字符就按一次 Tab 的习惯</strong>，能消灭一大半路径错误。</p></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能解释绝对路径和相对路径的区别，并各举一例</li><li>能说出 <code>/ ~ . ..</code> 四个符号的含义</li><li>不看笔记，完成"回家 → 建目录 → 进入 → 退回 → 查权限"一整套</li><li>能画出（或说出）后端工程目录的六层结构，并说明为什么 <code>rtl/</code> 只读</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>cd ..</code> 和 <code>cd -</code> 有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>cd ..</code> 退到上一级目录；<code>cd -</code> 回到上一次所在目录（在两个目录之间来回切换用）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>ls -lh</code> 里 <code>-h</code> 有什么用？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">把文件大小从字节数变成 4.0K / 1.2M 这种人能读的单位。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么后端工程的 <code>rtl/</code> 目录通常是只读的？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">因为它由前端交付，是双方对账的基准。后端擅自修改会导致综合结果与前端验证过的版本不一致。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>mkdir -p a/b/c</code> 和 <code>mkdir a/b/c</code> 有什么区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>-p</code> 会把不存在的父目录一起建出来；不加 <code>-p</code> 时如果 <code>a</code> 不存在就会报错。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>按下 Tab 补不出路径，通常说明什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">路径本身写错了（拼错、大小写不对、或当前位置不对）。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="pattern"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/00-02-howto/">← 这个站怎么用：三种练法、题库、术语与进度</a><a class="nav-btn" href="/lesson/01-02-files/">文件操作与权限：为什么你的脚本"跑不了" →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

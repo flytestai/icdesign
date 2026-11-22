@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ECO 实战：从 PT 的违例到版图上的一次改动 · 30 | IC 后端学院</title>
+<meta name="description" content="版图都快送厂了，PT 报出 3 条 hold 违例。全流程重跑要两天，ECO 只要两小时。这一课给一套能直接用的 ECO 脚本骨架：读违例、生成改动、应用、局部重布、回签。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="05-04-eco">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-5">阶段五 · 28nm 全流程</a><span>/</span><b>ECO 实战：从 PT 的违例到版图上的一次改动</b></div>
+    <div class="hero">
+      <div class="hero-no">30</div>
+      <h1>ECO 实战：从 PT 的违例到版图上的一次改动</h1>
+      <p class="hero-en">Engineering Change Order in Practice</p>
+      <p class="hero-sum">版图都快送厂了，PT 报出 3 条 hold 违例。全流程重跑要两天，ECO 只要两小时。这一课给一套能直接用的 ECO 脚本骨架：读违例、生成改动、应用、局部重布、回签。</p>
+      <div class="hero-meta">
+        <span class="pill">约 50 分钟</span>
+        <span class="pill">课表学时 4</span>
+        <span class="pill tag">ECO</span><span class="pill tag">PT</span><span class="pill tag">ICC2</span><span class="pill tag">时序修复</span><span class="pill tag">等价性</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="what" data-ch="what">
+  <div class="ch-h"><span class="ch-n">01</span><h2>ECO 是什么，什么时候用它</h2></div>
+  <p>ECO（Engineering Change Order）是"<strong>只改必须改的地方</strong>"的一套流程。它不改 RTL、不重跑综合、不重做布局，直接在已有版图上动几十个单元。</p>
+<div class="tbl"><table><thead><tr><th>情况</th><th>全流程重跑</th><th>ECO</th></tr></thead><tbody><tr><td>时序差几条</td><td>几小时到两天</td><td>十几分钟到两小时</td></tr><tr><td>版图基本定型</td><td>全部重来</td><td>只动局部</td></tr><tr><td>风险</td><td>新版本可能引入新问题</td><td>改动面小，可控</td></tr><tr><td>前提</td><td>无</td><td><strong>必须能精确定位到具体单元</strong></td></tr></tbody></table></div>
+<div class="scene"><div class="scene-h">工作场景 · 送厂前三天，PT 报 3 条 hold 违例</div><div class="scene-b"><p>你签核完，PT 出报告：3 条 hold，最差 -0.07ns。全流程重跑要两天，时间不够。</p>
+<p>正确动作：写一个 ECO，在 3 条路径的终点插入 3 个 delay cell，局部重布，回签。两小时。</p>
+<p>这三个 cell 的面积代价是 3 × 0.76um² ≈ 2.3um²，占芯片 49440um² 的 0.005%。<strong>这就是 ECO 的价值：用最小改动换签核通过。</strong></p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">ECO</span><span class="term-zh">Engineering Change Order，工程变更单</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>原意是芯片设计流程里的"变更申请"。在后端语境下，特指<strong>在已有版图上做局部修改</strong>：换单元尺寸、插缓冲器、改连线，然后局部重布、重新签核。<br>三类 ECO：<strong>RTL ECO</strong>（改代码，要重跑综合）、<strong>门级 ECO</strong>（改网表，不动 RTL）、<strong>metal-only ECO</strong>（只改金属层，连硅片掩膜都不用重做，最贵也最快）。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="flow" data-ch="flow">
+  <div class="ch-h"><span class="ch-n">02</span><h2>完整链路：五个环节，一个都不能省</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">① PT 出违例报告（带具体 pin 名）</span><span class="ln ">      ↓</span><span class="ln ">② 生成 ECO 改动清单（哪个单元、换成什么、插在哪）</span><span class="ln ">      ↓</span><span class="ln ">③ 在 ICC2 里应用改动（改网表 + 改布局）</span><span class="ln ">      ↓</span><span class="ln ">④ 局部重布 + 局部时序优化（不是全芯片）</span><span class="ln ">      ↓</span><span class="ln ">⑤ 回签：PT 重新计时序、FM 验证等价性、DRC 复查</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>环节</th><th>工具</th><th>关键点</th></tr></thead><tbody><tr><td>① 找违例</td><td>PrimeTime</td><td>必须 <code>-significant_digits 4</code>，否则 -0.07 会显示成 -0.1</td></tr><tr><td>② 生成清单</td><td>脚本 / PT 的 <code>fix_eco_timing</code></td><td>清单必须是"人可读 + 机器可执行"</td></tr><tr><td>③ 应用</td><td>ICC2</td><td>改完先 <code>check_lvs</code> 再布线</td></tr><tr><td>④ 局部重布</td><td>ICC2 / Innovus</td><td>只布改动的网，别全芯片重布</td></tr><tr><td>⑤ 回签</td><td>PT + Formality</td><td><strong>改了网表必须重跑 FM</strong>，否则等于没验证</td></tr></tbody></table></div>
+  <label class="ch-done"><input type="checkbox" data-mark="flow"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="changelist" data-ch="changelist">
+  <div class="ch-h"><span class="ch-n">03</span><h2>改动清单长什么样</h2></div>
+  <p>一份好的 ECO 清单是纯文本，一行一个动作，人能看懂、脚本能解析：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># eco.txt —— 每个字段：动作 目标 参数 原因</span><span class="ln ">size_cell   u_core/u_alu/U2317   BUF_X4      # 驱动不足，负载 12 个</span><span class="ln ">insert_buf  u_core/u_ctrl/reg_state[2]/D  DELAY_X1   # hold -0.07ns，需 +70ps</span><span class="ln ">remove_buf  u_core/u_mul/U882    -           # 冗余缓冲，占了布线资源</span></code></pre></div>
+<p>为什么要用文本清单而不是直接写 Tcl：</p>
+<ol><li><strong>可评审</strong>：发给同事看一眼就知道你要改什么；</li><li><strong>可回退</strong>：清单留着，出问题按反向操作撤销；</li><li><strong>可统计</strong>：<code>grep -c insert_buf eco.txt</code> 就知道插了多少个。</li></ol>
+  <label class="ch-done"><input type="checkbox" data-mark="changelist"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="script" data-ch="script">
+  <div class="ch-h"><span class="ch-n">04</span><h2>应用脚本：可执行的骨架</h2></div>
+  <p>下面这段是能直接改成项目用的 ICC2 ECO 脚本。逐行看注释。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ============================================================</span><span class="ln cmt"># apply_eco.tcl —— 读取 eco.txt，在已有版图上应用改动</span><span class="ln cmt"># 用法：icc2_shell -f apply_eco.tcl</span><span class="ln cmt"># 前提：block 已经 open，且已 save 过一个"ECO 前"的快照</span><span class="ln cmt"># ============================================================</span><span class="ln "> </span><span class="ln ">set ECO_FILE  "./eco.txt"</span><span class="ln ">set SNAP_PRE  "snapshot_pre_eco"     ;# 出问题回退用</span><span class="ln "> </span><span class="ln cmt"># ---- 0. 先存一个快照。这一步永远不要省 ----</span><span class="ln ">save_block -as $SNAP_PRE</span><span class="ln ">puts "@@@ 已保存 ECO 前快照：$SNAP_PRE"</span><span class="ln "> </span><span class="ln cmt"># ---- 1. 读清单 ----</span><span class="ln ">set fh [open $ECO_FILE r]</span><span class="ln ">set lines [split [read $fh] "\n"]</span><span class="ln ">close $fh</span><span class="ln "> </span><span class="ln ">set n_size 0</span><span class="ln ">set n_ins  0</span><span class="ln ">set n_rem  0</span><span class="ln "> </span><span class="ln ">foreach line $lines {</span><span class="ln cmt">  # 去掉行尾注释和首尾空格；空行跳过</span><span class="ln ">  set line [string trim [lindex [split $line "#"] 0]]</span><span class="ln ">  if {$line eq ""} { continue }</span><span class="ln "> </span><span class="ln ">  set act  [lindex $line 0]</span><span class="ln ">  set tgt  [lindex $line 1]</span><span class="ln ">  set arg  [lindex $line 2]</span><span class="ln "> </span><span class="ln cmt">  # 每个动作单独 catch：一条失败不影响后面的</span><span class="ln ">  switch -- $act {</span><span class="ln ">    size_cell {</span><span class="ln cmt">      # 把某个实例换成另一个库单元（同功能、不同驱动）</span><span class="ln ">      if {[catch {size_cell $tgt $arg} err]} {</span><span class="ln ">        puts "@@@ FAIL size_cell $tgt -&gt; $arg : $err"</span><span class="ln ">      } else { incr n_size }</span><span class="ln ">    }</span><span class="ln ">    insert_buf {</span><span class="ln cmt">      # 在目标引脚前插一个缓冲/延迟单元</span><span class="ln cmt">      # -pin 指定插在哪个引脚之前，工具会自动断开原连线</span><span class="ln ">      if {[catch {</span><span class="ln ">        set buf [insert_buffer [get_pins $tgt] $arg]</span><span class="ln ">        set_attribute [get_cells $buf] is_physical true   ;# 标记为物理单元</span><span class="ln ">      } err]} {</span><span class="ln ">        puts "@@@ FAIL insert_buf $tgt : $err"</span><span class="ln ">      } else { incr n_ins }</span><span class="ln ">    }</span><span class="ln ">    remove_buf {</span><span class="ln cmt">      # 删掉冗余单元：先把它的输入连到输出，再删</span><span class="ln ">      if {[catch {</span><span class="ln ">        set ipin [get_pins -of_objects [get_cells $tgt] -filter "direction==in"]</span><span class="ln ">        set opin [get_pins -of_objects [get_cells $tgt] -filter "direction==out"]</span><span class="ln ">        set net  [get_nets -of_objects $ipin]</span><span class="ln ">        disconnect_net $net [get_pins -of_objects [get_cells $tgt]]</span><span class="ln ">        connect_net $net [get_pins -of_objects [get_nets -of_objects $opin] -filter "direction==in"]</span><span class="ln ">        remove_cell [get_cells $tgt]</span><span class="ln ">      } err]} {</span><span class="ln ">        puts "@@@ FAIL remove_buf $tgt : $err"</span><span class="ln ">      } else { incr n_rem }</span><span class="ln ">    }</span><span class="ln ">    default { puts "@@@ 未知动作：$act" }</span><span class="ln ">  }</span><span class="ln ">}</span><span class="ln "> </span><span class="ln ">puts "@@@ ECO 应用完成：size=$n_size insert=$n_ins remove=$n_rem"</span><span class="ln "> </span><span class="ln cmt"># ---- 2. 合法性检查（必须有）----</span><span class="ln ">legalize_placement</span><span class="ln ">check_lvs</span><span class="ln cmt"># 如果有错，这里就要停下来，不要继续布线</span><span class="ln "> </span><span class="ln cmt"># ---- 3. 只布改动的网，不要全芯片重布 ----</span><span class="ln ">route_auto -nets [get_nets -of_objects [get_cells -hier -filter "is_physical==true"]]</span><span class="ln ">route_detail -incremental true</span><span class="ln "> </span><span class="ln cmt"># ---- 4. 局部时序优化：只优化受影响区域 ----</span><span class="ln ">set_app_options -name opt.post_route.effort -value medium</span><span class="ln ">route_opt -incremental</span><span class="ln "> </span><span class="ln cmt"># ---- 5. 出报告 + 存盘 ----</span><span class="ln ">redirect eco_drc.rpt { check_routes }</span><span class="ln ">redirect eco_timing.rpt { report_qor }</span><span class="ln ">save_block -as snapshot_post_eco</span><span class="ln ">puts "@@@ ECO 完成，报告：eco_drc.rpt / eco_timing.rpt"</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · <code>insert_buffer</code> 之后忘了 <code>legalize_placement</code></div><div class="pit-b"><p>插进去的单元坐标是"挨着目标引脚"的浮点位置，可能和别的单元重叠。不 legalize 直接布线，会得到一堆 spacing DRC 和 short。</p>
+<p><strong>规矩：任何改变布局的 ECO，应用完第一件事就是 <code>legalize_placement</code>。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="script"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="pteco" data-ch="pteco">
+  <div class="ch-h"><span class="ch-n">05</span><h2>让 PT 帮你算：`fix_eco_timing`</h2></div>
+  <p>手写清单适合少量违例。几百条违例时，让 PT 生成：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ---- 在 PT 里 ----</span><span class="ln cmt"># 1) 先确认时序真的收敛过，报告可信</span><span class="ln ">report_timing -delay_type min -max_paths 20 -significant_digits 4</span><span class="ln "> </span><span class="ln cmt"># 2) 让 PT 生成 ECO 修复建议（只出方案，不改网表）</span><span class="ln ">fix_eco_timing -type hold \</span><span class="ln ">               -methods {insert_buffer size_cell} \</span><span class="ln ">               -buffer_list {DELAY_X1 BUF_X2} \</span><span class="ln ">               -slack_lesser_than 0</span><span class="ln "> </span><span class="ln cmt"># 3) 把方案写成脚本</span><span class="ln ">write_changes -format icctcl -output eco_hold.tcl</span><span class="ln cmt">#    icctcl = ICC2 能直接 source 的格式</span><span class="ln cmt">#    也可以 -format ptsh / dcsh / innovus</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>参数</th><th>作用</th><th>建议</th></tr></thead><tbody><tr><td><code>-type hold</code> / <code>setup</code></td><td>修哪类违例</td><td>一次只修一类，先 hold 后 setup</td></tr><tr><td><code>-methods</code></td><td>允许哪些手段</td><td>只给 <code>size_cell</code> 更安全；<code>insert_buffer</code> 更有效</td></tr><tr><td><code>-buffer_list</code></td><td>允许插哪些单元</td><td>明确列出，别让工具自由发挥</td></tr><tr><td><code>-slack_lesser_than 0</code></td><td>只修负 slack 的</td><td>加 <code>-slack_greater_than -0.1</code> 可限制"只修严重的"</td></tr></tbody></table></div>
+<div class="note"><div class="note-h">PT 生成的 ECO 为什么不建议直接 source</div><p>PT 只看时序，不知道物理。它可能建议把一个单元换大两档，但那个位置<strong>放不下</strong>；或者建议插 5 个 buffer，但那片区域<strong>已经拥塞</strong>。</p>
+<p>正确做法：PT 出方案 → 人看一遍 → 删掉物理上不合理的 → 再应用。这个"人看一遍"是 ECO 里最值钱的十分钟。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="pteco"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="case" data-ch="case">
+  <div class="ch-h"><span class="ch-n">06</span><h2>实战：修那 3 条 -0.07ns 的 hold</h2></div>
+  <p>回放我们实测的场景（12026 单元，ICC2，hold WNS -0.07ns）。</p>
+<p><strong>第一步：确认违例在哪</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_timing -delay_type min -max_paths 5 -significant_digits 4 \</span><span class="ln ">              -path_type full_clock_expanded</span></code></pre></div>
+<p>看到三条，都在 <code>u_ctrl/state_reg[*]</code> 的 D 端。原因：这几个触发器离时钟树末端很近，时钟到得早，数据反而"太早稳定"→ hold 违例。</p>
+<p><strong>第二步：判断修法</strong></p>
+<div class="tbl"><table><thead><tr><th>方案</th><th>做法</th><th>代价</th><th>选不选</th></tr></thead><tbody><tr><td>A. 数据路径插 delay cell</td><td>在 D 端前插 <code>DELAY_X1</code>（约 60~80ps）</td><td>3 个单元，面积 +2.3um²</td><td>✅ 选这个</td></tr><tr><td>B. 调时钟 skew</td><td>让这几个触发器的时钟晚到</td><td>影响同一支路其他触发器</td><td>❌ 风险大</td></tr><tr><td>C. 换更大驱动的上一级</td><td><code>size_cell</code> 换大</td><td>可能改善也可能恶化</td><td>❌ 不针对 hold</td></tr></tbody></table></div>
+<p><strong>第三步：写清单</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">insert_buf  u_ctrl/state_reg[2]/D  DELAY_X1   # hold -0.0712ns，需 +72ps</span><span class="ln ">insert_buf  u_ctrl/state_reg[5]/D  DELAY_X1   # hold -0.0688ns</span><span class="ln ">insert_buf  u_ctrl/state_reg[7]/D  DELAY_X1   # hold -0.0654ns</span></code></pre></div>
+<p><strong>第四步：应用 + 回签</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">icc2_shell -f apply_eco.tcl          # 应用改动</span><span class="ln ">pt_shell  -f scripts/pt.tcl          # 重新签核时序</span><span class="ln ">fm_shell  -f scripts/fm.tcl          # 等价性（关键！）</span></code></pre></div>
+<p><strong>第五步：确认三件事</strong></p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">1) PT: hold WNS 从 -0.07 变成 +0.02  ✅</span><span class="ln ">2) FM: 2560/2560 等价              ✅</span><span class="ln ">3) DRC: 仍是 0                     ✅</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 改了网表却没更新 SVF，FM 直接报不等价</div><div class="pit-b"><p>Formality 靠 SVF（引导文件）知道"工具做了哪些优化"。ECO 手工改的网表<strong>不在 SVF 里</strong>，FM 会认为你改坏了逻辑。</p>
+<p>两种处理：</p>
+<ol><li>手工改动<strong>只允许物理类</strong>（插 buffer/delay、换同功能不同驱动），并在 FM 里 <code>set_dont_verify_points</code> 排除这些点；</li><li>或者用 <code>eco_netlist</code> 生成增量 SVF 一并喂给 FM。</li></ol>
+<p><strong>千万不要</strong>因为 FM 报错就把这几条设成 don't care——那是把"验证"变成"假装验证"。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="case"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="discipline" data-ch="discipline">
+  <div class="ch-h"><span class="ch-n">07</span><h2>ECO 的四条纪律</h2></div>
+  <ol><li><strong>一次只改一类问题</strong>。先 hold，回签；再 setup，回签。混在一起改，出问题不知道是谁的锅；</li><li><strong>每次改动前存快照</strong>（<code>save_block -as snapshot_pre_xxx</code>）。ECO 的价值就是可回退，不回退就没价值；</li><li><strong>清单进 git</strong>。<code>eco.txt</code> 是文本，必须版本管理，写明"为什么改"；</li><li><strong>改完必查三样</strong>：时序（PT）、等价（FM）、DRC。少一样都不算完成。</li></ol>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Metal-only ECO</span><span class="term-zh">只改金属层的 ECO</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>芯片已经流片回来，发现逻辑或时序问题，只能改金属层（因为晶体管层已经做死了）。做法是预先在版图里留一些<strong>备用单元（spare cell）</strong>，需要时只改连线。<br>这是最贵最快的一种 ECO，通常只在"芯片已经回来但有问题"时用。</p></div>
+</div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：写一份自己的 ECO 清单并解析它</div><div class="lab-b"><p>在模拟终端里做这个练习（这是真实工作里的第一步）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~</span><span class="ln ">cat &gt; eco.txt &lt;&lt;'EOF'</span><span class="ln cmt"># 动作        目标                              参数        原因</span><span class="ln ">insert_buf    u_ctrl/state_reg[2]/D             DELAY_X1    hold -0.0712</span><span class="ln ">insert_buf    u_ctrl/state_reg[5]/D             DELAY_X1    hold -0.0688</span><span class="ln ">size_cell     u_core/u_alu/U2317                BUF_X4      驱动不足</span><span class="ln ">EOF</span><span class="ln "> </span><span class="ln cmt"># 统计每类动作有多少条</span><span class="ln ">awk '!/^#/ &amp;&amp; NF&gt;0 {print $1}' eco.txt | sort | uniq -c</span></code></pre></div>
+<p>预期输出：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">   2 insert_buf</span><span class="ln ">   1 size_cell</span></code></pre></div>
+<p>再进一步：把"原因含 hold"的行挑出来</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep hold eco.txt | awk '{print $2}'</span></code></pre></div>
+<p>过关标准：能用 <code>awk</code> + <code>grep</code> + <code>sort</code> + <code>uniq</code> 三个命令统计任意一份改动清单。这套动作每天都会用到。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出三类 ECO（RTL / 门级 / metal-only）的区别</li><li>能画出 ECO 五环节链路，知道每环节用什么工具</li><li>能写出 <code>size_cell</code> / <code>insert_buffer</code> / <code>remove_buf</code> 三条应用命令</li><li>知道应用后必须 <code>legalize_placement</code>，再局部布线，再回签</li><li>知道 ECO 后必须重跑 FM，且手工改动要用 SVF/dont_verify 正确处​理</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>ECO 相比全流程重跑，核心优势是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">改动面小、时间短、风险可控：只动必须动的单元，不重跑综合与全局布局。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 PT 生成的 ECO 建议不能直接 source？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">PT 只看时序不看物理，可能建议换大单元但位置放不下，或插 buffer 但区域已拥塞，需要人工筛一遍。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>改了网表之后为什么必须重跑 Formality？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">手工 ECO 不在 SVF 引导文件里，等价性没有被验证过；不重跑就等于没验证，芯片可能逻辑错误。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>insert_buffer</code> 之后为什么必须 <code>legalize_placement</code>？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">新插单元的坐标可能与其他单元重叠，不合法化会产生 spacing DRC 和短路。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>ECO 的四条纪律是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">一次只改一类、改前存快照、清单进 git、改完查时序/等价/DRC 三样。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="discipline"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/05-03-pv/">← 物理验证：DRC / LVS / ERC / Antenna</a><a class="nav-btn" href="/lesson/06-01-sta-deep/">STA 深水区：时钟组、跨时钟域与悲观度 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

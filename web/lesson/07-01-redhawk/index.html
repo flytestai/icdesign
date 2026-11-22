@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IR Drop 与 RedHawk：芯片为什么会死机 · 33 | IC 后端学院</title>
+<meta name="description" content="时序全绿、DRC 全清，芯片照样可能死机——因为电压不够。这一课讲静态/动态 IR drop、EM，以及 RedHawk 报告怎么看。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="07-01-redhawk">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-7">阶段七 · 功耗与 RedHawk</a><span>/</span><b>IR Drop 与 RedHawk：芯片为什么会死机</b></div>
+    <div class="hero">
+      <div class="hero-no">33</div>
+      <h1>IR Drop 与 RedHawk：芯片为什么会死机</h1>
+      <p class="hero-en">IR Drop & RedHawk</p>
+      <p class="hero-sum">时序全绿、DRC 全清，芯片照样可能死机——因为电压不够。这一课讲静态/动态 IR drop、EM，以及 RedHawk 报告怎么看。</p>
+      <div class="hero-meta">
+        <span class="pill">约 35 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">IR drop</span><span class="pill tag">EM</span><span class="pill tag">RedHawk</span><span class="pill tag">功耗完整性</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="cases" data-ch="cases">
+  <div class="ch-h"><span class="ch-n">01</span><h2>两个真实故障</h2></div>
+  <p><strong>故障一：芯片跑低频正常，一上高频就随机死机。</strong> 原因：高频时电流瞬间变大，局部电压跌落超过 10%，触发器抓错数据。</p>
+<p><strong>故障二：芯片用了半年开始出问题，越来越频繁。</strong> 原因：电源线电流密度太大，金属被电迁移"烧"出空洞，电阻逐渐变大。</p>
+<p>这两种都不是时序问题，也不是 DRC 问题，而是<strong>功耗完整性问题</strong>。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Power Integrity</span><span class="term-zh">功耗完整性</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Power Integrity（PI）。研究"电能能不能干净、稳定地送到每个单元"。包含 IR drop、EM、电源噪声等。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="cases"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="types" data-ch="types">
+  <div class="ch-h"><span class="ch-n">02</span><h2>IR Drop 分两种</h2></div>
+  <div class="tbl"><table><thead><tr><th>类型</th><th>什么时候发生</th><th>典型阈值</th><th>工具</th></tr></thead><tbody><tr><td>静态 IR drop</td><td>平均电流引起</td><td>&lt; 3%~5% VDD</td><td>RedHawk / Voltus</td></tr><tr><td>动态 IR drop</td><td>时钟沿同时翻转，瞬间大电流</td><td>&lt; 8%~10% VDD</td><td>需要激励向量（VCD）</td></tr></tbody></table></div>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">静态：所有单元同时耗平均电流 → 电源网格上的平均压降</span><span class="ln ">动态：时钟上升沿，几万个触发器同时翻转 → 瞬时电流尖峰 → 局部电压塌陷</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Dynamic IR Drop</span><span class="term-zh">动态电压降</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>芯片里最危险的不是平均功耗，而是<strong>瞬间电流</strong>。时钟沿到来的那一刻，几万个触发器同时动作，电流可以在几十皮秒内冲到峰值。<br>如果电源网格响应不过来（电感、电阻太大），局部电压会瞬间塌下去，触发器就可能抓错数据。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="types"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="inputs" data-ch="inputs">
+  <div class="ch-h"><span class="ch-n">03</span><h2>RedHawk 需要什么输入</h2></div>
+  <div class="tbl"><table><thead><tr><th>输入</th><th>内容</th><th>来源</th></tr></thead><tbody><tr><td>DEF</td><td>布局布线</td><td>PR 工具</td></tr><tr><td>LEF</td><td>单元物理</td><td>库</td></tr><tr><td>Liberty（.lib）</td><td>功耗模型</td><td>库</td></tr><tr><td>SPEF</td><td>寄生 RC</td><td>PR/RCX</td></tr><tr><td>Power intent（UPF）</td><td>电源域与开关</td><td>低功耗设计</td></tr><tr><td>激励（VCD/FSDB）</td><td>实际翻转活动</td><td>仿真</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 没有 VCD，做不了动态 IR</div><div class="pit-b"><p>静态 IR 只需要平均功耗（<code>report_power</code> 就能给）。动态 IR 必须有<strong>真实翻转信息</strong>——哪个信号什么时候翻转。</p>
+<p>没有 VCD 时，工具只能用"假设翻转率"（比如 20%），结果只能做趋势参考，不能签核。</p>
+<p><strong>所以动态 IR 分析要和验证团队要仿真波形，这是跨团队协作的典型场景。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="inputs"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="report" data-ch="report">
+  <div class="ch-h"><span class="ch-n">04</span><h2>报告怎么看</h2></div>
+  <p>RedHawk 输出通常是热图 + 统计表：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Voltage Drop Summary (VDD, static)</span><span class="ln ">  Max drop      : 42.3 mV  (4.2% of 1.0V)</span><span class="ln ">  Location      : (1240, 860)  near u_core/u_dsp</span><span class="ln ">  Avg drop      : 18.7 mV</span><span class="ln ">  Violating instances : 37</span></code></pre></div>
+<p>三件事：</p>
+<ol><li><strong>最大压降是多少、占标称电压的百分比</strong>。</li><li><strong>在哪个位置、哪个模块附近</strong> —— 这决定怎么修。</li><li><strong>有多少个单元超过阈值</strong> —— 决定严重程度。</li></ol>
+<div class="scene"><div class="scene-h">工作场景 · 定位到具体模块之后怎么修</div><div class="scene-b"><p>报告说压降最大在 <code>u_dsp</code> 附近，三种修法按代价排：</p>
+<ol><li><strong>加电源条密度</strong>：在那个区域多打几条 stripe（最直接）。</li><li><strong>加 via</strong>：如果是层间瓶颈，补 via 阵列。</li><li><strong>降局部功耗</strong>：让 dsp 模块降低翻转率（改设计）、或分散布局（挪一部分逻辑走）。</li></ol>
+<p><strong>先看是"供电不够"还是"用电太猛"，对策完全不同。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="report"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="em" data-ch="em">
+  <div class="ch-h"><span class="ch-n">05</span><h2>EM：电迁移</h2></div>
+  <p>电流密度超过限值，金属原子被电子"推走"，形成空洞或小丘，最终断路或短路。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">允许电流 ≈ 线宽 × 工艺给的电流密度上限（mA/µm）</span></code></pre></div>
+<p>所以电源线宽不是随便定的，是按电流算出来的（03-04 算过）。</p>
+<div class="tbl"><table><thead><tr><th>检查项</th><th>位置</th><th>修法</th></tr></thead><tbody><tr><td>电源线 EM</td><td>stripe / ring</td><td>加宽、加并联条</td></tr><tr><td>信号线 EM</td><td>大驱动输出</td><td>加宽、降低驱动</td></tr><tr><td>via EM</td><td>过孔</td><td>加 via 数量</td></tr></tbody></table></div>
+  <label class="ch-done"><input type="checkbox" data-mark="em"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="summary" data-ch="summary">
+  <div class="ch-h"><span class="ch-n">06</span><h2>一节可以背下来的结论</h2></div>
+  <div class="tbl"><table><thead><tr><th>现象</th><th>病因</th><th>查什么</th></tr></thead><tbody><tr><td>低频正常、高频死机</td><td>动态 IR drop</td><td>时钟沿附近的电压波形</td></tr><tr><td>用久了出问题</td><td>EM</td><td>电流密度报告</td></tr><tr><td>局部区域功能异常</td><td>静态 IR drop</td><td>压降热图 + 该区域电源密度</td></tr><tr><td>上电时序异常</td><td>power gating 时序</td><td>UPF + switch 控制信号</td></tr></tbody></table></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能区分静态/动态 IR drop，知道各自阈值量级</li><li>知道 RedHawk 需要哪六类输入，尤其是 VCD 的作用</li><li>会读压降报告的三要素（最大值、位置、违例单元数）</li><li>知道 EM 的成因和三种修法</li><li>能根据"什么时候出问题"反推病因</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>静态 IR drop 和动态 IR drop 的区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">静态由平均电流引起（阈值 3%~5%）；动态由时钟沿瞬间大电流引起（阈值 8%~10%），需要 VCD 激励。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么做动态 IR 必须有 VCD？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">因为要知道每个信号真实的翻转时间和翻转率，否则算不出瞬时电流尖峰。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>压降最大点在 <code>u_dsp</code> 附近，三种修法是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">加密电源条、补 via 阵列、降低该模块功耗或分散布局。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>EM 是什么？怎么预防？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">电迁移：电流密度过大导致金属原子迁移、最终断路。预防靠按电流算线宽、加并联条、增加 via 数量。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>"芯片用了半年才开始出问题"最可能是什么原因？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">EM（电迁移）导致电阻逐渐变大，是累积性失效，不是设计逻辑错误。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="summary"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/06-02-path-debug/">← 时序路径调试：从 WNS 数字走到那一个单元</a><a class="nav-btn" href="/lesson/08-01-experience/">工程经验：新手最容易踩的 12 个坑 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

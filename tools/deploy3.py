@@ -1,0 +1,115 @@
+# -*- coding: utf-8 -*-
+"""部署（分块上传版）：单连接、8KB 分块追加，避开大块写入被重置的问题。"""
+import hashlib
+import io
+import os
+import subprocess
+import sys
+import tarfile
+import time
+
+import paramiko
+
+HOST, USER = os.environ.get("ICL_HOST", "132.226.110.78"), os.environ.get("ICL_USER", "weizhen")
+PWD = os.environ.get("ICL_PASS", "")
+if not PWD:
+    sys.exit("缺少密码：请先设置环境变量 ICL_PASS（不要把密码写进代码或提交到仓库）")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+WEB = os.path.join(ROOT, "web")
+REMOTE = "/home/weizhen/icacademy"
+TAR = "/home/weizhen/icl_site.tar.gz"
+CHUNK = 8192
+
+
+def connect():
+    c = paramiko.SSHClient()
+    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    c.connect(HOST, 22, USER, PWD, timeout=30, banner_timeout=40, auth_timeout=40,
+              look_for_keys=False, allow_agent=False)
+    c.get_transport().set_keepalive(10)
+    return c
+
+
+def sh(c, cmd, timeout=300):
+    i, o, e = c.exec_command(cmd, timeout=timeout)
+    out = o.read().decode(errors="ignore")
+    err = e.read().decode(errors="ignore")
+    rc = o.channel.recv_exit_status()
+    return rc, out, err
+
+
+def bundle():
+    buf = io.BytesIO()
+    n = 0
+    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
+        for dirpath, _dirs, files in os.walk(WEB):
+            for fn in files:
+                if fn.endswith(".pyc") or fn.startswith("_"):
+                    continue
+                full = os.path.join(dirpath, fn)
+                tar.add(full, arcname=os.path.relpath(full, WEB))
+                n += 1
+    return buf.getvalue(), n
+
+
+def main():
+    if "--no-build" not in sys.argv:
+        rc = subprocess.call([sys.executable, os.path.join(ROOT, "tools", "build.py")])
+        if rc != 0:
+            print("build failed")
+            return rc
+
+    data, n = bundle()
+    md5 = hashlib.md5(data).hexdigest()
+    print("bundle: %d files, %.0f KB, md5=%s" % (n, len(data) / 1024, md5))
+
+    c = connect()
+    try:
+        sh(c, "rm -f " + TAR)
+        chunks = (len(data) + CHUNK - 1) // CHUNK
+        for k in range(chunks):
+            part = data[k * CHUNK:(k + 1) * CHUNK]
+            i, o, e = c.exec_command("cat >> " + TAR, timeout=60)
+            i.write(part)
+            i.flush()
+            i.channel.shutdown_write()
+            rc = o.channel.recv_exit_status()
+            if rc != 0:
+                print("chunk %d failed rc=%d" % (k, rc), e.read().decode()[:200])
+                return 1
+        print("uploaded %d chunks" % chunks)
+
+        rc, out, _ = sh(c, "stat -c %s " + TAR + "; md5sum " + TAR + " | cut -d' ' -f1")
+        lines = [x for x in out.strip().split("\n") if x]
+        print("remote size=%s md5=%s" % (lines[0] if lines else "?", lines[-1] if lines else "?"))
+        if len(lines) < 2 or lines[-1] != md5:
+            print("!! 校验不一致，停止部署")
+            return 1
+
+        rc, out, err = sh(c, (
+            "set -e; cd %s; rm -rf site_new; mkdir -p site_new; "
+            "tar xzf %s -C site_new; "
+            "test -f site_new/index.html; test -f site_new/quiz/index.html; "
+            "echo extracted=$(find site_new -type f | wc -l)" % (REMOTE, TAR)))
+        print(out.strip(), err.strip()[:300])
+
+        rc, out, err = sh(c, (
+            "set -e; cd %s; ts=$(date +%%s); "
+            "if [ -d web ]; then mv web web_old_$ts; fi; mv site_new web; "
+            "ls -d web; (systemctl restart icacademy || sudo -n systemctl restart icacademy); sleep 3; "
+            "systemctl is-active icacademy" % REMOTE), timeout=180)
+        print(out.strip(), err.strip()[:300])
+
+        time.sleep(2)
+        rc, out, err = sh(c, (
+            "for p in / /quiz/ /glossary/ /search/ /progress/ /cheatsheet/ "
+            "/lesson/03-10-optcts/ /lesson/05-04-eco/ /data/quiz.json /assets/shell.js; do "
+            "printf '%s -> ' $p; curl -s -o /dev/null -w '%{http_code}\\n' -m 8 http://127.0.0.1:8710$p; done"), timeout=180)
+        print(out.strip())
+        return 0
+    finally:
+        c.close()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

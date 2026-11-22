@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STA 深水区：时钟组、跨时钟域与悲观度 · 31 | IC 后端学院</title>
+<meta name="description" content="会算 setup/hold 只是入门。真实项目里最难的是"哪些路径该查、该怎么查"——时钟组、跨时钟域、多周期、false path，以及签核时该有多悲观。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="06-01-sta-deep">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-6">阶段六 · STA 静态时序分析</a><span>/</span><b>STA 深水区：时钟组、跨时钟域与悲观度</b></div>
+    <div class="hero">
+      <div class="hero-no">31</div>
+      <h1>STA 深水区：时钟组、跨时钟域与悲观度</h1>
+      <p class="hero-en">Advanced STA</p>
+      <p class="hero-sum">会算 setup/hold 只是入门。真实项目里最难的是"哪些路径该查、该怎么查"——时钟组、跨时钟域、多周期、false path，以及签核时该有多悲观。</p>
+      <div class="hero-meta">
+        <span class="pill">约 50 分钟</span>
+        <span class="pill">课表学时 6</span>
+        <span class="pill tag">STA</span><span class="pill tag">CDC</span><span class="pill tag">OCV</span><span class="pill tag">约束</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="groups" data-ch="groups">
+  <div class="ch-h"><span class="ch-n">01</span><h2>一、时钟组：异步时钟之间不该比</h2></div>
+  <p>芯片里通常有多个时钟：core clk、ddr clk、apb clk。它们频率不同、相位无关（异步）。</p>
+<p>如果工具把异步时钟之间的路径也按时序检查，会报出大量"永远修不好"的违例——因为它们本来就不该比。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 把两组时钟设为异步（互不检查）</span><span class="ln ">set_clock_groups -asynchronous \</span><span class="ln ">    -group {clk_core} \</span><span class="ln ">    -group {clk_ddr}</span><span class="ln "> </span><span class="ln cmt"># 或者按名字批量设</span><span class="ln ">set_clock_groups -asynchronous \</span><span class="ln ">    -group [get_clocks clk_core*] \</span><span class="ln ">    -group [get_clocks clk_ddr*]</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Clock Group</span><span class="term-zh">时钟组</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>告诉工具"这几组时钟之间是异步的，不要互相做时序检查"。<br><strong>这是 SDC 里最容易被漏掉、也最容易造成假违例的一条约束。</strong></p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · 忘了设 clock group，报告里一堆"不可能修好"的违例</div><div class="pit-b"><p>现象：<code>report_timing</code> 里最差路径总是跨在 <code>clk_core</code> 和 <code>clk_ddr</code> 之间，slack −3ns，怎么优化都不动。</p>
+<p>原因：两个异步时钟被当成同步检查了。</p>
+<p>处理：先确认这两个时钟确实异步（看设计规格/前端确认），再设 <code>set_clock_groups -asynchronous</code>。</p>
+<p><strong>注意：设成异步不等于"没问题"</strong> —— 异步时钟域之间需要 CDC（跨时钟域）电路保证安全，这是设计问题，不是时序问题。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">CDC</span><span class="term-zh">跨时钟域</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Clock Domain Crossing。信号从一个时钟域传到另一个时钟域。<br>后端不做 CDC 设计，但要看懂：单比特信号用两级同步器，多比特用异步 FIFO 或握手。<strong>如果前端没做，后端怎么优化都没用。</strong></p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="groups"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="exceptions" data-ch="exceptions">
+  <div class="ch-h"><span class="ch-n">02</span><h2>二、false path 与 multicycle：该松的松，该紧的紧</h2></div>
+  <div class="tbl"><table><thead><tr><th>约束</th><th>含义</th><th>典型场景</th></tr></thead><tbody><tr><td><code>set_false_path</code></td><td>完全不检查</td><td>复位、测试逻辑、异步时钟域之间（配合 CDC 电路）</td></tr><tr><td><code>set_multicycle_path</code></td><td>允许多个周期完成</td><td>慢速模块、使能信号控制的路径</td></tr><tr><td><code>set_max_delay</code></td><td>直接指定最大延迟</td><td>组合逻辑跨模块、异步接口</td></tr></tbody></table></div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 多周期：2 个周期完成，hold 检查要退回到第 1 个周期</span><span class="ln ">set_multicycle_path 2 -setup -from [get_cells u_slow/*] -to [get_cells u_slow/*]</span><span class="ln ">set_multicycle_path 1 -hold  -from [get_cells u_slow/*] -to [get_cells u_slow/*]</span><span class="ln cmt"># ↑ 只设 setup 不设 hold 是常见错误：hold 会检查错周期</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · multicycle 只设了 setup</div><div class="pit-b"><p><code>set_multicycle_path 2 -setup</code> 之后，hold 检查仍然按原周期算，但工具会以为 setup 检查点后移了一个周期，导致 <strong>hold 检查点位置错了</strong>。</p>
+<p>正确做法：setup 设 N，hold 就设 N−1。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="exceptions"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="pessimism" data-ch="pessimism">
+  <div class="ch-h"><span class="ch-n">03</span><h2>三、悲观度：签核要多保守</h2></div>
+  <div class="tbl"><table><thead><tr><th>层次</th><th>做法</th><th>什么时候用</th></tr></thead><tbody><tr><td>无 OCV</td><td>所有单元用标称延迟</td><td>早期探索，不能签核</td></tr><tr><td>OCV（统一 derate）</td><td>全部 ×1.05 / ×0.95</td><td>成熟工艺、快速评估</td></tr><tr><td>AOCV</td><td>按逻辑深度给不同 derate</td><td>28nm~16nm 常用</td></tr><tr><td>POCV / LVF</td><td>按统计分布（均值+方差）</td><td>16nm 以下必须</td></tr></tbody></table></div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># AOCV 示例</span><span class="ln ">read_aocvm ./aocv/tsmc28.aocvm</span><span class="ln ">set_timing_derate -early 0.97 -late 1.03</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">AOCV</span><span class="term-zh">先进 OCV</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Advanced OCV。核心洞察：<strong>路径越长，相对偏差越小</strong>（统计平均效应）。<br>所以深逻辑路径的 derate 可以小一点，浅逻辑路径要大一点——比统一 derate 更准，也没那么悲观。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 悲观度怎么影响项目</div><div class="scene-b"><p>同一版设计，用三种模式跑 PT：</p>
+<div class="tbl"><table><thead><tr><th>模式</th><th>setup WNS</th><th>结论</th></tr></thead><tbody><tr><td>无 OCV</td><td>+0.35ns</td><td>看起来很好</td></tr><tr><td>OCV 5%</td><td>−0.12ns</td><td>要修</td></tr><tr><td>AOCV</td><td>+0.08ns</td><td>可签核</td></tr></tbody></table></div>
+<p><strong>同一版设计，三种结论。</strong> 所以签核前必须和团队确认"用哪种模式、derate 多少"，否则各说各话。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="pessimism"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="budget" data-ch="budget">
+  <div class="ch-h"><span class="ch-n">04</span><h2>四、时序预算：把周期分给谁</h2></div>
+  <p>一个时钟周期里，时间要分给：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">T_period = T_launch_clk + T_logic + T_setup + T_skew + margin</span></code></pre></div>
+<p>实际项目里常用"预算表"管理：</p>
+<div class="tbl"><table><thead><tr><th>项目</th><th>预算</th><th>说明</th></tr></thead><tbody><tr><td>组合逻辑</td><td>60%</td><td>主要开销</td></tr><tr><td>时钟 skew</td><td>8%</td><td>CTS 目标</td></tr><tr><td>setup</td><td>7%</td><td>库参数</td></tr><tr><td>余量（margin）</td><td>25%</td><td>给布线绕线、OCV 留的缓冲</td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>因为<strong>布线前是估算、布线后会变差</strong>。我们实测中，理想互连 WNS +0.628ns，带真实 SPEF 后 +0.9955ns（这个案例里反而变好，因为线负载轻）。</p>
+<p>但一般经验是：布线后比布线前差 10%~20%。所以前期必须留够余量。</p></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>会用 <code>set_clock_groups -asynchronous</code> 处理异步时钟</li><li>知道 multicycle 要成对设 setup 和 hold</li><li>能说出 OCV / AOCV / POCV 的区别和适用节点</li><li>理解时序预算的构成，知道为什么要留 margin</li><li>明白"设成异步"不等于"CDC 安全"</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>set_clock_groups -asynchronous</code> 解决什么问题？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">告诉工具两组时钟互不检查，避免异步时钟之间报出永远修不好的假违例。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>set_multicycle_path 2 -setup</code> 之后 hold 该怎么设？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>set_multicycle_path 1 -hold</code>（N−1），否则 hold 检查点会错位。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>AOCV 相比 OCV 的核心改进是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">按逻辑深度分级 derate：路径越长相对偏差越小，比统一 derate 更准也更不悲观。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么时序预算要留 20%~25% 余量？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">布线后真实线延迟通常比估算差 10%~20%，还要覆盖 OCV 和优化波动。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>把异步时钟设成 false path 之后就安全了吗？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">不是。异步域之间还需要 CDC 电路（同步器/异步 FIFO）保证功能正确，这是设计问题。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="budget"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/05-04-eco/">← ECO 实战：从 PT 的违例到版图上的一次改动</a><a class="nav-btn" href="/lesson/06-02-path-debug/">时序路径调试：从 WNS 数字走到那一个单元 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

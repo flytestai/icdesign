@@ -2,111 +2,96 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IC 后端学院 · 从 RTL 到 GDSII 的交互式学习台</title>
-<meta name="description" content="IC 后端设计交互式学习平台：全流程、VCS/Verdi 验证调试、STA、布局布线、低功耗与物理验证。每一章都能动手操作。">
-<link rel="stylesheet" href="assets/platform.css">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IC 后端学院 · 零基础到能上手做项目</title>
+<meta name="description" content="面向零基础的 IC 数字后端课程：113 学时、9 个阶段，概念讲到能听懂，命令逐行注释，每一课都有可验收的实战。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
 </head>
-<body data-page="home">
-<div class="home">
-  <div class="home-wrap">
-
-    <header class="topnav">
-      <div class="brand">
-        <a href="./">
-          <div class="mark"></div>
-          <div>
-            <h1>IC 后端学院</h1>
-            <p>IC Backend Academy</p>
-          </div>
-        </a>
-      </div>
-      <nav>
-        <a href="#courses">课程目录</a>
-        <a href="#path">学习路径</a>
-        <a href="#about">关于</a>
-      </nav>
-      <button class="btn" data-search>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        搜索 <kbd style="font-size:9.5px;border:1px solid #243346;border-radius:4px;padding:0 4px;color:#4a5c70">⌘K</kbd>
-      </button>
-      <a class="btn pri" id="btn-continue" href="lesson/01-flow/" style="display:none">继续学习 →</a>
-    </header>
-
-    <section class="hero">
-      <div class="kicker">
-        <span style="width:5px;height:5px;border-radius:50%;background:#28d9a4;box-shadow:0 0 8px #28d9a4"></span>
-        Digital Backend · Physical Design
-      </div>
-      <h2>把一行行 RTL，学成一块<br>能<em>流片</em>的芯片</h2>
-      <p class="lead">
-        这里不是视频课。每一个操作都能点、能敲、能出错：编译仿真跑在真实终端里，DVE 和 Verdi 是可操作的模拟窗口，PPA 取舍可以用滑块亲手调。学完一章，你会知道这一步<b>为什么做、拿什么做、做砸了会怎样</b>。
-      </p>
-      <div class="hero-actions">
-        <a class="btn pri" href="lesson/01-flow/">从第 01 课开始 →</a>
-        <a class="btn" href="#courses">看看有哪些课</a>
-      </div>
-      <div class="hero-meta">
-        <div><b>2</b><span>已上线课程</span></div>
-        <div><b>21</b><span>可交互章节</span></div>
-        <div><b>6</b><span>课程规划</span></div>
-        <div><b id="stat-learners">—</b><span>位学习者在学</span></div>
-      </div>
-    </section>
-
-    <div class="sec-head" id="courses">
-      <h3>课程目录</h3>
-      <p>点开任意一课，左侧目录会展开它的全部章节</p>
-    </div>
-    <div class="cards" id="home-cards"></div>
-
-    <div class="sec-head" id="path">
-      <h3>学习路径</h3>
-      <p>建议按顺序，但每一课都可以单独学</p>
-    </div>
-    <div class="flowstrip">
-      <div class="fs"><b>流程全景</b><span>LESSON 01</span></div>
-      <div class="fs"><b>仿真与调试</b><span>LESSON 02</span></div>
-      <div class="fs"><b>时序收敛</b><span>LESSON 03</span></div>
-      <div class="fs"><b>布局布线</b><span>LESSON 04</span></div>
-      <div class="fs"><b>低功耗</b><span>LESSON 05</span></div>
-      <div class="fs"><b>物理验证</b><span>LESSON 06</span></div>
-    </div>
-
-    <div class="sec-head" id="about">
-      <h3>这个站点是怎么来的</h3>
-    </div>
-    <div class="cards">
-      <div class="lcard" style="--c1:#3ea8ff;--c2:#28d9a4">
-        <span class="no">SOURCE</span>
-        <h4>从真实课件拆出来的</h4>
-        <p class="desc">第 02 课源自一份 116 页的 VCS / Verdi 实操录屏课件，逐页还原了命令、选项表与报错原文；第 01 课按数字后端标准流程编写。后续课件会继续按同样方式接入。</p>
-        <div class="tags"><span>116 页课件</span><span>逐条还原</span></div>
-      </div>
-      <div class="lcard" style="--c1:#b585ff;--c2:#3ea8ff">
-        <span class="no">INTERACTION</span>
-        <h4>模拟器都是自己写的</h4>
-        <p class="desc">终端模拟器有文件系统与编译状态；波形渲染器支持总线、进制切换、拖拽放大与游标；DVE / Verdi 窗口按真实界面的分区与右键菜单还原。</p>
-        <div class="tags"><span>零依赖</span><span>纯前端</span></div>
-      </div>
-      <div class="lcard" style="--c1:#28d9a4;--c2:#f5c451">
-        <span class="no">PROGRESS</span>
-        <h4>进度跟着账号走</h4>
-        <p class="desc">完成情况通过匿名设备 ID 同步到服务端，换浏览器也能接着学。断网时先存本地，联网后自动补传。</p>
-        <div class="tags"><span>云端同步</span><span>离线可用</span></div>
-      </div>
-    </div>
-
-    <footer class="foot">
-      <span>IC 后端学院 · 交互式学习平台</span>
-      <span class="grow"></span>
-      <span>持续更新中 · 有新课件就会加课</span>
-    </footer>
-
+<body data-page="home" data-lesson="home">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a class="on" href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><a class="ghost" href="#plan">学习路线</a><a class="ghost" href="/progress/">我的进度</a></div>
+</header>
+<section class="home-hero">
+  <div class="hh-in">
+    <div class="hh-k">Digital Backend · 9 个阶段 · 137 学时</div>
+    <h1>把一块芯片<br>从代码变成版图</h1>
+    <p>这门课写给<strong>完全没接触过芯片后端</strong>的人。每个概念先讲"它解决什么问题"，再讲工具怎么按；每个英文术语都给中文；每一行命令都写了注释和"删掉会怎样"。</p>
+    <div class="hh-btns"><a class="pri" href="/lesson/00-01-start/">从第一课开始 →</a><a class="ghost" href="#plan">先看学习路线</a></div>
+    <div class="hh-stats"><div><b>36</b><span>课程</span></div><div><b>191</b><span>章节</span></div><div><b>25h14</b><span>预计时长</span></div></div>
   </div>
-</div>
-<div class="scrim" id="scrim"></div>
-<script>window.__CATALOG__={"version":"2026.11.22","title":"IC 后端学院","subtitle":"IC Backend Academy","lessons":[{"id":"01-flow","no":"01","title":"IC 后端设计全景","en":"RTL to GDSII","desc":"从 RTL 冻结到 GDSII 交付，把综合、DFT、布局规划、CTS、布线、签核这条链路一次铺开。含流程排序、文件配对、PPA 调参沙盘。","tags":["全流程","PPA","签核","术语"],"color":["#3ea8ff","#28d9a4"],"status":"live","minutes":45,"chapters":[{"id":"intro","title":"后端的定位：前后端怎么分工"},{"id":"flow","title":"全流程八阶段：谁给谁交付什么"},{"id":"order","title":"挑战：把打乱的阶段排回正确顺序"},{"id":"artifacts","title":"交付物与六种核心文件格式"},{"id":"ppac","title":"沙盘：把一块芯片调到能签核"},{"id":"signoff","title":"签核清单与放行判断"},{"id":"terms","title":"18 个行话速查"},{"id":"quiz","title":"结业测验（8 题）"}]},{"id":"02-vcs-verdi","no":"02","title":"VCS × Verdi 验证与调试","en":"Simulation & Debug","desc":"从 Makefile、VCS 三步式编译仿真，到 DVE 看波形、三种 fsdb 产生方式，再到 Verdi 的 nTrace / nWave / nSchema 溯源。终端、DVE、Verdi 全部可实操。","tags":["VCS","DVE","Verdi","fsdb","实操"],"color":["#28d9a4","#3ea8ff"],"status":"live","minutes":90,"chapters":[{"id":"intro","title":"课程导览与学习地图"},{"id":"eda","title":"EDA 工具全景"},{"id":"env","title":"工程目录与环境"},{"id":"makefile","title":"Makefile 自动化脚本"},{"id":"vcs-flow","title":"VCS 三步式流程"},{"id":"vcs-lab","title":"实战一：命令行编译仿真"},{"id":"dve","title":"实战二：DVE 波形调试"},{"id":"fsdb","title":"产生 fsdb 的三种方法"},{"id":"verdi-intro","title":"Verdi 架构与四大工具"},{"id":"ntrace","title":"实战三：nTrace 溯源"},{"id":"nwave","title":"实战四：nWave 与 nSchema"},{"id":"debug","title":"常见错误排查"},{"id":"quiz","title":"结业测验（10 题）"}]},{"id":"03-sta","no":"03","title":"静态时序分析 STA","en":"Static Timing Analysis","desc":"setup / hold 的数学本质、时钟约束怎么写、OCV 与 derate、timing report 怎么读、违例怎么修。","tags":["STA","SDC","PrimeTime"],"color":["#f5c451","#ff9f45"],"status":"soon","minutes":60,"chapters":[]},{"id":"04-pnr","no":"04","title":"布局布线实战","en":"Place & Route","desc":"Floorplan 决策、macro 摆放、电源网格、拥塞分析、CTS 与布线的实操流程。","tags":["Floorplan","CTS","Routing"],"color":["#b585ff","#6f7bff"],"status":"soon","minutes":75,"chapters":[]},{"id":"05-lowpower","no":"05","title":"低功耗设计","en":"Low Power Design","desc":"UPF 电源意图、电源域与隔离、clock gating、多电压域与 DVFS 的物理实现。","tags":["UPF","Power Gating","DVFS"],"color":["#28d9a4","#3ea8ff"],"status":"soon","minutes":50,"chapters":[]},{"id":"06-pv","no":"06","title":"物理验证与 Signoff","en":"Physical Verification","desc":"DRC / LVS / ERC / Antenna / 密度，Calibre 规则文件与常见违例的修复手法。","tags":["DRC","LVS","Calibre"],"color":["#ff6b7a","#ff9f45"],"status":"soon","minutes":55,"chapters":[]}]};</script>
-<script src="assets/platform.js"></script>
+</section>
+
+<section class="quick">
+  <div class="qgrid">
+    <a class="qcard" href="/quiz/"><b>题库</b><span>176 道自测题 · 随机抽题 · 错题本</span></a>
+    <a class="qcard" href="/glossary/"><b>术语表</b><span>87 条中英对照 · 按阶段筛选</span></a>
+    <a class="qcard" href="/cheatsheet/"><b>命令速查</b><span>Linux / Innovus / ICC2 / PT 一页查</span></a>
+    <a class="qcard" href="/progress/"><b>进度看板</b><span>哪一阶段欠多少、下一步学什么</span></a>
+  </div>
+</section>
+
+<section class="plan" id="plan">
+  <h2 class="sec-h">学习路线</h2>
+  <p class="sec-p">按顺序学，不要跳。前一阶段是后一阶段的地基 —— 这也是很多人"看了很多教程还是不会做项目"的真正原因。</p>
+  <div class="stages"><div class="stage" id="stage-0" style="--c:#6b7f99">
+  <div class="stage-l"><span class="stage-n">0</span></div>
+  <div class="stage-r"><h3>阶段零 · 导学</h3><p>先把路看清，再开始走</p>
+  <div class="lrows"><a class="lrow" href="/lesson/00-01-start/"><span class="lno">00</span><span class="lt">这门课教什么，以及怎么学才不白学<i>Orientation</i></span><span class="lh">2 学时</span><span class="lm">30 分钟</span></a><a class="lrow" href="/lesson/00-02-howto/"><span class="lno">01</span><span class="lt">这个站怎么用：三种练法、题库、术语与进度<i>How to Use This Course</i></span><span class="lh">1 学时</span><span class="lm">18 分钟</span></a></div></div>
+</div><div class="stage" id="stage-1" style="--c:#2f7fd0">
+  <div class="stage-l"><span class="stage-n">1</span></div>
+  <div class="stage-r"><h3>阶段一 · Linux 与 Tcsh</h3><p>后端工程师 90% 的时间在终端里</p>
+  <div class="lrows"><a class="lrow" href="/lesson/01-01-terminal/"><span class="lno">02</span><span class="lt">终端与文件系统：我是谁、我在哪、这儿有什么<i>Terminal &amp; Filesystem</i></span><span class="lh">3 学时</span><span class="lm">40 分钟</span></a><a class="lrow" href="/lesson/01-02-files/"><span class="lno">03</span><span class="lt">文件操作与权限：为什么你的脚本"跑不了"<i>Files &amp; Permissions</i></span><span class="lh">3 学时</span><span class="lm">40 分钟</span></a><a class="lrow" href="/lesson/01-03-text/"><span class="lno">04</span><span class="lt">文本处理三件套：grep / sed / awk<i>grep, sed, awk</i></span><span class="lh">3.5 学时</span><span class="lm">45 分钟</span></a><a class="lrow" href="/lesson/01-04-process/"><span class="lno">05</span><span class="lt">进程、后台任务与环境变量<i>Processes &amp; Environment</i></span><span class="lh">3 学时</span><span class="lm">42 分钟</span></a><a class="lrow" href="/lesson/01-05-tcsh/"><span class="lno">06</span><span class="lt">Tcsh 基础：芯片公司的默认 Shell<i>Tcsh Basics</i></span><span class="lh">3 学时</span><span class="lm">40 分钟</span></a><a class="lrow" href="/lesson/01-06-runscript/"><span class="lno">07</span><span class="lt">实战：用 Tcsh 写一个真正能用的跑批脚本<i>Tcsh in Practice</i></span><span class="lh">2.5 学时</span><span class="lm">38 分钟</span></a><a class="lrow" href="/lesson/01-07-version/"><span class="lno">08</span><span class="lt">版本管理与自动化：git、make 和日志归档<i>Version Control &amp; Automation for Backend Engineers</i></span><span class="lh">4 学时</span><span class="lm">42 分钟</span></a></div></div>
+</div><div class="stage" id="stage-2" style="--c:#18a07a">
+  <div class="stage-l"><span class="stage-n">2</span></div>
+  <div class="stage-r"><h3>阶段二 · 后端基本概念</h3><p>先懂芯片怎么造出来，再谈工具</p>
+  <div class="lrows"><a class="lrow" href="/lesson/02-01-chip/"><span class="lno">09</span><span class="lt">芯片是怎么造出来的：从沙子到 GDSII<i>How a Chip Is Made</i></span><span class="lh">2 学时</span><span class="lm">32 分钟</span></a><a class="lrow" href="/lesson/02-02-flow/"><span class="lno">10</span><span class="lt">后端八阶段：谁给谁交付什么<i>The 8-Stage Flow</i></span><span class="lh">2 学时</span><span class="lm">38 分钟</span></a><a class="lrow" href="/lesson/02-03-inputs/"><span class="lno">11</span><span class="lt">开工前要拿到什么：设计数据准备与自检<i>Design Data Preparation &amp; Sanity Checks</i></span><span class="lh">3 学时</span><span class="lm">38 分钟</span></a></div></div>
+</div><div class="stage" id="stage-3" style="--c:#c98a1e">
+  <div class="stage-l"><span class="stage-n">3</span></div>
+  <div class="stage-r"><h3>阶段三 · Innovus 40nm 项目</h3><p>从一个空目录到能跑通的布局布线</p>
+  <div class="lrows"><a class="lrow" href="/lesson/03-01-innovus/"><span class="lno">12</span><span class="lt">Innovus 起步：一个后端工具到底在管什么<i>Getting Started with Innovus</i></span><span class="lh">2 学时</span><span class="lm">35 分钟</span></a><a class="lrow" href="/lesson/03-02-floorplan/"><span class="lno">13</span><span class="lt">Floorplan：先定房子的格局<i>Floorplan</i></span><span class="lh">4 学时</span><span class="lm">45 分钟</span></a><a class="lrow" href="/lesson/03-03-macro/"><span class="lno">14</span><span class="lt">宏单元摆放实战：通道宽度的算法<i>Macro Placement</i></span><span class="lh">3 学时</span><span class="lm">40 分钟</span></a><a class="lrow" href="/lesson/03-04-power/"><span class="lno">15</span><span class="lt">电源规划：给每个单元供上电<i>Power Planning</i></span><span class="lh">2 学时</span><span class="lm">35 分钟</span></a><a class="lrow" href="/lesson/03-05-place/"><span class="lno">16</span><span class="lt">Placement：几万个单元怎么摆<i>Placement</i></span><span class="lh">4 学时</span><span class="lm">45 分钟</span></a><a class="lrow" href="/lesson/03-06-setup-hold/"><span class="lno">17</span><span class="lt">setup 与 hold：用"拍照"讲明白时序<i>Setup &amp; Hold</i></span><span class="lh">6 学时</span><span class="lm">55 分钟</span></a><a class="lrow" href="/lesson/03-07-fix-timing/"><span class="lno">18</span><span class="lt">修时序：六种手段和它们的代价<i>Timing Closure</i></span><span class="lh">6 学时</span><span class="lm">55 分钟</span></a><a class="lrow" href="/lesson/03-08-cts/"><span class="lno">19</span><span class="lt">CTS 时钟树：让时钟同时到达<i>Clock Tree Synthesis</i></span><span class="lh">4 学时</span><span class="lm">48 分钟</span></a><a class="lrow" href="/lesson/03-09-route/"><span class="lno">20</span><span class="lt">布线、优化与收尾：从能连到能交付<i>Routing, Optimization &amp; Chip Finish</i></span><span class="lh">7 学时</span><span class="lm">55 分钟</span></a><a class="lrow" href="/lesson/03-10-optcts/"><span class="lno">21</span><span class="lt">OptCts：时钟树做完只是开始<i>Clock Tree Optimization (OptCts)</i></span><span class="lh">3 学时</span><span class="lm">40 分钟</span></a><a class="lrow" href="/lesson/03-11-optroute/"><span class="lno">22</span><span class="lt">OptRoute：把 DRC 从几千条磨到零<i>Routing Optimization (OptRoute)</i></span><span class="lh">3 学时</span><span class="lm">42 分钟</span></a><a class="lrow" href="/lesson/03-12-chipfinish/"><span class="lno">23</span><span class="lt">ChipFinish：收尾这一步，决定能不能送厂<i>Chip Finishing &amp; Tapeout Handoff</i></span><span class="lh">2 学时</span><span class="lm">28 分钟</span></a></div></div>
+</div><div class="stage" id="stage-4" style="--c:#7a5cd6">
+  <div class="stage-l"><span class="stage-n">4</span></div>
+  <div class="stage-r"><h3>阶段四 · ICC2 32nm 项目</h3><p>换一套工具，把同一套方法论再走一遍</p>
+  <div class="lrows"><a class="lrow" href="/lesson/04-01-icc2/"><span class="lno">24</span><span class="lt">ICC2：换一套工具，把同一件事再做一遍<i>ICC2 Fundamentals</i></span><span class="lh">2 学时</span><span class="lm">35 分钟</span></a><a class="lrow" href="/lesson/04-02-icc2-flow/"><span class="lno">25</span><span class="lt">ICC2 全流程实战：从空目录到导出版图<i>ICC2 Full Flow</i></span><span class="lh">10 学时</span><span class="lm">60 分钟</span></a><a class="lrow" href="/lesson/04-03-upf/"><span class="lno">26</span><span class="lt">低功耗与 UPF：让芯片省电的四种手段<i>Low Power &amp; UPF</i></span><span class="lh">4 学时</span><span class="lm">45 分钟</span></a></div></div>
+</div><div class="stage" id="stage-5" style="--c:#c05a7a">
+  <div class="stage-l"><span class="stage-n">5</span></div>
+  <div class="stage-r"><h3>阶段五 · 28nm 全流程</h3><p>PR → PT → PV，像项目一样串起来</p>
+  <div class="lrows"><a class="lrow" href="/lesson/05-01-pr-flow/"><span class="lno">27</span><span class="lt">28nm 全流程（一）：把 PR 串成项目<i>28nm PR Flow</i></span><span class="lh">4 学时</span><span class="lm">40 分钟</span></a><a class="lrow" href="/lesson/05-02-pt/"><span class="lno">28</span><span class="lt">PrimeTime 签核：自己给自己签字不算数<i>PrimeTime Signoff</i></span><span class="lh">14 学时</span><span class="lm">65 分钟</span></a><a class="lrow" href="/lesson/05-03-pv/"><span class="lno">29</span><span class="lt">物理验证：DRC / LVS / ERC / Antenna<i>Physical Verification</i></span><span class="lh">2 学时</span><span class="lm">35 分钟</span></a><a class="lrow" href="/lesson/05-04-eco/"><span class="lno">30</span><span class="lt">ECO 实战：从 PT 的违例到版图上的一次改动<i>Engineering Change Order in Practice</i></span><span class="lh">4 学时</span><span class="lm">50 分钟</span></a></div></div>
+</div><div class="stage" id="stage-6" style="--c:#b8860b">
+  <div class="stage-l"><span class="stage-n">6</span></div>
+  <div class="stage-r"><h3>阶段六 · STA 静态时序分析</h3><p>时序是后端的命，必须自己能算</p>
+  <div class="lrows"><a class="lrow" href="/lesson/06-01-sta-deep/"><span class="lno">31</span><span class="lt">STA 深水区：时钟组、跨时钟域与悲观度<i>Advanced STA</i></span><span class="lh">6 学时</span><span class="lm">50 分钟</span></a><a class="lrow" href="/lesson/06-02-path-debug/"><span class="lno">32</span><span class="lt">时序路径调试：从 WNS 数字走到那一个单元<i>Debugging a Timing Path</i></span><span class="lh">3 学时</span><span class="lm">38 分钟</span></a></div></div>
+</div><div class="stage" id="stage-7" style="--c:#a34a3a">
+  <div class="stage-l"><span class="stage-n">7</span></div>
+  <div class="stage-r"><h3>阶段七 · 功耗与 RedHawk</h3><p>芯片为什么会烧、会烫</p>
+  <div class="lrows"><a class="lrow" href="/lesson/07-01-redhawk/"><span class="lno">33</span><span class="lt">IR Drop 与 RedHawk：芯片为什么会死机<i>IR Drop &amp; RedHawk</i></span><span class="lh">2 学时</span><span class="lm">35 分钟</span></a></div></div>
+</div><div class="stage" id="stage-8" style="--c:#4a7a8c">
+  <div class="stage-l"><span class="stage-n">8</span></div>
+  <div class="stage-r"><h3>阶段八 · 工程经验</h3><p>别人踩过的坑，你别再踩</p>
+  <div class="lrows"><a class="lrow" href="/lesson/08-01-experience/"><span class="lno">34</span><span class="lt">工程经验：新手最容易踩的 12 个坑<i>Field Notes</i></span><span class="lh">4 学时</span><span class="lm">45 分钟</span></a></div></div>
+</div><div class="stage" id="stage-9" style="--c:#5a6b7a">
+  <div class="stage-l"><span class="stage-n">9</span></div>
+  <div class="stage-r"><h3>阶段九 · 求职</h3><p>把会的东西讲清楚、卖出去</p>
+  <div class="lrows"><a class="lrow" href="/lesson/09-01-career/"><span class="lno">35</span><span class="lt">求职：把做过的事讲成别人听得懂的价值<i>Resume &amp; Interview</i></span><span class="lh">4 学时</span><span class="lm">50 分钟</span></a></div></div>
+</div></div>
+</section>
+
+<section class="faq" id="faq">
+  <h2 class="sec-h">常见问题</h2>
+  <div class="faq-grid">
+    <div><h3>需要什么基础？</h3><p>会开机、会用浏览器就行。Linux 从"什么是终端"开始讲；数字电路的基本概念会在阶段二补。阶段一的 Linux 课自带浏览器内模拟终端，不装环境也能练。</p></div>
+    <div><h3>要装什么软件？</h3><p>课程实验跑在一台 Linux 服务器上，浏览器里给命令、给解释、给预期输出；本机只需要一个 SSH 客户端。前面几个阶段的练习用页面里的模拟终端就能做完。</p></div>
+    <div><h3>学完能做什么？</h3><p>能独立走完 综合 → 布局 → 时钟树 → 布线 → 时序签核 这条链路，看得懂每份报告，知道违例从哪来、怎么修。</p></div>
+    <div><h3>为什么英文字母这么多？</h3><p>行业里就是这么叫的，改不了。所以每个术语第一次出现都给中英对照卡，点开有白话解释；全部术语还汇总在术语表里。</p></div>
+  </div>
+</section>
+
+<footer class="foot">
+  <p>IC 后端学院 · 课表 9 阶段 113 学时 + 实战补充 · 共 36 课 191 章</p>
+</footer>
+<script src="/assets/app.js?v=1795352341"></script>
 </body>
 </html>

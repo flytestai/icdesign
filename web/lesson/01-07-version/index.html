@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>版本管理与自动化：git、make 和日志归档 · 08 | IC 后端学院</title>
+<meta name="description" content="后端工程师一天改二十次脚本，改错了必须能退回；跑一次几小时，跑完必须知道哪个版本跑的。这一课讲 git 最小命令集、make 三步流水线、以及用时间戳目录归档结果。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="01-07-version">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcsh</a><span>/</span><b>版本管理与自动化：git、make 和日志归档</b></div>
+    <div class="hero">
+      <div class="hero-no">08</div>
+      <h1>版本管理与自动化：git、make 和日志归档</h1>
+      <p class="hero-en">Version Control & Automation for Backend Engineers</p>
+      <p class="hero-sum">后端工程师一天改二十次脚本，改错了必须能退回；跑一次几小时，跑完必须知道哪个版本跑的。这一课讲 git 最小命令集、make 三步流水线、以及用时间戳目录归档结果。</p>
+      <div class="hero-meta">
+        <span class="pill">约 42 分钟</span>
+        <span class="pill">课表学时 4</span>
+        <span class="pill tag">git</span><span class="pill tag">make</span><span class="pill tag">脚本</span><span class="pill tag">自动化</span><span class="pill tag">日志</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么后端工程师必须会 git</h2></div>
+  <p>先看一个真实场景：</p>
+<div class="scene"><div class="scene-h">工作场景 · 改参数改崩了，想回到昨天</div><div class="scene-b"><p>周三你把 <code>pnr.tcl</code> 里的利用率从 0.30 改到 0.40，跑了一夜，DRC 从 0 变成 1874。你想回到 0.30 那一版——但你手上只有 <code>pnr.tcl</code>、<code>pnr.tcl.bak</code>、<code>pnr_new.tcl</code>、<code>pnr_new2.tcl</code>、<code>pnr_final.tcl</code>，<strong>不知道哪个是 0.30</strong>。</p>
+<p>有 git 的话，一条命令：<code>git checkout HEAD~1 -- pnr.tcl</code>。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Git</span><span class="term-zh">版本管理工具</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>记录"每次改了什么、谁改的、为什么改"的工具。每个版本是一个 <strong>commit（提交）</strong>，可以随时回到任意一个历史版本。<br>后端用它主要做三件事：<strong>回退</strong>（改坏了退回去）、<strong>对比</strong>（这版和上版差在哪）、<strong>交接</strong>（别人接手能看懂历史）。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="basic" data-ch="basic">
+  <div class="ch-h"><span class="ch-n">02</span><h2>git 最小命令集（够用 90% 的场景）</h2></div>
+  <p>先建立一个概念：git 有三层。</p>
+<div class="tbl"><table><thead><tr><th>层</th><th>英文</th><th>是什么</th><th>对应命令</th></tr></thead><tbody><tr><td>工作区</td><td>working tree</td><td>你现在正在编辑的文件</td><td>直接用编辑器改</td></tr><tr><td>暂存区</td><td>staging area / index</td><td>"这次要提交哪些改动"的清单</td><td><code>git add</code></td></tr><tr><td>仓库</td><td>repository</td><td>已保存的历史版本</td><td><code>git commit</code></td></tr></tbody></table></div>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ---- 第一次：初始化 ----</span><span class="ln ">git init                          # 在当前目录建一个仓库（生成 .git/）</span><span class="ln ">git config user.name  "weizhen"   # 提交记录里显示的名字（只需设一次）</span><span class="ln ">git config user.email "w@x.com"</span><span class="ln "> </span><span class="ln cmt"># ---- 日常：改完文件，提交 ----</span><span class="ln ">git status                        # 看哪些文件改了（红色=未暂存，绿色=已暂存）</span><span class="ln ">git diff                          # 看具体改了哪几行（最重要的命令之一）</span><span class="ln ">git add pnr.tcl                   # 把这个文件放进暂存区</span><span class="ln ">git commit -m "util 0.30-&gt;0.40, DRC 0-&gt;1874"   # 存成一个版本</span><span class="ln "> </span><span class="ln cmt"># ---- 看历史 ----</span><span class="ln ">git log --oneline                 # 一行一个版本，带 hash（版本号）</span><span class="ln ">git show a1b2c3                   # 看某个版本具体改了什么</span><span class="ln "> </span><span class="ln cmt"># ---- 回退 ----</span><span class="ln ">git checkout HEAD~1 -- pnr.tcl    # 只把 pnr.tcl 退回上一个版本（别的文件不动）</span><span class="ln ">git revert a1b2c3                 # 生成一个"反向提交"，把那次改动撤销（推荐，历史保留）</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · <code>git checkout</code> 会覆盖你现在的改动</div><div class="pit-b"><p><code>git checkout HEAD~1 -- pnr.tcl</code> 是<strong>直接覆盖</strong>，你在这个文件里没提交的改动会<strong>永久丢失</strong>，没有任何提示。</p>
+<p>正确姿势：回退前先 <code>git status</code> 看清楚，或者先 <code>git stash</code>（把当前改动暂存起来）再操作。这是新人最常哭着来问的一条。</p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">commit</span><span class="term-zh">提交（一个版本快照）</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一次 commit 保存的是"整个项目在这一刻的样子"，不是"这次改的那几行"。所以回到任意 commit，你拿到的是完整的、当时能跑的状态。<br>提交信息（<code>-m</code> 后面的字）要写<strong>为什么改</strong>，不是"改了 pnr.tcl"。三个月后你只记得原因，不记得文件名。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="basic"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="branch" data-ch="branch">
+  <div class="ch-h"><span class="ch-n">03</span><h2>分支：拿来做参数实验最合适</h2></div>
+  <p>后端的典型用法：<strong>主线保持能跑，实验在分支上做</strong>。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">git branch                          # 看有哪些分支，* 是当前分支</span><span class="ln ">git checkout -b exp_util40          # 新建并切到实验分支</span><span class="ln cmt"># ...在实验分支上把利用率改成 0.40，提交...</span><span class="ln ">git checkout main                   # 切回主线（文件立刻变回 0.30 的样子）</span><span class="ln ">git merge exp_util40                # 如果实验结果好，合并进主线</span><span class="ln ">git branch -D exp_util40            # 如果不好，直接删掉，主线一点没脏</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>场景</th><th>怎么做</th></tr></thead><tbody><tr><td>试一个新参数，不确定好不好</td><td>开分支，跑完看结果，不好就删</td></tr><tr><td>线上流程突然崩了，要紧急修</td><td>从能跑的 tag 拉一个 <code>hotfix</code> 分支</td></tr><tr><td>交接给同事</td><td>让他 <code>git log --oneline</code> 看你的提交信息</td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><p><code>git tag v1.0-drc0</code> 给当前版本起一个不会变的名字。以后说"用 v1.0-drc0 那一版网表"，比说"用上周三那版"靠谱得多。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="branch"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="ignore" data-ch="ignore">
+  <div class="ch-h"><span class="ch-n">04</span><h2>哪些东西不能提交进 git</h2></div>
+  <p>后端目录里有很多"大且会变"的东西，提交进去会让仓库变成几个 GB。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># .gitignore：列在这儿的文件，git 一律不管</span><span class="ln cmt">*.log                # 日志，跑一次几百 MB</span><span class="ln cmt">*.rpt                # 报告，每次跑都变</span><span class="ln cmt">*.db *.ndm *.enc     # 二进制数据库，大且无法对比</span><span class="ln ">work/  run*/         # 运行目录</span><span class="ln cmt">*.spef *.sdf         # 寄生与延时文件，体积大</span></code></pre></div>
+<p>判断标准：<strong>这个文件是"人写出来的"，还是"工具跑出来的"？</strong> 人写的（脚本、约束、Makefile）要提交；工具跑的（日志、报告、数据库）不提交。</p>
+<p>例外：<strong>最终的交付物</strong>（GDS、最终网表、签核报告）不进 git，但要单独归档到发布目录，并记录版本号。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="ignore"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="make" data-ch="make">
+  <div class="ch-h"><span class="ch-n">05</span><h2>make：把三步流程变成一个命令</h2></div>
+  <p>真实项目不会让人记"先跑 dc 再跑 pnr 最后跑 pt"。用 <code>make</code> 管：</p>
+<div class="code"><div class="code-h"><span class="code-lang">makefile</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># Makefile  —— 注意：命令行前面必须是 Tab，不是空格（这是 make 最大的坑）</span><span class="ln ">DESIGN  := ipa_top</span><span class="ln ">RUN_DIR := run_$(shell date +%Y%m%d_%H%M)</span><span class="ln "> </span><span class="ln ">.PHONY: all syn pnr signoff clean      # 声明"这些不是文件名，是动作"</span><span class="ln "> </span><span class="ln ">all: syn pnr signoff                   # make 不带参数时，依次做这三步</span><span class="ln "> </span><span class="ln ">syn:                                   # 综合</span><span class="ln ">	@mkdir -p $(RUN_DIR)/syn</span><span class="ln ">	dc_shell -f scripts/dc.tcl 2&gt;&amp;1 | tee $(RUN_DIR)/syn/dc.log</span><span class="ln "> </span><span class="ln ">pnr: syn                               # 布局布线依赖综合（make 会自动先跑 syn）</span><span class="ln ">	@mkdir -p $(RUN_DIR)/pnr</span><span class="ln ">	cd $(RUN_DIR)/pnr &amp;&amp; icc2_shell -f ../../scripts/pnr.tcl 2&gt;&amp;1 | tee pnr.log</span><span class="ln "> </span><span class="ln ">signoff: pnr                           # 签核依赖 pnr</span><span class="ln ">	@mkdir -p $(RUN_DIR)/sign</span><span class="ln ">	pt_shell -f scripts/pt.tcl 2&gt;&amp;1 | tee $(RUN_DIR)/sign/pt.log</span><span class="ln "> </span><span class="ln ">clean:</span><span class="ln ">	rm -rf run_*</span></code></pre></div>
+<p>用法：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">make            # 跑全流程</span><span class="ln ">make pnr        # 只跑到布局布线（make 会自动先做 syn）</span><span class="ln ">make clean      # 清掉所有运行目录</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Makefile</span><span class="term-zh">任务编排文件</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一个文本文件，里面写着"哪个任务依赖哪个任务、执行哪条命令"。<code>make pnr</code> 会先检查 <code>pnr</code> 依赖的 <code>syn</code> 有没有做过，没做过就先做。<br>后端用它管流程顺序，好处是<strong>顺序写死在文件里</strong>，不会有人漏跑一步。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · make 报 <code>missing separator</code></div><div class="pit-b"><div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Makefile:6: *** missing separator.  Stop.</span></code></pre></div>
+<p>99% 是因为命令行前面用了<strong>空格</strong>而不是 <strong>Tab</strong>。Makefile 对缩进极其严格：规则下面的命令，必须用一个 Tab 开头。</p>
+<p>在 vim 里按 <code>:set list</code> 能看到 Tab 显示为 <code>^I</code>，一眼就能查出来。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="make"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="log" data-ch="log">
+  <div class="ch-h"><span class="ch-n">06</span><h2>日志归档：跑完必须知道是哪一版跑的</h2></div>
+  <p>一次 PR 跑 3 小时，一天跑 4 次。<strong>如果日志都叫 <code>pnr.log</code>，第二天你不知道哪个是哪个。</strong></p>
+<p>规矩：<strong>每次运行一个带时间戳的目录</strong>。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 建目录：日期_时分 + 一句话说明</span><span class="ln ">RUN=run_$(date +%m%d_%H%M)_util30</span><span class="ln ">mkdir -p $RUN/{log,rpt,db}</span><span class="ln "> </span><span class="ln cmt"># 跑的时候同时输出到屏幕和文件（tee = 分叉）</span><span class="ln ">icc2_shell -f pnr.tcl 2&gt;&amp;1 | tee $RUN/log/pnr.log</span><span class="ln "> </span><span class="ln cmt"># 关键信息单独抽出来，方便对比</span><span class="ln ">grep -E "Total number of DRCs" $RUN/log/pnr.log &gt; $RUN/rpt/drc.txt</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>做法</th><th>好处</th></tr></thead><tbody><tr><td>目录带时间戳</td><td>一天跑十次也不会互相覆盖</td></tr><tr><td>目录名带关键参数</td><td>一眼看出这次试的是什么（util30）</td></tr><tr><td>`2&gt;&amp;1 \</td><td>tee`</td><td>屏幕能看进度，文件能事后查</td></tr><tr><td>单独抽 DRC/时序到小文件</td><td>对比两次结果时不用翻几万行日志</td></tr></tbody></table></div>
+<div class="note"><div class="note-h"><code>2&gt;&amp;1</code> 到底在干嘛</div><p><code>2&gt;&amp;1</code> 的意思是"把标准错误（2）也送到标准输出（1）去"。不加这一句，工具报的 <strong>Error 只会显示在屏幕上，不会进日志文件</strong>——你事后查日志会发现"怎么没有报错"，其实报错根本没被记下来。</p>
+<p>顺序不能反：<code>2&gt;&amp;1 | tee</code> 对，<code>| tee 2&gt;&amp;1</code> 错。管道只接管标准输出，所以必须先把错误并进标准输出，再进管道。</p></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：在模拟终端里做一个"带时间戳的运行目录"</div><div class="lab-b"><p>模拟终端里跑这一段（<code>tee</code> 不支持时用重定向代替，效果一样）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cd ~</span><span class="ln ">mkdir -p run_1122_2014/log</span><span class="ln ">echo "iteration 1 DRC 6000" &gt; run_1122_2014/log/pnr.log</span><span class="ln ">echo "iteration 2 DRC 156"  &gt;&gt; run_1122_2014/log/pnr.log</span><span class="ln ">cat run_1122_2014/log/pnr.log | grep DRC | tail -1</span><span class="ln "> </span><span class="ln ">ls run_1122_2014/log</span></code></pre></div>
+<p>预期最后一行输出：<code>iteration 2 DRC 156</code>。</p>
+<p>再过关一步：把日志里 DRC 的数字单独抽出来</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">awk '{print $4}' run_1122_2014/log/pnr.log</span></code></pre></div>
+<p>预期输出两行：<code>6000</code> 和 <code>156</code>。这就是"从日志里抽指标"的最小动作，真实项目里每天要做几十次。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 git 三层（工作区 / 暂存区 / 仓库）分别对应哪条命令</li><li>知道 <code>git checkout -- file</code> 会覆盖未提交改动，回退前先 <code>git status</code></li><li>能写出一个含 <code>syn/pnr/signoff</code> 三个目标、带依赖关系的 Makefile</li><li>知道 Makefile 命令行必须用 Tab</li><li>能给每次运行生成 <code>run_日期_时分_说明</code> 目录，并用 <code>2&gt;&amp;1 | tee</code> 同时留屏和留档</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>git add</code> 和 <code>git commit</code> 分别做了什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">add 把改动放进暂存区（准备提交的清单），commit 把暂存区的内容存成一个不可变的历史版本。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么日志要用 `2&gt;&amp;1</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">tee log<code>，而不是 </code>&gt; log<code>？|</code>&gt; log<code> 只接标准输出，错误信息会丢在屏幕上不进文件；</code>2&gt;&amp;1` 先把错误并进标准输出，tee 再同时写屏幕和文件。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Makefile 报 missing separator 是什么原因？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">规则下面的命令行没有用 Tab 开头（用了空格）。Makefile 对缩进要求是硬性的。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么日志目录要带时间戳和参数说明？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">一天多次运行会互相覆盖；带时间和参数能立刻知道"这份结果是哪一版、试的什么"，对比和回溯才有意义。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>哪些文件不该提交进 git？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">工具跑出来的大文件：日志、报告、数据库（.db/.ndm/.enc）、SPEF/SDF。人写的脚本和约束要提交。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="log"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-06-runscript/">← 实战：用 Tcsh 写一个真正能用的跑批脚本</a><a class="nav-btn" href="/lesson/02-01-chip/">芯片是怎么造出来的：从沙子到 GDSII →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>电源规划：给每个单元供上电 · 15 | IC 后端学院</title>
+<meta name="description" content="电源网格不是"随便铺几条粗线"。线太细会掉压、太粗会挡线。这一课讲 ring / stripe / rail 三层结构，以及怎么用 via 阵列把电阻压下来。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="03-04-power">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>电源规划：给每个单元供上电</b></div>
+    <div class="hero">
+      <div class="hero-no">15</div>
+      <h1>电源规划：给每个单元供上电</h1>
+      <p class="hero-en">Power Planning</p>
+      <p class="hero-sum">电源网格不是"随便铺几条粗线"。线太细会掉压、太粗会挡线。这一课讲 ring / stripe / rail 三层结构，以及怎么用 via 阵列把电阻压下来。</p>
+      <div class="hero-meta">
+        <span class="pill">约 35 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">power plan</span><span class="pill tag">IR drop</span><span class="pill tag">via</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="path" data-ch="path">
+  <div class="ch-h"><span class="ch-n">01</span><h2>电从哪来，到哪去</h2></div>
+  <p>一颗芯片的电从封装的电源引脚进来，经过：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">封装引脚 → IO 环 → 电源环（ring） → 电源条（stripe） → 单元电源轨（rail） → 单元内部</span></code></pre></div>
+<p>每一段都有电阻，每段都会掉一点电压。<strong>后端能控制的是 ring 和 stripe 的宽度、密度，以及 via 的数量。</strong></p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">IR Drop</span><span class="term-zh">电压降</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>电流 × 电阻 = 电压差。芯片内部某点电压低于标称值，差值就是 IR drop。<br>典型阈值：不超过标称电压的 3%~5%。比如 1.0V 供电，drop 超过 50mV 就要担心了。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="path"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="layers" data-ch="layers">
+  <div class="ch-h"><span class="ch-n">02</span><h2>三层结构</h2></div>
+  <h3>1. Power Ring（电源环）</h3>
+<p>围着核心区一圈，通常是上下两层金属各画一个环（M5/M6 横竖）。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">addRing -nets {VDD VSS} \</span><span class="ln ">        -type core_rings \</span><span class="ln ">        -layer {top M6 bottom M6 left M5 right M5} \</span><span class="ln ">        -width 4 -spacing 2 -offset 3</span><span class="ln cmt"># -width 4：环宽 4µm；-spacing 2：VDD 和 VSS 之间隔 2µm；-offset 3：距边界 3µm</span></code></pre></div>
+<h3>2. Power Stripe（电源条）</h3>
+<p>从环往内部拉的网格，横竖交错。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">addStripe -nets {VDD VSS} \</span><span class="ln ">          -layer M5 -direction vertical -width 2 -spacing 1.5 \</span><span class="ln ">          -set_to_set_distance 30 -start_from left</span><span class="ln cmt"># 每隔 30µm 一根竖条，宽 2µm</span></code></pre></div>
+<h3>3. Follow Pin / Rail（单元电源轨）</h3>
+<p>每个标准单元行的电源轨。工具会沿着行自动连，不需要手画，但要检查连接：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">sroute -connect {corePin} -nets {VDD VSS} -layerChangeRange {M1 M6}</span><span class="ln cmt"># 把每行的 rail 连到 stripe 上</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="layers"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="via" data-ch="via">
+  <div class="ch-h"><span class="ch-n">03</span><h2>Via 阵列：最容易被忽略的一步</h2></div>
+  <p>不同层之间靠 via 连接。一层 via 就是一个小电阻，<strong>一个 via 顶不住大电流，要打一片</strong>。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">❌ 单个 via：电阻大，电流集中，容易烧</span><span class="ln ">┌──────────┐</span><span class="ln ">│    ●     │</span><span class="ln ">└──────────┘</span><span class="ln "> </span><span class="ln ">✅ via 阵列：并联，电阻小，电流分散</span><span class="ln ">┌──────────┐</span><span class="ln ">│ ● ● ● ●  │</span><span class="ln ">│ ● ● ● ●  │</span><span class="ln ">│ ● ● ● ●  │</span><span class="ln ">└──────────┘</span></code></pre></div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 给电源条和环之间批量加 via</span><span class="ln ">editPowerVia -nets {VDD VSS} -add_vias 1 -orthogonal_only 0</span><span class="ln cmt"># 或者用更细的控制</span><span class="ln ">addVia -nets {VDD VSS} -area {10 10 200 200} -layers {M5 M6} -via_pitch 2</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 忘了打 via，IR 分析直接炸</div><div class="pit-b"><p>现象：电源网格画得漂漂亮亮，RedHawk 一跑，某些点 IR drop 到 120mV。</p>
+<p>原因：金属线没问题，但<strong>层与层之间只有零星几个 via</strong>，所有电流挤在那几个点上。</p>
+<p>对策：<code>verifyPowerVia</code> 检查 via 覆盖率，不足的地方补阵列。<strong>电源网格看的是"瓶颈"，不是"平均"。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="via"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="rules" data-ch="rules">
+  <div class="ch-h"><span class="ch-n">04</span><h2>电源规划的四条判断标准</h2></div>
+  <div class="tbl"><table><thead><tr><th>指标</th><th>怎么查</th><th>合格标准</th></tr></thead><tbody><tr><td>覆盖率</td><td><code>checkPGConnectivity</code></td><td>没有悬空的 rail</td></tr><tr><td>宽度</td><td>看 stripe 宽度 vs 电流</td><td>电流密度不超限（EM）</td></tr><tr><td>via 密度</td><td><code>verifyPowerVia</code></td><td>关键节点成阵列</td></tr><tr><td>对信号的影响</td><td>看利用率变化</td><td>电源占用面积 &lt;15%</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">EM</span><span class="term-zh">电迁移</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Electromigration。金属线里电流密度太大时，电子会把金属原子"推着走"，时间长了线就断了。<br>规则给的是"每微米宽度允许多少 mA"。所以电源线宽不是随便定的，是按电流算出来的。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 电源做多了也麻烦</div><div class="scene-b"><p>新手容易过度设计：ring 宽 10µm、stripe 宽 5µm、间距 10µm，铺满全片。</p>
+<p>结果：电源占了 30% 的面积，标准单元没地方放，利用率被顶到 0.85，布线拥塞爆炸。</p>
+<p><strong>电源规划的目标是"够用且不挡路"</strong>，一般电源占用控制在 10%~15%。</p></div></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：算一条 stripe 够不够</div><div class="lab-b"><p>条件：某条竖直 stripe 要给 2000 个单元供电，每个单元平均电流 0.5µA，stripe 宽 2µm，工艺允许电流密度 0.8mA/µm。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">python3 -c "</span><span class="ln ">n=2000; i_per=0.5e-3; w=2; dens=0.8</span><span class="ln ">I=n*i_per</span><span class="ln ">print('总电流 %.2f mA' % I)</span><span class="ln ">print('该宽度允许 %.2f mA' % (w*dens))</span><span class="ln ">print('是否够用:', 'YES' if I &lt; w*dens else 'NO, 需要宽度 %.2f um' % (I/dens))</span><span class="ln ">"</span></code></pre></div>
+<p>预期：总电流 1000mA，2µm 只允许 1.6mA → 严重不够，需要重新划分 stripe 密度（不是无限加宽，而是增加条数分摊电流）。</p>
+<p>过关标准：能解释"为什么不是把这一条加宽到 1250µm"（答案是：要用多条 stripe 并联分摊，单条超宽会挡住信号布线）。</p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出电源从封装到单元的完整路径</li><li>知道 ring / stripe / rail 三层各自作用</li><li>会用 <code>addRing</code>、<code>addStripe</code>、<code>sroute</code> 三条命令</li><li>知道 via 阵列为什么必须打</li><li>能估算一条 stripe 的载流能力</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>IR drop 是什么？阈值大概多少？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">电流在金属电阻上产生的电压降。一般要求不超过标称电压的 3%~5%。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么电源 via 要打成阵列？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">单个 via 电阻大、电流集中；阵列并联降低电阻、分散电流，避免局部过热和过大压降。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>addRing</code> 的 <code>-width</code> 和 <code>-spacing</code> 分别控制什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">环的金属宽度（载流能力）和 VDD/VSS 之间的间距（防止短路）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>电源规划过度设计会带来什么问题？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">占用过多面积，标准单元可用面积减少、利用率过高，导致布线拥塞和 DRC 违例。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>发现某点 IR drop 超标，应该先看什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">先看 via 覆盖（瓶颈常在层间连接），再看 stripe 密度是否够、电流是否集中。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="rules"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-03-macro/">← 宏单元摆放实战：通道宽度的算法</a><a class="nav-btn" href="/lesson/03-05-place/">Placement：几万个单元怎么摆 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

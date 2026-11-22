@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tcsh 基础：芯片公司的默认 Shell · 06 | IC 后端学院</title>
+<meta name="description" content="芯片行业大量流程脚本是 tcsh 写的。这一课讲清 set 和 setenv 的区别、别名、通配符、foreach 循环，以及 tcsh 与 bash 最容易踩的五个语法差异。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="01-05-tcsh">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcsh</a><span>/</span><b>Tcsh 基础：芯片公司的默认 Shell</b></div>
+    <div class="hero">
+      <div class="hero-no">06</div>
+      <h1>Tcsh 基础：芯片公司的默认 Shell</h1>
+      <p class="hero-en">Tcsh Basics</p>
+      <p class="hero-sum">芯片行业大量流程脚本是 tcsh 写的。这一课讲清 set 和 setenv 的区别、别名、通配符、foreach 循环，以及 tcsh 与 bash 最容易踩的五个语法差异。</p>
+      <div class="hero-meta">
+        <span class="pill">约 40 分钟</span>
+        <span class="pill">课表学时 3</span>
+        <span class="pill tag">tcsh</span><span class="pill tag">shell</span><span class="pill tag">脚本</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么是 tcsh</h2></div>
+  <p>你可能会问：Linux 默认不是 bash 吗，为什么还要学 tcsh？</p>
+<p>因为历史。EDA 工具在 1990 年代定型，那会儿主流是 csh/tcsh，于是所有公司的环境脚本、流程脚本都写成了 tcsh，一直沿用到现在。你今天进公司，看到的 <code>setup.csh</code>、<code>run.csh</code> 基本都是 tcsh。</p>
+<p>现实一点说：<strong>你可以用 bash 干活，但你读不懂 tcsh 脚本，就看不懂公司的流程。</strong></p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Tcsh</span><span class="term-zh">增强版 C Shell</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>csh 的改进版，语法接近 C 语言。特点是变量分两类（shell 变量和环境变量），用 <code>set</code> 和 <code>setenv</code> 分别设置。提示符常见 <code>%</code> 或 <code>&gt;</code>。<br>查看当前 shell：<code>echo $SHELL</code>；临时切进 tcsh：直接敲 <code>tcsh</code>，退出用 <code>exit</code>。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="vars" data-ch="vars">
+  <div class="ch-h"><span class="ch-n">02</span><h2>变量分两种，这是 tcsh 最容易搞混的地方</h2></div>
+  <div class="tbl"><table><thead><tr><th>类型</th><th>设置命令</th><th>读取方式</th><th>能否传给子进程</th></tr></thead><tbody><tr><td>shell 变量（本地）</td><td><code>set x = 1</code></td><td><code>$x</code></td><td>❌ 不能</td></tr><tr><td>环境变量</td><td><code>setenv X 1</code></td><td><code>$X</code></td><td>✅ 能</td></tr></tbody></table></div>
+<div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">set n = 10                # 定义本地变量 n，等号两边可以有空格</span><span class="ln ">echo $n                   # 10</span><span class="ln "> </span><span class="ln ">setenv PROJECT ipa        # 定义环境变量</span><span class="ln ">echo $PROJECT             # ipa</span><span class="ln "> </span><span class="ln ">set path = ( /usr/bin /bin $HOME/bin )   # path 是 tcsh 的特殊数组变量</span><span class="ln cmt"># 注意：tcsh 里 PATH 用小写 path，是数组不是冒号字符串</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · tcsh 的 path 是数组，不是冒号串</div><div class="pit-b"><p>bash：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">export PATH=/a:/b:$PATH        # 冒号分隔的字符串</span></code></pre></div>
+<p>tcsh：</p>
+<div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">set path = ( /a /b $path )     # 空格分隔的数组，小写</span></code></pre></div>
+<p>在 tcsh 里写 <code>export PATH=...</code> 会直接报错；写 <code>setenv PATH /a:/b</code> 虽然不报错，但很多工具读的是 <code>path</code> 数组，行为会不一致。<strong>记住：tcsh 加路径用 <code>set path = ( 新目录 $path )</code>。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="vars"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="alias" data-ch="alias">
+  <div class="ch-h"><span class="ch-n">03</span><h2>别名：把长命令变短</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">alias ll 'ls -lht'</span><span class="ln ">alias la 'ls -la'</span><span class="ln ">alias .. 'cd ..'</span><span class="ln ">alias grep 'grep --color=auto'</span><span class="ln "> </span><span class="ln cmt"># 看所有别名</span><span class="ln ">alias</span><span class="ln "> </span><span class="ln cmt"># 取消</span><span class="ln ">unalias ll</span></code></pre></div>
+<p>常驻要写进 <code>~/.cshrc</code>。老工程师的 <code>.cshrc</code> 里通常有十几个别名，那是十几年攒下来的效率。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Alias</span><span class="term-zh">别名</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>给一条（或一串）命令起个短名字。敲 <code>ll</code> 等于敲 <code>ls -lht</code>。<br>别名只在当前 shell 有效，所以写在 <code>.cshrc</code> 里才会每次登录都有。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="alias"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="glob" data-ch="glob">
+  <div class="ch-h"><span class="ch-n">04</span><h2>通配符与命令历史</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">ls *.tcl              # * 匹配任意多个字符</span><span class="ln ">ls run?.log           # ? 匹配单个字符</span><span class="ln ">ls run[1-9].log       # [] 匹配范围内一个字符</span><span class="ln ">ls {a,b,c}.tcl        # {} 展开成 a.tcl b.tcl c.tcl，csh 特有，很好用</span><span class="ln "> </span><span class="ln ">!!                    # 重复上一条命令</span><span class="ln ">!$                    # 上一条命令的最后一个参数</span><span class="ln ">!*                    # 上一条命令的所有参数</span><span class="ln ">history               # 看历史命令列表</span></code></pre></div>
+<div class="tip"><div class="tip-h">小技巧</div><div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">ls /home/autumn/backend_lab/ipa_soc/pnr</span><span class="ln cmt"># 输出一堆文件</span><span class="ln ">cd !$                 # 等价于 cd /home/autumn/.../pnr</span></code></pre></div>
+<p>长路径只敲一次，后面用 <code>!$</code> 复用。</p></div>
+<div class="sbx" data-preset="basic">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>模拟终端</b><span class="sbx-tip">试：setenv PDK /home/autumn/pdk、echo $PDK、alias ll="ls -l"、ll</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">[autumn@eda ~]$</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入命令，按回车运行" aria-label="模拟终端输入"></div>
+  </div>
+  <div class="sbx-f">这里跑的是浏览器里的模拟环境：命令、输出、报错都按真实 Linux 的行为写，练手够用；真机上的路径与权限另有差异。</div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="glob"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="flow" data-ch="flow">
+  <div class="ch-h"><span class="ch-n">05</span><h2>控制流：if 和 foreach</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># if：注意 then 和 endif 都是独立一行</span><span class="ln ">if ( -f run.tcl ) then</span><span class="ln ">    echo "found run.tcl"</span><span class="ln ">else</span><span class="ln ">    echo "no run.tcl"</span><span class="ln ">endif</span><span class="ln "> </span><span class="ln ">if ( $n &gt; 5 ) then</span><span class="ln ">    echo "big"</span><span class="ln ">endif</span><span class="ln "> </span><span class="ln cmt"># foreach：遍历一组值，end 结束</span><span class="ln ">foreach f ( *.tcl )</span><span class="ln ">    echo "processing $f"</span><span class="ln ">end</span><span class="ln "> </span><span class="ln cmt"># 遍历数字：csh 没有 range，用 seq 生成</span><span class="ln ">foreach i ( `seq 1 5` )</span><span class="ln ">    echo "round $i"</span><span class="ln ">end</span></code></pre></div>
+<p>判定条件常用写法：</p>
+<div class="tbl"><table><thead><tr><th>写法</th><th>含义</th></tr></thead><tbody><tr><td><code>-f file</code></td><td>是普通文件</td></tr><tr><td><code>-d dir</code></td><td>是目录</td></tr><tr><td><code>-e path</code></td><td>存在（不管类型）</td></tr><tr><td><code>-z "$str"</code></td><td>字符串为空</td></tr><tr><td><code>$a == $b</code></td><td>数值相等</td></tr><tr><td><code>"$a" == "$b"</code></td><td>字符串相等（加引号）</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · tcsh 与 bash 的五个致命差异</div><div class="pit-b"><div class="tbl"><table><thead><tr><th>场景</th><th>bash</th><th>tcsh</th></tr></thead><tbody><tr><td>设环境变量</td><td><code>export A=1</code></td><td><code>setenv A 1</code></td></tr><tr><td>设本地变量</td><td><code>A=1</code></td><td><code>set A = 1</code></td></tr><tr><td>if 语句</td><td><code>if [ ... ]; then</code></td><td><code>if ( ... ) then</code></td></tr><tr><td>循环</td><td><code>for x in ...; do</code></td><td><code>foreach x ( ... )</code></td></tr><tr><td>脚本第一行</td><td><code>#!/bin/bash</code></td><td><code>#!/bin/tcsh -f</code></td></tr></tbody></table></div>
+<p>还有一条最坑的：<strong>tcsh 的 <code>set</code> 不给等号右边加引号时，空格会被当成语法</strong>。<code>set msg = hello world</code> 会报错，必须 <code>set msg = "hello world"</code>。</p></div></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：写第一个 tcsh 脚本</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 建文件 hello.csh</span><span class="ln ">cat &gt; hello.csh &lt;&lt;'EOF'</span><span class="ln cmt">#!/bin/tcsh -f</span><span class="ln cmt"># -f 表示不读 .cshrc，脚本跑得更快、更可复现（重要！）</span><span class="ln "> </span><span class="ln ">set who = "backend engineer"</span><span class="ln ">setenv RUN_MODE "test"</span><span class="ln "> </span><span class="ln ">echo "hello, $who"</span><span class="ln ">echo "mode = $RUN_MODE"</span><span class="ln "> </span><span class="ln ">foreach f ( a b c )</span><span class="ln ">    echo "file: $f"</span><span class="ln ">end</span><span class="ln ">EOF</span><span class="ln "> </span><span class="ln ">chmod +x hello.csh</span><span class="ln ">./hello.csh</span></code></pre></div>
+<p>预期输出：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">hello, backend engineer</span><span class="ln ">mode = test</span><span class="ln ">file: a</span><span class="ln ">file: b</span><span class="ln ">file: c</span></code></pre></div>
+<p>过关标准：把 <code>foreach</code> 改成遍历当前目录下所有 <code>.tcl</code> 文件；如果目录里没有 tcl 文件，脚本应该打印一句 "no tcl files"（提示：先用 <code>ls *.tcl &gt;&amp; /dev/null</code> 判断，<code>&gt;&amp;</code> 是 tcsh 的重定向写法）。</p></div></div>
+<div class="scene"><div class="scene-h">工作场景 · 你会在哪种场合用到这些</div><div class="scene-b"><ul><li>组长给你一个 <code>run_all.csh</code>，让你"改一下 top 名字跑另一版"。你得看懂 <code>setenv DESIGN xxx</code> 在哪。</li><li>你要批量跑 8 组利用率参数，手敲 8 次不如写个 <code>foreach</code>。</li><li>工具的启动脚本报错，你得判断是 <code>set path</code> 写错了还是 <code>setenv</code> 漏了。</li></ul>
+<p><strong>tcsh 不需要学到能写复杂程序，但要能读懂、能改。</strong></p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>分得清 <code>set</code> 和 <code>setenv</code>，知道哪个能传给子进程</li><li>知道 tcsh 加 PATH 用 <code>set path = ( ... $path )</code></li><li>会写 <code>if</code> / <code>foreach</code> 的基本结构</li><li>记得脚本第一行写 <code>#!/bin/tcsh -f</code></li><li>能说出 tcsh 与 bash 至少四个语法差异</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>tcsh 里设置环境变量用什么命令？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>setenv NAME value</code>（bash 是 <code>export NAME=value</code>）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>#!/bin/tcsh -f</code> 里的 <code>-f</code> 是什么意思？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">不读取用户的 <code>.cshrc</code>。好处是启动快、结果可复现，不受个人配置影响。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>tcsh 里给 PATH 加目录正确写法是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>set path = ( /new/dir $path )</code>，小写 path，是数组。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>set msg = hello world</code> 为什么会报错？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">因为 tcsh 把空格当分隔符，认为 <code>world</code> 是多余参数。要写成 <code>set msg = "hello world"</code>。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>!$</code> 是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">上一条命令的最后一个参数，常用于复用长路径。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="flow"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-04-process/">← 进程、后台任务与环境变量</a><a class="nav-btn" href="/lesson/01-06-runscript/">实战：用 Tcsh 写一个真正能用的跑批脚本 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

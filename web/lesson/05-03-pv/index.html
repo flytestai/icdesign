@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>物理验证：DRC / LVS / ERC / Antenna · 29 | IC 后端学院</title>
+<meta name="description" content="版图交出去之前，必须证明"工厂造得出来"（DRC）和"和网表一致"（LVS）。这一课讲四种检查各自查什么、违例怎么读、怎么修。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="05-03-pv">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-5">阶段五 · 28nm 全流程</a><span>/</span><b>物理验证：DRC / LVS / ERC / Antenna</b></div>
+    <div class="hero">
+      <div class="hero-no">29</div>
+      <h1>物理验证：DRC / LVS / ERC / Antenna</h1>
+      <p class="hero-en">Physical Verification</p>
+      <p class="hero-sum">版图交出去之前，必须证明"工厂造得出来"（DRC）和"和网表一致"（LVS）。这一课讲四种检查各自查什么、违例怎么读、怎么修。</p>
+      <div class="hero-meta">
+        <span class="pill">约 35 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">PV</span><span class="pill tag">DRC</span><span class="pill tag">LVS</span><span class="pill tag">Calibre</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="four" data-ch="four">
+  <div class="ch-h"><span class="ch-n">01</span><h2>四种检查</h2></div>
+  <div class="tbl"><table><thead><tr><th>检查</th><th>全称</th><th>查什么</th><th>不过的后果</th></tr></thead><tbody><tr><td>DRC</td><td>Design Rule Check</td><td>工厂的几何规则</td><td>造不出来 / 良率崩</td></tr><tr><td>LVS</td><td>Layout vs Schematic</td><td>版图和网表是否一致</td><td>连接错了，功能全错</td></tr><tr><td>ERC</td><td>Electrical Rule Check</td><td>电气规则（如 well 接触、浮空栅）</td><td>闩锁、漏电、可靠性问题</td></tr><tr><td>Antenna</td><td>天线效应检查</td><td>长金属在制造中积累电荷</td><td>栅氧化层被击穿</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">LVS</span><span class="term-zh">版图与原理图一致性</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>从版图里<strong>提取</strong>出实际的器件和连接关系，再和网表对比。多了、少了、连错了，都会报出来。<br>这是最"致命"的一项：DRC 不过工厂拒收，LVS 不过芯片直接不工作。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="four"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="drc" data-ch="drc">
+  <div class="ch-h"><span class="ch-n">02</span><h2>DRC 违例怎么读</h2></div>
+  <p>Calibre 报告片段：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">RULECHECK M2.SPACE.1 :  12 Results</span><span class="ln ">  --------------------------------------------------</span><span class="ln ">  M2.SPACE.1 @ (1200, 3400) : 0.08um &lt; 0.10um</span><span class="ln ">  M2.SPACE.1 @ (1250, 3400) : 0.09um &lt; 0.10um</span></code></pre></div>
+<p>读法：</p>
+<ul><li><code>M2.SPACE.1</code>：M2 层的最小间距规则。</li><li><code>@ (1200, 3400)</code>：违例坐标。</li><li><code>0.08um &lt; 0.10um</code>：实际 0.08，要求 0.10。</li></ul>
+<p>修法（按代价从小到大）：</p>
+<ol><li><strong>挪线</strong>：把其中一根线移开几个轨道。</li><li><strong>换层</strong>：把这段线改到 M3 走。</li><li><strong>改宽度</strong>：如果规则允许（有时宽一点反而满足）。</li><li><strong>重布</strong>：局部 rip-up &amp; reroute。</li></ol>
+<div class="pit"><div class="pit-h">常见坑 · DRC 数量从 8000 降到 300 就卡住</div><div class="pit-b"><p>前面几千条是系统性的（布局/布线参数问题），改一次参数能消掉一大批。剩下几百条是"孤例"，每条都要单独看。</p>
+<p><strong>这时候不要再批量改参数</strong>，要：</p>
+<ol><li>按规则类型分类统计（<code>M2.SPACE</code> 多少条、<code>VIA.ENCLOSURE</code> 多少条）。</li><li>按区域聚类（是不是集中在某几个地方）。</li><li>分类修，一类一类清。</li></ol>
+<p>用命令统计：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">grep -o "^RULECHECK [A-Z0-9._]*" drc.rpt | sort | uniq -c | sort -rn | head</span></code></pre></div></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="drc"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lvs" data-ch="lvs">
+  <div class="ch-h"><span class="ch-n">03</span><h2>LVS 怎么对</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># Calibre 典型调用</span><span class="ln ">calibre -lvs -hier -turbo lvs.runset</span></code></pre></div>
+<p>LVS 报告通常先给一句结论：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">===================================================</span><span class="ln ">              LVS REPORT</span><span class="ln ">===================================================</span><span class="ln ">CELL COMPARISON RESULTS</span><span class="ln cmt">#     ################################################</span><span class="ln cmt">#     #                    CORRECT                   #</span><span class="ln cmt">#     ################################################</span></code></pre></div>
+<p>如果不对，会列出：</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Net mismatch:  net VDD  vs  net VDD_CORE</span><span class="ln ">Instance mismatch:  M1 (layout) has no counterpart in source</span></code></pre></div>
+<p>三类常见错：</p>
+<div class="tbl"><table><thead><tr><th>现象</th><th>原因</th></tr></thead><tbody><tr><td>少了器件</td><td>版图里漏画/漏提取（比如 well tap 没画）</td></tr><tr><td>多了器件</td><td>电源 via 被当成器件、filler 处理不当</td></tr><tr><td>网络名不同</td><td>电源网络命名不一致（<code>VDD</code> vs <code>VDD_CORE</code>）</td></tr></tbody></table></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Extraction</span><span class="term-zh">提取</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>从版图的几何图形反推出"这里有一个 NMOS、栅宽多少、源漏接哪"。LVS 的第一步就是提取。<br>提取规则（rule deck）由 foundry 提供，和后端用的 DRC deck 是配套的。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="lvs"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="antenna" data-ch="antenna">
+  <div class="ch-h"><span class="ch-n">04</span><h2>Antenna：一个容易被忽略的检查</h2></div>
+  <p>制造过程中，长金属线像天线一样收集等离子体电荷。如果这条线连着晶体管的栅极，电荷会击穿很薄的栅氧化层。</p>
+<p>判据：金属面积 / 栅面积 不能超过一个比值（由工艺给）。</p>
+<p>修法：</p>
+<ol><li><strong>跳层</strong>：把长线在中途换到更高层（break 掉累积）。</li><li><strong>加二极管</strong>：在栅极附近加 antena diode 泄放电荷。</li></ol>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 后端工具里通常有自动修</span><span class="ln ">setNanoRouteMode -routeAntennaFixMode true</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="antenna"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="klayout" data-ch="klayout">
+  <div class="ch-h"><span class="ch-n">05</span><h2>课程环境的替代方案</h2></div>
+  <p>Calibre 是商业工具。如果没有，可以用 <strong>KLayout</strong> 跑 DRC（开源，能读 GDS + 跑 Ruby/Python 规则脚本）。</p>
+<div class="code"><div class="code-h"><span class="code-lang">python</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># KLayout DRC 脚本骨架（示意）</span><span class="ln ">import pya</span><span class="ln "> </span><span class="ln ">layout = pya.Layout()</span><span class="ln ">layout.read("final.gds")</span><span class="ln ">m2 = layout.layer(2, 0)          # M2 层</span><span class="ln "> </span><span class="ln cmt"># 检查 M2 间距 &lt; 0.10um 的地方</span><span class="ln ">space_check = m2.space(0.10, False, False)</span><span class="ln cmt"># 结果写到报告</span></code></pre></div>
+<div class="scene"><div class="scene-h">工作场景 · 为什么课上要练 KLayout</div><div class="scene-b"><p>不是让你以后用 KLayout 交付（工业界用 Calibre），而是：</p>
+<ol><li>理解 DRC 的本质是"几何运算"（间距、包围、面积）。</li><li>没有商业工具时，你依然能验证自己的版图。</li></ol>
+<p><strong>方法论比工具重要，这条在 PV 上体现得最明显。</strong></p></div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 DRC / LVS / ERC / Antenna 各查什么</li><li>会读 Calibre DRC 报告的三个关键信息（规则名、坐标、实际 vs 要求）</li><li>知道 DRC 清到卡住时应该"分类 + 聚类"而不是乱调参数</li><li>知道 LVS 三类常见错及原因</li><li>了解 Antenna 的成因和两种修法</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>DRC 和 LVS 分别保证什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">DRC 保证工厂能造出来（几何规则）；LVS 保证版图和网表连接一致（功能正确）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>DRC 报告里 <code>M2.SPACE.1 @ (1200,3400) : 0.08um &lt; 0.10um</code> 是什么意思？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">M2 层间距规则违例，位置在 (1200,3400)，实际间距 0.08µm，要求 0.10µm。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>DRC 剩几百条时应该怎么做？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">按规则类型统计 + 按区域聚类，分类逐类修；不要再批量调参数。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>LVS 报 "Net mismatch: VDD vs VDD_CORE" 通常是什么原因？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">电源网络命名不一致（版图和网表用了不同名字），或电源连接关系画错。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Antenna 违例的两种修法？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">跳层（中途换到更高层打断累积）或加天线二极管泄放电荷。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="klayout"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/05-02-pt/">← PrimeTime 签核：自己给自己签字不算数</a><a class="nav-btn" href="/lesson/05-04-eco/">ECO 实战：从 PT 的违例到版图上的一次改动 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>

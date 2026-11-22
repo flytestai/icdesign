@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>后端八阶段：谁给谁交付什么 · 10 | IC 后端学院</title>
+<meta name="description" content="把综合、布局规划、电源、布局、时钟树、布线、收尾、签核八个阶段串成一条线。每一阶段产什么文件、给谁用、卡住了会怎样。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795352341">
+</head>
+<body data-page="lesson" data-lesson="02-02-flow">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>后端八阶段：谁给谁交付什么</b></div>
+    <div class="hero">
+      <div class="hero-no">10</div>
+      <h1>后端八阶段：谁给谁交付什么</h1>
+      <p class="hero-en">The 8-Stage Flow</p>
+      <p class="hero-sum">把综合、布局规划、电源、布局、时钟树、布线、收尾、签核八个阶段串成一条线。每一阶段产什么文件、给谁用、卡住了会怎样。</p>
+      <div class="hero-meta">
+        <span class="pill">约 38 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">基础概念</span><span class="pill tag">流程</span><span class="pill tag">交付物</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="map" data-ch="map">
+  <div class="ch-h"><span class="ch-n">01</span><h2>一条线看懂全流程</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">RTL 代码</span><span class="ln ">   │  ① 综合 Synthesis            → 网表 .v + 约束 .sdc + 时序库 .db</span><span class="ln ">   ▼</span><span class="ln ">门级网表</span><span class="ln ">   │  ② 布局规划 Floorplan        → 芯片尺寸、引脚、宏单元位置  (.def)</span><span class="ln ">   │  ③ 电源规划 Power Plan       → 电源网格、电源环、通孔</span><span class="ln ">   │  ④ 布局 Placement            → 每个标准单元的坐标</span><span class="ln ">   │  ⑤ 时钟树 CTS                → 时钟缓冲器 + 平衡后的时钟网络</span><span class="ln ">   │  ⑥ 布线 Route                → 所有信号的金属连线</span><span class="ln ">   │  ⑦ 收尾 Chip Finish          → filler、DRC 修复、导出 GDSII</span><span class="ln ">   ▼</span><span class="ln ">   │  ⑧ 签核 Signoff              → STA 时序 + PV 物理验证 + IR/EM</span><span class="ln ">   ▼</span><span class="ln ">GDSII → 工厂</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">netlist</span><span class="term-zh">网表</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>综合的输出。里面不再是 <code>always @(posedge clk)</code>，而是一堆标准单元实例和它们之间的连线。<br>把它想成"配料表"：用了哪些门、各多少个、谁连谁。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="map"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="syn" data-ch="syn">
+  <div class="ch-h"><span class="ch-n">02</span><h2>① 综合：从"逻辑"到"门"</h2></div>
+  <p>综合工具读三样东西：<strong>RTL 代码 + 时序约束（SDC）+ 标准单元库（.db）</strong>，输出<strong>门级网表</strong>。</p>
+<p>它要做的决策：一个 32 位加法器，用行波进位（面积小、慢）还是超前进位（面积大、快）？用哪个驱动能力的单元？</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 综合脚本的核心三行（DC 为例）</span><span class="ln ">read_verilog rtl/ipa_top.v          # 读设计</span><span class="ln ">link                              # 把模块和库里的单元对应起来</span><span class="ln ">compile_ultra                     # 真正开始优化、映射到门</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">SDC</span><span class="term-zh">时序约束文件</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Synopsys Design Constraints。用一套 Tcl 命令告诉工具"我要跑多快"：时钟周期多少、输入输出延迟多少、哪些路径可以不管（false path）。<br><strong>约束写错，后面所有努力都是白费</strong>——工具会照着一个错误的目标优化。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 综合没做好的后果</div><div class="scene-b"><p>综合把时序优化得太激进，插了一堆大驱动单元，面积超了 20%。后端拿到网表，发现 die 尺寸怎么排都放不下。</p>
+<p>这时候只能回去重综合（几小时），或者硬着头皮做（后面 DRC、时序全是坑）。</p>
+<p><strong>所以后端工程师拿到网表第一件事是看：单元数、面积、有没有明显的时序违例。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="syn"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="fp" data-ch="fp">
+  <div class="ch-h"><span class="ch-n">03</span><h2>② 布局规划：决定这颗芯片的生死</h2></div>
+  <p>Floorplan 要做三个决定，后面所有工作都受它约束：</p>
+<ol><li><strong>芯片多大（die size）</strong>。太大浪费钱（一片晶圆切的 die 少），太小布不通。</li><li><strong>IO 引脚放哪</strong>。引脚位置是封装决定的，放错了信号要绕远路。</li><li><strong>宏单元（SRAM 等）放哪</strong>。这是最关键的——放错了会造成局部拥塞，怎么布都布不通。</li></ol>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">┌─────────────────────────────┐</span><span class="ln ">│  ┌──────┐        ┌──────┐   │</span><span class="ln ">│  │ SRAM │        │ SRAM │   │  ← 宏单元靠边、对齐、留通道</span><span class="ln ">│  └──────┘        └──────┘   │</span><span class="ln ">│                             │</span><span class="ln ">│     标准单元区域（rows）      │</span><span class="ln ">│                             │</span><span class="ln ">│  ┌──────┐                   │</span><span class="ln ">│  │ SRAM │                   │</span><span class="ln ">│  └──────┘                   │</span><span class="ln ">└─────────────────────────────┘</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Utilization</span><span class="term-zh">利用率</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>标准单元占用的面积 ÷ 可用面积。<br>- 太低（&lt;40%）：芯片白白做大了，浪费钱。<br>- 太高（&gt;85%）：没有空间走线，布不通、DRC 爆炸。<br>- 常用区间：60%~75%（看设计和工艺）。<br>利用率是 floorplan 阶段最重要的旋钮。</p></div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · floorplan 偷懒，后面全是坑</div><div class="pit-b"><p>新手常见做法：宏单元随便一放，赶紧往下跑，想着"反正后面能优化"。</p>
+<p>结果：布线阶段局部拥塞，工具反复拆线重布，跑 8 小时 DRC 还有 6000 个违例。回头改宏单元位置，前面所有工作作废。</p>
+<p><strong>经验值：floorplan 花的时间应该占整个 PR 的 30%。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="fp"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="power" data-ch="power">
+  <div class="ch-h"><span class="ch-n">04</span><h2>③ 电源规划：芯片的血脉</h2></div>
+  <p>每个单元都要吃电。电源规划就是铺一张"电网"：电源环（power ring）、电源条（power stripe）、连到每个单元的电源轨（follow pin）。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">┌════════════════════════════┐   ← power ring（外圈）</span><span class="ln ">║  │    │    │    │    │    ║   ← stripe（纵向/横向电源条）</span><span class="ln ">║  │    │    │    │    │    ║</span><span class="ln ">║ ─┼────┼────┼────┼────┼─   ║   ← follow pin（每行标准单元的电源轨）</span><span class="ln ">└════════════════════════════┘</span></code></pre></div>
+<p>为什么重要：<strong>线太细 → 电阻大 → 电压掉（IR drop）→ 单元工作变慢甚至失效；线太粗 → 占地方 → 没地方走信号线。</strong></p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">IR Drop</span><span class="term-zh">电压降</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>电流流过有电阻的金属线，电压会下降。芯片内部某点的实际电压低于电源电压，这个差值就是 IR drop。<br>严重时单元"吃不饱电"，延迟变大甚至不工作。签核阶段会用 RedHawk 这类工具专门分析（阶段七）。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="power"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="place" data-ch="place">
+  <div class="ch-h"><span class="ch-n">05</span><h2>④ 布局：把单元摆进去</h2></div>
+  <p>把网表里几万个标准单元，按行摆进标准单元区。目标很矛盾：</p>
+<ul><li>放在一起 → 连线短、时序好，但局部太挤、布不通。</li><li>摊开 → 好布线，但连线长、时序差。</li></ul>
+<p>工具的做法是先算一个"最优位置"（可能重叠），再逐步摊开（legalize）到合法位置。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Congestion</span><span class="term-zh">拥塞</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>某块区域的走线需求超过可用轨道数。表现是布线工具报 <code>routing congestion</code>，或者绕远路导致时序变差。<br><strong>拥塞是布局质量的直接反馈</strong>。看到拥塞，先看是不是宏单元通道留窄了、或者利用率太高。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="place"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="cts" data-ch="cts">
+  <div class="ch-h"><span class="ch-n">06</span><h2>⑤ 时钟树：让时钟同时到达</h2></div>
+  <p>时钟要送到每一个触发器。几万个触发器，如果直接从时钟源拉线，延迟差异巨大，时序根本没法收敛。</p>
+<p>CTS（Clock Tree Synthesis）的做法：<strong>建一棵树</strong>，一层层插缓冲器（buffer），让到每个触发器的延迟尽可能相等。</p>
+<div class="code"><div class="code-h"><span class="code-lang">shell</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">        clk 源</span><span class="ln ">          │</span><span class="ln ">     ┌────┴────┐</span><span class="ln ">   buf       buf</span><span class="ln ">   ┌┴┐       ┌┴┐</span><span class="ln ">  buf buf   buf buf</span><span class="ln ">  │ │ │ │   │ │ │ │</span><span class="ln ">  FF FF FF FF FF FF FF    ← 每个触发器</span></code></pre></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Skew</span><span class="term-zh">时钟偏斜</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>时钟到达不同触发器的时间差。CTS 的核心目标就是把 skew 做小。<br>典型目标：先进工艺 &lt;50ps，成熟工艺 &lt;100ps。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · CTS 前后的差别有多大</div><div class="scene-b"><p>我们用一套真实流程跑过对比：CTS 之前 hold 违例报到 −10ns 级别（因为时钟路径长短不一），CTS 之后收到 −0.07ns，再靠后面修一下就到 0。</p>
+<p><strong>没有 CTS，hold 根本没法收敛。</strong> 这也是为什么"跳过 CTS 直接布线"是新手最典型的错误。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="cts"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="route" data-ch="route">
+  <div class="ch-h"><span class="ch-n">07</span><h2>⑥ 布线：把线连起来</h2></div>
+  <p>给每个连接找一条物理上可走的路径，分两步：</p>
+<ol><li><strong>全局布线（global route）</strong>：规划大致走哪条通道，像导航规划走哪条高速。</li><li><strong>详细布线（detail route）</strong>：精确到具体轨道、具体层、具体过孔。</li></ol>
+<p>布线要同时满足：连通、不短路、满足 DRC、时序不太差。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Via</span><span class="term-zh">过孔</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>连接不同金属层的"楼梯"。M1 到 M2 要打一个 via，M2 到 M3 再打一个。<br>via 太多会占面积、增加电阻；via 太少或打错位置会 DRC 违例。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="route"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="finish" data-ch="finish">
+  <div class="ch-h"><span class="ch-n">08</span><h2>⑦ 收尾：让它能交给工厂</h2></div>
+  <ul><li><strong>插 filler</strong>：标准单元行里会有空隙，填上不功能的填充单元，保证每层密度均匀（否则工厂铣不平）。</li><li><strong>修 DRC</strong>：把剩下的违例逐条修掉。</li><li><strong>导出</strong>：DEF（布局布线信息）、GDSII（完整版图）、网表（带寄生信息）。</li></ul>
+  <label class="ch-done"><input type="checkbox" data-mark="finish"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="signoff" data-ch="signoff">
+  <div class="ch-h"><span class="ch-n">09</span><h2>⑧ 签核：最后一道门</h2></div>
+  <div class="tbl"><table><thead><tr><th>项目</th><th>工具（课程里）</th><th>通过标准</th></tr></thead><tbody><tr><td>时序 STA</td><td>PrimeTime</td><td>setup/hold 违例 = 0（或可接受的 waiver）</td></tr><tr><td>物理验证 PV</td><td>Calibre / KLayout</td><td>DRC = 0，LVS 一致</td></tr><tr><td>功耗完整性</td><td>RedHawk</td><td>IR drop 在阈值内，EM 不超限</td></tr></tbody></table></div>
+  <label class="ch-done"><input type="checkbox" data-mark="signoff"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="deliverables" data-ch="deliverables">
+  <div class="ch-h"><span class="ch-n">10</span><h2>全流程交付物清单</h2></div>
+  <div class="tbl"><table><thead><tr><th>阶段</th><th>关键交付物</th><th>下一环谁用</th></tr></thead><tbody><tr><td>综合</td><td><code>.v</code> 网表、<code>.sdc</code> 约束、<code>.db</code> 库</td><td>布局布线</td></tr><tr><td>Floorplan</td><td><code>.def</code>（尺寸+宏位置）、floorplan 报告</td><td>电源/布局</td></tr><tr><td>Power Plan</td><td>更新后的 <code>.def</code>、IR 预估报告</td><td>布局</td></tr><tr><td>Place</td><td>带坐标的 <code>.def</code>、拥塞报告</td><td>CTS</td></tr><tr><td>CTS</td><td>带时钟树的 <code>.def</code>、skew 报告</td><td>布线</td></tr><tr><td>Route</td><td>布线后 <code>.def</code>、DRC 报告</td><td>收尾/签核</td></tr><tr><td>Finish</td><td><code>.gds</code>、最终 <code>.v</code>、<code>.spef</code> 寄生文件</td><td>PV / STA</td></tr><tr><td>Signoff</td><td>STA 报告、DRC/LVS 报告、签核清单</td><td>流片</td></tr></tbody></table></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能按顺序说出八个阶段，并说出每个阶段的一句话目的</li><li>知道 floorplan 的三个决定（die size、IO、宏位置）</li><li>能解释 utilization、congestion、skew、IR drop 四个词</li><li>能说出综合和布局布线之间交接的三个文件</li><li>知道 signoff 至少要过哪三关</li></ul></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>综合的输出三件套是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">门级网表 <code>.v</code>、时序约束 <code>.sdc</code>、时序库 <code>.db</code>（约束和库其实是输入，交付给下一环的是网表+约束）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 floorplan 阶段的宏单元位置这么关键？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">宏单元面积大、位置固定，放错会造成局部拥塞和长连线，后面布线怎么优化都救不回来，只能回头重做。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>CTS 解决的是什么问题？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">时钟到各个触发器延迟不一致（skew 大），导致 hold 无法收敛。CTS 通过插入缓冲器建树，把 skew 压小。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Utilization 太高和太低分别有什么问题？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">太高没有走线空间，布不通、DRC 多；太低芯片面积浪费，成本上升。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>流片前 signoff 至少要过哪几项？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">时序（STA）、DRC、LVS，通常还有 IR drop 和 EM。</div>
+</div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="deliverables"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-01-chip/">← 芯片是怎么造出来的：从沙子到 GDSII</a><a class="nav-btn" href="/lesson/02-03-inputs/">开工前要拿到什么：设计数据准备与自检 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795352341"></script>
+<script src="/assets/app.js?v=1795352341"></script>
+</body>
+</html>
