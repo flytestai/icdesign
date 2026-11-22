@@ -18,8 +18,21 @@ web/assets/app.css      统一外壳样式（浅色，长文阅读优先）
 web/assets/app.js       课程页交互：进度 / 目录 / 术语卡 / 自测 / 复制 / 笔记
 web/assets/page.js      子页面交互：题库 / 术语表 / 搜索 / 进度看板
 web/assets/shell.js     浏览器内模拟终端（虚拟文件系统 + 30 多个命令）
-web/lesson/<id>/        构建产物（不要手改，会被覆盖）
+server/app.py           线上服务：FastAPI + SQLite（/api/progress、/api/notes）
+deploy/                 nginx 反代、systemd unit、证书同步
+web/lesson/<id>/        构建产物（不要手改，会被覆盖；已随仓库提交，便于直接托管）
 ```
+
+## 从仓库开始
+
+```bash
+git clone https://github.com/flytestai/icdesign.git
+cd icdesign
+python tools/build.py                     # 只依赖 Python 3，无第三方库
+cd web && python -m http.server 8713      # http://127.0.0.1:8713/
+```
+
+改了 `content/*.md` 或 `tools/build.py` 之后重新构建，再把 `web/` 一起提交——生成的页面随仓库走，克隆下来就能直接看。
 
 ## 写一课
 
