@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Innovus 起步：一个后端工具到底在管什么 · 12 | IC 后端学院</title>
+<title>Innovus 起步：一个后端工具到底在管什么 · 14 | IC 后端学院</title>
 <meta name="description" content="后端工具不是"画图软件"，它管的是一个巨大的数据库、一个优化引擎和一堆报告。这一课讲清数据库里存了什么、为什么必须用命令行、第一个能跑通的命令序列，以及 Innovus 与 ICC2 的十六组命令对应。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-01-innovus">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>Innovus 起步：一个后端工具到底在管什么</b></div>
     <div class="hero">
-      <div class="hero-no">12</div>
+      <div class="hero-no">14</div>
       <h1>Innovus 起步：一个后端工具到底在管什么</h1>
       <p class="hero-en">Getting Started with Innovus</p>
       <p class="hero-sum">后端工具不是"画图软件"，它管的是一个巨大的数据库、一个优化引擎和一堆报告。这一课讲清数据库里存了什么、为什么必须用命令行、第一个能跑通的命令序列，以及 Innovus 与 ICC2 的十六组命令对应。</p>
@@ -59,10 +59,12 @@
   <p>新手最容易犯的错：以为要用鼠标拖。</p>
 <p>真实情况：</p>
 <ul><li><strong>GUI 用来"看"</strong>：看布局、看拥塞热图、看某条路径的走向、看 flyline。</li><li><strong>命令行/脚本用来"做"</strong>：所有设置、所有流程，都写成 <code>.tcl</code> 脚本跑。</li></ul>
-<p>原因不是"显得专业"，是三个很实际的工程需求：</p>
-<p><strong>1. 可重复。</strong> 同一份脚本，今天跑和下周跑结果一样；换个同事跑，结果也一样。用鼠标点的流程，第二次就复现不出来——你不知道自己当时点了哪几个按钮。</p>
-<p><strong>2. 可存档。</strong> 脚本是文本，能进版本管理（git），能 diff 出"这一版改了哪三个参数"。数据库存档（<code>.enc</code>）是二进制，只能整体回退，看不出改了什么。</p>
-<p><strong>3. 可批量。</strong> 想试 6 组利用率（0.60/0.65/0.70/0.75/0.80/0.85），脚本套一层循环就跑完；用 GUI 你要点 6 遍，还得手工记录每次的结果。</p>
+<p>原因不是"显得专业"，是四个很实际的工程需求，每条一句话：</p>
+<p><strong>1. 可重复。</strong> 同一份脚本今天跑和下周跑结果一样，换同事跑也一样；用鼠标点的流程第二次复现不出来，你不知道自己当时点了哪几个按钮。</p>
+<p><strong>2. 可存档。</strong> 脚本是文本，能进 git、能随项目归档；数据库存档（<code>.enc</code>）是二进制，只能整体回退，看不出改了什么。</p>
+<p><strong>3. 可批量。</strong> 想试 6 组利用率（0.60/0.65/0.70/0.75/0.80/0.85），脚本套一层循环就跑完；用 GUI 你要点 6 遍，还得手工记每次结果。</p>
+<p><strong>4. 可对比（diff）。</strong> 两个版本差在哪，<code>git diff</code> 一行行告诉你"改的是 <code>max_density</code>，从 0.72 到 0.68"；两次 GUI 操作之间没有"差异"这个东西，只能靠回忆。</p>
+<p>一句话总结：<strong>GUI 负责"看"，脚本负责"做"；凡是需要"再做一次"的事，都必须落到脚本里。</strong> 这不是纪律要求，是因为人记不住自己点过什么。</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：两种启动方式，批处理跑脚本 vs 带界面调试</span><span class="ln cmt"># 用法：在 pnr/ 目录下执行；run.tcl 里写完整流程，日志重定向到 log/</span><span class="ln ">innovus -no_gui -files run.tcl -log log/run_0901.log -overwrite   # 无界面跑脚本，服务器上跑批用这个</span><span class="ln ">innovus                                                          # 带 GUI 启动，交互式调试用；进去后 source run.tcl</span></code></pre></div>
 <p>参数逐个说：</p>
 <ul><li><code>-no_gui</code>：不启动图形界面。省内存、能在没有显示器的服务器上跑，<strong>这是正式跑流程的唯一方式</strong>。</li><li><code>-files run.tcl</code>：启动后自动执行这个脚本。可以跟多个文件，按顺序执行。</li><li><code>-log log/xxx.log</code>：把终端输出写进日志。<strong>必须给</strong>，否则出问题没有证据。</li><li><code>-overwrite</code>：允许覆盖同名日志（不加时工具会拒绝写已存在的日志，批处理会直接退出）。</li></ul>
@@ -78,13 +80,27 @@
 <p>配合脚本里每阶段 <code>saveDesign</code>，最坏情况也只是从上一个存档重跑一小时，而不是从零开始。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="gui"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="panels" data-ch="panels">
+  <div class="ch-h"><span class="ch-n">03</span><h2>GUI 上每个面板叫什么</h2></div>
+  <p>GUI 不是用来"操作"的，但你必须认识它——因为所有 review、所有排错，最后都要回到这张图上看一眼。先认脸。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-gui.png" data-fig="innovus-gui"><img src="/fig/innovus-gui.png" alt="Innovus 主窗口。左侧是设计浏览器，中间是版图视图（深色底、白色是标准单元、蓝色块是宏单元、橙色细条是电源条带），底部是 Tcl 命令窗。重点先找到这三个区域的位置。" loading="lazy" decoding="async"></a><figcaption>Innovus 主窗口。左侧是设计浏览器，中间是版图视图（深色底、白色是标准单元、蓝色块是宏单元、橙色细条是电源条带），底部是 Tcl 命令窗。重点先找到这三个区域的位置。</figcaption></figure>
+<p>从图里要看出什么：<strong>三个区域各管一件事</strong>——左边回答"设计里有什么"，中间回答"它长在哪"，底部回答"我让它做什么"。后面所有课里说的"打开飞线看一眼""放大到那个 macro"，指的都是中间这块。</p>
+<div class="tbl"><table><thead><tr><th>面板</th><th>英文名</th><th>干什么</th><th>什么时候用</th></tr></thead><tbody><tr><td>设计浏览器</td><td>Design Browser</td><td>树状列出层次：顶层 → 子模块 → 实例，点一下能在版图里高亮</td><td>找某个实例、确认它属于哪个模块</td></tr><tr><td>版图视图</td><td>Layout View</td><td>显示单元、宏单元、电源条、走线，可缩放、可开飞线</td><td>看布局、看朝向、看拥塞</td></tr><tr><td>Tcl 命令窗</td><td>Tcl Console</td><td>敲命令、<code>source</code> 脚本、看返回值</td><td>所有"做"的操作都从这里进</td></tr><tr><td>属性编辑器</td><td>Attribute Editor</td><td>选中对象后改它的属性：坐标、朝向、固定/可移动</td><td>改单个实例，或临时解锁一个 macro</td></tr><tr><td>物理视图 / 显示控制</td><td>Physical View / Display Control</td><td>开关某一层的显示、改颜色、开关飞线</td><td>排查"这一层到底有没有画"</td></tr><tr><td>命令日志</td><td>Command Log（命令记录）</td><td>把你在 GUI 里点的每一步翻译成等价 Tcl 打印出来</td><td>学命令最快的方式（见下）</td></tr><tr><td>消息窗口</td><td>Message / Log Window</td><td>工具输出的 info / warning / error</td><td>每跑完一步先看这里，别只看报告</td></tr><tr><td>选择与查询</td><td>Selection / Property</td><td>按名字、类型、区域批量选对象</td><td>一次选中所有 SRAM 或所有 clock buffer</td></tr><tr><td>工具栏与标尺</td><td>Toolbar / Ruler</td><td>常用动作按钮、量距离</td><td>量两个 macro 之间的通道宽度</td></tr><tr><td>着色与热图</td><td>Color / Heat Map</td><td>把 slack、density、congestion 映射成颜色</td><td>一眼定位最红的那块区域</td></tr></tbody></table></div>
+<p>三个面板占日常使用的八成：<strong>Design Browser 找东西、Layout View 看东西、Tcl Console 做东西</strong>。其余面板是辅助——属性编辑器和命令日志，新手用得多，老手用得少（因为他们直接写命令）。</p>
+<div class="tip"><div class="tip-h">小技巧</div><p>不知道某个操作对应的命令是什么？在 GUI 里点一次，命令日志会把等价 Tcl 打出来，复制到脚本里就行。</p>
+<p>这是学 Innovus 命令最快的方法：<strong>先会点，再抄命令，最后忘掉怎么点。</strong> 但要注意，GUI 点出来的命令往往带一堆默认参数，抄的时候要删掉你不需要的那些，否则脚本会变得又长又难读。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="panels"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="db" data-ch="db">
-  <div class="ch-h"><span class="ch-n">03</span><h2>数据库里有什么</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>数据库里有什么</h2></div>
   <p>打开一个设计后，数据库里至少存了这些：</p>
 <div class="tbl"><table><thead><tr><th>内容</th><th>说明</th><th>对应报告</th></tr></thead><tbody><tr><td>单元实例</td><td>每个标准单元的类型、坐标、朝向</td><td><code>report_area</code></td></tr><tr><td>连线（net）</td><td>谁连谁、走哪层、多长</td><td><code>reportCongestion -hotSpot</code></td></tr><tr><td>引脚（pin/terminal）</td><td>IO 位置、方向、所在层</td><td><code>dbGet top.terms</code></td></tr><tr><td>电源网络</td><td>ring / stripe / rail</td><td><code>verifyPowerVia</code></td></tr><tr><td>时序图</td><td>每条路径的门延迟、线延迟</td><td><code>report_timing</code></td></tr><tr><td>约束</td><td>时钟、IO 延迟、false path</td><td><code>report_clocks</code></td></tr></tbody></table></div>
 <h3>用 <code>dbGet</code> 直接查数据库</h3>
 <p>Innovus 的所有数据都能用 <code>dbGet</code> 查。它的语法是 <code>dbGet 对象.属性</code>，可以在 Tcl 里当普通命令用：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：不打开 GUI，直接从数据库里数单元、查坐标、找特定实例</span><span class="ln cmt"># 用法：init_design 之后在 Innovus 命令行里敲；输出格式随版本略有差异，语义一致</span><span class="ln "> </span><span class="ln ">dbGet top.insts                    # 返回所有实例的句柄列表（一长串 0x... 的指针）</span><span class="ln ">llength [dbGet top.insts]          # 数一数有多少个实例，这是"单元数"的来源</span><span class="ln ">dbGet top.insts.name               # 只要名字，返回 u_core/u_alu/u_alu/add_1 这样的列表</span><span class="ln ">dbGet -p top.insts.name u_sram0    # 按名字过滤，只返回叫 u_sram0 的那个实例句柄</span><span class="ln ">dbGet [dbGet -p top.insts.name u_sram0].box   # 再取它的坐标框，四个数：llx lly urx ury</span><span class="ln ">dbGet top.nets.name                # 所有连线的名字，用来确认某个 net 在不在</span></code></pre></div>
+<p><code>dbGet</code> 的输出长什么样、报错长什么样，下面这张图是真实会话的摘录。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/dbget-shell.png" data-fig="dbget-shell"><img src="/fig/dbget-shell.png" alt="上半部分是几条 `dbGet` 的返回：对象句柄是一串 `0x…` 的指针，加了 `.name` 才变成可读的名字。最后一行是属性名写错时的报错。重点看这个报错——工具不会猜你的意思。" loading="lazy" decoding="async"></a><figcaption>上半部分是几条 `dbGet` 的返回：对象句柄是一串 `0x…` 的指针，加了 `.name` 才变成可读的名字。最后一行是属性名写错时的报错。重点看这个报错——工具不会猜你的意思。</figcaption></figure>
+<p>从图里要看出什么：<strong><code>dbGet</code> 返回的是"对象"，不是"值"</strong>。想要值必须再点一层属性（<code>.name</code>、<code>.box</code>、<code>.numTerms</code>）。这也是新手最常卡的地方：拿到一串 <code>0x</code> 指针，以为命令失败了。最后那个 <code>can't read</code> 报错，说明属性名必须精确到拼写。</p>
 <p>为什么要会这个：报告不够用时，<code>dbGet</code> 是唯一能"自己造一份报告"的办法。比如"列出所有面积大于 1000µm² 的实例"，报告命令里没有，一行 <code>dbGet</code> 加 <code>foreach</code> 就能出来。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">dbGet</span><span class="term-zh">数据库查询命令</span><i class="term-ico">点击看解释</i></div>
@@ -93,7 +109,7 @@
   <label class="ch-done"><input type="checkbox" data-mark="db"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="first" data-ch="first">
-  <div class="ch-h"><span class="ch-n">04</span><h2>第一个能跑通的序列</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>第一个能跑通的序列</h2></div>
   <p>下面这一串是 Innovus 的"最小可运行流程"：从零到有一个能存盘的设计。<strong>顺序不能乱</strong>，每一段的作用写在注释里。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：Innovus 从零初始化一个设计的完整序列（MMMC 流程）</span><span class="ln cmt"># 用法：innovus -no_gui -files init.tcl；所有相对路径以 pnr/ 为当前目录</span><span class="ln "> </span><span class="ln cmt"># ---- 1. 读设计数据（此时还没有数据库）----</span><span class="ln ">read_verilog ../syn/netlist/ipa_top.v            # 读门级网表，建立逻辑连接关系</span><span class="ln ">read_lef ../lib/lef/tsmc40_tech.lef              # 先读 tech LEF：有哪些层、线宽、间距、via</span><span class="ln ">read_lef ../lib/lef/tsmc40_stdcell.lef           # 再读单元 LEF：每个单元的尺寸和引脚位置</span><span class="ln ">read_lef ../lib/lef/sram_2048x64.lef             # 宏单元 LEF，用不到 SRAM 时可以省</span><span class="ln ">read_mmmc ../constraints/mmmc.tcl                # 读 MMMC：库集合、约束模式、分析视图三件套</span><span class="ln "> </span><span class="ln cmt"># ---- 2. 建数据库（把上面这些绑成一个设计）----</span><span class="ln ">set init_top_cell ipa_top                        # 指定顶层单元名，必须和网表里的 module 一致</span><span class="ln ">init_design                                      # 建立内部数据库；这一步之后才能真正操作设计</span><span class="ln "> </span><span class="ln cmt"># ---- 3. 灌入已有的物理信息（可选）----</span><span class="ln ">read_def ../def/02_fp.def                        # 有现成 floorplan 就灌进来；没有则从空 die 开始</span><span class="ln "> </span><span class="ln cmt"># ---- 4. 自检：确认读对了 ----</span><span class="ln ">report_area                                      # 总面积、单元数；为 0 说明网表或库没读进来</span><span class="ln ">report_clocks                                    # 时钟列出来了吗？没有就是 MMMC/SDC 没生效</span><span class="ln ">checkDesign -all                                 # 一致性检查：悬空引脚、未连接端口、非法实例</span><span class="ln ">check_timing -include unconstrained              # 有没有完全没约束的端点</span><span class="ln "> </span><span class="ln cmt"># ---- 5. 存盘：这一步不做，前面全白干 ----</span><span class="ln ">saveDesign db/01_init.enc                        # 二进制存档，实际生成的目录叫 01_init.enc.dat/</span></code></pre></div>
 <p>几点必须解释清楚：</p>
@@ -110,10 +126,19 @@
 <p>怎么改：脚本开头统一 <code>set PRJ [pwd]</code>，所有路径写成 <code>$PRJ/../lib/...</code>；或者在启动脚本里先 <code>cd</code> 到固定目录。<strong>路径问题占了新手报错的一半</strong>，一次性写对能省很多时间。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="first"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="firstopen" data-ch="firstopen">
+  <div class="ch-h"><span class="ch-n">06</span><h2>第一次打开设计：8 步操作清单</h2></div>
+  <p>上一个序列讲的是"脚本里写什么"。这一节讲"人第一次接手一个设计时，按什么顺序点"——顺序错了，后面每一步的报错都会把你带到错的方向。</p>
+<div class="tbl"><table><thead><tr><th>步</th><th>动作</th><th>目的</th><th>这步失败的典型表现</th></tr></thead><tbody><tr><td>1</td><td><code>pwd</code> + 建 <code>log/</code> <code>db/</code> <code>rpt/</code></td><td>确认工作目录，日志有地方落</td><td>日志写到别处，出问题找不到证据</td></tr><tr><td>2</td><td>读 tech LEF</td><td>先有"层规则"：有哪些层、线宽、间距、via</td><td>后面报"没有层定义"，画不出线</td></tr><tr><td>3</td><td>读 cell LEF + macro LEF</td><td>再读"形状"：每个单元多大、引脚在哪</td><td>单元没尺寸，<code>placeInstance</code> 报非法</td></tr><tr><td>4</td><td>读网表</td><td>建立逻辑连接关系（谁连谁）</td><td>顶层名找不到、<code>report_area</code> 为 0</td></tr><tr><td>5</td><td>读 MMMC / SDC</td><td>把库、约束、corner 绑成分析视图</td><td><code>report_clocks</code> 空，全部 unconstrained</td></tr><tr><td>6</td><td><code>set init_top_cell</code> + <code>init_design</code></td><td>建内部数据库</td><td>报"design not found"，多半是顶层名不一致</td></tr><tr><td>7</td><td>四项自检</td><td>面积/时钟/一致性/未约束，四项都要过</td><td>某一项异常却往下走，错误会在布线阶段放大</td></tr><tr><td>8</td><td><code>saveDesign db/01_init.enc</code></td><td>留一个可回退的锚点</td><td>后面任何一步崩了，只能从零开始</td></tr></tbody></table></div>
+<p>几条纪律：</p>
+<ul><li><strong>第 2、3 步的顺序不能反。</strong> tech LEF 是"地方法规"，cell LEF 是"占地证"。先有法规才知道怎么量地；反过来，工具会先读进一堆没有归属的矩形。</li><li><strong>每一步之后看一次消息窗口。</strong> 不要一口气跑完 8 步再回头找 error——那时你分不清是哪一步出的。</li><li><strong>第 8 步之前不要点任何优化按钮。</strong> 没存盘就 point-and-click 是最典型的翻车：点错一个，前面全要重来。</li></ul>
+<p>8 步走完，你应该能回答三个问题：设计里有多少个实例（<code>report_area</code>）、有几个时钟（<code>report_clocks</code>）、有没有没约束的端点（<code>check_timing</code>）。三个都答得出，才算"打开了设计"，而不是"启动了软件"。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="firstopen"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="icc2" data-ch="icc2">
-  <div class="ch-h"><span class="ch-n">05</span><h2>与 ICC2 的对应关系</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>与 ICC2 的对应关系</h2></div>
   <p>工具不同，动作一样。这张表建议存下来，面试前看一遍：</p>
-<div class="tbl"><table><thead><tr><th>动作</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>启动并跑脚本</td><td><code>innovus -no_gui -files run.tcl</code></td><td><code>icc2_shell -f run.tcl</code></td></tr><tr><td>读网表</td><td><code>read_verilog</code> / <code>read_netlist</code></td><td><code>read_verilog</code></td></tr><tr><td>读物理库</td><td><code>read_lef</code>（tech + cell 各一次）</td><td><code>read_lef</code>（或建 NDM 时已包含）</td></tr><tr><td>读约束</td><td><code>read_mmmc</code> / <code>read_sdc</code></td><td><code>read_sdc</code></td></tr><tr><td>初始化设计</td><td><code>init_design</code></td><td><code>link_block</code></td></tr><tr><td>存盘</td><td><code>saveDesign db/x.enc</code></td><td><code>save_block</code></td></tr><tr><td>布局规划</td><td><code>floorPlan</code></td><td><code>initialize_floorplan</code></td></tr><tr><td>布局</td><td><code>place_opt_design</code></td><td><code>place_opt</code></td></tr><tr><td>时钟树</td><td><code>ccopt_design</code></td><td><code>clock_opt</code></td></tr><tr><td>布线</td><td><code>routeDesign</code></td><td><code>route_auto</code></td></tr><tr><td>布线后优化</td><td><code>optDesign -postRoute</code></td><td><code>route_opt</code></td></tr><tr><td>时序报告</td><td><code>report_timing</code></td><td><code>report_timing</code></td></tr><tr><td>QoR 汇总</td><td><code>report_qor</code></td><td><code>report_qor</code></td></tr><tr><td>面积报告</td><td><code>report_area</code></td><td><code>report_area</code></td></tr><tr><td>DRC 检查</td><td><code>verify_drc</code></td><td><code>check_routes</code></td></tr><tr><td>导出 DEF</td><td><code>defOut -floorplan</code></td><td><code>write_def</code></td></tr><tr><td>导出 GDSII</td><td><code>streamOut</code></td><td><code>write_gds</code></td></tr></tbody></table></div>
+<div class="tbl"><table><thead><tr><th>动作</th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>启动并跑脚本</td><td><code>innovus -no_gui -files run.tcl</code></td><td><code>icc2_shell -f run.tcl</code></td></tr><tr><td>读网表</td><td><code>read_verilog</code> / <code>read_netlist</code></td><td><code>read_verilog</code></td></tr><tr><td>读物理库</td><td><code>read_lef</code>（tech + cell 各一次）</td><td><code>read_lef</code>（或建 NDM 时已包含）</td></tr><tr><td>读约束</td><td><code>read_mmmc</code> / <code>read_sdc</code></td><td><code>read_sdc</code></td></tr><tr><td>初始化设计</td><td><code>init_design</code></td><td><code>link_block</code></td></tr><tr><td>存盘</td><td><code>saveDesign db/x.enc</code></td><td><code>save_block</code></td></tr><tr><td>布局规划</td><td><code>floorPlan</code></td><td><code>initialize_floorplan</code></td></tr><tr><td>布局</td><td><code>place_opt_design</code></td><td><code>place_opt</code></td></tr><tr><td>时钟树</td><td><code>ccopt_design</code></td><td><code>clock_opt</code></td></tr><tr><td>布线</td><td><code>routeDesign</code></td><td><code>route_auto</code></td></tr><tr><td>布线后优化</td><td><code>optDesign -postRoute</code></td><td><code>route_opt</code></td></tr><tr><td>时序报告</td><td><code>report_timing</code></td><td><code>report_timing</code></td></tr><tr><td>QoR 汇总</td><td><code>report_qor</code></td><td><code>report_qor</code></td></tr><tr><td>面积报告</td><td><code>report_area</code></td><td><code>report_area</code></td></tr><tr><td>DRC 检查</td><td><code>verify_drc</code></td><td><code>check_routes</code></td></tr><tr><td>导出 DEF</td><td><code>defOut -floorplan</code></td><td><code>write_def</code></td></tr><tr><td>导出 GDSII</td><td><code>streamOut</code></td><td><code>write_gds</code></td></tr><tr><td>导出网表</td><td><code>saveNetlist</code></td><td><code>write_verilog</code></td></tr><tr><td>恢复存档</td><td><code>restoreDesign db/x.enc.dat top</code></td><td><code>open_block x</code></td></tr><tr><td>设计一致性检查</td><td><code>checkDesign -all</code></td><td><code>check_design</code></td></tr><tr><td>约束完整性检查</td><td><code>check_timing -include unconstrained</code></td><td><code>check_timing</code></td></tr><tr><td>电源环</td><td><code>addRing</code></td><td><code>create_pg_ring_pattern</code> + <code>compile_pg</code></td></tr><tr><td>电源条带</td><td><code>addStripe</code> + <code>sroute</code></td><td><code>create_pg_mesh_pattern</code> + <code>compile_pg</code></td></tr><tr><td>电源连通检查</td><td><code>checkPGConnectivity</code></td><td><code>check_pg_connectivity</code></td></tr><tr><td>时钟树报告</td><td><code>report_clock_tree</code></td><td><code>report_clock_qor</code></td></tr></tbody></table></div>
 <p>两点说明：</p>
 <ul><li>命令名在不同版本里会有细微差别（尤其 ICC2 的 application options 体系），上表是主流版本的动作对应，<strong>具体敲之前用 <code>man</code> 或 <code>help</code> 确认一次</strong>。</li><li>真正相通的是<strong>顺序和判断标准</strong>：先读库再 init、布局前必须有 floorplan、CTS 后必须看 skew。这些换工具也不会变。</li></ul>
 <div class="term" tabindex="0">
@@ -169,12 +194,12 @@
         <h3>这一课学完了吗？</h3>
         <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <button id="btn-done" class="pri">标记本课完成</button>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/02-03-inputs/">← 开工前要拿到什么：设计数据准备与自检</a><a class="nav-btn" href="/lesson/03-02-floorplan/">Floorplan：先定房子的格局 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-05-dft/">← DFT 与扫描链：可测性设计对后端意味着什么</a><a class="nav-btn" href="/lesson/03-02-floorplan/">Floorplan：先定房子的格局 →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

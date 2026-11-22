@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>宏单元摆放实战：通道宽度的算法 · 14 | IC 后端学院</title>
+<title>宏单元摆放实战：通道宽度的算法 · 16 | IC 后端学院</title>
 <meta name="description" content="宏单元只占两成面积，却决定一半的布线难度。这一课给通道宽度的完整算式与手算、四条摆放硬规则、摆完的七项自检，以及一组真实的返工数据。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-03-macro">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>宏单元摆放实战：通道宽度的算法</b></div>
     <div class="hero">
-      <div class="hero-no">14</div>
+      <div class="hero-no">16</div>
       <h1>宏单元摆放实战：通道宽度的算法</h1>
       <p class="hero-en">Macro Placement</p>
       <p class="hero-sum">宏单元只占两成面积，却决定一半的布线难度。这一课给通道宽度的完整算式与手算、四条摆放硬规则、摆完的七项自检，以及一组真实的返工数据。</p>
@@ -71,6 +71,9 @@
 <p>手算一条"大通道"。两个大 SRAM 面对面，两侧合计朝通道出 128 个信号引脚（每侧 64），平均每引脚 2 根线，4 层可用，pitch 0.28µm，余量 25%，通道里还要走两条电源条：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">信号线数     = 128 × 2 = 256 根</span><span class="ln ">单层线数     = 256 ÷ 4 = 64 根</span><span class="ln ">信号宽度     = 64 × 0.28 = 17.92 µm</span><span class="ln ">加 25% 余量  = 22.4 µm</span><span class="ln "> </span><span class="ln ">电源条       = 每条 8µm 宽 + 两侧各 2µm 间距 → 8 + 2×2 = 12 µm</span><span class="ln ">两条 + 中间 3µm 间隔 = 12 × 2 + 3 = 27 µm</span><span class="ln "> </span><span class="ln ">走线区小计   = 22.4 + 27 ≈ 49.4 µm  （信号 + 电源，还没算逃逸和 halo）</span></code></pre></div>
 <p>先记住这个 49.4。工具默认给 10µm，差五倍——这就是"按默认值摆"必然翻车的原因。但它还不是最终答案，下面两项还要加上去。</p>
+<p>这个加法长什么样，图里画出来了：一条通道其实是"信号 + 电源 + 逃逸"三段拼起来的。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/fp-channel.png" data-fig="fp-channel"><img src="/fig/fp-channel.png" alt="两个 SRAM 面对面、引脚都朝内，中间那条通道要同时容纳三样东西。下面的色条把加法拆开：信号段、电源走廊、余量。重点看每一段占多少比例。" loading="lazy" decoding="async"></a><figcaption>两个 SRAM 面对面、引脚都朝内，中间那条通道要同时容纳三样东西。下面的色条把加法拆开：信号段、电源走廊、余量。重点看每一段占多少比例。</figcaption></figure>
+<p>从图里要看出什么：<strong>通道宽度不是一个数，是一笔账</strong>。报"留了 30µm"没人能判断对不对，报"信号 18 + 电源 12 + 余量 5"才有人能挑错。评审时被问"能不能窄一点"，你要能指出窄的是哪一段、为什么不能动。</p>
 <p><strong>反向校验</strong>（review 时最容易被追问的一步）：用轨道数验一遍。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">通道给的单层轨道数 = 22.4 ÷ 0.28 = 80 根</span><span class="ln ">实际需要           = 64 根</span><span class="ln ">余量               = 80 ÷ 64 = 1.25  ← 正好是前面那个 25%</span></code></pre></div>
 <p>两个方向算出来是同一个数，说明公式没写错。<strong>对不上就一定是口径用错了</strong>：把总宽当信号宽、把 M1 算进可用层数、或者把引脚数重复计了两次。</p>
@@ -127,9 +130,25 @@
 <p><strong>工作中怎么用</strong>：四条规则里，靠边和对齐是"摆法"，朝向和 halo 是"约束"。实际做法是先用脚本按列摆好（对齐），再逐个调朝向（看图），最后批量加 halo。顺序反了会返工——用 <code>-inst</code> 建的 halo 会跟着实例走，用 <code>-box</code> 画的不会，宏单元一挪，画的那块就留在原地挡路。</p>
   <label class="ch-done"><input type="checkbox" data-mark="rules"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="taboo" data-ch="taboo">
+  <div class="ch-h"><span class="ch-n">04</span><h2>四个禁忌：出错什么样、怎么查</h2></div>
+  <p>上面讲的是"应该怎么做"，这一节反过来讲"做错了会看到什么"。四个禁忌，按被发现的难度从易到难排：</p>
+<div class="tbl"><table><thead><tr><th>禁忌</th><th>出错后的现象</th><th>怎么查（具体动作）</th><th>修法</th></tr></thead><tbody><tr><td><strong>出 pin 朝内</strong>（本该朝内却朝了外）</td><td>飞线从 macro 的背面绕出去，那条 net 的长度是直线的 2~4 倍；经过它的路径 net delay 占比异常高</td><td>开飞线，只显示连到这颗 macro 的 net，看线的<strong>第一段</strong>往哪走；或 <code>dbGet</code> 取它的 pin 坐标，和 net 另一端坐标比方向</td><td>用 <code>MY</code>/<code>MX</code> 翻过来，翻完再开飞线确认</td></tr><tr><td><strong>通道方向不一致</strong>（两条通道十字交叉）</td><td>拥塞热点精确落在交叉口那一个 bin；<code>reportCongestion</code> 的单点 overflow 特别高；via 数异常</td><td><code>reportCongestion -hotSpot</code> 抄下热点坐标，对照 floorplan 看是不是两通道交点；再看该处 density 是否正常（正常就说明是走线交叉，不是单元太多）</td><td>改成一字通道；必须交叉时把交叉段加宽 30%，并在交叉点盖硬禁放区</td></tr><tr><td><strong>电源不对齐</strong></td><td>macro 电源引脚不在 stripe 上：<code>checkPGConnectivity</code> 报 unconnected；IR 热点出现在 macro 四个角</td><td>把电源网格和 macro 电源引脚<strong>同时显示</strong>，逐列目测；<code>verifyPowerVia</code> 看该处 via 覆盖率是否为 0</td><td>平移 macro 让 pin 落在 stripe 上；或调 stripe 的 <code>-start_offset</code>；临时短接线只当应急，不当方案</td></tr><tr><td><strong>没留 halo</strong></td><td>标准单元贴着 macro 引脚摆进来，布线时 macro 四周一圈 DRC；pin access 失败</td><td><code>checkPlace</code> <strong>不会报错</strong>（几何完全合法），要看 place 后的密度图有没有单元紧贴 macro 边；也可以对比"加 halo 前后"的 <code>report_area</code></td><td><code>createPlaceBlockage -type halo</code> 或 <code>setPlaceMode -place_global_module_padding</code>；加完必须重算利用率</td></tr></tbody></table></div>
+<p>四条里前两条"看一眼"就能发现，后两条必须"算"或者"叠图对"。所以检查顺序应该是：</p>
+<ol><li><strong>朝向</strong>（10 秒）：开飞线，扫一眼有没有从背面出来的线。</li><li><strong>通道</strong>（5 分钟）：<code>dbGet</code> 量相邻 macro 的间距，和估算表逐个对。</li><li><strong>电源</strong>（5 分钟）：叠两层图，看 pin 落没落在 stripe 上。</li><li><strong>halo</strong>（2 分钟）：跑 <code>checkPlace</code> + 看密度图边缘。</li></ol>
+<p><strong>为什么按这个顺序？</strong> 因为前两项改起来是"翻个方向、挪个坐标"，后两项改起来要动电源规划和面积账。先做便宜的检查，能让贵的检查少做几遍。</p>
+<div class="pit"><div class="pit-h">常见坑 · 四个禁忌同时犯，但只查出一个</div><div class="pit-b"><p>现象：改完朝向，飞线正常了，但布线 DRC 还是 3000 条。以为是布线参数问题，调了两天没效果。</p>
+<p>原因：四个禁忌会互相掩盖。朝向错了，飞线绕远，看起来"通道很挤"；其实是朝向造成的假拥塞，把真问题（通道太窄）盖住了。</p>
+<p>怎么处理：<strong>按顺序一次查完四个，不要查一个改一个。</strong> 每查完一项记一个数（朝向：几条线异常 / 通道：最窄多少 / 电源：几个未连 / halo：几处贴边），四个数都有了再决定改哪个。一次只改一个变量，否则你不知道是哪一项起了作用。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="taboo"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="patterns" data-ch="patterns">
-  <div class="ch-h"><span class="ch-n">04</span><h2>三种典型摆法：条状、环形、岛屿</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>三种典型摆法：条状、环形、岛屿</h2></div>
   <p>规则讲完，还剩一个选择题：这些宏单元<strong>整体排成什么形状</strong>。工程上常见三种，没有优劣，只有适用场景。</p>
+<p>先看一个真实例子——下面这张就是"环形"摆法的样子。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-floorplan.png" data-fig="innovus-floorplan"><img src="/fig/innovus-floorplan.png" alt="四角各一块 SRAM，中间留完整标准单元区，外侧一圈是 IO。重点看四条边上的宏单元是怎么"围"出一块连续区域的，以及四角附近的通道为什么最宽。" loading="lazy" decoding="async"></a><figcaption>四角各一块 SRAM，中间留完整标准单元区，外侧一圈是 IO。重点看四条边上的宏单元是怎么"围"出一块连续区域的，以及四角附近的通道为什么最宽。</figcaption></figure>
+<p>从图里要看出什么：<strong>摆法决定了通道的拓扑</strong>。环形把通道分成四条边，每条边单独算宽度；四角是两条边交汇的地方，最容易拥塞，所以角上的通道要额外加宽。换成条状就是一条长通道，换成岛屿就是好几条短通道——通道的数量和方向，是三种摆法最本质的区别。</p>
+<p>三种摆法放在一起对比：</p>
 <div class="tbl"><table><thead><tr><th>摆法</th><th>长什么样</th><th>适合什么设计</th><th>主要风险</th></tr></thead><tbody><tr><td>条状（strip）</td><td>所有宏单元排成一条或两条带，贴一边</td><td>宏单元少（≤6 个）、尺寸相近</td><td>带太长，另一侧的逻辑要跨全片</td></tr><tr><td>环形（ring）</td><td>沿四边各排一排，中间留完整标准单元区</td><td>宏单元多（8~20 个）、形状不一</td><td>四个角的通道交汇，最易拥塞</td></tr><tr><td>岛屿（island）</td><td>按数据流分几群，每群靠近自己的逻辑</td><td>多模块 SoC、有明确子系统边界</td><td>群与群之间的通道要单独算</td></tr></tbody></table></div>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">条状                      环形                      岛屿</span><span class="ln ">┌────────────────┐      ┌────────────────┐      ┌────────────────┐</span><span class="ln ">│ ███ ███ ███    │      │ ██          ██ │      │ ██    ██       │</span><span class="ln ">│                │      │                │      │  ↑数据流A  ↑B  │</span><span class="ln ">│   标准单元区    │      │   标准单元区    │      │   ██    ██     │</span><span class="ln ">│                │      │ ██          ██ │      │    ↑C     ↑D   │</span><span class="ln ">└────────────────┘      └────────────────┘      └────────────────┘</span></code></pre></div>
 <p>选择依据有两条，按顺序问：</p>
@@ -143,7 +162,7 @@
   <label class="ch-done"><input type="checkbox" data-mark="patterns"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="checklist" data-ch="checklist">
-  <div class="ch-h"><span class="ch-n">05</span><h2>摆完的自检清单</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>摆完的自检清单</h2></div>
   <p>七项检查，十分钟能跑完。跑不完就别进布局。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：七项自检里能脚本化的五项；第 4、6 项（朝向、电源对齐）只能看图，见下文</span><span class="ln cmt"># 用法：Innovus 里逐条执行；输出重定向到 rpt/ 存证，结果写进交接记录</span><span class="ln ">checkPlace                        ;# ① 合法性：重叠、越界、站点对齐、落在 blockage 里的实例</span><span class="ln ">checkFPlan -reportUtil            ;# ② 整体规划：宏单元是否在 core 内、利用率是多少</span><span class="ln ">dbGet [dbGet -p top.insts.name u_sram0].box   ;# ③ 量坐标：输出 {llx lly urx ury}，用来自查通道宽度</span><span class="ln ">report_area                       ;# ④ 面积：标准单元面积 + 宏单元面积，和综合报告对得上吗</span><span class="ln ">reportCongestion -hotSpot         ;# ⑤ 拥塞预判：此时还没布线，只能看早期估计，有热点就记下来</span></code></pre></div>
 <p><code>checkPlace</code> 通过时输出是"没有违例"这类汇总；有违例时它会逐条列出实例名和原因。<strong>课程环境跑不了完整流程，真实项目里你会看到类似这样的行</strong>（不同版本措辞不同）：</p>
@@ -158,7 +177,7 @@
   <label class="ch-done"><input type="checkbox" data-mark="checklist"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="real" data-ch="real">
-  <div class="ch-h"><span class="ch-n">06</span><h2>一个真实的数字</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>一个真实的数字</h2></div>
   <p>课程环境里，我们在一套 45nm 开源库上跑过一个万门设计：9390 个标准单元、6 个 SRAM。第一版没算通道，直接按工具默认间距摆（SRAM 之间 6µm）：</p>
 <ul><li>布线 DRC：<strong>6000 条</strong>（课程环境实测）</li><li>红色拥塞区：<strong>5 处</strong>，全部落在 SRAM 之间的缝里</li></ul>
 <p>改成"按出线数算走线区（20~50µm）+ halo + 对齐 + 朝向修正"之后，同一套布线参数：</p>
@@ -241,7 +260,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

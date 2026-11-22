@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DFT 与扫描链：可测性设计对后端意味着什么 · 13 | IC 后端学院</title>
+<meta name="description" content="芯片造出来必须能测。DFT 就是在设计里加「测试专用电路」，让测试机能把几百万个触发器一个个灌数据进去看结果。这一课讲清扫描链怎么来、后端要做什么、断链为什么是灾难。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
+</head>
+<body data-page="lesson" data-lesson="02-05-dft">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/quiz/">题库</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>DFT 与扫描链：可测性设计对后端意味着什么</b></div>
+    <div class="hero">
+      <div class="hero-no">13</div>
+      <h1>DFT 与扫描链：可测性设计对后端意味着什么</h1>
+      <p class="hero-en">DFT and Scan Chains</p>
+      <p class="hero-sum">芯片造出来必须能测。DFT 就是在设计里加「测试专用电路」，让测试机能把几百万个触发器一个个灌数据进去看结果。这一课讲清扫描链怎么来、后端要做什么、断链为什么是灾难。</p>
+      <div class="hero-meta">
+        <span class="pill">约 40 分钟</span>
+        <span class="pill">课表学时 3</span>
+        <span class="pill tag">DFT</span><span class="pill tag">scan chain</span><span class="pill tag">ATPG</span><span class="pill tag">MBIST</span><span class="pill tag">JTAG</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>造出来几百万颗，怎么知道哪颗是坏的</h2></div>
+  <div class="goal"><span>本章目标</span>学完这一课，你能说清扫描链在正常模式和测试模式下的两条通路，能列出后端对扫描链要做的三个动作，并在拿到断链报告时定位到具体是哪一级。</div>
+<p>晶圆厂流片回来，一批可能是几千颗芯片。你不能一颗颗上电跑应用去试——那要跑几天，而且很多缺陷只在特定数据下才暴露。</p>
+<p>制造缺陷有三大类：</p>
+<ul><li><strong>短路（short）</strong>：两条本该绝缘的线搭在一起，通常是颗粒污染或光刻缺陷。</li><li><strong>开路（open）</strong>：线断了、via 没打穿，电流过不去。</li><li><strong>参数漂移（parameter drift）</strong>：掺杂浓度、氧化层厚度偏离，单元变慢或漏电变大，功能上"能用"但寿命和时序不达标。</li></ul>
+<p>这三类缺陷有个共同点：<strong>它们大多不改变逻辑结构，只让某个节点"卡在 0"或"卡在 1"，或者变慢</strong>。于是测试的思路就变成：想办法把芯片内部每一个节点都设成 0、再设成 1，从输出端看结果对不对。这就是 <strong>DFT（Design for Test，可测性设计）</strong>。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">DFT (Design for Test)</span><span class="term-zh">可测性设计</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>在设计阶段主动加入"只用于测试"的电路和通路，使制造出来的芯片可以被外部测试机快速、完整地检查。它不是验证（verification），验证查"设计对不对"，DFT 查"造出来的这颗有没有坏"。</p></div>
+</div>
+<div class="scene"><div class="scene-h">工作场景 · 周四上午，测试厂说 3 号链全错</div><div class="scene-b"><p>你做的 SoC 已经流片回来，测试工程师在 ATE（自动测试机）上跑 pattern，前两条扫描链通过率 99.8%，第 3 条链的 1024 位里第 137 位之后全是 X。测试厂要求 48 小时内给结论：是测试程序问题，还是芯片问题。</p>
+<p>你手里只有三样东西：<code>scan_chain.rpt</code>（后端交付的链清单）、<code>soc_top.scandef</code>（链定义）、以及一张版图。leader 说："先确认链在版图里是不是真的连通，再看第 137 位对应哪个触发器。" 你第一次意识到，<strong>扫描链不是前端交完就不管了，它在后端是要被重排、连线、检查的。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="four" data-ch="four">
+  <div class="ch-h"><span class="ch-n">02</span><h2>四种常见 DFT 手段，一句话说清</h2></div>
+  <div class="tbl"><table><thead><tr><th>手段</th><th>一句话</th><th>谁负责</th></tr></thead><tbody><tr><td>扫描链 scan chain</td><td>把普通触发器串成移位寄存器，测试机从一头灌、另一头读</td><td>DFT 前端插入，后端重排/连线</td></tr><tr><td>内建自测 MBIST</td><td>在存储器旁边加一个小电路，自己往 SRAM 写图案、读回来比对</td><td>DFT 前端插入，后端保证时序/布线</td></tr><tr><td>边界扫描 JTAG</td><td>在每个 IO 上加一个移位单元，从芯片边界往里灌信号</td><td>DFT 前端，后端留测试端口</td></tr><tr><td>ATPG 覆盖率</td><td>用自动图案生成器算出"能测到多少种缺陷"，用百分比衡量</td><td>DFT 前端出报告，后端配合修不可测点</td></tr></tbody></table></div>
+<p><strong>扫描链</strong>是后端最常打交道的一种。原因是它直接改动触发器：普通触发器换成扫描触发器，单元变宽、多一个引脚，布局布线和时序都要跟着变。</p>
+<p><strong>MBIST</strong> 对后端的影响是"多了一块逻辑 + 一组测试时钟"，通常放在 SRAM 附近，布线不算难，但要保证测试时钟的 skew。</p>
+<p><strong>JTAG</strong> 主要影响 IO 规划和测试端口位置，后端要确保那几根测试引脚能从 pad 直达测试逻辑，不被别的逻辑挤掉。</p>
+<p><strong>ATPG（Automatic Test Pattern Generation，自动测试图案生成）</strong> 不是电路，是流程：给定网表和故障模型，工具生成一组输入图案，使得每个假设的故障都能在输出上被观察到。覆盖率就是"被这组图案抓到的故障比例"。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">ATPG</span><span class="term-zh">自动测试图案生成</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Automatic Test Pattern Generation。给定网表、扫描链结构和故障模型（stuck-at、transition 等），自动生成能暴露缺陷的输入向量，并报告覆盖率。它决定了测试机要跑多少 pattern。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Coverage</span><span class="term-zh">覆盖率</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>被测试图案检测到的故障数 ÷ 全部假设故障数。stuck-at 覆盖率量产通常要求 95% 以上，transition 覆盖率 85% 以上。覆盖率不足意味着有一部分缺陷流到客户手里。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="four"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="cell" data-ch="cell">
+  <div class="ch-h"><span class="ch-n">03</span><h2>扫描触发器怎么工作</h2></div>
+  <p>普通 D 触发器只有一个数据入口 D。扫描触发器在 D 前面加一个二选一选择器（MUX），多一个测试入口 SI（Scan In）和一个选择端 SE（Scan Enable）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 扫描触发器的输入选择：SE=0 走功能数据，SE=1 走扫描数据</span><span class="ln ">          ┌───────────┐</span><span class="ln ">D ───────►│           │</span><span class="ln ">          │   MUX     │────► D_int ──►┌─────┐</span><span class="ln ">SI ──────►│           │               │  FF │──► Q ──► 功能逻辑 / 下一级 SI</span><span class="ln ">          └───────────┘               └─────┘</span><span class="ln ">                ▲                        ▲</span><span class="ln ">               SE                      CLK</span></code></pre></div>
+<ul><li><strong>正常模式</strong>：<code>SE=0</code>，D 端的逻辑值进触发器，Q 输出给下游逻辑。和普通触发器没区别。</li><li><strong>测试模式</strong>：<code>SE=1</code>，SI 端的值进触发器。把所有触发器的 Q 接到下一个的 SI，就成了一条移位寄存器。</li><li><strong>shift（移位）</strong>：<code>SE=1</code>，连续打时钟，测试机从链头灌 1024 个 bit，1024 个周期后整条链被填满。</li><li><strong>capture（捕获）</strong>：<code>SE=0</code>，打一个（或两个）时钟，让组合逻辑把结果算进触发器。</li><li><strong>shift out</strong>：再把 <code>SE=1</code>，把捕获到的 1024 个 bit 一个个移出来，和期望值比对。</li></ul>
+<figure class="fig-img"><a class="fig-a" href="/fig/scan.png" data-fig="scan"><img src="/fig/scan.png" alt="这张图对比了两种连接：上面是正常工作时触发器之间隔着组合逻辑，下面是测试模式下它们被串成一条长链。看下半部分——每个触发器的 Q 直接接下一个的 SI，中间没有逻辑，所以测试机可以像灌水管一样把数据推过去。" loading="lazy" decoding="async"></a><figcaption>这张图对比了两种连接：上面是正常工作时触发器之间隔着组合逻辑，下面是测试模式下它们被串成一条长链。看下半部分——每个触发器的 Q 直接接下一个的 SI，中间没有逻辑，所以测试机可以像灌水管一样把数据推过去。</figcaption></figure>
+<p>一位数据要走完整条链，所以要测一次组合逻辑，测试机要付出"链长 × 2 + 1"个时钟周期。链越长，测一次越慢，但链越少，测试机通道越省。这就是后面"链数与链长"要平衡的原因。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Scan Chain</span><span class="term-zh">扫描链</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把同一时钟域内的扫描触发器首尾相连形成的移位寄存器。一条链有固定的顺序（chain order），顺序由 DFT 工具给出，后端可以按物理位置重排，但重排后必须回写链定义。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">Scan Enable (SE)</span><span class="term-zh">扫描使能</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>控制每个扫描触发器走功能通路还是扫描通路的全局信号。它在 shift 期间保持 1、capture 期间为 0，翻转时刻有时序要求，通常要当成时钟类信号处理。</p></div>
+</div>
+<figure class="fig-img"><a class="fig-a" href="/fig/stdcell.png" data-fig="stdcell"><img src="/fig/stdcell.png" alt="这张图上半是一个标准单元的放大结构，下半是一排单元拼起来的样子。扫描触发器比普通触发器多一个 MUX 和 SI 引脚，宽度通常大 20%~30%——这就是为什么插入扫描链后，同一个布局区域会突然变挤，布线拥塞跟着上来。" loading="lazy" decoding="async"></a><figcaption>这张图上半是一个标准单元的放大结构，下半是一排单元拼起来的样子。扫描触发器比普通触发器多一个 MUX 和 SI 引脚，宽度通常大 20%~30%——这就是为什么插入扫描链后，同一个布局区域会突然变挤，布线拥塞跟着上来。</figcaption></figure>
+  <label class="ch-done"><input type="checkbox" data-mark="cell"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="backend" data-ch="backend">
+  <div class="ch-h"><span class="ch-n">04</span><h2>后端要做三个动作</h2></div>
+  <p>DFT 前端（综合阶段）只负责"把普通触发器换成扫描触发器、定义链序"。到了后端，物理位置一变，原来的链序就完全不合适了：相邻的两个触发器在链上挨着，在版图上可能隔了半个芯片，scan 线要绕一大圈，既费布线资源又容易违例。</p>
+<p>所以后端要做三件事：<strong>重排、连线、检查</strong>。</p>
+<h3>第一步：place 之后重排（scan reorder）</h3>
+<p>重排的原则很简单：<strong>让链上相邻的两个触发器在版图上也相邻</strong>。这样 scan 线短、拥塞小、延迟低。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：place 之后按物理位置重排扫描链，并输出重排后的链定义</span><span class="ln cmt"># 用法：Innovus 中 placement 完成后执行；需已读入 scan DEF 或链定义文件</span><span class="ln ">scanReorder -chain all                  ;# 按单元坐标重排所有链的顺序</span><span class="ln ">checkScanChain -all                     ;# 重排后立刻检查链是否连续</span><span class="ln ">reportScanChain -all &gt; rpt/scan_chain.rpt ;# 输出每条链的长度、头、尾</span><span class="ln ">writeScandef scan_after.rpt              ;# 回写链定义，交给 DFT 重新出 pattern</span></code></pre></div>
+<p>命令名各版本略有差异，跑之前先 <code>scanReorder -help</code> 看一眼选项。<strong>重排完必须回写 scandef</strong>，否则 DFT 用旧链序生成的 pattern 和版图对不上，测试机读出来的顺序全错。</p>
+<h3>第二步：连线（connect）</h3>
+<p>扫描链的线在物理上是普通信号线，但要额外注意三点：</p>
+<ol><li><strong>不能当成时钟网络</strong>。scan 线是数据，走默认规则，不需要 NDR；但 <code>SE</code> 是全局高扇出信号，要像时钟一样建树或做平衡。</li><li><strong>scan 线要参与时序</strong>。shift 模式下整条链是"上一级 Q → 下一级 SI"的短路径，通常不紧张；但链跨越不同时钟域时，要加 lockup latch，否则 hold 会崩。</li><li><strong>scan 线不能穿过电源域边界而不做隔离</strong>。多电源域设计里，链跨域要按 UPF 规则处理。</li></ol>
+<h3>第三步：检查（check）</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：交付前确认每条链的位数、头尾、连通性都对</span><span class="ln cmt"># 用法：route 之后、导出 GDS 之前执行</span><span class="ln ">checkScanChain -all -verbose &gt; rpt/scan_check.rpt  ;# 逐链检查，输出异常位</span><span class="ln ">reportScanChain -all &gt; rpt/scan_final.rpt          ;# 最终链清单，附给测试工程师</span><span class="ln ">report_timing -from [all_registers -clock scan_clk] -max_paths 20 ;# scan 模式时序</span></code></pre></div>
+<p><code>checkScanChain</code> 要看到两个数：<strong>每条链的实际位数</strong>和<strong>scandef 里声明的位数</strong>一致；<strong>链的头（scan_in 端口）和尾（scan_out 端口）</strong>能追到顶层端口。任何一条对不上，都不要往下走。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="backend"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="break" data-ch="break">
+  <div class="ch-h"><span class="ch-n">05</span><h2>断链为什么是灾难</h2></div>
+  <p>一条链断了，会怎样？</p>
+<ul><li>shift 时，断点之后的触发器收不到数据，移出来的全是 X 或全 0。</li><li>测试机对这条链的所有 pattern 全部判失败。</li><li>如果测试程序把"整颗芯片通过"定义为所有链通过，那么<strong>这颗芯片会被误判为坏片</strong>；如果测试程序按链统计，这条链覆盖的逻辑等于没测，<strong>坏片会被误判为好片</strong>。</li></ul>
+<p>两种结果都很糟：前者是良率虚低、成本上升；后者是缺陷流出，客户现场失效。更麻烦的是，断链在功能测试里查不出来——正常模式下 <code>SE=0</code>，scan 通路根本不参与工作，芯片功能完全正常。</p>
+<div class="pit"><div class="pit-h">常见坑 · 第 137 位之后全错，但功能测试全过</div><div class="pit-b"><p>现象：ATE 日志首行（不同机型格式不同）类似 <code>CHAIN 3 FAIL AT BIT 137: EXPECTED 0, GOT X</code>，而同一颗芯片跑功能向量全通过。</p>
+<p>原因有四种，按概率排：</p>
+<ol><li><strong>scan 线有一根没连上</strong>：重排后网表更新了，但布线用的还是旧连接，或者某根线在 route 时被当成 dangling 删掉。</li><li><strong>链序与 pattern 不一致</strong>：后端重排后没回写 scandef，DFT 仍按旧顺序生成 pattern。</li><li><strong>跨时钟域没加 lockup latch</strong>：shift 时后一级提前采样，数据错位，表现为"从某一位开始全错"。</li><li><strong>scan enable 时序问题</strong>：SE 在 shift/capture 切换时没满足 setup，capture 采到错误值。</li></ol>
+<p>怎么查：先用 <code>checkScanChain</code> 确认版图链完整；再用第 137 位的触发器名去 <code>scan_final.rpt</code> 里找它的前一级，对比 scandef；如果链完整，就看这条链是否跨时钟域、SE 的时序报告是否干净。<strong>不要一上来就怀疑测试程序。</strong></p></div></div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">MBIST</span><span class="term-zh">存储器内建自测</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Memory Built-In Self-Test。在 SRAM 旁边插入一个自测控制器，自动完成写图案、读回、比对，把"存储器好坏"从扫描链里独立出来。因为 SRAM 的位单元结构不适合串进扫描链，必须单独测。</p></div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="break"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="impact" data-ch="impact">
+  <div class="ch-h"><span class="ch-n">06</span><h2>扫描对时序和功耗的影响</h2></div>
+  <p>扫描链不是"免费的测试通路"，它会给后端带来四类实打实的影响：</p>
+<p><strong>第一，scan 模式下频率要降。</strong> shift 通路上是一长串触发器首尾相连，虽然每段很短，但测试机本身跑不快（典型 50~100MHz），而且同时翻转的触发器太多，IR drop 大。所以 scan 模式通常用独立时钟，周期是功能时钟的 2~4 倍。</p>
+<p><strong>第二，shift 功耗远高于正常模式。</strong> 正常工作时只有百分之几的触发器同时翻转；shift 时每个时钟沿几乎全部触发器一起翻转，动态功耗可以是正常模式的 3~5 倍。后果是<strong>测试时掉压</strong>，本来能过的芯片在测试机上失败，这叫 test-induced failure。</p>
+<p><strong>第三，capture 要查真实时序。</strong> at-speed test 要在功能频率下打两个脉冲，检查组合逻辑的 transition 延迟。这时 scan 模式的时序约束必须和功能模式一样严，不能因为"只是测试"就放松。两个脉冲之间的间隔通常就是一个功能周期，所以 capture 阶段的路径必须满足功能时钟的 setup/hold，而不是测试时钟的慢周期。</p>
+<p><strong>第四，面积和延迟。</strong> 扫描触发器多一个 MUX，D 通路多 20~40ps 延迟，面积大 20%~30%。几十万个触发器加起来，芯片面积和功耗都要重新算。MUX 带来的延迟直接加在功能路径上，所以插扫描链之后，原本刚好收敛的路径可能重新违例，这也是 DFT 插入后要重跑一次时序的原因。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="impact"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="coverage" data-ch="coverage">
+  <div class="ch-h"><span class="ch-n">07</span><h2>覆盖率与测试时间：一对矛盾</h2></div>
+  <p>覆盖率越高，漏掉的缺陷越少，但 pattern 数越多，测试时间越长。</p>
+<p>测试时间可以粗算：</p>
+<p><code>测试时间 ≈ pattern 数 × (最长链长 + 少量开销) ÷ 测试时钟频率</code></p>
+<p>举例：8000 个 pattern、最长链 1200 位、测试时钟 50MHz：</p>
+<ul><li>时钟周期 = 20ns</li><li>总周期 ≈ <code>8000 × 1200 = 9.6M</code></li><li>时间 ≈ <code>9.6M × 20ns = 0.192s</code>，即每颗芯片约 0.2 秒</li></ul>
+<p>单颗 0.2 秒听起来不多，但一条测试线一天测 10 万颗，就是 5.5 小时纯测试时间；测试机是按小时计费的。所以工程上会用<strong>扫描压缩（scan compression）</strong>：把内部 1200 条链压成 12 个外部通道，测试时间降一个数量级，代价是压缩逻辑的面积和少量覆盖率损失。</p>
+<p>覆盖率与 pattern 数的关系不是线性的：从 90% 提到 95% 可能只要 2000 个 pattern，从 98% 提到 99% 可能要再加 10000 个。<strong>最后那 1% 最贵</strong>，所以项目会设一个"够用就好"的目标，而不是盲目追 100%。</p>
+<p>压缩比也是要看的数：内部上千条链、上百万个扫描单元，压成十几个外部通道，每个通道每个 pattern 要灌的数量是原来的几十到上百分之一，测试时间随之下降；但压缩逻辑本身占面积，而且深度压缩会让"两个故障互相遮蔽"，覆盖率掉 1~2 个点。项目通常在"覆盖率达标"的前提下选最大的压缩比，而不是反过来。测试时间、覆盖率、测试机通道数，这三者要一起定，不能只盯一个指标。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="coverage"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="in-work" data-ch="in-work">
+  <div class="ch-h"><span class="ch-n">08</span><h2>工作中怎么用：DFT 在项目里的接口</h2></div>
+  <p><strong>谁给什么</strong>：</p>
+<ul><li>DFT 工程师给：<code>scandef</code>（链定义）、扫描触发器清单、ATPG pattern（STIL/WGL）、覆盖率报告、测试时钟定义。</li><li>后端给：重排后的 <code>scandef</code>、<code>scan_check.rpt</code>、scan 模式的时序报告、scan 线的 DRC/IR drop 报告。</li><li>测试工程师给：ATE 上的失败日志（哪条链、第几位、期望值/实际值）。</li></ul>
+<p><strong>后端交付前看四个数</strong>：</p>
+<ol><li>链数与链长是否均衡——最长链和最短链差超过 10%，测试时间被最长链拖死。</li><li>所有链的位数之和是否等于扫描触发器总数——少了就是有触发器没进链。</li><li>scan 模式 WNS 是否 ≥ 0——shift 和 capture 分开报。</li><li>shift 模式 IR drop 是否在预算内——同时翻转的功耗不能把电压拉垮。</li></ol>
+<p><strong>出了断链怎么查</strong>（按顺序，别跳）：</p>
+<ol><li>看 ATE 日志的失败位号 → 在 <code>scan_final.rpt</code> 里找该位对应的触发器。</li><li><code>checkScanChain -verbose</code> 看工具是否也认为这条链断了；工具说没断而 ATE 说断，多半是 pattern 与链序不一致。</li><li>在版图里高亮这个触发器到下一级的 scan 线，看是否有 open、是否有单元被挪动后线没重连。</li><li>查 <code>scanReorder</code> 日志和 scandef 的生成时间——<strong>时间戳早于最后一次重排的 scandef，一律视为过期</strong>。</li></ol>
+<p><strong>做错了会怎样</strong>：断链漏到测试厂，轻则 48 小时紧急分析、重出 pattern；重则整批芯片被误判，甚至缺陷流出导致召回。扫描链是"测试的通路"，通路断了，后面所有测试都失去意义。</p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>动手：验收一份扫描链报告</div><div class="lab-b"><p><strong>任务</strong>：<code>~/backend_lab/soc/dft/</code> 下有 <code>scan_final.rpt</code>（每条链一行：链名、长度、起点、终点）和 <code>scan_summary.rpt</code>（扫描触发器总数）。验证三件事。</p>
+<p><strong>步骤</strong>：</p>
+<ol><li><code>head -20 scan_final.rpt</code> 看格式，记下链数与最长/最短链。</li><li><code>awk '{s+=$2} END {print s}' scan_final.rpt</code> 求所有链长度之和，与 <code>scan_summary.rpt</code> 里的触发器总数对比。</li><li><code>sort -k2 -n scan_final.rpt | head -3</code> 和 <code>tail -3</code> 找最短/最长链，算差值百分比。</li><li><code>grep -c "chain" scan_final.rpt</code> 确认链数与 scandef 声明一致。</li></ol>
+<p><strong>过关标准</strong>：能给出"总位数是否等于触发器数、链长是否均衡（差值 &lt;10%）、有没有空链"三个结论，并指出哪条链最该优先查。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>DFT 和功能验证的区别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">验证查"设计逻辑对不对"，DFT 查"制造出来的这颗芯片有没有物理缺陷"，两者目标不同、用的向量也不同。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>扫描触发器在正常模式和测试模式下的数据通路分别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">正常模式 SE=0，D→FF→Q；测试模式 SE=1，SI→FF→Q，Q 接下一级 SI 形成移位链。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么后端要在 place 之后重排扫描链？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">DFT 给的链序只看逻辑，不看物理位置；重排让链上相邻的触发器在版图上也相邻，缩短 scan 线、降低拥塞和延迟。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>重排后为什么必须回写 scandef？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">ATPG 按 scandef 的顺序生成 pattern；不回写，测试机读出的顺序与版图不一致，整条链的数据会错位。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>一条扫描链断了，为什么功能测试查不出来？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">功能测试时 SE=0，scan 通路不参与工作，芯片功能正常；只有 shift 时才暴露，所以必须靠 scan 专用检查。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>shift 模式为什么功耗高？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">shift 时几乎全部触发器每个时钟沿同时翻转，动态功耗可达正常模式的数倍，容易造成测试时掉压。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>覆盖率和测试时间怎么权衡？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">覆盖率越高 pattern 越多、测试时间越长；通常用扫描压缩把内部多链压成少通道，在覆盖率损失很小的情况下把时间降一个数量级。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能画出扫描触发器的 MUX 结构，并说清 SE=0/1 时数据怎么走</li><li>能背出后端三个动作：重排 → 连线 → 检查，并说出每步的产物</li><li>能解释断链为什么功能测试查不出、ATE 上却全错</li><li>能说出 scan 模式对频率、功耗、时序的三点影响</li><li>拿到 <code>scan_final.rpt</code> 能算出链长均衡度和总位数，判断是否可交付</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="in-work"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-04-rc-extraction/">← 寄生参数提取（RC Extraction）与 SPEF</a><a class="nav-btn" href="/lesson/03-01-innovus/">Innovus 起步：一个后端工具到底在管什么 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
+</body>
+</html>

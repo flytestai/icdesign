@@ -6,7 +6,7 @@
 <title>进程、后台任务与环境变量 · 05 | IC 后端学院</title>
 <meta name="description" content="dc_shell 为什么"command not found"、任务为什么一关终端就死、GUI 为什么起不来——这一课从进程、PID、信号讲到 &、nohup、Ctrl+Z 的区别，再到 PATH、HOME、DISPLAY 和 .bashrc 与 .cshrc 的加载时机。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="01-04-process">
 <header class="top">
@@ -83,12 +83,24 @@
 <p><code>-15</code> 和 <code>-9</code> 的差别，用一个数字就能说明白。</p>
 <p>一个 PNR 任务跑了 5 小时 40 分（340 分钟），工具每 15 分钟自动 <code>saveDesign</code> 一次。你 <code>kill -15</code>，它收到信号，把当前数据库存盘再退出，你最多损失 15 分钟，重跑接着来。你 <code>kill -9</code>，它正在写 <code>.db</code> 的半路上被抹掉，文件可能是半截的，工具再打开会报 <code>Cannot open design</code>，你损失 340 分钟。</p>
 <p><code>15 ÷ 340 ≈ 4.4%</code> 和 <code>340 ÷ 340 = 100%</code>——<strong>这就是"多等 10 秒"和"重跑一夜"的差别。</strong></p>
+<h3>先 15 后 9：一条能背下来的纪律</h3>
+<p>顺序写死，不要凭手感：</p>
+<ol><li><code>kill -15 PID</code>。</li><li><strong>等 30 秒。</strong> 这不是客气，是给工具时间收尾：把正在写的文件写完、释放 license、删掉临时文件。</li><li><code>ps -p PID</code> 确认真的没了。<strong>输出里没有这一行</strong>才算退出；<code>ps</code> 报 <code>no such process</code> 是好事。</li><li>还在 → 先看它在干什么：<code>ps -o pid,stat,etime,cmd -p PID</code>。状态 <code>S</code>/<code>R</code> 说明还在跑（可能正在存盘，多等一会儿）；<code>D</code> 说明卡在 I/O，这时候 <code>-9</code> 也没用。</li><li>确认它已经没有任何写动作，才 <code>kill -9 PID</code>。</li></ol>
+<p>哪些情况可以直接 <code>-9</code>？只有两种：<strong>进程已经是 <code>Z</code>（僵尸）</strong>，或者<strong>它明确不写任何东西</strong>（卡在等 license、卡在一个只读报告上）。其余一律先 15。</p>
+<div class="tbl"><table><thead><tr><th>场景</th><th>先 <code>-15</code></th><th>直接 <code>-9</code></th></tr></thead><tbody><tr><td>PNR / 综合正在跑，可能正在 saveDesign</td><td>必须</td><td>禁止</td></tr><tr><td>卡在 <code>Waiting for license</code></td><td>先 15（它本来就没写盘）</td><td>不必要</td></tr><tr><td>自己写的小脚本死循环</td><td>可以</td><td>可以</td></tr><tr><td>状态 <code>Z</code>（僵尸）</td><td>无效</td><td>无效，要处理父进程</td></tr><tr><td>状态 <code>D</code>（不可中断）</td><td>无效</td><td>无效，只能等 I/O 恢复</td></tr><tr><td>别人的进程</td><td>不要动</td><td>不要动</td></tr></tbody></table></div>
 <div class="pit"><div class="pit-h">常见坑 · kill -9 之后设计库打不开了</div><div class="pit-b"><p>现象：<code>kill -9</code> 掉一个正在 save 的 PNR 任务，再启动工具 <code>restoreDesign</code> 报数据库损坏或直接段错误。</p>
 <p>原因：<code>-9</code> 不给进程任何回调机会，写文件写到一半被切断，<code>.db</code>/<code>.enc</code> 是二进制格式，缺一段就是废文件。</p>
 <p>怎么查、怎么避免：先 <code>kill -15</code>，等 30 秒，<code>ps</code> 确认真的退了，还赖着才 <code>-9</code>。已经被 <code>-9</code> 的，去看 <code>saveDesign</code> 目录里有没有带时间戳的备份（多数流程会留 <code>db/</code> 和 <code>db.bak/</code>），没有就只能从上一个检查点重跑。教训是：<strong>跑长任务时把"自动存盘间隔"设短，比任何抢救手段都管用。</strong></p></div></div>
 <div class="pit"><div class="pit-h">常见坑 · 杀了父进程，子进程还在</div><div class="pit-b"><p>现象：<code>kill</code> 掉启动脚本，工具还在跑；或者杀掉 shell，<code>dc_shell</code> 变成孤儿（PPID 变成 1）继续吃内存。</p>
 <p>原因：信号只发给一个 PID，不会自动传给它的子进程。父进程死了，子进程被 init（PID 1）接管，照样活着。</p>
 <p>怎么查：<code>ps -ef | grep 关键词</code> 看 PPID 是不是 1；<code>pstree -p 父PID</code> 看整棵树。要连子进程一起收，用 <code>kill -- -PGID</code>（杀整个进程组）或者 <code>pkill -P 父PID</code>。<strong>杀之前先看清楚树，别只杀一个头。</strong></p></div></div>
+<h3>进程杀不掉：先看 STAT</h3>
+<p><code>kill -9</code> 都杀不掉时，别怀疑人生，先看状态列：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：查询进程状态与等待原因，判断"为什么杀不掉"</span><span class="ln cmt"># 用法：PID 从 ps 里拿；/proc 那两条在 D 状态时用</span><span class="ln ">ps -o pid,ppid,stat,wchan:20,cmd -p 12345   # stat 是状态，wchan 是"卡在哪个内核函数"</span><span class="ln ">ps -o ppid= -p 12345                         # 只输出父进程号（处理僵尸用）</span><span class="ln ">cat /proc/12345/stack 2&gt;/dev/null            # 内核栈，D 状态时能看到卡在哪个 I/O（可能要 root）</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>STAT</th><th>名字</th><th>含义</th><th><code>-9</code> 有用吗</th><th>怎么办</th></tr></thead><tbody><tr><td><code>R</code></td><td>running</td><td>正在跑或等着上 CPU</td><td>有用</td><td>按"先 15 后 9"处理</td></tr><tr><td><code>S</code></td><td>sleeping</td><td>等事件（I/O、锁、license）</td><td>有用</td><td>先 <code>-15</code>，等它收尾</td></tr><tr><td><code>D</code></td><td>uninterruptible</td><td>卡在内核 I/O 里，<strong>不响应任何信号</strong></td><td><strong>没用</strong></td><td>修 I/O（NFS / 磁盘），或等；节点级只能报运维</td></tr><tr><td><code>T</code></td><td>stopped</td><td>被 <code>Ctrl+Z</code> 或 SIGSTOP 停住</td><td>有用</td><td>先 <code>kill -CONT</code> 让它跑起来，再 <code>-15</code></td></tr><tr><td><code>Z</code></td><td>zombie</td><td>已经死了，父进程还没回收</td><td><strong>没用</strong>，它已经死了</td><td>让父进程退出（或修它的 <code>wait</code>）</td></tr></tbody></table></div>
+<p>三个"杀不掉"的真实原因，按出现频率排：</p>
+<ol><li><strong>Z 僵尸</strong>：进程已退出，只剩一个表项等父进程回收。你 <code>kill</code> 的是一个已经不存在的东西，所以毫无反应。用 <code>ps -o ppid= -p PID</code> 找到父进程，父进程退出后表项自动消失。<strong>僵尸不占 CPU 和内存，只占一个 PID，不用慌。</strong></li><li><strong>D 状态</strong>：进程在内核里等一个 I/O，典型场景是 NFS 挂载的目录断了网。这个状态<strong>连 <code>-9</code> 都不响应</strong>——你会看到 <code>kill</code> 返回成功、<code>ps</code> 里它还在。判断依据：<code>stat</code> 是 <code>D</code>，且 <code>wchan</code> 显示某个文件系统函数。处理办法是恢复那个 I/O，或者等；<strong>重启整台节点是最后手段，要走运维。</strong></li><li><strong>不是你的进程</strong>：报 <code>kill: (1234) - Operation not permitted</code>。公共账号下极常见——你看到的是同事跑的任务，杀掉等于毁他几小时。</li></ol>
+<p>判断顺序固定：<strong>属主是不是我 → <code>stat</code> 是什么 → 有没有父进程要处理。</strong> 前两步能解释九成的"杀不掉"。</p>
   <label class="ch-done"><input type="checkbox" data-mark="kill"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="bg" data-ch="bg">
@@ -96,11 +108,19 @@
   <p>综合、布局布线动辄几小时。直接敲命令，一断网、一关窗口，任务跟着没。这里有三个容易混的概念：<strong>前台、后台、挂起</strong>。</p>
 <div class="tbl"><table><thead><tr><th>状态</th><th>怎么进去</th><th>终端还能用吗</th><th>关掉终端会怎样</th></tr></thead><tbody><tr><td>前台（foreground）</td><td>直接敲命令</td><td>不能，被占住</td><td>收到 HUP，死</td></tr><tr><td>后台（background）</td><td>命令末尾加 <code>&amp;</code>，或 <code>bg</code></td><td>能</td><td>收到 HUP，死</td></tr><tr><td>挂起（stopped）</td><td>按 <code>Ctrl+Z</code></td><td>能</td><td>死，而且是不往下跑的"死"</td></tr><tr><td>脱离（disowned / nohup）</td><td><code>nohup</code>、<code>disown</code></td><td>能</td><td>活着</td></tr></tbody></table></div>
 <p>关键结论先说：<strong><code>&amp;</code> 只是"不占着终端"，不是"不怕断网"。</strong> 两者完全不是一回事，这是新人最大的误解。</p>
+<p>三种启动方式的结果，在 <code>ps</code> 里长得不一样：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-ps.png" data-fig="term-ps"><img src="/fig/term-ps.png" alt="前台任务、`&amp;` 后台任务、`nohup` 脱离终端三种状态。重点看 TTY 那一列：绑在 `pts/N` 上的，断网就死；变成 `?` 的，已经不属于任何终端。" loading="lazy" decoding="async"></a><figcaption>前台任务、`&amp;` 后台任务、`nohup` 脱离终端三种状态。重点看 TTY 那一列：绑在 `pts/N` 上的，断网就死；变成 `?` 的，已经不属于任何终端。</figcaption></figure>
+<p>要看出的是：<strong>决定生死的是"TTY 有没有绑住"，不是"有没有加 &amp;"。</strong> 所以判断一个任务安不安全，不用回忆当时怎么敲的，<code>ps -o pid,tty,cmd -p PID</code> 看一眼 TTY 是 <code>?</code> 就够了。</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把长任务放后台，并在断网后仍然活着</span><span class="ln cmt"># 用法：在跑批目录执行；日志一定要重定向，否则输出会刷屏</span><span class="ln ">dc_shell -f syn.tcl &gt; syn.log 2&gt;&amp;1 &amp;     # &amp; 放后台，终端立刻还给你（断网仍会死）</span><span class="ln ">jobs                                     # 看当前 shell 管着哪些后台任务（带编号 %1 %2）</span><span class="ln ">jobs -l                                  # 多一列 PID，方便 kill</span><span class="ln ">fg %1                                    # 把 1 号任务调回前台（Ctrl+C 才能中止它）</span><span class="ln ">bg %1                                    # 把"挂起"的 1 号任务改成后台继续跑</span><span class="ln ">kill %1                                  # 按作业号杀，不用记 PID</span><span class="ln "> </span><span class="ln cmt"># 正确姿势：nohup + &amp; + 重定向，三件套</span><span class="ln ">nohup dc_shell -f syn.tcl &gt; syn.log 2&gt;&amp;1 &amp;   # nohup 让它忽略 HUP，断网也不死</span><span class="ln ">echo $!                                  # $! 是刚放到后台那个进程的 PID，记下来</span></code></pre></div>
 <p><code>Ctrl+Z</code> 是第三件事，别和 <code>Ctrl+C</code> 混：</p>
 <ul><li><code>Ctrl+C</code> 发 INT（2），<strong>结束</strong>前台任务。</li><li><code>Ctrl+Z</code> 发 TSTP（20），<strong>暂停</strong>前台任务，进程还在内存里，只是不跑了。<code>ps</code> 里状态列显示 <code>T</code>。</li><li>暂停之后想让它继续：<code>bg</code> 放到后台跑，或 <code>fg</code> 调回前台。</li></ul>
 <p>所以"我不小心按了 Ctrl+Z，任务是不是没了"——没没，它只是冻住了，<code>jobs</code> 能看到，<code>bg %1</code> 就活了。<strong>但如果这时候你关掉终端，冻住的任务会直接被杀，而且没有任何存盘机会。</strong></p>
 <p>为什么关终端会死？因为终端断开时，内核会给这个会话里所有进程发 HUP。<code>nohup</code> 的作用就是让进程<strong>忽略</strong>这个信号（它把 HUP 的处理方式设成"忽略"），同时如果没有重定向，它会把输出写到当前目录的 <code>nohup.out</code>。<code>disown -h %1</code> 是另一条路：不改进程，而是告诉 shell"这个作业别给它发 HUP"。</p>
+<h3><code>&amp;</code>、<code>nohup</code>、<code>screen</code>：三种"活着"的方式</h3>
+<p>三者的差别不在"能不能后台跑"，而在"你离开之后还能不能回来、回来还能不能操作"：</p>
+<div class="tbl"><table><thead><tr><th>维度</th><th><code>cmd &amp;</code></th><th><code>nohup cmd &gt; log 2&gt;&amp;1 &amp;</code></th><th><code>screen</code> / <code>tmux</code></th></tr></thead><tbody><tr><td>关掉终端</td><td>死（收到 HUP）</td><td>活</td><td>活（会话在服务器上）</td></tr><tr><td>断网 / 拔网线</td><td>死</td><td>活</td><td>活</td></tr><tr><td>能否回到交互界面</td><td>不能</td><td>不能，只能看日志</td><td>能，<code>screen -r</code> 接回去</td></tr><tr><td>标准输入</td><td>后台读终端会被挂起</td><td>自动脱离终端</td><td>正常可用，可以继续敲命令</td></tr><tr><td>输出去哪</td><td>默认刷屏幕，必须重定向</td><td>默认 <code>nohup.out</code>，建议显式指定日志</td><td>会话里照常显示，也能另存</td></tr><tr><td>适合什么</td><td>几十秒的小任务</td><td>几小时到几天的跑批</td><td>需要中途交互、看进度的长任务</td></tr><tr><td>典型翻车</td><td>关窗口就没了</td><td>忘了重定向，日志写进 <code>nohup.out</code> 找不到</td><td>忘了退出，会话一直占着机器</td></tr></tbody></table></div>
+<p>选型一句话：<strong>跑批用 <code>nohup</code>，要中途进去敲命令用 <code>screen</code>，<code>&amp;</code> 只配几十秒的任务。</strong> 还有一条纪律：<code>screen</code> 会话会一直占着资源，忘了关的会话是"机器被占满"的常见原因，用完在里面 <code>exit</code>，不要直接关窗口。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：screen 的最小用法（真机；多数公司已装）</span><span class="ln cmt"># 用法：在服务器上执行，断网后重新登录再 attach 回来</span><span class="ln ">screen -S pnr                       # 建一个叫 pnr 的会话并进入</span><span class="ln cmt"># ... 在里面正常敲命令、跑工具 ...</span><span class="ln cmt"># 按 Ctrl+A 松开，再按 D：detach，会话继续在后台跑</span><span class="ln ">screen -ls                          # 看有哪些会话（带 PID 和状态 Attached/Detached）</span><span class="ln ">screen -r pnr                       # 接回去；提示 Already attached 时用 screen -dr pnr</span><span class="ln ">exit                                # 在会话里退出，会话结束、资源释放</span></code></pre></div>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Signal</span><span class="term-zh">信号</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>内核递给进程的一个编号通知，告诉它"发生了什么"。15 是"请退出"，9 是"立刻消失"，1 是"终端断了"。进程可以为大多数信号注册处理函数，唯独 9 和 19（STOP）拦不住。</p></div>
@@ -121,7 +141,16 @@
 <p><strong>第一种：目录不在 PATH 里。</strong> 报 <code>dc_shell: command not found</code>。这是最常见的，<code>echo $PATH</code> 里看不到工具目录。修法是 <code>export PATH=/工具/bin:$PATH</code>（写进 <code>.bashrc</code> 才永久）。</p>
 <p><strong>第二种：文件在，但没有执行权限。</strong> 报 <code>./run.sh: Permission denied</code>。这<strong>不是</strong>找不到，是找到了不让执行。<code>ls -l run.sh</code> 看到 <code>-rw-r--r--</code> 就说明缺 <code>x</code>，<code>chmod +x run.sh</code> 解决。</p>
 <p><strong>第三种：文件在、也能执行，但第一行指的解释器不存在。</strong> 报 <code>bad interpreter: No such file or directory</code>。脚本第一行写了 <code>#!/bin/bash</code>，但这台机器上 bash 在 <code>/usr/local/bin/bash</code>，或者你在 Windows 上编辑过、行尾多了 <code>\r</code>，内核把 <code>/bin/bash\r</code> 当成一个不存在的路径。<code>head -1 script.sh | cat -A</code> 看到 <code>^M$</code> 就是这个问题，<code>sed -i 's/\r$//' script.sh</code> 修掉。</p>
+<p>这三种失败在屏幕上长得完全不一样：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-error.png" data-fig="term-error"><img src="/fig/term-error.png" alt="三个高频报错：Permission denied、bad interpreter、command not found。重点看冒号后那句话——那里才是原因，前面的路径只是现象。" loading="lazy" decoding="async"></a><figcaption>三个高频报错：Permission denied、bad interpreter、command not found。重点看冒号后那句话——那里才是原因，前面的路径只是现象。</figcaption></figure>
+<p>要看出的是：<strong>报错的前半句说"谁在哪一步失败"，后半句才说"为什么"。</strong> 三种报错都可能带 <code>No such file</code> 字样，但只有第三种该去查 PATH；照前半句猜，就会在错的方向上修半天。</p>
 <p>还有一种隐蔽的：<strong>PATH 顺序错了</strong>。机器上装了 2019 和 2021 两个版本的 <code>dc_shell</code>，你把新版本目录加在了后面，<code>which dc_shell</code> 一直指向旧的。这种不会报错，只会让你"改了半天配置没生效"。</p>
+<h3>PATH 排查三步</h3>
+<p>不要一上来就改 <code>.cshrc</code>。按这三步走，每步只回答一个问题：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：PATH 排查三步，从"有没有"到"顺序对不对"再到"缓存过没过期"</span><span class="ln cmt"># 用法：在找不到命令的终端里依次执行</span><span class="ln ">which -a dc_shell                  # ① 所有同名命令在哪；第一行就是实际会执行的那个</span><span class="ln ">echo $PATH | tr ':' '\n' | nl      # ② 把 PATH 按顺序编号列出，看工具目录排第几</span><span class="ln ">hash -r                            # ③ 清掉 shell 的命令路径缓存（tcsh 用 rehash）</span></code></pre></div>
+<p>三步的结果对应四种结论，不要跳步：</p>
+<div class="tbl"><table><thead><tr><th>三步的结果</th><th>结论</th><th>怎么修</th></tr></thead><tbody><tr><td><code>which -a</code> 完全没输出</td><td>目录不在 PATH 里</td><td>把工具的 <code>bin</code> 加到 PATH 最前面，再 <code>hash -r</code></td></tr><tr><td>有输出，但不是你以为的版本</td><td>PATH 顺序错</td><td>新目录放前面；或用 <code>module purge</code> 后重新 load</td></tr><tr><td>路径对、顺序也对，敲命令还是旧的</td><td>命令缓存过期</td><td><code>hash -r</code>（bash）/ <code>rehash</code>（tcsh）</td></tr><tr><td>三步都正常，还是 <code>command not found</code></td><td>文件不存在或没有 <code>x</code></td><td><code>ls -l $(which dc_shell)</code>，回到 01-02 查权限</td></tr></tbody></table></div>
+<p>第三步最容易被跳过，也最容易造成"我明明改了却没生效"的错觉：shell 为了加速，会把"命令名 → 路径"记在内存里，你换了 PATH 它也不会重新查，除非显式清缓存。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Environment Variable</span><span class="term-zh">环境变量</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>存在进程里的一组"键=值"，任何程序都能读到。它决定程序去哪找命令（PATH）、去哪找 license（LM_LICENSE_FILE）、去哪找动态库（LD_LIBRARY_PATH）、往哪画图（DISPLAY）。<br>读：<code>echo $变量名</code>。临时设：bash 用 <code>export 名=值</code>，tcsh 用 <code>setenv 名 值</code>。想永久生效要写进配置文件。</p></div>
@@ -253,7 +282,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 ---
 id: 03-13-cts-advanced
-no: 24
+no: 26
 stage: 3
 title: CTS（二）：约束、NDR、屏蔽与多时钟
 en: CTS Constraints and Multi-Clock
@@ -100,6 +100,13 @@ NDR 的定义在《CTS 时钟树（一）》里讲过：给时钟网络单独指
    │         │
   FF FF     FF FF
 ```
+
+三段的划分在真实版图上长这样：
+
+:::fig innovus-cts | 时钟树综合后的版图：绿色线条是时钟网络，绿点是工具插入的缓冲器。重点看从树根分出来的粗壮主干（trunk，该上 2w2s）和贴着标准单元的末端细枝（leaf，1w2s 就够）——NDR 的三段规则就是照这个形状给的。
+:::
+
+从这张图里要看出什么：离根越近的线越少越粗、越靠近叶子越密越细——三段的电流、线长、周边环境都不同，这就是"不能一刀切"的依据。
 
 :::term Trunk / Leaf / Top | 主干 / 叶子 / 根网
 CTS 工具把时钟网络按位置分三段：
@@ -276,6 +283,13 @@ report_clock_tree -skipped > rpt/cts_skipped.rpt   ;# 被 skip 的引脚清单
 ## 多时钟：主时钟、generated clock 与 MUX {#multi}
 
 一个芯片里通常不止一个时钟。CTS 要处理的不是"一个时钟建一棵树"，而是"每个时钟源各建一棵树，交叉的地方特殊处理"。
+
+多时钟的整体关系，先看这张三层图：
+
+:::fig cts-multiclock | 多时钟建树的三层关系：主时钟 → 分频（generated clock）→ MUX → 叶子。重点看 MUX 那一层——它让工具必须同时满足两条时钟路径，也最容易被漏掉约束；每一层的约束写法都不一样，正是接下来两小节的内容。
+:::
+
+从这张图里要看出什么：每个时钟源各建一棵树，真正的难点在交叉点——generated clock 的 -source 和 MUX 的 SEL，这两处写错树照样建，只是从一开始就建错了。
 
 ### 主时钟与 generated clock
 

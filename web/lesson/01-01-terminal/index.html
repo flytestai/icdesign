@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>终端与文件系统：我是谁、我在哪、这儿有什么 · 02 | IC 后端学院</title>
-<meta name="description" content="从零认识终端：文件系统为什么是一棵树、绝对路径与相对路径怎么换算、pwd/ls/cd 的每个参数，以及真实芯片工程里 rtl/dc/pnr/signoff/pdk 各放什么——学完你能在任何一台服务器上"找到自己"。">
+<meta name="description" content="从零认识终端：文件系统为什么是一棵树、绝对路径与相对路径怎么换算、pwd/ls/cd 的每个参数、Tab 与历史命令的实战用法，以及真实芯片工程里 rtl/dc/pnr/signoff/pdk 各放哪些文件——再加上连不上服务器时的五层排查。学完你能在任何一台服务器上"找到自己"。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="01-01-terminal">
 <header class="top">
@@ -29,7 +29,7 @@
       <div class="hero-no">02</div>
       <h1>终端与文件系统：我是谁、我在哪、这儿有什么</h1>
       <p class="hero-en">Terminal & Filesystem</p>
-      <p class="hero-sum">从零认识终端：文件系统为什么是一棵树、绝对路径与相对路径怎么换算、pwd/ls/cd 的每个参数，以及真实芯片工程里 rtl/dc/pnr/signoff/pdk 各放什么——学完你能在任何一台服务器上"找到自己"。</p>
+      <p class="hero-sum">从零认识终端：文件系统为什么是一棵树、绝对路径与相对路径怎么换算、pwd/ls/cd 的每个参数、Tab 与历史命令的实战用法，以及真实芯片工程里 rtl/dc/pnr/signoff/pdk 各放哪些文件——再加上连不上服务器时的五层排查。学完你能在任何一台服务器上"找到自己"。</p>
       <div class="hero-meta">
         <span class="pill">约 40 分钟</span>
         <span class="pill">课表学时 3</span>
@@ -59,8 +59,12 @@
 <div class="scene"><div class="scene-h">工作场景 · 入职第一天的操作</div><div class="scene-b"><p>组长给你一个账号和一句话："工程在 <code>/home/proj/28nm/backend</code>，你先看看目录结构。"</p>
 <p>你打开终端，<code>ssh</code> 登进去，然后：</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：登录后确认自己在哪、工程在哪；在刚连上的服务器上执行</span><span class="ln ">pwd                            # 先看自己站在哪，通常是 /home/你的工号</span><span class="ln ">cd /home/proj/28nm/backend     # 用绝对路径进工程（不知道自己在哪时，绝对路径最稳）</span><span class="ln ">ls                             # 看看这一层有什么</span></code></pre></div>
+<p>登录成功的那一秒，屏幕上是这样的：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-login.png" data-fig="term-login"><img src="/fig/term-login.png" alt="一次 ssh 登录的前后。重点看提示符：登录前是本机，登录后多出了主机名，pwd 也从本机路径变成了服务器路径。" loading="lazy" decoding="async"></a><figcaption>一次 ssh 登录的前后。重点看提示符：登录前是本机，登录后多出了主机名，pwd 也从本机路径变成了服务器路径。</figcaption></figure></div></div>
+<p>从这张图里要看出：<strong>提示符是"你现在在谁的机器上"的唯一标志。</strong> 后面所有命令都跑在远端，删的是服务器的文件，不是你自己电脑的。看不到主机名就别敲 <code>rm</code>。</p>
 <p>就这三个动作，决定了你接下来三个月能不能找到东西。</p>
-<p>找不到目录的人，后面所有工具都跑不起来——因为 EDA 工具的脚本里全是相对路径，你站错一层，<code>source ./setup.tcl</code> 就报 <code>No such file or directory</code>，而报错不会告诉你"你站错地方了"。</p></div></div>
+<p>找不到目录的人，后面所有工具都跑不起来——因为 EDA 工具的脚本里全是相对路径，你站错一层，<code>source ./setup.tcl</code> 就报 <code>No such file or directory</code>，而报错不会告诉你"你站错地方了"。</p>
+
   <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="tree" data-ch="tree">
@@ -115,6 +119,12 @@
 <p>一个典型的数字后端工程（各公司名字略有差异，骨架高度一致）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proj/                          ← 项目根</span><span class="ln ">├── rtl/                       ← 前端交付的 RTL（只读）</span><span class="ln ">│   └── soc_top.v</span><span class="ln ">├── dc/                        ← 综合：Design Compiler / Genus 的地盘</span><span class="ln ">│   ├── scripts/               ← .tcl 脚本与 sdc 约束</span><span class="ln ">│   ├── netlist/               ← 综合出来的门级网表 .v</span><span class="ln ">│   └── reports/               ← 面积、时序、功耗报告</span><span class="ln ">├── pnr/                       ← 布局布线（Place &amp; Route）</span><span class="ln ">│   ├── scripts/               ← floorplan / place / cts / route 各自的 tcl</span><span class="ln ">│   ├── db/                    ← 工具数据库（Innovus 的 .enc、ICC2 的 .ndm）</span><span class="ln ">│   ├── def/                   ← 版图交换格式，跨工具传数据用</span><span class="ln ">│   └── reports/               ← 每一步的时序、DRC、拥塞报告</span><span class="ln ">├── signoff/                   ← 签核：交付前的最后一道关</span><span class="ln ">│   ├── sta/                   ← PrimeTime 的时序签核</span><span class="ln ">│   └── pv/                    ← Calibre 的 DRC / LVS</span><span class="ln ">├── pdk/                       ← 工艺库（Process Design Kit），公司统一发，只读</span><span class="ln ">│   ├── lib/                   ← 时序库 .lib/.db</span><span class="ln ">│   ├── lef/                   ← 物理抽象：每个单元多大、引脚在哪</span><span class="ln ">│   └── tech/                  ← 工艺文件：层定义、DRC 规则</span><span class="ln ">└── run/                       ← 跑批日志，按日期分目录</span><span class="ln ">    └── 20261122_0930/</span></code></pre></div>
 <div class="tbl"><table><thead><tr><th>目录</th><th>全称</th><th>放什么</th><th>谁写</th><th>能改吗</th></tr></thead><tbody><tr><td><code>rtl/</code></td><td>Register Transfer Level</td><td>人写的 Verilog</td><td>前端</td><td><strong>不能</strong>，改了就和前端对不上账</td></tr><tr><td><code>dc/</code></td><td>Design Compiler</td><td>综合脚本、约束、网表</td><td>综合工程师</td><td>能，但改动要通知下游</td></tr><tr><td><code>pnr/</code></td><td>Place and Route</td><td>布局布线全过程的数据库和报告</td><td>后端</td><td>能，你主要在这里干活</td></tr><tr><td><code>signoff/</code></td><td>Signoff</td><td>PT 时序签核、Calibre 物理验证</td><td>STA / PV 工程师</td><td>只写结果，不改上游</td></tr><tr><td><code>pdk/</code></td><td>Process Design Kit</td><td>库文件、LEF、工艺规则</td><td>工艺厂 / CAD</td><td><strong>绝对不能</strong>，全公司共用</td></tr></tbody></table></div>
+<h3>每个目录里到底有哪些文件</h3>
+<p>记目录名只是第一步，真正让你少问人的是<strong>认文件名</strong>。下面是 40nm SoC 项目里这五个目录的典型内容（文件名是代表性写法，各公司前缀不同）：</p>
+<div class="tbl"><table><thead><tr><th>目录</th><th>你会看到的文件</th><th>一眼看出什么</th></tr></thead><tbody><tr><td><code>rtl/</code></td><td><code>soc_top.v</code>、<code>u_alu.v</code>、<code>u_ddr_ctrl.v</code></td><td>全是 <code>.v</code> / <code>.sv</code>，没有任何脚本和数据</td></tr><tr><td><code>dc/</code></td><td><code>dc.tcl</code>、<code>soc.sdc</code>、<code>soc_net.v</code>、<code>dc.log</code></td><td>一个脚本 + 一份约束 + 产出的网表 + 日志，四件套</td></tr><tr><td><code>pnr/</code></td><td><code>pnr.tcl</code>、<code>floorplan.tcl</code>、<code>cts.tcl</code>、<code>soc.enc</code>、<code>soc.def</code></td><td>每个阶段一个 tcl；<code>.enc</code> 是 Innovus 数据库，<code>.def</code> 用来跨工具传版图</td></tr><tr><td><code>signoff/</code></td><td><code>pt.tcl</code>、<code>soc.spef</code>、<code>calibre_drc.cmd</code>、<code>soc.gds</code></td><td>签核脚本 + 寄生文件 + 规则文件 + 最终版图</td></tr><tr><td><code>pdk/</code></td><td><code>tcbn45.db</code>、<code>NangateOpenCellLibrary.lef</code>、<code>tcbn45.tf</code></td><td>时序库、物理抽象、工艺层定义，全是只读</td></tr></tbody></table></div>
+<p><strong>后缀比目录名更能说明问题。</strong> 见到一个不认识的目录，先 <code>ls</code> 一眼后缀，比问人快：</p>
+<div class="tbl"><table><thead><tr><th>后缀</th><th>是什么</th><th>谁产出</th></tr></thead><tbody><tr><td><code>.v</code> / <code>.sv</code></td><td>Verilog 源码或门级网表</td><td>前端 / 综合</td></tr><tr><td><code>.tcl</code></td><td>工具脚本（Innovus、PT、DC 都吃 tcl）</td><td>工程师手写</td></tr><tr><td><code>.sdc</code></td><td>时序约束（时钟、输入输出延迟）</td><td>综合或 STA 工程师</td></tr><tr><td><code>.lib</code> / <code>.db</code></td><td>标准单元时序库（文本 / 二进制）</td><td>工艺厂</td></tr><tr><td><code>.lef</code></td><td>单元的物理抽象：多大、引脚在哪</td><td>工艺厂</td></tr><tr><td><code>.def</code></td><td>版图交换格式，描述摆放与布线</td><td>布局布线工具</td></tr><tr><td><code>.spef</code></td><td>布线后的寄生电阻电容</td><td>寄生提取工具</td></tr><tr><td><code>.enc</code> / <code>.ndm</code></td><td>Innovus / ICC2 的数据库</td><td>对应工具</td></tr><tr><td><code>.gds</code></td><td>最终版图，交给晶圆厂</td><td>收尾阶段</td></tr><tr><td><code>.rpt</code> / <code>.log</code></td><td>报告 / 运行日志</td><td>工具</td></tr></tbody></table></div>
+<p>判断依据：<strong>后缀决定这个文件能不能改、能不能删。</strong> <code>.tcl</code> 和 <code>.sdc</code> 是人写的，改之前要进 git；<code>.rpt</code>、<code>.log</code>、<code>.enc</code>、<code>.def</code> 是工具产的，删了能重跑（但可能花 3 小时）。所以有人在 <code>pnr/</code> 里 <code>rm *.def</code> 之后，整组要重跑布线——这不是夸张，是每周都在发生的事。</p>
 <p>三条纪律：</p>
 <ol><li><strong>每一层都分 <code>scripts / 输出 / reports</code></strong>。脚本和数据不混在一起，否则改脚本时容易误删结果。</li><li><strong><code>rtl/</code> 和 <code>pdk/</code> 是只读的</strong>。一个是和前端对账的基准，一个是全公司共用的库，改坏了整条产线都停。</li><li><strong><code>run/</code> 按日期分</strong>。<code>run/20261122_0930/</code> 这种命名让你三天后还能找回"当时到底跑了哪一版"。</li></ol>
 <div class="term" tabindex="0">
@@ -138,8 +148,23 @@
 <p><strong>过关标准</strong>：<code>wc -l</code> 输出 16；能指着其中任意三个目录说出"这里放什么、谁写、能不能改"。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="real"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="ssh-debug" data-ch="ssh-debug">
+  <div class="ch-h"><span class="ch-n">05</span><h2>连不上服务器时，按这个顺序查</h2></div>
+  <p>早上第一件事就是 <code>ssh</code>。连不上时最常见的反应是"再试一次"——试十次也一样，因为失败原因只有五层，每层都有明确的验证方法。</p>
+<p>顺序是 <strong>网络 → 端口 → 账号 → 权限/家目录 → 家目录满</strong>。从下往上试，遇到第一个异常就停在那里，不要跳。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：ssh 连不上的五层验证，从上往下执行</span><span class="ln cmt"># 用法：前三条在自己电脑上跑，后两条登录成功后跑</span><span class="ln ">ssh -v autumn@eda.company.com     # -v 打印握手全过程，看它停在哪一步（最有信息量的一条）</span><span class="ln ">ping -c 3 eda.company.com         # 域名解析 + 网络可达（有的公司禁 ping，禁了不代表不通）</span><span class="ln ">nc -vz eda.company.com 22         # 端口通不通；没装 nc 就用 telnet eda.company.com 22</span><span class="ln ">df -h $HOME                       # 登录后：家目录所在分区还剩多少</span><span class="ln ">quota -s 2&gt;/dev/null || echo "no quota"   # 有配额系统时显示 soft / hard limit</span></code></pre></div>
+<p><code>ssh -v</code> 的输出里只要盯三个阶段：</p>
+<div class="tbl"><table><thead><tr><th>停在哪</th><th>说明卡在哪一层</th><th>找谁</th></tr></thead><tbody><tr><td><code>Connecting to eda.company.com</code> 之后没有 <code>Connection established</code></td><td>网络或端口</td><td>先确认自己是否连了公司网 / VPN；再问端口是不是 22</td></tr><tr><td><code>Connection established</code> 之后停在 <code>Authenticating</code></td><td>账号、密码、密钥</td><td>密码是否过期；公钥有没有带上（<code>ssh -i</code>）；账号是否开通</td></tr><tr><td>认证通过但立刻回到本机提示符</td><td>家目录或登录脚本</td><td>看 <code>ssh -v</code> 最后几行；找 IT 查 <code>/var/log/secure</code></td></tr></tbody></table></div>
+<p>其余四种典型现象，对着表查：</p>
+<div class="tbl"><table><thead><tr><th>现象（报错首行）</th><th>最可能是哪一层</th><th>判断依据</th></tr></thead><tbody><tr><td><code>ssh: connect to host ... port 22: Connection timed out</code></td><td>网络 / 端口</td><td>完全没建连接，包被防火墙丢了</td></tr><tr><td><code>Connection refused</code></td><td>端口</td><td>主机在，但那个端口没有服务在听（或只对办公网开放）</td></tr><tr><td><code>Permission denied (publickey,password)</code></td><td>账号</td><td>连接建好了，认证没过</td></tr><tr><td><code>Could not chdir to home directory /home/xxx</code></td><td>家目录</td><td>认证过了，但你的家目录不存在或不可写</td></tr></tbody></table></div>
+<p>最后一层最容易被忽略：<strong>家目录满了，你会"登录成功但什么都干不了"</strong>。因为 <code>.cshrc</code> 要写历史文件、工具要在家目录建临时文件和缓存，写不进去时 shell 可能直接退出，或者工具报一个和"家目录"毫无关系的错（比如 <code>Cannot create log file</code>）。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：确认家目录是不是满了；登录后立刻能跑</span><span class="ln cmt"># 用法：df 看分区，du 看是谁占的（只扫一层，别扫全盘）</span><span class="ln ">df -h $HOME                                    # 看 Use% 是不是 100%</span><span class="ln ">du -sh $HOME/* 2&gt;/dev/null | sort -h | tail -5  # 家目录下最大的五个东西</span></code></pre></div>
+<p>判断依据：<strong><code>df -h</code> 显示 100%，或 <code>quota</code> 报 <code>Disk quota exceeded</code>，就是这一层。</strong> 清理时先删 <code>~/.local/share/Trash</code>、旧的 <code>nohup.out</code>、<code>~/.cache</code>，不要动别人的目录，也不要动 <code>pdk/</code>。</p>
+<div class="note"><div class="note-h">不要做的三件事</div><ol><li><strong>不要反复重试同一个密码。</strong> 多数公司账号连错 5 次锁半小时，越急越久。</li><li><strong>不要换客户端"试试看"。</strong> MobaXterm 连不上、换成 <code>ssh</code> 也一样，说明问题不在客户端。</li><li><strong>不要自己改 <code>~/.cshrc</code> 来"修"。</strong> 连不上时你改的每一行，都会在你下次能登录时变成一个更难查的问题。</li></ol></div>
+  <label class="ch-done"><input type="checkbox" data-mark="ssh-debug"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="pattern" data-ch="pattern">
-  <div class="ch-h"><span class="ch-n">05</span><h2>命令的通用规律</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>命令的通用规律</h2></div>
   <p>Linux 命令基本都是一个模子：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">命令名  [选项]  [参数]</span><span class="ln ">ls      -lh      /home/weizhen</span></code></pre></div>
 <ul><li><strong>选项</strong>以 <code>-</code> 开头，控制"怎么干"。</li><li><strong>参数</strong>是"对谁干"，通常是文件或目录。</li><li>选项在前、参数在后是惯例。<code>ls /home -lh</code> 大部分情况也能跑，但会让人困惑，别这么写。</li></ul>
@@ -150,7 +175,13 @@
 <div class="tbl"><table><thead><tr><th>按键</th><th>作用</th><th>什么时候用</th></tr></thead><tbody><tr><td><code>Tab</code></td><td>自动补全命令名和文件名</td><td>每次敲路径都按，补不出来就是路径错了</td></tr><tr><td><code>↑</code> / <code>↓</code></td><td>翻历史命令</td><td>重复跑同一条长命令</td></tr><tr><td><code>Ctrl + C</code></td><td>强制中断当前命令</td><td>命令卡住、刷屏停不下来</td></tr><tr><td><code>Ctrl + L</code></td><td>清屏（等于 <code>clear</code>）</td><td>屏幕太乱，但不想丢历史</td></tr><tr><td><code>Ctrl + A</code> / <code>Ctrl + E</code></td><td>光标跳到行首 / 行尾</td><td>长命令改开头或结尾的参数</td></tr></tbody></table></div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>cd /home/wei&lt;Tab&gt;</code> 会自动补成 <code>cd /home/weizhen/</code>。补不出来，说明你记的路径是错的。</p>
 <p><strong>养成每敲两三个字符就按一次 Tab 的习惯</strong>，能消灭一大半路径错误。它的价值不在省打字，而在<strong>它是一个实时校验器</strong>：补全成功 = 路径存在，补全失败 = 现在就停下，而不是等回车后看报错。</p>
-<p><code>↑</code> 的进阶用法：<code>history | grep cts</code> 找出你三天前跑过的那条 CTS 命令，再用 <code>!编号</code> 重跑（真机支持）。</p></div>
+<p>一个完整的补全过程长这样（真机行为，模拟终端只补文件名不补命令名）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：用 Tab 把长路径"问"出来，而不是背出来</span><span class="ln cmt"># 用法：在真机的 bash 里逐条敲，&lt;Tab&gt; 表示按一次 Tab 键</span><span class="ln ">cd /ho&lt;Tab&gt;                                  # → cd /home/，只有这一个候选就直接补全</span><span class="ln ">cd /home/we&lt;Tab&gt;                             # → cd /home/weizhen/</span><span class="ln ">cd /home/weizhen/proj/28nm/backend/pnr/sc&lt;Tab&gt;   # → .../scripts/，路径越长越省事</span><span class="ln ">ls -l .../pnr/reports/ti&lt;Tab&gt;                # → timing.rpt，顺手确认文件真的叫这个名字</span></code></pre></div>
+<p>Tab 补不出来时，原因只有四种，对着查比乱猜快：</p>
+<div class="tbl"><table><thead><tr><th>现象</th><th>原因</th><th>下一步</th></tr></thead><tbody><tr><td>什么都不补、只响一声</td><td>这一层没有以这几个字符开头的名字</td><td>回头查拼写和大小写（<code>RTL</code> ≠ <code>rtl</code>）</td></tr><tr><td>补到一半停住</td><td>有多个同前缀的候选</td><td>再按一次 Tab 列出候选，多打两个字符</td></tr><tr><td>补出一个你没想过的名字</td><td>你记的名字是错的</td><td>用补全给的名字，别强敲记忆里的</td></tr><tr><td>路径明明存在却补不出来</td><td>目录缺 <code>r</code> 或 <code>x</code> 权限，列不出来</td><td><code>ls -ld 目录</code> 看权限（01-02 讲怎么修）</td></tr></tbody></table></div>
+<p><code>↑</code> 的用法比多数人想的多。<strong>它不是"重复上一条"这么简单，而是一个命令历史检索器：</strong></p>
+<div class="tbl"><table><thead><tr><th>按键 / 写法</th><th>作用</th><th>什么时候用</th></tr></thead><tbody><tr><td><code>↑</code> / <code>↓</code></td><td>上一条 / 下一条历史命令</td><td>连跑几条相似命令</td></tr><tr><td>`history \</td><td>grep cts`</td><td>找出所有含 cts 的历史命令（带编号）</td><td>忘了三天前那条 CTS 命令的参数</td></tr><tr><td><code>!1234</code></td><td>重跑历史编号 1234</td><td>接上一条，找到就重跑</td></tr><tr><td><code>!!</code></td><td>重跑上一条</td><td>上一条忘了加 <code>sudo</code>：<code>sudo !!</code></td></tr><tr><td><code>!$</code></td><td>复用上一条的最后一个参数</td><td><code>ls 长路径</code> 之后 <code>cd !$</code></td></tr><tr><td><code>!前缀</code></td><td>最近一条以该前缀开头的命令</td><td><code>!ct</code> 重跑最近的 cts 命令（tcsh 常用）</td></tr></tbody></table></div>
+<p>bash 里还有 <code>Ctrl+R</code>：按下去然后输关键词，边输边搜，回车直接执行。tcsh 里没有这个交互搜索，用 <code>history | grep</code> 加 <code>!编号</code> 代替。<strong>两者都是真机功能，本站模拟终端不支持 <code>!!</code> 和 <code>!$</code>。</strong></p></div>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Environment Variable（环境变量）</span><span class="term-zh">环境变量</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>shell 里存着的一组"键=值"，所有命令都能读到。最重要的两个是 <code>PATH</code>（去哪些目录找命令）和 <code>HOME</code>（家目录在哪）。<code>echo $PATH</code> 能看到一串用冒号分隔的目录——<strong>你敲的命令就是在这串目录里挨个找的，找不到就报 <code>command not found</code></strong>。</p></div>
@@ -158,7 +189,7 @@
   <label class="ch-done"><input type="checkbox" data-mark="pattern"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="locate" data-ch="locate">
-  <div class="ch-h"><span class="ch-n">06</span><h2>在终端里"找到自己"：三个问题的定位法</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>在终端里"找到自己"：三个问题的定位法</h2></div>
   <p>新手在终端里迷路，本质是三个问题没答案，而它们恰好对应三条命令：</p>
 <div class="tbl"><table><thead><tr><th>问题</th><th>命令</th><th>输出怎么读</th></tr></thead><tbody><tr><td>我是谁</td><td><code>whoami</code></td><td>输出用户名，决定你有没有权限改某个文件</td></tr><tr><td>我在哪</td><td><code>pwd</code></td><td>输出绝对路径，决定你的相对路径从哪算</td></tr><tr><td>这儿有什么</td><td><code>ls -l</code></td><td>输出七列，第一列决定你能不能进、能不能改</td></tr></tbody></table></div>
 <p>把这三个连起来用，就是一次完整的"定位"：</p>
@@ -167,12 +198,15 @@
 <p>当前在 <code>/home/wei/proj/pnr/reports</code>，要去 <code>/home/wei/proj/rtl</code>：</p>
 <ul><li>绝对路径：<code>/home/wei/proj/rtl</code>，18 个字符，任何时候都对。</li><li>相对路径：先退两级（<code>reports</code> → <code>pnr</code> → <code>proj</code>），再进 <code>rtl</code>，写成 <code>../../rtl</code>，10 个字符。</li></ul>
 <p>验算方法：<code>cd ../../rtl &amp;&amp; pwd</code>，输出必须是 <code>/home/wei/proj/rtl</code>。<strong>如果你算错了，<code>pwd</code> 会立刻告诉你错在哪</strong>——这就是为什么每个 <code>cd</code> 后面都该跟一个 <code>pwd</code>。</p>
+<p>同一个目标，绝对路径和相对路径的写法差别如下：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-cd.png" data-fig="term-cd"><img src="/fig/term-cd.png" alt="两种路径的起点不同。以斜杠开头的是从根算起，以名字开头的是从你脚下算起，波浪号永远代表家目录。重点看同一个目标在两种写法下差了多少字符。" loading="lazy" decoding="async"></a><figcaption>两种路径的起点不同。以斜杠开头的是从根算起，以名字开头的是从你脚下算起，波浪号永远代表家目录。重点看同一个目标在两种写法下差了多少字符。</figcaption></figure>
+<p>要看出的是：<strong>相对路径短，但它依赖"你现在站在哪"</strong>。所以同一条命令换个目录就失效——这既是它快的原因，也是脚本里必须用绝对路径的原因。</p>
 <p>什么时候用哪个？给三条判据：</p>
 <ol><li><strong>脚本里一律用绝对路径</strong>。脚本可能被任何人从任何目录执行，相对路径必翻车。</li><li><strong>手动操作、且在工程内部移动，用相对路径</strong>。短、快，而且换台机器（家目录名不同）也不用改。</li><li><strong>不确定时用绝对路径</strong>。多打十几个字符，换零风险。</li></ol>
   <label class="ch-done"><input type="checkbox" data-mark="locate"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="path-forms" data-ch="path-forms">
-  <div class="ch-h"><span class="ch-n">07</span><h2>路径的六种写法与三个高频错误</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>路径的六种写法与三个高频错误</h2></div>
   <p>同一个目标，至少有六种写法。以"从 <code>/home/wei/proj/pnr</code> 进入 <code>proj/rtl</code>"为例：</p>
 <div class="tbl"><table><thead><tr><th>写法</th><th>命令</th><th>说明</th></tr></thead><tbody><tr><td>绝对</td><td><code>cd /home/wei/proj/rtl</code></td><td>最稳，任何时候都对</td></tr><tr><td>家目录缩写</td><td><code>cd ~/proj/rtl</code></td><td>只在家目录下等价于绝对路径</td></tr><tr><td>同级跳转</td><td><code>cd ../rtl</code></td><td>先退到 <code>proj</code>，再进 <code>rtl</code></td></tr><tr><td>当前目录显式</td><td><code>cd ./../rtl</code></td><td><code>./</code> 就是当前目录，<code>./../rtl</code> 等价于 <code>../rtl</code>，写出来更明确</td></tr><tr><td>多级相对</td><td><code>cd ../../wei/proj/rtl</code></td><td>能跑但没必要，只用于演示"相对路径可以绕路"</td></tr><tr><td>变量</td><td><code>cd $PROJ/rtl</code></td><td>工程里常见，<code>$PROJ</code> 由 setup 脚本 export</td></tr></tbody></table></div>
 <p>三个高频错误，每个都对应一个具体现象：</p>
@@ -239,7 +273,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

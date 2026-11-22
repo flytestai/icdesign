@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CTS（二）：约束、NDR、屏蔽与多时钟 · 24 | IC 后端学院</title>
+<title>CTS（二）：约束、NDR、屏蔽与多时钟 · 26 | IC 后端学院</title>
 <meta name="description" content="一棵树建得好不好，八成取决于约束写得对不对。这一课讲清 skew group、NDR 的施加范围、leaf/trunk 的单元选择、哪些引脚要屏蔽，以及多时钟与 generated clock 怎么分别建树。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-13-cts-advanced">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>CTS（二）：约束、NDR、屏蔽与多时钟</b></div>
     <div class="hero">
-      <div class="hero-no">24</div>
+      <div class="hero-no">26</div>
       <h1>CTS（二）：约束、NDR、屏蔽与多时钟</h1>
       <p class="hero-en">CTS Constraints and Multi-Clock</p>
       <p class="hero-sum">一棵树建得好不好，八成取决于约束写得对不对。这一课讲清 skew group、NDR 的施加范围、leaf/trunk 的单元选择、哪些引脚要屏蔽，以及多时钟与 generated clock 怎么分别建树。</p>
@@ -74,6 +74,9 @@
   <p>NDR 的定义在《CTS 时钟树（一）》里讲过：给时钟网络单独指定的线宽与间距。这一课要解决的是<strong>加在哪一段</strong>。</p>
 <p>一棵树从根到叶子，物理性质完全不同，所以不能一刀切：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 示意图：三段时钟网络的划分（不是命令输出）</span><span class="ln ">  端口 / PLL 输出</span><span class="ln ">        │</span><span class="ln ">        ├── top 段：源到第一个 buffer，往往最长、最靠近模拟电路</span><span class="ln ">        │</span><span class="ln ">     [buf] ── trunk 段：前 1~2 级，一个 buffer 驱动几十个分支，电流最大</span><span class="ln ">        │</span><span class="ln ">   ┌────┴────┐</span><span class="ln "> [buf]     [buf] ── leaf 段：最后一级到触发器 CK，线短、数量多、贴着标准单元</span><span class="ln ">   │         │</span><span class="ln ">  FF FF     FF FF</span></code></pre></div>
+<p>三段的划分在真实版图上长这样：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-cts.png" data-fig="innovus-cts"><img src="/fig/innovus-cts.png" alt="时钟树综合后的版图：绿色线条是时钟网络，绿点是工具插入的缓冲器。重点看从树根分出来的粗壮主干（trunk，该上 2w2s）和贴着标准单元的末端细枝（leaf，1w2s 就够）——NDR 的三段规则就是照这个形状给的。" loading="lazy" decoding="async"></a><figcaption>时钟树综合后的版图：绿色线条是时钟网络，绿点是工具插入的缓冲器。重点看从树根分出来的粗壮主干（trunk，该上 2w2s）和贴着标准单元的末端细枝（leaf，1w2s 就够）——NDR 的三段规则就是照这个形状给的。</figcaption></figure>
+<p>从这张图里要看出什么：离根越近的线越少越粗、越靠近叶子越密越细——三段的电流、线长、周边环境都不同，这就是"不能一刀切"的依据。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Trunk / Leaf / Top</span><span class="term-zh">主干 / 叶子 / 根网</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>CTS 工具把时钟网络按位置分三段：<br><strong>top</strong>：从时钟源（端口或 PLL）到第一个 buffer 的那一段，通常最长。<br><strong>trunk</strong>：树的前 1~2 级，负责把时钟扇出去，一根线要驱动几十个下游分支。<br><strong>leaf</strong>：最后一级 buffer 到触发器时钟引脚的那一小段，线很短，但条数最多。<br>三段的电流、线长、周边环境都不同，所以 NDR 要分开给。</p></div>
@@ -144,6 +147,9 @@
 <section class="ch" id="multi" data-ch="multi">
   <div class="ch-h"><span class="ch-n">05</span><h2>多时钟：主时钟、generated clock 与 MUX</h2></div>
   <p>一个芯片里通常不止一个时钟。CTS 要处理的不是"一个时钟建一棵树"，而是"每个时钟源各建一棵树，交叉的地方特殊处理"。</p>
+<p>多时钟的整体关系，先看这张三层图：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/cts-multiclock.png" data-fig="cts-multiclock"><img src="/fig/cts-multiclock.png" alt="多时钟建树的三层关系：主时钟 → 分频（generated clock）→ MUX → 叶子。重点看 MUX 那一层——它让工具必须同时满足两条时钟路径，也最容易被漏掉约束；每一层的约束写法都不一样，正是接下来两小节的内容。" loading="lazy" decoding="async"></a><figcaption>多时钟建树的三层关系：主时钟 → 分频（generated clock）→ MUX → 叶子。重点看 MUX 那一层——它让工具必须同时满足两条时钟路径，也最容易被漏掉约束；每一层的约束写法都不一样，正是接下来两小节的内容。</figcaption></figure>
+<p>从这张图里要看出什么：每个时钟源各建一棵树，真正的难点在交叉点——generated clock 的 -source 和 MUX 的 SEL，这两处写错树照样建，只是从一开始就建错了。</p>
 <h3>主时钟与 generated clock</h3>
 <p><code>create_clock</code> 定义的是<strong>源头</strong>：外部晶振送进来的、PLL 输出的，都算源头。<code>create_generated_clock</code> 定义的是<strong>从某个时钟派生出来的</strong>：分频器输出、门控后的时钟、MUX 选出来的时钟。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：定义主时钟与分频时钟，让 CTS 知道这是两棵有关系的树</span><span class="ln cmt"># 用法：SDC 里写，CTS 之前 source 进来；-source 指向分频器的输入引脚，不是输出</span><span class="ln ">create_clock -name clk_ref -period 10.0 [get_ports clk_ref]         ;# 100MHz 主时钟</span><span class="ln ">create_generated_clock -name clk_div2 \</span><span class="ln ">    -source [get_pins u_div/CK] \</span><span class="ln ">    -divide_by 2 [get_pins u_div/Q]                                 ;# 50MHz 分频时钟，源指向 CK</span></code></pre></div>
@@ -259,7 +265,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

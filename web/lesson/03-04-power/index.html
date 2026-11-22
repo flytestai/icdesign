@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>电源规划：给每个单元供上电 · 15 | IC 后端学院</title>
+<title>电源规划：给每个单元供上电 · 17 | IC 后端学院</title>
 <meta name="description" content="电源网格是芯片的供血管道。这一课讲清 pad → ring → stripe → followpin 这条路上电流怎么逐级变小、线宽怎么逐级变窄，三层结构各给多少量级，via 阵列为什么必须打满，以及用 IR drop、EM、均匀性、布线资源四条标准判断一版电源规划能不能用。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-04-power">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>电源规划：给每个单元供上电</b></div>
     <div class="hero">
-      <div class="hero-no">15</div>
+      <div class="hero-no">17</div>
       <h1>电源规划：给每个单元供上电</h1>
       <p class="hero-en">Power Planning</p>
       <p class="hero-sum">电源网格是芯片的供血管道。这一课讲清 pad → ring → stripe → followpin 这条路上电流怎么逐级变小、线宽怎么逐级变窄，三层结构各给多少量级，via 阵列为什么必须打满，以及用 IR drop、EM、均匀性、布线资源四条标准判断一版电源规划能不能用。</p>
@@ -45,6 +45,9 @@
 <p>更关键的是，<strong>电流在逐级变小</strong>。总电流进入 core 后被 N 条 stripe 分掉，每条只剩 <code>I_total / N</code>；每条又供几百行，每行只有几十微安；每个单元只有几微安。所以线宽也必须逐级变窄。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">封装焊球 / 引脚（bump / pad）</span><span class="ln ">   │  I_total：整颗芯片的电流</span><span class="ln ">   ▼</span><span class="ln ">IO 环（放焊盘和 ESD 保护）</span><span class="ln ">   │</span><span class="ln ">   ▼</span><span class="ln ">电源环 power ring（M5 竖 / M6 横，围着 core 一圈）</span><span class="ln ">   │  电流在这里被分到四个方向</span><span class="ln ">   ▼</span><span class="ln ">电源条带 power stripe（M5 竖 + M6 横，成网格）</span><span class="ln ">   │  每条分到 I_total / N</span><span class="ln ">   ▼</span><span class="ln ">单元电源轨 follow pin（M1，沿标准单元行拉通）</span><span class="ln ">   │  每行分到 I_row</span><span class="ln ">   ▼</span><span class="ln ">标准单元内部（M1 小段 + 晶体管）</span><span class="ln ">      I_cell：µA 级</span></code></pre></div>
 <p>这张图可以当成自来水管网看：主干管最粗，进楼后变细，到水龙头只剩一根细管。<strong>没有人在水龙头上装主干管，也没有人用细管从水厂直通小区</strong>——线宽跟着电流走，这是电源规划最基本的形状。</p>
+<p>五级接力在真实版图上是什么样、每一级的粗细差多少，下面这张图给出了纵向的剖面。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/pg-tree.png" data-fig="pg-tree"><img src="/fig/pg-tree.png" alt="从封装焊球到单元内部共五级，越往下越细、越密。右边的手算说明了为什么供电必须靠"并联 + 上层厚金属"：单靠一根细线，电阻会把电压掉到无法工作。" loading="lazy" decoding="async"></a><figcaption>从封装焊球到单元内部共五级，越往下越细、越密。右边的手算说明了为什么供电必须靠"并联 + 上层厚金属"：单靠一根细线，电阻会把电压掉到无法工作。</figcaption></figure>
+<p>从图里要看出什么：<strong>并联不是可选项，是唯一出路</strong>。一条 0.1µm 宽的线走 1mm 就是几十欧，几毫安就掉几十毫伏；而几千条线并起来，同样的电流每条的压降就变成可忽略。这张图也解释了为什么 follow pin 只能靠"多"，不能靠"宽"——它宽不了。</p>
 <div class="tbl"><table><thead><tr><th>段</th><th>所在层</th><th>承担电流</th><th>典型宽度（40nm）</th><th>由谁决定</th></tr></thead><tbody><tr><td>ring</td><td>M5 / M6</td><td>相邻两个供电 pad 之间的电流</td><td>3~8µm</td><td>pad 数量、EM（电迁移）限值</td></tr><tr><td>stripe</td><td>M5 / M6</td><td>总电流 ÷ 条数</td><td>1~3µm</td><td>总电流、条数、EM 限值</td></tr><tr><td>follow pin</td><td>M1</td><td>一行单元的电流</td><td>0.1~0.3µm</td><td>标准单元库、行高</td></tr><tr><td>单元内部</td><td>M1 及以下</td><td>几 µA</td><td>&lt; 0.1µm</td><td>库设计，后端不改</td></tr></tbody></table></div>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Power Grid (PG Mesh)</span><span class="term-zh">电源网格</span><i class="term-ico">点击看解释</i></div>
@@ -63,6 +66,9 @@
 <section class="ch" id="layers" data-ch="layers">
   <div class="ch-h"><span class="ch-n">02</span><h2>三层结构</h2></div>
   <p>三层不是三个孤立的部件，而是一棵倒过来的树：越靠上越粗、电流越大；越靠下越细、电流越小。三层的参数各有各的算法，不能互相替代。</p>
+<p>三层叠在一起是什么样，看这张界面图。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-power.png" data-fig="innovus-power"><img src="/fig/innovus-power.png" alt="橙色一圈是电源环，黄橙色网格是电源条带，它们负责把 pad 上的电送到每一个标准单元。重点看右下角那条告警——它说有一批交叉点没有打满 via，这是后面 IR drop 超标最常见的原因。" loading="lazy" decoding="async"></a><figcaption>橙色一圈是电源环，黄橙色网格是电源条带，它们负责把 pad 上的电送到每一个标准单元。重点看右下角那条告警——它说有一批交叉点没有打满 via，这是后面 IR drop 超标最常见的原因。</figcaption></figure>
+<p>从图里要看出什么：<strong>ring 是"围一圈"，stripe 是"铺满"，两者在版图上是同一个网络的两层</strong>。图上看上去连成一片，但电气上是否连通，取决于每个交叉点有没有 via。这张图右下角的告警，比整张图的颜色更重要。</p>
 <h3>1. Power Ring（电源环）</h3>
 <p>围着 core 一圈，通常用两层金属：M6 画上下两条横边，M5 画左右两条竖边。</p>
 <p>为什么分两层？横边和竖边在四个角相交，如果在同一层画，拐角处要拐弯、要占更多面积；分两层后，交叉点直接打 via 就能连通。</p>
@@ -70,6 +76,18 @@
 <p><strong>环宽的依据。</strong> 假设一圈有 8 个 VDD pad，总电流 120mA，平均每个 pad 供 15mA。相邻两个 pad 之间那一段环，只承担这 15mA（再乘 1.3 的不均匀系数约 20mA）。EM 限值 5mA/µm 时，4µm 宽刚好够。</p>
 <p>如果只有 2 个 VDD pad，同样总电流下每段要承担 60mA，环就得做到 12µm 以上。<strong>所以"环宽 4µm"不是工艺规定，是 pad 数量算出来的。</strong> pad 少、电流大，环必须粗。</p>
 <p><strong>环必须闭合。</strong> 环上留一个缺口，等于把 core 的供电切成两半：缺口另一侧的单元只能从远处绕电，压降立刻上一个台阶。四个角是漏画的高发区，因为 <code>-layer</code> 列表里漏写 <code>left</code> 或 <code>right</code> 时，工具不会报错，只是不画那两条边。</p>
+<h4>为什么四个角必须闭合，而且要打满 via</h4>
+<p>环不是"四条边各画一条"，而是<strong>四条边并联成一圈</strong>。并联的意思很实在：某一侧要用电，电流可以从左右两个方向同时过来，每条路各担一半。</p>
+<p>四个角是这两条路的<strong>唯一交汇点</strong>。横边在 M6、竖边在 M5，两层不能直接搭上，必须在角上打 via 阵列才能连通。所以角同时承担两件事：<strong>转弯</strong>和<strong>换层</strong>。</p>
+<p>把账算一下。core 边长 500µm，环宽 4µm，M6 方块电阻 0.03Ω/□：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">单边电阻 = 0.03 × 500 ÷ 4 = 3.75Ω</span><span class="ln ">闭合时（左右两侧并联）→ 该侧等效 3.75 ÷ 2 ≈ 1.88Ω</span><span class="ln ">断一个角（只剩三边串联）→ 3.75 × 3 = 11.25Ω</span></code></pre></div>
+<p>同样供 15mA，压降从 <code>15mA × 1.88Ω ≈ 28mV</code> 变成 <code>15mA × 11.25Ω ≈ 169mV</code>——<strong>不是"少了一点点"，是直接翻六倍</strong>。而且这 169mV 还没算 via 的电阻，实际更差。</p>
+<p>更隐蔽的一种断法：<strong>铜线画全了，角上 via 没打满</strong>。版图上看环是闭合的，电气上角是"虚接"。这种情况 <code>checkPGConnectivity</code> 可能不报（因为它看的是几何连通），只有 <code>verifyPowerVia</code> 的覆盖率或 IR 分析能发现。</p>
+<p>所以四个角要单独查三件事：</p>
+<ol><li><strong>四条边都画了</strong>：<code>addRing</code> 的 <code>-layer</code> 列表里 <code>top/bottom/left/right</code> 一个都不能少。</li><li><strong>每层都连上了</strong>：M5 和 M6 在角上要有 via 阵列，不是一两个孔。</li><li><strong>没有被 macro / IO 压断</strong>：角上如果放了 SRAM，环会被截断，必须绕行或改摆位。</li></ol>
+<p>在界面里查这件事，靠的是"沿边界走一圈"：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-gui.png" data-fig="innovus-gui"><img src="/fig/innovus-gui.png" alt="主窗口里看环，要同时打开 M5 和 M6 两层显示。重点看四个角：两条边是否真的接上，角上的 via 是不是一片而不是几个点。左侧设计浏览器可以先选中 `VDD` 网络，让整圈单独高亮。" loading="lazy" decoding="async"></a><figcaption>主窗口里看环，要同时打开 M5 和 M6 两层显示。重点看四个角：两条边是否真的接上，角上的 via 是不是一片而不是几个点。左侧设计浏览器可以先选中 `VDD` 网络，让整圈单独高亮。</figcaption></figure>
+<p>从图里要看出什么：<strong>闭合不是"看着连上了"，是"角上有 via"</strong>。关掉一层看，容易漏；只开一层看，看不出换层。查环这件事必须"两层一起开、四个角逐个放大"。</p>
 <h3>2. Power Stripe（电源条）</h3>
 <p>从环往 core 内部拉的网格。竖条通常走 M5，横条走 M6，<strong>两个方向都要画</strong>。</p>
 <p>只画竖条会怎样？两条竖条之间的单元，电流要先沿 follow pin 横向走到最近的竖条，横向路径可能长达半个间距（pitch）。pitch 40µm 时就是 20µm 的额外电阻，中间区域的电压明显低于条带底下。横条的作用是把竖条在另一个方向并联起来，让电流就近上楼。</p>
@@ -191,6 +209,13 @@
 <p><strong>对 route 的影响。</strong> 信号要轨道。电源多占 5%，可能就是把一条通道从 96 条挤到 91 条，拥塞热点的红线就是这么来的。第 20 课算通道容量时，先要扣掉穿过的电源线，原因就在这里。</p>
 <p><strong>补救的代价。</strong> 如果签核（signoff）才发现 IR 不过，手段只有加 stripe、加去耦电容（decap）、降频。加 stripe 要拆掉已布好的线、重新做合法化（legalize）、重跑布线（route）和时序工程变更（timing ECO）；一个 500µm 的模块（block）也要两三天，还未必收得干净。规划阶段改一个参数只要十分钟。</p>
 <p>所以判断标准不是"现在 IR 够不够"，而是"<strong>最坏场景下还够不够</strong>"。峰值电流、最高温度、最差电压角，三个都按最坏取。</p>
+<h3>代价阶梯：同一个 IR 问题，发现得越晚越贵</h3>
+<p>电源规划最特殊的地方在于：<strong>它的问题能在六个不同时间点被发现，而每个时间点可选的手段不一样，代价差三个数量级。</strong></p>
+<div class="tbl"><table><thead><tr><th>发现时间</th><th>还能做什么</th><th>代价（量级）</th><th>主要风险</th></tr></thead><tbody><tr><td>规划阶段（现在）</td><td>改宽度、改 pitch、补 via、换层</td><td>10 分钟</td><td>无</td></tr><tr><td>place 之后</td><td>加 stripe（不动 ring 和 rail）</td><td>约 4 小时（重跑 place）</td><td>局部拥塞，可能带出 DRC</td></tr><tr><td>CTS 之后</td><td>加 stripe + 局部 ECO</td><td>约 1 天</td><td>skew 变化，时序基线作废</td></tr><tr><td>route 之后</td><td>拆线 → 加 stripe → legalize → 重布 → timing ECO</td><td>2~3 天</td><td>DRC 与时序双重风险，未必收干净</td></tr><tr><td>签核阶段</td><td>加 decap、降频、改封装供电</td><td>1~2 周（重跑签核）</td><td>可能被迫降规格</td></tr><tr><td>流片之后</td><td>改版、重做掩模</td><td>3 个月 + 几百万到几千万</td><td>商业上通常不可接受</td></tr></tbody></table></div>
+<p>为什么晚一步就贵这么多？因为<strong>早期的旋钮多，晚期的旋钮少</strong>：</p>
+<ul><li>规划阶段你有四个自由变量：线宽、pitch、via 数量、层分配。想降 5mV，四个里挑一个调就行。</li><li>route 之后只剩一个：加 stripe。而加 stripe 要占轨道——一对 VDD/VSS 各 3µm、间距 1.5µm，合计 9µm；在 40µm pitch 下就是这一层 22.5% 的横向空间。加进去，就得把原来走那里的信号线全部拆开重布。</li><li>签核之后连"加 stripe"都难：版图已经冻结，动一条线要重跑 DRC/LVS/STA 全套。</li></ul>
+<p>所以行业内有个说法：<strong>电源规划是"唯一一个花十分钟能省三天"的环节</strong>。这不是夸张——它只是把"返工代价随阶段指数上升"这件事，放在了一个参数最容易被随手改的阶段。</p>
+<p>一个反向的判断方法：如果评审时有人说"IR 现在超一点没关系，后面加 stripe 补"，你就问他两个数——<strong>加几条、占多少轨道</strong>。答不出这两个数，说明他没算过这笔账。</p>
   <label class="ch-done"><input type="checkbox" data-mark="downstream"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="pitfalls" data-ch="pitfalls">
@@ -277,7 +302,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

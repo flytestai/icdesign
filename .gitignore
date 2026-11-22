@@ -26,3 +26,6 @@ _shots/
 
 # 本地调试页（构建时会跳过下划线开头的文件，也别提交）
 web/_*.html
+
+# mkfig 生成图片时 headless Chrome 的临时 profile 缓存
+tools/figs/.cache/

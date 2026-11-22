@@ -6,7 +6,7 @@
 <title>芯片是怎么造出来的：从沙子到 GDSII · 09 | IC 后端学院</title>
 <meta name="description" content="从沙子提纯到晶圆，从光刻到封装测试。这一课讲清四道大关、光刻为什么像洗照片、28nm 到底意味着什么，以及为什么最后必须有人签字放行。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="02-01-chip">
 <header class="top">
@@ -44,6 +44,9 @@
 <div class="tbl"><table><thead><tr><th>阶段</th><th>谁做</th><th>产出</th><th>一句话</th></tr></thead><tbody><tr><td>1. 规格</td><td>产品/架构</td><td>Spec 文档</td><td>这颗芯片要干什么、跑多快、多少钱</td></tr><tr><td>2. 前端设计</td><td>设计工程师</td><td>RTL 代码</td><td>用 Verilog 描述逻辑</td></tr><tr><td>3. 验证</td><td>验证工程师</td><td>测试平台 + 覆盖率报告</td><td>证明逻辑没写错</td></tr><tr><td>4. 综合 + 后端</td><td>综合/PD 工程师</td><td>门级网表 → GDSII</td><td>把逻辑变成版图</td></tr><tr><td>5. 制造 + 封测</td><td>晶圆厂 / 封测厂</td><td>芯片</td><td>照图施工</td></tr></tbody></table></div>
 <p>如果按"物理形态"分，其实是四道大关：<strong>设计</strong>（第 1~4 关）、<strong>制造</strong>（第 5 关前半）、<strong>封装</strong>、<strong>测试</strong>。</p>
 <p>后端工程师站在第 4 关的末尾。<strong>你的下游是工厂，所以你必须懂工厂的规矩</strong>——这就是为什么后端有那么多"设计规则"，也是为什么这份工作里一半的时间在"检查"，而不是在"画图"。</p>
+<p>把镜头拉近到第 4 关，后端自己又是一条八阶段的流水线。先看一张全景图，记住三步分组，后面所有课都按这个骨架展开。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/flow-overview.png" data-fig="flow-overview"><img src="/fig/flow-overview.png" alt="左边灰色虚线框是前端交给你的东西，右边蓝色框是后端八个阶段。先重点看图里"① ② ③ 骨架 / ④ ⑤ ⑥ 填肉 / ⑦ ⑧ 体检修补"这三组的分界线。" loading="lazy" decoding="async"></a><figcaption>左边灰色虚线框是前端交给你的东西，右边蓝色框是后端八个阶段。先重点看图里"① ② ③ 骨架 / ④ ⑤ ⑥ 填肉 / ⑦ ⑧ 体检修补"这三组的分界线。</figcaption></figure>
+<p>从图里要看出什么：后端不是一个软件跑一遍，而是八个阶段首尾相接——每一阶段的输出就是下一阶段的输入，中间漏一环，后面全要重做。这一课只讲第 4 关里"制造"那一侧，八阶段本身是下一课的内容。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">GDSII</span><span class="term-zh">版图数据格式</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>Graphic Data System II，一种几十年前定下来的二进制文件格式，逐层描述每一层（金属、多晶硅、扩散区）上的几何图形。工厂的机器读它来制作掩模版。<br>它是后端的最终交付物，文件通常几百 MB 到几 GB。<strong>GDSII 里没有"与门""触发器"的概念，只有一堆多边形。</strong></p></div>
@@ -63,8 +66,9 @@
 <h3>第二件：光刻，本质上就是洗照片</h3>
 <p><strong>光刻（lithography）</strong> 和洗照片是同一套化学：底片 → 相纸 → 曝光 → 显影。区别在于，芯片要把这张照片洗几十遍，而且每一遍都必须和上一遍严丝合缝地对准。</p>
 <div class="tbl"><table><thead><tr><th>洗照片</th><th>芯片光刻</th><th>关键点</th></tr></thead><tbody><tr><td>相纸</td><td>晶圆 + 光刻胶</td><td>胶厚只有几十纳米</td></tr><tr><td>底片</td><td>掩模版（mask / reticle）</td><td>一张版对应一层图形</td></tr><tr><td>曝光</td><td>紫外光透过掩模照下来</td><td>40nm 用 193nm 波长的光</td></tr><tr><td>显影</td><td>显影液洗掉感光部分</td><td>图形留在胶上</td></tr><tr><td>定影、晾干</td><td>刻蚀（etch）</td><td>图形固定到下面的材料上</td></tr></tbody></table></div>
-<p>具体五步，按顺序记：</p>
-<ol><li><strong>甩胶</strong>：晶圆高速旋转，滴上去的<strong>光刻胶（photoresist）</strong>被甩成均匀薄层。</li><li><strong>曝光</strong>：紫外光透过掩模版照下来，被照到的地方胶的化学性质改变。</li><li><strong>显影</strong>：洗掉该去掉的部分，掩模上的图形就"印"到了胶上。</li><li><strong>刻蚀</strong>：以剩下的胶当挡板，把图形刻进下面的氧化层或金属层。</li><li><strong>去胶 + 掺杂</strong>：把胶洗掉；需要改变导电性的区域，用<strong>离子注入（ion implantation）</strong>把硼或磷打进硅里，这叫<strong>掺杂（doping）</strong>。</li></ol>
+<p>具体五步，按顺序记。每一步都对照"洗照片"里对应的动作，同时说清这一步失败会长什么样：</p>
+<ol><li><strong>涂胶（coating）</strong>——对应洗照片前的"上相纸"。晶圆高速旋转，滴上去的光刻胶被离心力甩成均匀薄层，厚度只有几十纳米到几微米。胶厚不匀，曝光出来的线宽就不匀，<strong>边缘那一圈 die 会先废</strong>。判据是整片厚度公差，通常要求在 ±2% 以内（典型值）。</li><li><strong>曝光（exposure）</strong>——对应"底片压住相纸见光"。紫外光透过掩模版照下来，被照到的胶发生化学变化。40nm 用 193nm 波长的光；掩模版上的图形一般放大 4 倍，靠投影透镜缩回 1/4 再打到晶圆上——所以版上的线其实比芯片上的粗，这是为了降低做版难度。</li><li><strong>显影（development）</strong>——对应"显影液里泡出影像"。显影液洗掉该去掉的部分（正胶洗掉见光区，负胶洗掉没见光区），图形就留在胶上。显影多泡两秒线就细一圈，少泡两秒线就粗一圈，<strong>线宽最后那几十纳米是在这一步定下来的</strong>。</li><li><strong>刻蚀（etch）</strong>——对应"定影"，但动作完全不同：以剩下的胶当挡板，用等离子体把没被胶盖住的氧化层或金属层打掉。胶是挡箭牌，刻蚀是往下挖。先进工艺基本用干法刻蚀，因为它是各向异性的——只往下挖，不往旁边蚀，线宽才守得住。</li><li><strong>去胶（resist strip）</strong>——把用过的胶洗掉，露出刻好的图形。如果这一层要改导电性，再补一道<strong>离子注入（ion implantation）</strong>，把硼或磷打进硅里，这就是<strong>掺杂（doping）</strong>。去胶不干净，残留物会在下一层变成颗粒缺陷，一片 wafer 直接报废。</li></ol>
+<p>这五步要重复几十次：一层氧化、一层多晶硅、一层金属、一层通孔，每层都要走一遍"涂胶→曝光→显影→刻蚀→去胶"。40nm 逻辑工艺大约 30~40 轮，先进工艺 60~80 轮（典型值）。<strong>轮数就是工期，也是成本。</strong></p>
 <p>类比讲完了，必须马上说清它<strong>不像</strong>照片的地方：</p>
 <ul><li>照片只有黑白两色，芯片一层图形的最小线宽是几十纳米，是光的波长的几分之一。</li><li>照片洗坏了重洗一张；晶圆一层刻错，这片就废了，只能磨掉重做，代价是几周工艺时间。</li><li>照片不用对齐，芯片每一层都要对准上一层，这个误差叫<strong>套刻（overlay）</strong>，40nm 节点通常要控制在十几纳米（典型值）。</li></ul>
 <p>所以 40nm 用 193nm 波长的光来画，本身就是"用粗笔画细字"，靠的是分辨率增强（OPC、浸没式、多重曝光）硬撑出来的。这也是节点越小、掩模版越贵、设计规则越多的根本原因。</p>
@@ -82,6 +86,10 @@
 <p><strong>DRC 不是"工具挑刺"，是"工厂的验收标准"。</strong> 你改的不是报告，是工厂能不能把这张图做出来。</p></div></div>
 <h3>第三件：一层一层叠起来</h3>
 <p>先做晶体管（底层），再用金属一层层连线。40nm 逻辑工艺通常 8~10 层金属，最底下两三层很细（局部连线），上面几层很粗（全局电源和长线）。</p>
+<p>为什么必须"下细上粗"？把金属层想成一栋楼的水管：楼里的支管不必很粗，但进楼的主干管一定要粗，否则水压不够。金属也一样——越往上层，要走的是跨全片的长线和整颗芯片的电流，电阻必须小，所以线宽和厚度都往上加。</p>
+<p>下面这张剖面图就是这个结构的侧视图。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/chip-stack.png" data-fig="chip-stack"><img src="/fig/chip-stack.png" alt="这是金属层的剖面：下面几层薄而密，负责单元之间的短连线；上面两层厚，负责电源和跨片长线。重点看"越往上越厚"这个梯度，以及 via 是怎么把上下层串起来的。" loading="lazy" decoding="async"></a><figcaption>这是金属层的剖面：下面几层薄而密，负责单元之间的短连线；上面两层厚，负责电源和跨片长线。重点看"越往上越厚"这个梯度，以及 via 是怎么把上下层串起来的。</figcaption></figure>
+<p>从图里要看出什么：<strong>布线工具抱怨"层不够用"，抱怨的永远是下面那几层细金属</strong>，因为短连线只能走那里；而电源必须从最上面两层厚金属往下打 via，一路送到每个单元——这两件事挤在同一堆层上，就是后面 floorplan 和电源规划要反复权衡的资源账。</p>
 <p>后端做的，就是决定每一层金属上画什么、通孔打在哪。<strong>层数越往上越粗，因为电阻要小、电流要大</strong>——这就是后面电源规划里"高层走电、低层走信号"的由来。</p>
 <div class="pit"><div class="pit-h">常见坑 · 只看了 DRC，没看密度</div><div class="pit-b"><p>现象：DRC 全绿，工厂还是退回来说"金属密度不达标"。</p>
 <p>原因：DRC 查的是几何（线宽、间距），密度检查（density check）查的是"每一块区域里某层金属占多少比例"。密度太低，化学机械抛光（CMP）会把这层磨得凹凸不平；密度太高，刻蚀不均匀。</p>
@@ -105,6 +113,25 @@
 <h3>代价二：钱</h3>
 <ul><li>掩模版：40nm 一套在几十万到百万美元量级，28nm 更高（典型值，随层数变化）。</li><li>设计成本：人力和 EDA License 随节点上升。</li><li>规则复杂度：28nm 的 DRC 规则条数明显多于 40nm，同样的设计要多花时间清 DRC。</li></ul>
 <p>更关键的是，28nm 之后"每个晶体管的成本"不再明显下降——业界叫"cost per transistor 不再降"。<strong>所以不是越小越划算，而是"够用就好"。</strong></p>
+<h3>其实不是越小越快：三个反例</h3>
+<p>"节点越小越快"这句话，只在同一个设计、同一批约束下、只看门延迟时才成立。放到真实芯片上，有三个反例会把它推翻：</p>
+<p><strong>反例一：长线主导的设计，小节点反而更慢。</strong> 门延迟随节点缩小是降的，但连线延迟不降反升——线更细（电阻变大）、线更密（电容变大），两者相乘就是 RC 延迟。一条跨 2mm 的长线，在 40nm 上可能是 180ps，在 28nm 上因为线更细，反而变成 220ps（量级示意）。所以大芯片里"局部更快、全局更慢"是常态，这也是为什么后端要拼命缩短线长，而不是指望换工艺。</p>
+<p><strong>反例二：漏电把省下的动态功耗吃回去。</strong> 40nm 漏电约占 30%~40%，28nm 可以到 40%~50%（典型值）。动态功耗确实降了，但待机功耗上去，手机待机时间反而变差。低功耗设计要靠电源关断（power gating）和多阈值单元（multi-Vt）去补，不是换个节点就完事。</p>
+<p><strong>反例三：良率随面积指数下降。</strong> 这是最容易被忽略的一条。缺陷密度模型可以粗略写成 <code>Y ≈ e^(−A × D0)</code>，A 是 die 面积、D0 是每平方厘米的缺陷数。同样 D0 = 0.2/cm²：</p>
+<div class="tbl"><table><thead><tr><th>die 尺寸</th><th>面积</th><th>估算良率</th><th>一片 wafer 好 die 数（约）</th></tr></thead><tbody><tr><td>10 × 10 mm</td><td>1.0 cm²</td><td><code>e^(−0.2)</code> ≈ 82%</td><td>约 520</td></tr><tr><td>15 × 15 mm</td><td>2.25 cm²</td><td><code>e^(−0.45)</code> ≈ 64%</td><td>约 175</td></tr><tr><td>20 × 20 mm</td><td>4.0 cm²</td><td><code>e^(−0.8)</code> ≈ 45%</td><td>约 65</td></tr></tbody></table></div>
+<p>面积涨 4 倍，好 die 数掉到 1/8。<strong>大 die 的贵，不只是"一片切得少"，更是"坏的更多"。</strong> 这也是为什么同样是 28nm，手机 SoC 敢做到 100mm²，而工业芯片宁可停在 40nm 做小 die。</p>
+<h3>一个 wafer 能切多少 die（手算）</h3>
+<p>这是面试常问、报价必用的一道算术。条件是 300mm 晶圆、die 20×20mm。</p>
+<p>先按最粗的算法：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">晶圆面积 = π × 150² ≈ 70686 mm²</span><span class="ln ">单颗面积 = 20 × 20 = 400 mm²</span><span class="ln ">理论颗数 = 70686 ÷ 400 ≈ 176.7 颗</span></code></pre></div>
+<p>但这个数一定偏大，因为<strong>边缘一圈切不出完整的 die</strong>。圆里放方块，边缘必然浪费。工程上常用的估法是再减掉一圈"半对角线"的损失：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">边缘损失 ≈ π × 直径 ÷ √(2 × 单颗面积)</span><span class="ln ">        = π × 300 ÷ √800</span><span class="ln ">        ≈ 942.5 ÷ 28.3</span><span class="ln ">        ≈ 33.3 颗</span><span class="ln ">实际颗数 ≈ 176.7 − 33.3 ≈ 143 颗</span></code></pre></div>
+<p>也就是<strong>边缘损耗约 19%</strong>，远大于很多教材随手写的 10%——die 越大，这一圈浪费的比例越高。这是大 die 的第二个隐藏成本。</p>
+<p>最后乘良率。按 85% 的成熟工艺估：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">好 die 数 = 143 × 0.85 ≈ 122 颗</span><span class="ln ">若一片 wafer 3000 美元 → 单颗约 3000 ÷ 122 ≈ 24.6 美元</span></code></pre></div>
+<p>把三个数并排放，就能看出面积有多贵：</p>
+<div class="tbl"><table><thead><tr><th>die 边长</th><th>理论颗数</th><th>扣边缘</th><th>良率 85% 后</th><th>单颗成本（$3000/片）</th></tr></thead><tbody><tr><td>15 mm</td><td>314</td><td>270</td><td>229</td><td>$13.1</td></tr><tr><td>20 mm</td><td>177</td><td>143</td><td>122</td><td>$24.6</td></tr><tr><td>22 mm</td><td>146</td><td>116</td><td>98</td><td>$30.6</td></tr></tbody></table></div>
+<p>边长从 20mm 涨到 22mm（边长 +10%、面积 +21%），单颗成本却涨了约 25%——多出来的那一截是良率恶化。<strong>这就是为什么架构师每加一个功能都要问"这值不值一片面积的 5%"。</strong></p>
 <div class="pit"><div class="pit-h">常见坑 · 把节点数字当成实际线宽</div><div class="pit-b"><p>"28nm 工艺"里没有任何一条线一定是 28nm。金属最小间距、氧化层厚度、SRAM 单元面积都另有数字，而且不同厂家的 28nm 规则并不通用。</p>
 <p>后果：拿 40nm 的脚本直接套 28nm，库名不对、层名不对、DRC 规则少了一大半，跑出来的结果看着像过，其实全错。</p>
 <p>正确做法：换工艺 = 换一整套库（<code>.lib</code>/<code>.lef</code>/<code>.db</code>）+ 换 tech LEF + 换 TLU+ + 重读 DRC 规则。这四样缺一不可，第 11 课会逐样讲。</p></div></div>
@@ -116,6 +143,9 @@
 <p>它们像乐高积木，有两个硬规矩：</p>
 <ol><li><strong>高度统一</strong>。比如都是 1.4µm 高，所以能拼成一排排的"行（row）"。</li><li><strong>宽度是固定格子的整数倍</strong>。这个最小格子叫<strong>站点（site）</strong>，比如 0.19µm 宽。</li></ol>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">┌──┬────┬──┬──────┬──┬────┐   ← 一行（row），高度固定 1.4µm</span><span class="ln ">│INV│NAND│DFF│ AOI  │BUF│</span><span class="ln ">├──┴────┴──┴──────┴──┴────┤</span><span class="ln ">│  ...  下一行 ...          │</span><span class="ln ">└──────────────────────────┘</span></code></pre></div>
+<p>上面这个 ASCII 只是俯视示意。真实单元长什么样、拼起来为什么能严丝合缝，看下面这张放大图。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/stdcell.png" data-fig="stdcell"><img src="/fig/stdcell.png" alt="上半部分是一个标准单元放大后的样子：上下两条横贯的电源轨、左右边缘是引脚、中间是晶体管；下半部分是一排单元拼起来的效果。重点看"高度一致、宽度不等"这两件事。" loading="lazy" decoding="async"></a><figcaption>上半部分是一个标准单元放大后的样子：上下两条横贯的电源轨、左右边缘是引脚、中间是晶体管；下半部分是一排单元拼起来的效果。重点看"高度一致、宽度不等"这两件事。</figcaption></figure>
+<p>从图里要看出什么：<strong>所有单元上下边界必须对齐</strong>，所以电源轨能在整行里连成一条直线；宽度各不相同，所以行里像拼图一样填。这两条决定了后面 floorplan 算"能放几行"、place 算"一行塞多少个"，也解释了为什么单元坐标必须落在站点网格上。</p>
 <p>一个库通常有几百个单元，同一种功能还分不同<strong>驱动能力</strong>（X1、X2、X4…）。驱动强的面积大、延迟小、也更费电。<strong>选哪个，就是后端和综合每天的决策。</strong></p>
 <p>手算一次，理解"库的尺寸怎么变成芯片尺寸"：</p>
 <ul><li>一个万门设计，12026 个单元，平均面积 2.0µm² → 总面积约 24052µm²。</li><li>行高 1.4µm，芯片高 222.2µm → <code>222.2 ÷ 1.4 ≈ 158</code> 行，去掉上下边距实际 153 行。</li><li>芯片面积 222.5 × 222.2 ≈ 49440µm² → 利用率 <code>24052 ÷ 49440 ≈ 48.6%</code>。</li></ul>
@@ -145,6 +175,12 @@
 <p>"签核"这个词容易被理解成"跑个脚本"。真正的含义是：<strong>报告上签字的人，对这颗芯片能不能工作负责。</strong></p>
 <p>所以签核有两条铁律：</p>
 <ol><li><strong>用独立工具交叉验证</strong>。设计时用 ICC2 自带的时序引擎，签核必须用 PrimeTime。不是不信任自己的工具，而是"自己检查自己"会有一致的系统性偏差——同一个引擎算错的延迟，它自己永远发现不了。</li><li><strong>写清 corner</strong>。同一条路径在 <code>tt</code>（typical）、<code>ss</code>（slow）、<code>ff</code>（fast）下 slack 完全不同。报告封面必须写清用的是哪个库、哪个电压、哪个温度，否则这张纸没有意义。</li></ol>
+<h3>签字到底签的是哪三样东西</h3>
+<p>第一次听说"签核"的人，常以为签字只是走流程。实际上一份 signoff 报告上的签名，同时意味着三层责任：</p>
+<p><strong>第一层是技术责任。</strong> 签字人声明"我看过这份报告，并且判断这些违例不影响功能"。所以签字前必须能回答：违例在哪、数值多少、为什么不致命、留了多少余量。答不出来就不能签。</p>
+<p><strong>第二层是流程责任。</strong> 签字人声明"该做的检查都做了，该用的工具都用了"。少跑一个 corner、用了设计工具自己的时序引擎当结论，都属于流程不合规。<strong>流程不合规的签字，出了事一样要担。</strong></p>
+<p><strong>第三层是商业责任。</strong> 流片一次几百万到几千万，公司要拿这份签字去决定"投不投"。所以签字记录会存档，出问题要复盘：是判断错了，还是流程漏了。这也是为什么很多公司要求"两个不同的人分别签 STA 和 PV"，不让一个人把两颗印都盖了。</p>
+<p>一个真实的做法：签字前把"已检查项 / 未检查项 / 已知风险"列成三行写在报告第一页。<strong>写不出"未检查项"的人，通常是自己都不知道漏了什么。</strong> 这一页比后面几百页报告更有用。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Signoff</span><span class="term-zh">签核</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>流片前的最后一道确认：所有检查项都通过，负责人签字放行。<br>签核不等于"没有违例"，而是"每一条剩余违例都有人判断过、写了理由（waiver）、并且承担后果"。真实项目里 signoff 报告上常有几十条 waiver，逐条都要写清为什么不影响功能。</p></div>
@@ -206,7 +242,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

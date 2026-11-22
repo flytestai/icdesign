@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Placement：几万个单元怎么摆 · 16 | IC 后端学院</title>
+<title>Placement：几万个单元怎么摆 · 18 | IC 后端学院</title>
 <meta name="description" content="布局是在四个互相打架的目标之间找平衡：线长、拥塞、时序、电源。这一课讲清三个指标怎么读、density 与 target_density 的关系、参数逐个什么意思、扫描链为什么必须重排，以及什么时候该认输回去改 floorplan。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-05-place">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>Placement：几万个单元怎么摆</b></div>
     <div class="hero">
-      <div class="hero-no">16</div>
+      <div class="hero-no">18</div>
       <h1>Placement：几万个单元怎么摆</h1>
       <p class="hero-en">Placement</p>
       <p class="hero-sum">布局是在四个互相打架的目标之间找平衡：线长、拥塞、时序、电源。这一课讲清三个指标怎么读、density 与 target_density 的关系、参数逐个什么意思、扫描链为什么必须重排，以及什么时候该认输回去改 floorplan。</p>
@@ -44,6 +44,12 @@
 <p>四个目标，两两冲突：</p>
 <div class="tbl"><table><thead><tr><th>想改善</th><th>通常牺牲</th><th>为什么</th></tr></thead><tbody><tr><td>线长更短</td><td>拥塞</td><td>单元挤在一起，局部走线需求超过轨道数</td></tr><tr><td>拥塞更松</td><td>线长、时序</td><td>单元摊开，连线变长，延迟变大</td></tr><tr><td>时序更好</td><td>面积、功耗、拥塞</td><td>关键路径加 buffer、换大驱动单元</td></tr><tr><td>电源更稳</td><td>面积</td><td>降密度、拉大间距、加去耦单元</td></tr></tbody></table></div>
 <p>所以布局没有"最优解"，只有"这一版在四个目标上的取舍"。工具给你的是它认为的加权最优，你要判断的是<strong>权重给对了没有</strong>。</p>
+<p>把常见动作单独拎出来看，四个目标各自怎么变，一目了然：</p>
+<div class="tbl"><table><thead><tr><th>动作</th><th>线长</th><th>拥塞</th><th>时序</th><th>功耗</th></tr></thead><tbody><tr><td>提高 target_density（挤紧）</td><td>变好</td><td>变差</td><td>先好后差（挤到绕线就崩）</td><td>略好</td></tr><tr><td>降低 target_density（摊开）</td><td>变差</td><td>变好</td><td>变差（线长涨）</td><td>变差</td></tr><tr><td>提高 <code>timing_effort</code></td><td>略差</td><td>变差</td><td>变好</td><td>变差（多插 buffer）</td></tr><tr><td>提高 <code>cong_effort</code></td><td>变差</td><td>变好</td><td>略差</td><td>略差（绕线变长）</td></tr><tr><td>关键路径加 buffer / 换大驱动</td><td>略好</td><td>变差</td><td>变好</td><td>明显变差</td></tr><tr><td>扫描链重排</td><td>明显变好</td><td>明显变好</td><td>不变（false path）</td><td>变好</td></tr><tr><td>局部加禁放区</td><td>略差</td><td>变好（局部）</td><td>略差</td><td>略差</td></tr></tbody></table></div>
+<p>这张表只有一个目的：<strong>让你放弃"找一个只改善一件事的旋钮"这个念头。</strong> 它不存在。每调一个参数，至少有一个目标会变差，问题是那个"变差"你能不能接受。</p>
+<p>所以真正的决策顺序是分层的，不是四个目标平权：</p>
+<ol><li><strong>时序是门槛</strong>：setup/hold 违例不能留到签核，这一条不满足，其他三项再好也没用。</li><li><strong>拥塞是硬约束</strong>：布不通，后面全部作废，所以 overflow 超过阈值时必须先解决它。</li><li><strong>线长和功耗是优化项</strong>：在 1、2 都满足的前提下，谁的余量大就先优化谁。</li></ol>
+<p>新手常犯的错是把四项平权，结果"每项都还行，但没有一项达标"。<strong>评审要看的是"哪一项已经到红线"，不是"四项的平均分"。</strong></p>
 <p>工具内部走三步：</p>
 <ol><li><strong>全局布局（global placement）</strong>：先解一个连续优化问题，允许单元重叠，目标是最小化总线长（用 HPWL 近似）。</li><li><strong>合法化（legalize）</strong>：把重叠的单元挪开，落到合法的行（row）和站点（site）上。</li><li><strong>详细布局（detail placement）</strong>：在合法位置上做小范围微调，顺手修站点对齐、pin access 之类的问题。</li></ol>
 <p>时序驱动是怎么加进去的？靠<strong>线网加权（net weighting）</strong>：给关键路径上的连线更高的权重，工具在最小化线长时会优先把这几个 net 拉短。这就是 <code>timing_effort</code> 参数在控制的东西。</p>
@@ -64,6 +70,9 @@
 <h3>指标一：利用率（utilization）</h3>
 <p>标准单元总面积 ÷ 可放置标准单元的面积。它的完整定义和两种口径在第 13 课讲过，这里只说 place 阶段的新问题：<strong>place 之后的利用率一定比 floorplan 时高</strong>。</p>
 <p>原因是工具在布局时会顺手插一些 buffer（修 DRV、隔离、时钟预缓冲），实例数增加 5%~15%。所以 floorplan 时按 0.62 起，place 完看到 0.70 是正常的；如果 place 完直接看到 0.80，说明 floorplan 时算少了。</p>
+<p>密度高不高，最终要看版图上"单元行被填满"的样子。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-place.png" data-fig="innovus-place"><img src="/fig/innovus-place.png" alt="一排排细横线是标准单元行（cell row），行里的小方块就是一个个标准单元。红色区域表示那里单元挤得太密，布线时会走不通。重点看红色的形状——它是一片，不是零星几个点。" loading="lazy" decoding="async"></a><figcaption>一排排细横线是标准单元行（cell row），行里的小方块就是一个个标准单元。红色区域表示那里单元挤得太密，布线时会走不通。重点看红色的形状——它是一片，不是零星几个点。</figcaption></figure>
+<p>从图里要看出什么：<strong>密度问题在版图上是"成片"的，拥塞问题是"顺着通道"的</strong>。这张图上红色成片出现，说明是那一整块区域的可用 row 不够；如果红条是细长地贴着某条通道，那是走线需求的问题（下一节）。两种红的修法完全不同。</p>
 <h3>指标二：拥塞（congestion）</h3>
 <p>把芯片切成很多小格子（grid），每个格子统计"要过多少根线"和"有几条轨道"：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">overflow = 走线需求（demand） − 可用轨道（capacity）</span></code></pre></div>
@@ -71,6 +80,9 @@
 <p>判断标准（40nm 量级，典型值）：</p>
 <div class="tbl"><table><thead><tr><th>Total Overflow</th><th>判断</th><th>动作</th></tr></thead><tbody><tr><td>0</td><td>理想</td><td>直接往下走</td></tr><tr><td>1~500</td><td>可接受</td><td>布线工具能消化，记下来</td></tr><tr><td>500~2000</td><td>危险</td><td>先调参数/加局部禁放区，再看</td></tr><tr><td>&gt; 2000</td><td>不可接受</td><td>基本要回 floorplan</td></tr></tbody></table></div>
 <p><strong>关键不是总数，是分布。</strong> 3200 均匀撒在全片，可能只是密度略高，加 3% 面积就解决；3200 全挤在一条 6µm 的通道里，那是物理空间不够，调任何参数都没用。</p>
+<p>"分布"这件事看热图最快：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/congestion-map.png" data-fig="congestion-map"><img src="/fig/congestion-map.png" alt="颜色越红表示该处"想走的线"超出"能走的轨道"越多。重点看四个红斑的位置——它们不是随机分布的，而是对着宏通道和密度高的区域。" loading="lazy" decoding="async"></a><figcaption>颜色越红表示该处"想走的线"超出"能走的轨道"越多。重点看四个红斑的位置——它们不是随机分布的，而是对着宏通道和密度高的区域。</figcaption></figure>
+<p>从图里要看出什么：<strong>红斑的位置就是问题的地址</strong>。红斑贴着两条 macro 之间 → 通道宽度问题，回 floorplan；红斑在标准单元区中间、形状不规则 → 密度问题，调 target_density 或加局部禁放区。这就是"为什么说拥塞大多是上游造成的，不是布线器不努力"——布线器只能在既有空间里绕，空间不够它也没办法。</p>
 <h3>指标三：HPWL（半周长线长）</h3>
 <p>HPWL（Half-Perimeter Wirelength，半周长线长）是最常用的线长估计：对每根 net，画一个能把所有引脚包住的最小矩形，取它周长的一半。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">HPWL(net) = (max_x − min_x) + (max_y − min_y)</span><span class="ln ">全设计 HPWL = Σ HPWL(每根 net)</span></code></pre></div>
@@ -102,10 +114,22 @@
 <p>手算一次，看清"预留"这件事。core 可用 row 面积 77419µm²，标准单元 48000µm²：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">place 时密度 = 48000 ÷ 77419 = 62%</span><span class="ln ">CTS 后实例增加 25%（插 buffer）→ 有效面积 48000 × 1.25 = 60000</span><span class="ln ">CTS 后密度 = 60000 ÷ 77419 = 77.5%</span><span class="ln ">route 再插 5% → 63% → 81%</span></code></pre></div>
 <p><strong>62% 起步，最后落到 80% 左右</strong>，这是健康曲线。如果你 place 时就按 0.80 起步，CTS 后必然 95%+，布线阶段只能拆线。</p>
+<p>这张"起步该给多少"的取舍，图里画得更直观：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/util-overview.png" data-fig="util-overview"><img src="/fig/util-overview.png" alt="四个方格是同一个设计在四种利用率下的密度，右边写着各自的风险。下面那行手算把"12000 个单元需要多大芯片"算成了具体数字。重点看 0.75 和 0.85 两格之间颜色的跳变。" loading="lazy" decoding="async"></a><figcaption>四个方格是同一个设计在四种利用率下的密度，右边写着各自的风险。下面那行手算把"12000 个单元需要多大芯片"算成了具体数字。重点看 0.75 和 0.85 两格之间颜色的跳变。</figcaption></figure>
+<p>从图里要看出什么：<strong>利用率的风险不是线性的</strong>，0.60 到 0.75 之间几乎没差别，0.75 以上每加 5 个点，风险陡增。而且图上的手算告诉你分母是谁——是"可用 row 面积"，不是 die 面积，更不是 core 面积。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Target Density</span><span class="term-zh">目标密度</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>给布局工具的输入参数，控制单元平均摊多开。不是结果，是"我希望多密"。<br>它和 utilization 的区别：utilization 是事后统计的<strong>实际占用比例</strong>，target_density 是事前给的<strong>优化目标</strong>，两者通常差 3~8 个百分点（工具会为了时序/拥塞在局部偏离目标）。</p></div>
 </div>
+<h3>一个是全局参数，一个是局部结果</h3>
+<p>这两个词被混用，根源是它们中文都叫"密度"。用"全局 / 局部"切开就清楚了：</p>
+<div class="tbl"><table><thead><tr><th>对比项</th><th>target_density</th><th>density</th></tr></thead><tbody><tr><td>性质</td><td>输入参数（你给工具的目标）</td><td>输出结果（工具算出来的）</td></tr><tr><td>有几个数</td><td><strong>全局 1 个</strong>，整个设计共用一个</td><td><strong>每个 bin 一个</strong>，几万个数</td></tr><tr><td>谁产生</td><td>你在 <code>setPlaceMode</code> 里设</td><td>工具布局完之后统计</td></tr><tr><td>怎么判断好坏</td><td>看这个值合不合理</td><td>看分布、看峰值，不看平均</td></tr><tr><td>发现问题怎么改</td><td>改参数重跑</td><td>改不了它，只能改参数或改布局</td></tr><tr><td>典型误用</td><td>拉到 0.90 想省面积</td><td>只看平均值就签字</td></tr></tbody></table></div>
+<p><strong>"全局一个数"和"局部几万个数"的差别，正是所有误判的来源。</strong></p>
+<p>工具拿到 0.68 这个全局目标，会尽量让整个设计的平均密度落在 0.68 附近。但它是"平均"——有的 bin 是 0.55（留白多），有的 bin 是 0.92（几乎塞满），平均下来正好 0.68。<strong>平均达标，不代表每个地方都达标。</strong></p>
+<p>手算一次这个偏差有多大：core 切成 10µm 见方的 bin（以本课后面实验用的 3mm 模块为例），3000×3000µm 就是 9 万个 bin。假设平均密度 0.68、标准差 0.08（典型量级），那么按正态分布，超过 <code>0.68 + 3×0.08 = 0.92</code> 的 bin 约占 0.13%，也就是<strong>一百多个 bin 已经塞死</strong>。这 100 多个 bin 就是布线时最先爆的地方。</p>
+<p>所以布局后的判断标准必须是两条：</p>
+<ul><li><strong>平均值</strong>：<code>report_area</code> 的 utilization，用来和 floorplan 的目标对；</li><li><strong>峰值和分布</strong>：密度热图里最红的那块是多少，红色占多大面积。</li></ul>
+<p>只报平均值的人，等于说"这栋楼平均每间住 2 人"，却不提有一间住了 8 个。<strong>评审要看的是最挤那间。</strong></p>
 <div class="pit"><div class="pit-h">常见坑 · 把 target_density 拉到 0.9 想省面积</div><div class="pit-b"><p>现象：为了不改 die 尺寸，把 <code>-place_global_max_density 0.90</code>。place 跑完 overflow 4000，density 热图一片深红。</p>
 <p>原因：0.9 意味着平均只留 10% 空隙，而 bin 内可用面积本来就只有 85% 左右，实际局部密度直接冲到 0.95+。单元挤在一起，每个 bin 的走线需求都超过轨道数。</p>
 <p>处理：target_density 一次只调 0.03~0.05，调完立刻看 overflow。<strong>真正该做的是承认面积不够</strong>——省下来的那 8% 面积，要用两三天布线调试来换，而且经常换不回来。</p></div></div>
@@ -154,6 +178,11 @@
   <p>place 跑完不要直接进 CTS。五项检查，全部有明确阈值。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：布局后的五项自检，任一项不过就不要进 CTS</span><span class="ln cmt"># 用法：place_opt_design 之后逐条执行；结果贴进交接记录</span><span class="ln ">checkPlace                        ;# ① 合法性：重叠、出界、站点对齐、落在禁放区，期望 0 violation</span><span class="ln ">reportCongestion -hotSpot         ;# ② 拥塞：看总 overflow 和热点坐标，不只看总数</span><span class="ln ">report_area                       ;# ③ 面积：利用率、实例数增量（对比 floorplan 时）</span><span class="ln ">timeDesign -preCTS -outDir rpt/place_timing   ;# ④ 时序快照：WNS/TNS，和上一版对比</span><span class="ln ">reportWirelength                  ;# ⑤ 线长：总 HPWL，和上一版对比（看趋势，不看绝对值）</span></code></pre></div>
 <div class="tbl"><table><thead><tr><th>#</th><th>检查项</th><th>通过标准</th><th>不通过先怀疑什么</th></tr></thead><tbody><tr><td>1</td><td>合法性</td><td>0 条 placement violation</td><td>禁放区画错、密度目标过高</td></tr><tr><td>2</td><td>拥塞</td><td>overflow &lt; 500，且无 &gt;1000 的单点热点</td><td>通道太窄、密度太高、扫描链没重排</td></tr><tr><td>3</td><td>密度</td><td>平均 &lt;0.75，峰值 &lt;0.92</td><td>target_density 给太高、macro 挤在中间</td></tr><tr><td>4</td><td>时序</td><td>WNS 不比上一版差 15% 以上</td><td>约束错、库 corner 错，先别怪布局</td></tr><tr><td>5</td><td>线长</td><td>HPWL 不比上一版涨 15% 以上</td><td>拥塞缓解把单元摊得太开</td></tr></tbody></table></div>
+<h3>五份报告，各看一行</h3>
+<p>上面五项对应五份要归档的东西。<strong>每一份只需要先看一行</strong>——那一行不对，后面几百行不用看：</p>
+<div class="tbl"><table><thead><tr><th>#</th><th>报告</th><th>生成命令</th><th>先看哪一行</th><th>判据</th></tr></thead><tbody><tr><td>1</td><td>合法性 <code>place_check.rpt</code></td><td><code>checkPlace</code></td><td>最后一行违例总数</td><td>必须 0，不是 0 不许进 CTS</td></tr><tr><td>2</td><td>拥塞 <code>place_cong.rpt</code></td><td><code>reportCongestion -hotSpot</code></td><td><code>Total Overflow</code> + 最热点的坐标</td><td>&lt;500，且单点 &lt;1000</td></tr><tr><td>3</td><td>密度 <code>place_area.rpt</code></td><td><code>report_area</code> + GUI 密度热图</td><td>平均 utilization、峰值 bin</td><td>平均 &lt;0.75，峰值 &lt;0.92</td></tr><tr><td>4</td><td>时序 <code>place_timing/</code></td><td><code>timeDesign -preCTS -outDir ...</code></td><td><code>WNS</code> / <code>TNS</code></td><td>不比上一版差 15%</td></tr><tr><td>5</td><td>线长 <code>place_wl.rpt</code></td><td><code>reportWirelength</code></td><td><code>Total HPWL</code></td><td>不比上一版涨 15%</td></tr></tbody></table></div>
+<p>三条使用纪律：</p>
+<ul><li><strong>第 2 和第 4 必须存完整报告</strong>，其余存一行数字就够。因为 CTS 和 route 出问题时，第一件事是拿现在的拥塞和时序跟布局时对比——没有完整报告，你只能看到"变差了"，看不到"从哪一项开始变差"。</li><li><strong>报告文件名带版本号和日期</strong>，否则一周后分不清哪份对应哪一版数据库（第 10 课讲过这个坑）。</li><li><strong>第 1 项不过，后面四项都不用看。</strong> 合法性是 0 与 1 的关系，不是"差不多就行"——有违例的布局，工具连布线都不会启动。</li></ul>
 <p><strong>第 4 项有个纪律：先确认约束，再怀疑布局。</strong> 布局"看起来不错但时序一塌糊涂"，八成是约束问题——时钟周期写错、false path 漏设、setup 用了 fast corner。查约束的顺序是：<code>report_clocks</code> 看周期 → <code>report_timing -path_group</code> 看违例集中在哪个域 → 抽一条路径看延迟构成。</p>
 <div class="pit"><div class="pit-h">常见坑 · 布局"看起来很整齐"，但时序一塌糊涂</div><div class="pit-b"><p>现象：<code>reportDensityMap</code> 很均匀、<code>reportCongestion</code> overflow 接近 0，但 <code>reportTiming</code> 有 200 条 setup 违例，最差 −0.4ns。</p>
 <p>原因通常是三类：<strong>约束错</strong>（周期写短了、false path 没设）、<strong>库 corner 错</strong>（用 FF 快 corner 算 setup）、<strong>时序没参与布局</strong>（<code>timing_effort</code> 给 low，工具只优化线长）。</p>
@@ -248,7 +277,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

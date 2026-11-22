@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ChipFinish：收尾这一步，决定能不能送厂 · 23 | IC 后端学院</title>
+<title>ChipFinish：收尾这一步，决定能不能送厂 · 25 | IC 后端学院</title>
 <meta name="description" content="布完线、时序过了，版图还不是成品。ChipFinish 收四件事：填补（filler/tap/endcap）、铺平（metal fill）、包壳（seal ring 与 pad）、验证与交付（DRC/LVS 与文件包）。这一课逐项讲清为什么做、判据是什么，以及课程环境能做到哪一步。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-12-chipfinish">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>ChipFinish：收尾这一步，决定能不能送厂</b></div>
     <div class="hero">
-      <div class="hero-no">23</div>
+      <div class="hero-no">25</div>
       <h1>ChipFinish：收尾这一步，决定能不能送厂</h1>
       <p class="hero-en">Chip Finishing & Tapeout Handoff</p>
       <p class="hero-sum">布完线、时序过了，版图还不是成品。ChipFinish 收四件事：填补（filler/tap/endcap）、铺平（metal fill）、包壳（seal ring 与 pad）、验证与交付（DRC/LVS 与文件包）。这一课逐项讲清为什么做、判据是什么，以及课程环境能做到哪一步。</p>
@@ -82,6 +82,9 @@
 <p>如果某一层金属疏密不均（比如一块区域 80% 是金属、旁边只有 10%），磨完表面就是波浪形的。下一层光刻要在这种表面上曝光，焦距对不准，图形就糊了。</p>
 <p>所以工艺厂给每层定了密度窗口，而且不是全芯片平均，是<strong>按窗口检查</strong>（典型 100×100µm 一个窗口）：</p>
 <ul><li>每层密度要在 30%~70% 之间（典型值，看工艺文档）；</li><li>每个窗口都要达标，不能靠别处多铺来平均；</li><li>相邻层的密度也要接近，否则层间应力不均。</li></ul>
+<p>密度为什么要按窗口管，先看金属层的剖面就明白：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/chip-stack.png" data-fig="chip-stack"><img src="/fig/chip-stack.png" alt="金属层剖面图：下层细密、上层宽疏，每层天生疏密不均。重点看各层图形的差异——CMP 要把整层磨平，疏密悬殊的层磨完就是波浪面，这就是密度窗口规则的物理来源。" loading="lazy" decoding="async"></a><figcaption>金属层剖面图：下层细密、上层宽疏，每层天生疏密不均。重点看各层图形的差异——CMP 要把整层磨平，疏密悬殊的层磨完就是波浪面，这就是密度窗口规则的物理来源。</figcaption></figure>
+<p>从这张图里要看出什么：fill 的任务不是"把空白填满"，是把每层每个窗口的密度补进工艺给的区间——所以检查永远按窗口看，不看全片平均。</p>
 <p>补密度的办法就是铺 metal fill（也叫 dummy metal）：在空白处插一堆<strong>不连接任何网络</strong>的金属块。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：Innovus 里先查密度，再铺 metal fill</span><span class="ln cmt"># 用法：filler 填完之后执行；层名按你的工艺改</span><span class="ln ">checkMetalDensity                                     ;# 先看哪一层、哪个窗口不达标</span><span class="ln ">addMetalFill -layer {M1 M2 M3 M4 M5} -timingAware true ;# 铺填充金属，避开关键网络</span><span class="ln ">checkMetalDensity                                     ;# 铺完复查，密度可能还不够，要迭代</span></code></pre></div>
 <p><code>-timingAware</code> 是这里最关键的取舍：</p>
@@ -114,6 +117,9 @@
   <div class="ch-h"><span class="ch-n">05</span><h2>最终检查清单（送厂前必须全绿）</h2></div>
   <p>这张表按顺序过。任何一项红都不能送——不是"尽量修"，是"不能送"。</p>
 <div class="tbl"><table><thead><tr><th>#</th><th>检查项</th><th>命令（ICC2 / Innovus）</th><th>判据</th></tr></thead><tbody><tr><td>1</td><td>连接性</td><td><code>check_lvs</code> / <code>verifyConnectivity</code></td><td>opens = 0，floating = 0；有悬空引脚就是没连上</td></tr><tr><td>2</td><td>DRC</td><td><code>check_routes</code> / <code>verify_drc</code></td><td>总数 = 0；有 waiver 必须有签字清单和理由</td></tr><tr><td>3</td><td>金属密度</td><td><code>check_metal_density</code> / <code>checkMetalDensity</code></td><td>每层、每个 100×100µm 窗口都落在工艺给的 [min, max] 内</td></tr><tr><td>4</td><td>天线</td><td><code>check_antenna</code> / <code>verifyProcessAntenna</code></td><td>违例 net 数 = 0</td></tr><tr><td>5</td><td>setup</td><td><code>report_qor</code></td><td>WNS ≥ 0 且 TNS = 0；若 WNS 为负，必须有逐条 waiver</td></tr><tr><td>6</td><td>hold</td><td><code>report_qor</code></td><td>WNS ≥ 0；hold 负值不能靠"频率低所以没事"解释</td></tr><tr><td>7</td><td>功耗</td><td><code>report_power</code></td><td>总功耗 ≤ 预算，且留 5%~10% 余量（别卡在 99%）</td></tr><tr><td>8</td><td>面积</td><td><code>report_area</code></td><td>die 面积 ≤ 预算；利用率异常升高要查是不是优化插了太多 buffer</td></tr><tr><td>9</td><td>LVS</td><td>Calibre / PVS</td><td>0 mismatch、0 unmatched；器件数与网表完全一致</td></tr><tr><td>10</td><td>ERC</td><td>Calibre</td><td>无闩锁路径、无浮栅、无阱/衬底连接错误</td></tr></tbody></table></div>
+<p>十项检查的全貌，先看图再逐项过：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/finish-checklist.png" data-fig="finish-checklist"><img src="/fig/finish-checklist.png" alt="送厂前 10 项检查：左边是每条的名字与判据，右边是出报告的工具。重点看底部三条"最常见的形式主义错误"——报告在，但报告是旧的；这就是判据里反复强调"逐窗口""重新出报告"的原因。" loading="lazy" decoding="async"></a><figcaption>送厂前 10 项检查：左边是每条的名字与判据，右边是出报告的工具。重点看底部三条"最常见的形式主义错误"——报告在，但报告是旧的；这就是判据里反复强调"逐窗口""重新出报告"的原因。</figcaption></figure>
+<p>从这张图里要看出什么：检查不是"跑过命令"，是"判据落地"——每一项都要能指着一个具体数字说它达标，并且这个数字出自本次版图。</p>
 <p>前八项工具自带，后两项（LVS、ERC）通常要第三方工具加工艺厂提供的规则文件（deck）。<strong>这就是为什么"跑通了流程"和"能送厂"是两件事。</strong></p>
 <p>DRC 和 LVS 的区别，值得单独记住：</p>
 <div class="tbl"><table><thead><tr><th></th><th>DRC</th><th>LVS</th></tr></thead><tbody><tr><td>查什么</td><td>画得合不合法（间距、宽度、密度、via 规则）</td><td>版图提取出的电路，和网表是否一致</td></tr><tr><td>错了会怎样</td><td>工厂拒收，根本不制造</td><td>工厂收货，但做出来功能不对</td></tr><tr><td>谁更致命</td><td>制造不出来</td><td><strong>做出来是坏的，还查不出来</strong></td></tr><tr><td>工具</td><td>工具内置 DRC / Calibre</td><td>Calibre / PVS + LVS deck</td></tr></tbody></table></div>
@@ -216,7 +222,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

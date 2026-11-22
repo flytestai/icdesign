@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OptCts：时钟树做完只是开始 · 21 | IC 后端学院</title>
+<title>OptCts：时钟树做完只是开始 · 23 | IC 后端学院</title>
 <meta name="description" content="CTS 把时钟送到每个触发器，但送得不一定齐、不一定快、波形也不一定干净。OptCts 是布线前的第二轮修补：压 skew、缩 insertion delay、修 DRV、用 useful skew 顺手救 setup、并把 hold 修掉大半。这一课讲清它改什么、不许改什么、三个数字怎么决定下一步。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-10-optcts">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>OptCts：时钟树做完只是开始</b></div>
     <div class="hero">
-      <div class="hero-no">21</div>
+      <div class="hero-no">23</div>
       <h1>OptCts：时钟树做完只是开始</h1>
       <p class="hero-en">Clock Tree Optimization (OptCts)</p>
       <p class="hero-sum">CTS 把时钟送到每个触发器，但送得不一定齐、不一定快、波形也不一定干净。OptCts 是布线前的第二轮修补：压 skew、缩 insertion delay、修 DRV、用 useful skew 顺手救 setup、并把 hold 修掉大半。这一课讲清它改什么、不许改什么、三个数字怎么决定下一步。</p>
@@ -44,6 +44,9 @@
 <p>分两轮还有一个工程上的好处：<strong>能回退</strong>。CTS 存一个点、优化完存一个点，发现优化把 skew 搞坏了，退回上一个点就行；如果合成一步，你只能从头再来。</p>
 <p>CTS 结束时，树上一定还留着四类问题：</p>
 <div class="tbl"><table><thead><tr><th>残留问题</th><th>表现</th><th>谁最在乎</th></tr></thead><tbody><tr><td>skew 偏大</td><td>同一时钟域内最晚与最早到达差 200ps 以上</td><td>setup 和 hold 都吃这个亏</td></tr><tr><td>insertion delay 太长</td><td>时钟从端口到触发器要走 1.5ns</td><td>接口时序、功耗、OCV</td></tr><tr><td>DRV 违例</td><td>某段时钟线 transition 太慢，或一个 buffer 带太多负载</td><td>工艺厂规则，签核必挂</td></tr><tr><td>hold 违例</td><td>同一路径上数据跑得比时钟还快</td><td>必须在布线前修掉大半</td></tr></tbody></table></div>
+<p>CTS 刚结束时树上留着的问题，在版图上是有形状的：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-cts.png" data-fig="innovus-cts"><img src="/fig/innovus-cts.png" alt="时钟树综合后的版图：绿色线条是从时钟源一路分叉到每个触发器的时钟网络，绿点是工具自动插入的缓冲器。重点看有没有分支特别长、分叉是否均匀——上面表格里的四类残留问题（skew、latency、DRV、hold），都能在这张图上找到对应的形状。" loading="lazy" decoding="async"></a><figcaption>时钟树综合后的版图：绿色线条是从时钟源一路分叉到每个触发器的时钟网络，绿点是工具自动插入的缓冲器。重点看有没有分支特别长、分叉是否均匀——上面表格里的四类残留问题（skew、latency、DRV、hold），都能在这张图上找到对应的形状。</figcaption></figure>
+<p>从这张图里要看出什么：CTS 的目标函数只管"连通、平衡、驱动够"，图上那些长短不一的分支，就是这一课要收拾的四类问题的源头。</p>
 <div class="scene"><div class="scene-h">工作场景 · 早上来，hold 报了 800 条</div><div class="scene-b"><p>CTS 跑完，<code>report_timing -delay_type min</code> 出来 800 条 hold 违例，最差 −0.31ns。你想着"布线完一起修"，直接进了 route。布线完再签：hold 变成 −0.52ns。</p>
 <p>你可能会疑惑：布线让数据变慢，hold 不是应该变好吗？真实的机制不是这样。布线后有件事变了——<strong>时钟线这时才真正布出来</strong>。CTS 只建树、给了时钟网络的位置，route 阶段才按 NDR 把时钟线画成具体的线和 via，launch 端和 capture 端的实际到达时间差（也就是 skew）跟 CTS 报告里的数字不是一回事。再加上串扰、以及 route 期插入的 buffer 改变了最短路径，净效果就是一批 hold 余量被吃掉。</p>
 <p>结论：<strong>hold 必须在 CTS 后、布线前修掉大部分</strong>。CTS 报告里的 hold 是"时钟已定、线未定"的结果，它已经比布线后乐观；带着一堆负值进 route，等于把问题交给一个更难回退的阶段。</p></div></div>
@@ -133,6 +136,9 @@
 <p>它有三个特点，决定了必须在 CTS 后、布线前修：</p>
 <ol><li><strong>跟频率无关。</strong> 降频救不了 hold。hold 检查的公式里根本没有周期这一项，下面会写清。</li><li><strong>布线后会变差。</strong> 数据路径的线延迟继续增加，时钟树的延迟已经固定，两者的差（也就是 hold 余量）会被吃掉。</li><li><strong>修法只有两种。</strong> 给数据路径加延迟（插 buffer 或 delay cell），或者给捕获时钟加延迟（调 skew）。</li></ol>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">hold 检查（相邻两个触发器，同一个时钟沿）</span><span class="ln ">  数据最短到达时间  &gt;  捕获时钟到达时间 + hold 时间</span><span class="ln ">                       ↑ 数据太早到 = 早于这个点 = 违例</span><span class="ln "> </span><span class="ln ">修法 A：数据路径插 delay cell  → 让数据晚点到</span><span class="ln ">修法 B：捕获时钟再晚一点      → 让要求的时间点后移</span></code></pre></div>
+<p>hold 违例在波形上的样子，复习一下第 17 课那张图：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/wave-hold.png" data-fig="wave-hold"><img src="/fig/wave-hold.png" alt="hold 违例的波形：蓝线是"本来应该"的样子，红线是"实际发生"的样子，数据提前翻转冲掉了上一级要采的值。重点看违例发生在同一个时钟沿附近、与周期无关——这正是它必须在 OptCts 阶段、布线前修掉的原因。" loading="lazy" decoding="async"></a><figcaption>hold 违例的波形：蓝线是"本来应该"的样子，红线是"实际发生"的样子，数据提前翻转冲掉了上一级要采的值。重点看违例发生在同一个时钟沿附近、与周期无关——这正是它必须在 OptCts 阶段、布线前修掉的原因。</figcaption></figure>
+<p>从这张图里要看出什么：hold 是"抢跑"问题，修法只有让数据晚到（修法 A）或让要求后移（修法 B）——和上面那两行一一对应。</p>
 <p><strong>为什么"降频救不了 hold"，看公式就明白：</strong></p>
 <p><code>hold slack = (launch 时钟 + clk2q_min + 逻辑最短延迟) − (capture 时钟 + hold 时间)</code></p>
 <p>式子里只有时钟到达时间和延迟，<strong>没有周期 T</strong>。你把周期从 2ns 改成 4ns，这个式子的每一项都不变，hold slack 一丝不动。而 setup 的式子里有 T，所以降频只让 setup 变松。</p>
@@ -221,7 +227,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

@@ -229,3 +229,32 @@
 
   paint();
 })();
+
+/* ---------- 配图放大（灯箱） ---------- */
+(function () {
+  if (typeof document === 'undefined') return;
+  function boot() {
+    var links = document.querySelectorAll('.fig-img .fig-a');
+    if (!links.length) return;
+    var lb = document.createElement('div');
+    lb.id = 'lb';
+    lb.innerHTML = '<span class="lb-x" role="button" aria-label="关闭">×</span><img alt=""><div class="lb-t"></div>';
+    document.body.appendChild(lb);
+    var img = lb.querySelector('img'), tip = lb.querySelector('.lb-t');
+    function close() { lb.classList.remove('on'); document.body.style.overflow = ''; }
+    lb.addEventListener('click', function (e) { if (e.target.tagName !== 'IMG') close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    for (var i = 0; i < links.length; i++) {
+      links[i].addEventListener('click', function (e) {
+        e.preventDefault();
+        var a = this, cap = a.parentNode.querySelector('figcaption');
+        img.src = a.getAttribute('href');
+        tip.textContent = cap ? cap.textContent : '';
+        lb.classList.add('on');
+        document.body.style.overflow = 'hidden';
+      });
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();

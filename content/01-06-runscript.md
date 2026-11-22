@@ -36,6 +36,13 @@ if ( -f $PROJ_ROOT/setup.csh ) then          # ④ 项目级环境：存在才�
 endif
 ```
 
+这份文件里两种赋值写法都出现了，先分清它们在 tcsh 里的分工：
+
+:::fig term-tcsh | tcsh 和 bash 最大的差别：设环境变量用 setenv，设本地变量用 set，两者不能混。重点看两类变量的用途差别——setenv 的变量会传给 dc_shell 这类子进程，set 的只活在当前 shell 里，.cshrc 里绝大多数应该是前者。
+:::
+
+从这张图里要看出什么：环境变量要"传下去"，本地变量只"自己用"——写混了不会报错，但工具会在某个时刻找不到库，这是 tcsh 新手最隐蔽的坑。
+
 这份文件体现的纪律是**分层**：
 
 - **系统级**（`/etc/csh.cshrc`、`/etc/profile.d/`）由 IT 维护，你不用碰。
@@ -62,6 +69,13 @@ module unload synopsys/dc/R-2020.09 # 卸载
 module purge                    # 全卸，回到干净状态
 module switch innovus/20.1 innovus/21.1  # 换版本（等价 unload 旧的 + load 新的）
 ```
+
+module 在终端里操作起来是这个样子：
+
+:::fig term-module | module load 是芯片公司的标配：同一个人可能同时跑三个项目、各要不同版本，module 就是"切环境变量"的开关。重点看 load 之后 module list 的输出——它证明的是"当前这个终端"用哪个版本，换一个窗口就作废。
+:::
+
+从这张图里要看出什么：module 改的只是当前 shell 的环境变量，`module list` 列出的就是这份终端私有状态——这正是后面"脚本里必须自己 load 一次"的原因。
 
 `module load` 不是一个程序，而是一个 shell 里的函数/别名，它执行一段叫 modulefile 的脚本，往你的环境里写 PATH、`LD_LIBRARY_PATH`、`MANPATH` 和一堆 `XXX_ROOT` 变量。所以：
 
@@ -281,6 +295,13 @@ endif
 **第一步：看日志尾部。** `tail -50 log/syn.log`。脚本自己不打印的错（工具崩了、license 拿不到、磁盘满）都在这里。如果日志最后一行是半句话，说明进程是被强杀的（OOM 或 `kill -9`）。
 
 **第二步：确认进程还在不在。** `ps -p <那个 PID>` 或者 `ps -ef | grep 关键词`。进程没了但日志没写完 = 被杀；进程在但 CPU 0% = 在等 license 或在等 I/O。
+
+`ps` 看出来的两种状态，在屏幕上是这样区分的：
+
+:::fig term-ps | 进程与后台任务：跑综合要好几个小时，关掉终端就死掉是最常见的翻车——正确做法是 nohup 或 screen。重点看 STAT 和 CPU 两列：进程在但 CPU 是 0%，多半在等 license 或等 I/O，这正是第二步要分辨的两种"卡住"。
+:::
+
+从这张图里要看出什么：进程"没了"和"在但不动"是两条完全不同的排查路径——前者查是谁杀的（OOM、kill），后者查它在等什么，ps 一眼就能把两者分开。
 
 **第三步：开 `-x` 重跑，看脚本走到哪一行。**
 

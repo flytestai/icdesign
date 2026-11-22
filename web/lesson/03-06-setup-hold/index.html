@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>setup 与 hold：用"拍照"讲明白时序 · 17 | IC 后端学院</title>
+<title>setup 与 hold：用"拍照"讲明白时序 · 19 | IC 后端学院</title>
 <meta name="description" content="时序只有两条不等式，却难住大多数人。这一课用照相机讲清成立条件，把 setup/hold 公式逐项推一遍，用波形图说明"同一条路径为什么怕最长又怕最短"，再手算一个 setup 违例和一个 hold 违例。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-06-setup-hold">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>setup 与 hold：用"拍照"讲明白时序</b></div>
     <div class="hero">
-      <div class="hero-no">17</div>
+      <div class="hero-no">19</div>
       <h1>setup 与 hold：用"拍照"讲明白时序</h1>
       <p class="hero-en">Setup & Hold</p>
       <p class="hero-sum">时序只有两条不等式，却难住大多数人。这一课用照相机讲清成立条件，把 setup/hold 公式逐项推一遍，用波形图说明"同一条路径为什么怕最长又怕最短"，再手算一个 setup 违例和一个 hold 违例。</p>
@@ -73,6 +73,9 @@
   <div class="ch-h"><span class="ch-n">02</span><h2>setup 在算什么</h2></div>
   <p>一条路径从"发射触发器"到"接收触发器"，中间经过组合逻辑：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">      ┌────┐        ┌──────────┐        ┌────┐</span><span class="ln ">CLK ─▶│ FF │──Q────▶│ 组合逻辑  │───────▶│ FF │◀─ CLK</span><span class="ln ">      │ A  │        │ (延迟 T) │        │ B  │</span><span class="ln ">      └────┘        └──────────┘        └────┘</span><span class="ln ">      发射                                捕获</span></code></pre></div>
+<p>先把一条路径的解剖图放在这里，后面公式里的每个符号都来自这张图：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/timing-path.png" data-fig="timing-path"><img src="/fig/timing-path.png" alt="一条时序路径的解剖：Tcq 是触发器内部的输出延迟，Tlogic 是中间组合逻辑的总延迟，Tsetup 是终点触发器要求数据提前稳定多久。重点看下面两个公式——它们是 setup 和 hold 全部推导的起点，务必背下来。" loading="lazy" decoding="async"></a><figcaption>一条时序路径的解剖：Tcq 是触发器内部的输出延迟，Tlogic 是中间组合逻辑的总延迟，Tsetup 是终点触发器要求数据提前稳定多久。重点看下面两个公式——它们是 setup 和 hold 全部推导的起点，务必背下来。</figcaption></figure>
+<p>从这张图里要看出什么：路径延迟是三段相加，setup 检查说的就是"这三段加建立时间不能超过一个周期"——接下来只是把这句话写成不等式。</p>
 <p>数据在<strong>第 0 个时钟沿</strong>从 A 出发，要在<strong>第 1 个时钟沿</strong>（一个周期之后）被 B 稳稳抓住。</p>
 <p>把这条时间线画出来，每一项就都能对上号了（数字取下面手算的例子，先不计 skew 和 uncertainty）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">发射沿                                                      捕获沿</span><span class="ln ">  │                                                            │</span><span class="ln ">  ├─ Tcq 0.12 ─┤                                               │</span><span class="ln ">  │            ├──────── Tlogic_max 0.95 ────────┤             │</span><span class="ln ">  │            │                                  ├ Tsetup ┤    │</span><span class="ln ">  ▼            ▼                                  ▼  0.09 ▼    ▼</span><span class="ln "> t=0         0.12                               1.07     1.16  1.25</span><span class="ln ">                                             数据到达 D 端  └ 必须已稳定</span></code></pre></div>
@@ -93,6 +96,9 @@
 <p>正数有余量，负数违例。这一条式子拆开看，每一项都有明确的抓手：</p>
 <div class="tbl"><table><thead><tr><th>项</th><th>变大时 slack 怎么变</th><th>工程上怎么动它</th></tr></thead><tbody><tr><td><code>Tclk</code></td><td>变大（变好）</td><td>降频（最后手段）</td></tr><tr><td><code>Tskew</code></td><td>捕获端晚到则变好</td><td>CTS / useful skew</td></tr><tr><td><code>Tcq</code></td><td>变小（变差）</td><td>换触发器（很少动）</td></tr><tr><td><code>Tlogic_max</code></td><td>变小（变差）</td><td>upsize、换 LVT、拆逻辑、缩短线</td></tr><tr><td><code>Tsetup</code></td><td>变小（变差）</td><td>换库单元（很少动）</td></tr><tr><td><code>Tunc</code></td><td>变小（变差）</td><td>靠约束和实测校准</td></tr></tbody></table></div>
 <p><strong>setup 的敌人是"最长的那条延迟"。</strong> 同一对触发器之间，如果有多条路径（不同 bit、不同逻辑分支），工具只检查最慢的那一条——因为只有它能把这个周期撑爆。</p>
+<p>违例在波形上长什么样，看一眼就忘不掉了：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/wave-setup.png" data-fig="wave-setup"><img src="/fig/wave-setup.png" alt="setup 违例的波形：绿色是时钟，蓝色是数据，橙色是"数据最晚还允许变化"的时刻。重点看橙线之后数据仍在翻转——到时钟沿那一刻还没稳定，这就是 setup 违例。" loading="lazy" decoding="async"></a><figcaption>setup 违例的波形：绿色是时钟，蓝色是数据，橙色是"数据最晚还允许变化"的时刻。重点看橙线之后数据仍在翻转——到时钟沿那一刻还没稳定，这就是 setup 违例。</figcaption></figure>
+<p>从这张图里要看出什么：setup 违例是"数据迟到"而不是"数据错了"——把时钟沿推后（降频）或让数据早到都能治它，这和下一节的 hold 是两种性质的病。</p>
 <p><strong>工作中怎么用</strong>：报 setup 违例时，第一句说差多少，第二句说差在 cell 还是 net。只说"时序不收敛"，别人帮不上忙；说"差 120ps，其中 85ps 在三级 NAND 上"，讨论立刻能落到具体手段。</p>
   <label class="ch-done"><input type="checkbox" data-mark="setup"><span>这一章我学完了</span></label>
 </section>
@@ -109,6 +115,9 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">hold slack = Tcq + Tlogic_min − Tskew − Thold</span></code></pre></div>
 <p><strong>这条式子里没有 <code>Tclk</code>。</strong> 这不是推导时漏掉了，是物理上真的不出现：发射沿和捕获沿是同一个沿，周期怎么变，两个沿都一起移动，它们之间的相对关系一点没变。</p>
 <p>hold 的敌人是"最短的那条延迟"。同一对触发器之间有多条路径时，工具检查最快的那一条——因为它最容易冲到前面去。</p>
+<p>hold 违例的波形要分开看两条线：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/wave-hold.png" data-fig="wave-hold"><img src="/fig/wave-hold.png" alt="hold 违例的波形：蓝线是"本来应该"的样子，红线是"实际发生"的样子。重点看数据在时钟沿之前就提前翻转，把上一级要采的旧值冲掉了——hold 违例和时钟快慢无关，所以降频救不了。" loading="lazy" decoding="async"></a><figcaption>hold 违例的波形：蓝线是"本来应该"的样子，红线是"实际发生"的样子。重点看数据在时钟沿之前就提前翻转，把上一级要采的旧值冲掉了——hold 违例和时钟快慢无关，所以降频救不了。</figcaption></figure>
+<p>从这张图里要看出什么：hold 违例是"数据抢跑"，冲掉的是旧值——修法只有"让数据晚点到"或"让捕获时钟晚到一点"，没有第三条路。</p>
 <p>对照一下两条式子，会发现它们像镜像：</p>
 <div class="tbl"><table><thead><tr><th></th><th>setup</th><th>hold</th></tr></thead><tbody><tr><td>看哪条路径</td><td>最慢（<code>Tlogic_max</code>）</td><td>最快（<code>Tlogic_min</code>）</td></tr><tr><td>捕获沿</td><td>下一个周期</td><td>同一个周期</td></tr><tr><td>公式里有周期吗</td><td>有</td><td>没有</td></tr><tr><td>与频率的关系</td><td>频率越高越容易违例</td><td>完全无关</td></tr><tr><td>时钟晚到的效果</td><td>帮忙（多给时间）</td><td>添乱（更早被冲）</td></tr><tr><td>违例的后果</td><td>跑到某个频率以下就正常</td><td>任何频率都错</td></tr></tbody></table></div>
 <div class="term" tabindex="0">
@@ -119,6 +128,9 @@
   <div class="term-h"><span class="term-en">Skew</span><span class="term-zh">时钟偏斜</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>同一个时钟到达两个触发器的时间差。本课统一用 <code>Tskew = T_capture − T_launch</code>，<strong>捕获端晚到为正</strong>。<br>正 skew：对 setup 有利（多给时间），对 hold 不利（旧值更早被冲）。<br>负 skew：反过来。<br>有些教材用相反的符号定义。看别人的公式前，先确认他那句"正 skew"指的是哪一端晚到——<strong>符号搞反是新手算错时序的第一原因</strong>。</p></div>
 </div>
+<p>skew 是怎么形成的，画成波形最直观：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/wave-skew.png" data-fig="wave-skew"><img src="/fig/wave-skew.png" alt="skew 的形成：同一个时钟源，因为走线长短不同，到达两个触发器的时间不一样。重点看 B 比 A 晚的那一段——这 0.9ns 就是 skew，它对 setup 是帮忙还是添乱，取决于晚到的是哪一端。" loading="lazy" decoding="async"></a><figcaption>skew 的形成：同一个时钟源，因为走线长短不同，到达两个触发器的时间不一样。重点看 B 比 A 晚的那一段——这 0.9ns 就是 skew，它对 setup 是帮忙还是添乱，取决于晚到的是哪一端。</figcaption></figure>
+<p>从这张图里要看出什么：skew 不是某根线的属性，是"同一根时钟到达两端的差"——所以同一个 skew 值，在 setup 和 hold 两条公式里符号相反，正好对应前面那张镜像对照表。</p>
 <p><strong>工作中怎么用</strong>：看到 hold 违例先看 <code>Tskew</code>，别先看 <code>Tlogic_min</code>。hold 违例里时钟的贡献通常比数据路径大——一棵没平衡好的树能让几十条短路径同时违例，而数据路径的问题一般只影响一两条。</p>
   <label class="ch-done"><input type="checkbox" data-mark="hold"><span>这一章我学完了</span></label>
 </section>
@@ -329,7 +341,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

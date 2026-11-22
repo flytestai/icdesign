@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>工程经验：新手最容易踩的 12 个坑 · 37 | IC 后端学院</title>
+<title>工程经验：新手最容易踩的 12 个坑 · 41 | IC 后端学院</title>
 <meta name="description" content="这一课不教新知识，只讲别人已经踩过的坑。12 个坑每个都给"现象 / 原因 / 怎么避免"，再讲排错的四种方法（二分、最小复现、对照实验、日志时间线）、review 的一页纸、交接的五要素，以及怎么用数字写周报。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="08-01-experience">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-8">阶段八 · 工程经验</a><span>/</span><b>工程经验：新手最容易踩的 12 个坑</b></div>
     <div class="hero">
-      <div class="hero-no">37</div>
+      <div class="hero-no">41</div>
       <h1>工程经验：新手最容易踩的 12 个坑</h1>
       <p class="hero-en">Field Notes</p>
       <p class="hero-sum">这一课不教新知识，只讲别人已经踩过的坑。12 个坑每个都给"现象 / 原因 / 怎么避免"，再讲排错的四种方法（二分、最小复现、对照实验、日志时间线）、review 的一页纸、交接的五要素，以及怎么用数字写周报。</p>
@@ -88,6 +88,9 @@
 <p><strong>现象</strong>：屏幕最后一行是 <code>OPT-041</code>，你顺着它查了两小时，没结果。</p>
 <p><strong>原因</strong>：最后一行是"结果"，真正的病因在前面。<code>OPT-041</code> 往往只是"优化失败"，上面五行的 <code>NEX-018 no valid parasitic</code> 才是原因。</p>
 <p><strong>怎么避免</strong>：<strong>往上翻，找第一条 ERROR。</strong> 第一条之后的错误多半是它的连锁反应。</p>
+<p>你会反复遇到的三类报错，长这样：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-error.png" data-fig="term-error"><img src="/fig/term-error.png" alt="三个高频报错的会话摘录：每个报错的前半句是现象、后半句才是原因。重点练这个拆读习惯——和第 11 坑"往上翻找第一条 ERROR"配合，排查速度会快很多。" loading="lazy" decoding="async"></a><figcaption>三个高频报错的会话摘录：每个报错的前半句是现象、后半句才是原因。重点练这个拆读习惯——和第 11 坑"往上翻找第一条 ERROR"配合，排查速度会快很多。</figcaption></figure>
+<p>从图里要看出什么：<strong>报错不是读一遍就过，是拆成两半读</strong>。前半句告诉你"什么坏了"，后半句告诉你"为什么坏"，方向定错就白查。</p>
 <h3>12. 改完不记录</h3>
 <p><strong>现象</strong>："我记得改过 utilization" —— 改成多少？哪一版？和谁比的？全想不起来。</p>
 <p><strong>原因</strong>：改动只存在脑子里，没有落到文件。</p>
@@ -163,6 +166,9 @@
 </div>
 <p>一个够用的目录结构：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">prj/</span><span class="ln ">├── scripts/         # 脚本，进 git；不放大文件</span><span class="ln ">├── constraints/     # SDC，进 git</span><span class="ln ">├── lib -&gt; /pdk/...  # 库用软链接，记录指向</span><span class="ln ">├── run/20261122_1400/   # 每次运行一个时间戳目录</span><span class="ln ">│   ├── run.log</span><span class="ln ">│   ├── rpt/</span><span class="ln ">│   └── README.txt   # 这次改了什么、为什么</span><span class="ln ">└── versions.txt     # 库、工具、PDK 的版本</span></code></pre></div>
+<p>交接包的目录骨架，推荐照这个来搭：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/pr-dir.png" data-fig="pr-dir"><img src="/fig/pr-dir.png" alt="推荐的项目目录结构，右边是四条配套规矩。重点看第一条"脚本要能从头重跑"——上面 README 五要素和这个目录树是一套：怎么跑对应 scripts/，产物在哪对应 run/&lt;时间戳&gt;/，已知问题对应 README.txt。" loading="lazy" decoding="async"></a><figcaption>推荐的项目目录结构，右边是四条配套规矩。重点看第一条"脚本要能从头重跑"——上面 README 五要素和这个目录树是一套：怎么跑对应 scripts/，产物在哪对应 run/&lt;时间戳&gt;/，已知问题对应 README.txt。</figcaption></figure>
+<p>从图里要看出什么：<strong>目录结构就是交接文档的物理形态</strong>。README 里写的每一行，都能在目录里指到一个具体位置，接手的人才不用来问你。</p>
   <label class="ch-done"><input type="checkbox" data-mark="handoff"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="weekly" data-ch="weekly">
@@ -236,7 +242,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OptRoute：把 DRC 从几千条磨到零 · 22 | IC 后端学院</title>
+<title>OptRoute：把 DRC 从几千条磨到零 · 24 | IC 后端学院</title>
 <meta name="description" content="布通不等于布完。DRC、时序回退、串扰、天线，四类问题都在布线后集中爆发。这一课讲三种 OptRoute 模式的代价与风险、增量收敛循环怎么记、6000→0 的实测曲线、什么时候必须停下来回退，以及拥塞和天线在这一阶段怎么处理。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-11-optroute">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>OptRoute：把 DRC 从几千条磨到零</b></div>
     <div class="hero">
-      <div class="hero-no">22</div>
+      <div class="hero-no">24</div>
       <h1>OptRoute：把 DRC 从几千条磨到零</h1>
       <p class="hero-en">Routing Optimization (OptRoute)</p>
       <p class="hero-sum">布通不等于布完。DRC、时序回退、串扰、天线，四类问题都在布线后集中爆发。这一课讲三种 OptRoute 模式的代价与风险、增量收敛循环怎么记、6000→0 的实测曲线、什么时候必须停下来回退，以及拥塞和天线在这一阶段怎么处理。</p>
@@ -93,6 +93,9 @@
 <p>耗时是量级概念，不是精确日志：首轮一小时上下，后面每轮几分钟（本轮具体值以 csv 里记的为准，换机器会差一倍以上）。<strong>看趋势，不看绝对值。</strong></p>
 <p>这张表有两种读法，都要会：</p>
 <ul><li><strong>前段</strong>（6000 → 156）：这是"布线"的功劳。全局布线只是草图，第一次详细布线才把线落到轨道上，所以一步降 97%。任何项目都会看到这个陡降。</li><li><strong>后段</strong>（156 → 0）：这是"磨"的功劳，每轮只降几到几十条。这一段如果<strong>完全不动</strong>（连续两轮一样），说明剩下的是结构性违例，磨不动了。</li></ul>
+<p>这条曲线在工具界面里对应的样子，先看一眼：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-route.png" data-fig="innovus-route"><img src="/fig/innovus-route.png" alt="布线完成后的界面：红色小方块是还没修掉的 DRC 违例，命令窗记录了 312 → 46 → 0 的收线过程。重点看红色方块的数量和分布——它们和 csv 里每一轮的数字一一对应，屏幕上的红色每少一批，就是曲线下降一段。" loading="lazy" decoding="async"></a><figcaption>布线完成后的界面：红色小方块是还没修掉的 DRC 违例，命令窗记录了 312 → 46 → 0 的收线过程。重点看红色方块的数量和分布——它们和 csv 里每一轮的数字一一对应，屏幕上的红色每少一批，就是曲线下降一段。</figcaption></figure>
+<p>从这张图里要看出什么：数字告诉你还剩多少，分布告诉你它们是零散的（还能磨）还是成簇的（该回退）——两个信息一起看，才知道下一轮值不值得跑。</p>
 <div class="note"><div class="note-h">关键发现：6000→156 是布线的功劳，156→0 是布局的功劳</div><p>只加布线轮数，会卡在 156 下不去。真正的解法是回布局端改三个开关：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：让布局阶段就为多引脚单元留出线通道</span><span class="ln cmt"># 用法：回到 place 阶段重跑；这三个开关改变的是"单元怎么摆"，不是"线怎么走"</span><span class="ln ">set_app_options -name place.coarse.pin_density_aware -value true   ;# 多引脚单元周围留出线通道</span><span class="ln ">create_placement -effort high                                      ;# 重新做一次高质量布局</span><span class="ln ">legalize_placement                                                 ;# 合法化：把单元对齐到行和轨道</span><span class="ln ">refine_placement                                                   ;# 局部再挪一次，改善线长和拥塞</span></code></pre></div>
 <p>改完重跑，后续每轮都在稳定下降。<strong>这就是"DRC 的根因在布局，不在布线"的具体含义</strong>：布线只能"在给定空间里找解"，空间不够它不是万能的。</p></div>
@@ -115,6 +118,9 @@
 <p>在 OptRoute 阶段，拥塞有个特殊性质：<strong>优化会在拥塞区插 buffer，让拥塞更严重</strong>。所以"用优化修拥塞"是反的——等于往堵死的路口再加车。</p>
 <p>诊断顺序（照这个顺序查，别乱试）：</p>
 <ol><li><strong>看热点</strong>：<code>reportCongestion -hotSpot</code> 列出 overflow 最大的区域，先看形状和位置；</li><li><strong>判断归属</strong>：条状沿宏单元 → floorplan 通道不够；大片均匀 → placement 利用率高；小簇在多引脚单元 → pin access；</li><li><strong>试便宜的</strong>：挪宏单元、加通道、打散多引脚单元、放开高层（第 20 课算过，层选错容量差一倍）；</li><li><strong>最后才降利用率</strong>：从 0.7 降到 0.55，面积涨 27%、功耗跟着涨。这是最贵的修法，要写进评审记录。</li></ol>
+<p>拥塞长什么样，热图打开就有答案：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/congestion-map.png" data-fig="congestion-map"><img src="/fig/congestion-map.png" alt="拥塞热图：颜色越红，"想走的线"超出"能走的轨道"越多。重点看红斑的位置——对着宏通道和密度高的区域；OptRoute 在红斑上插 buffer 只会让它更红，这就是"用优化修拥塞是反的"的图形解释。" loading="lazy" decoding="async"></a><figcaption>拥塞热图：颜色越红，"想走的线"超出"能走的轨道"越多。重点看红斑的位置——对着宏通道和密度高的区域；OptRoute 在红斑上插 buffer 只会让它更红，这就是"用优化修拥塞是反的"的图形解释。</figcaption></figure>
+<p>从这张图里要看出什么：优化的动作半径只有几十微米，红斑的成因是整片空间不够——两个尺度对不上，所以拥塞必须回上游解，热图就是写给上游的病历。</p>
 <div class="pit"><div class="pit-h">常见坑 · 拥塞了就降利用率</div><div class="pit-b"><p>降利用率确实能让 DRC 变好，但芯片面积变大、线变长、成本上升。</p>
 <p>先试便宜的：挪宏单元、加通道、开 pin density aware、放开高层。四样都不行，再降利用率，并且明确记录"为什么必须付这个代价"。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="congestion"><span>这一章我学完了</span></label>
@@ -221,7 +227,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CTS（三）：skew、latency、功耗的三角权衡与问题定位 · 25 | IC 后端学院</title>
+<title>CTS（三）：skew、latency、功耗的三角权衡与问题定位 · 27 | IC 后端学院</title>
 <meta name="description" content="CTS 做完发现 skew 达标但功耗涨了、或者 skew 怎么调都下不来。这一课给一套可执行的诊断顺序：先判断问题在哪一层，再决定改约束、改树还是改上游。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-14-cts-debug">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>CTS（三）：skew、latency、功耗的三角权衡与问题定位</b></div>
     <div class="hero">
-      <div class="hero-no">25</div>
+      <div class="hero-no">27</div>
       <h1>CTS（三）：skew、latency、功耗的三角权衡与问题定位</h1>
       <p class="hero-en">CTS Debug and Trade-offs</p>
       <p class="hero-sum">CTS 做完发现 skew 达标但功耗涨了、或者 skew 怎么调都下不来。这一课给一套可执行的诊断顺序：先判断问题在哪一层，再决定改约束、改树还是改上游。</p>
@@ -69,6 +69,9 @@
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：先看树的规模，判断"是不是工具在乱插"</span><span class="ln cmt"># 用法：CTS 之后立刻执行；重点看级数、buffer 数、buffer/leaf 比</span><span class="ln ">report_clock_tree -summary &gt; rpt/dbg_tree.rpt    ;# 级数、buffer 数、max/min latency</span></code></pre></div>
 <p>读三个数：</p>
 <ul><li><strong>级数（levels）</strong>：万门级设计通常 5~7 级。超过 9 级说明树太深，latency 一定长。</li><li><strong>buffer/leaf 比</strong>：正常 0.2~0.4。接近 1 说明工具在疯狂插，多半是目标太紧或单元太弱。</li><li><strong>max/min latency 差</strong>：这个差就是全局 skew 的上界。</li></ul>
+<p>树长什么样，版图上先扫一眼：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-cts.png" data-fig="innovus-cts"><img src="/fig/innovus-cts.png" alt="时钟树综合后的版图：绿色线条是从时钟源一路分叉到每个触发器的时钟网络，绿点是工具插入的缓冲器。重点看有没有一条分支明显比别的长、是否绕开了宏单元——第一步"看树结构"要抓的就是这种形状，报告里的级数和 buffer/leaf 比是对它的量化。" loading="lazy" decoding="async"></a><figcaption>时钟树综合后的版图：绿色线条是从时钟源一路分叉到每个触发器的时钟网络，绿点是工具插入的缓冲器。重点看有没有一条分支明显比别的长、是否绕开了宏单元——第一步"看树结构"要抓的就是这种形状，报告里的级数和 buffer/leaf 比是对它的量化。</figcaption></figure>
+<p>从这张图里要看出什么：形状在版图上、数字在报告里，两处一起看才能排除"工具在乱插"；只看数字不看形状，会漏掉"某条分支绕路"这种一眼可见的问题。</p>
 <p>如果这一步就看到 buffer/leaf 接近 1，后面不用看了，先回去放宽 <code>target_skew</code>。</p>
 <h3>第二步：看 skew 分布</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：分清是全局问题还是局部问题</span><span class="ln cmt"># 用法：先看全局，再看最差的那几对叶子在哪</span><span class="ln ">report_clock_timing -type skew &gt; rpt/dbg_skew.rpt   ;# 全局/局部 skew 与最差叶子对</span></code></pre></div>
@@ -96,6 +99,9 @@
 <p>现象：全局 300ps，抽查几个相邻叶子对，局部只有 30ps。</p>
 <p>病根：根到各大分支的延迟不均。常见三种成因：</p>
 <ol><li><strong>root 位置偏。</strong> 时钟根放在芯片左下角，到右上角的分支要多走 600µm。这一段线的延迟差就是 skew。</li><li><strong>分支级数不同。</strong> 左边分支 6 级，右边分支 8 级，每级 80ps，天然差 160ps。</li><li><strong>某个分支被宏单元挡住绕路。</strong></li></ol>
+<p>全局 skew 大，本质就是这张图里两端的差被拉大了：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/wave-skew.png" data-fig="wave-skew"><img src="/fig/wave-skew.png" alt="skew 的形成：同一个时钟源，因为走线长短不同，到达两个触发器的时间不一样。重点看 B 比 A 晚的那一段——病症一要做的第一件事，就是回答"这段差是哪一条分支贡献的"，而不是急着改 target_skew。" loading="lazy" decoding="async"></a><figcaption>skew 的形成：同一个时钟源，因为走线长短不同，到达两个触发器的时间不一样。重点看 B 比 A 晚的那一段——病症一要做的第一件事，就是回答"这段差是哪一条分支贡献的"，而不是急着改 target_skew。</figcaption></figure>
+<p>从这张图里要看出什么：skew 是两端之差，压它只有两条路——把长的分支缩短（回上游），或把短的分支加长（补级、借 skew），改全局目标哪条都不沾。</p>
 <p>判断方法：看 <code>report_clock_tree</code> 里每条一级分支的 latency，把差值列出来。差值集中在某一条分支上，就是那条分支的问题。</p>
 <p>处理：先看能不能调 root（回到 floorplan）；不能调就让工具在短的分支上补级——但这一步要算账，补 2 级就是 2×80ps 的 latency 和几百个 buffer。</p>
 <h3>病症二：局部 skew 大</h3>
@@ -258,7 +264,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

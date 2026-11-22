@@ -398,3 +398,18 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .tbl::-webkit-scrollbar,.code pre::-webkit-scrollbar{height:6px}
 .tbl::-webkit-scrollbar-thumb,.code pre::-webkit-scrollbar-thumb{background:#c3d2e0;border-radius:3px}
 .tbl,.code pre{-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+
+/* ---------- 配图（tools/mkfig.py 生成，点击放大） ---------- */
+.fig-img{margin:24px 0;border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}
+.fig-img .fig-a{display:block;cursor:zoom-in;background:#f7fafd;line-height:0}
+.fig-img img{display:block;width:100%;height:auto}
+.fig-img figcaption{padding:9px 14px;font-size:12.5px;line-height:1.72;color:var(--muted);border-top:1px solid var(--line);background:#fbfcfe}
+#lb{position:fixed;inset:0;z-index:300;background:rgba(11,20,29,.94);display:none;align-items:center;justify-content:center;padding:22px}
+#lb.on{display:flex}
+#lb img{max-width:100%;max-height:86vh;border-radius:8px;box-shadow:0 24px 70px rgba(0,0,0,.55);background:#fff}
+#lb .lb-x{position:absolute;top:16px;right:20px;color:#dbe7f3;font-size:26px;cursor:pointer;line-height:1;font-family:var(--sans)}
+#lb .lb-t{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:#9fb4c9;font-size:12.5px;padding:0 40px}
+@media (max-width:760px){
+  .fig-img{margin:18px -2px;border-radius:8px}
+  .fig-img figcaption{font-size:11.5px;padding:8px 11px}
+}

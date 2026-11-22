@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>IR Drop 与 RedHawk：芯片为什么会死机 · 36 | IC 后端学院</title>
+<title>IR Drop 与 RedHawk：芯片为什么会死机 · 40 | IC 后端学院</title>
 <meta name="description" content="时序全绿、DRC 全清，芯片照样可能死机——因为电压不够。这一课讲静态与动态 IR drop 的物理来源、一次 1A/10mΩ 的手算、RedHawk 需要的七类输入、报告的三要素、EM 的平均电流与峰值电流，以及课程环境没有 RedHawk 时怎么练。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="07-01-redhawk">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-7">阶段七 · 功耗与 RedHawk</a><span>/</span><b>IR Drop 与 RedHawk：芯片为什么会死机</b></div>
     <div class="hero">
-      <div class="hero-no">36</div>
+      <div class="hero-no">40</div>
       <h1>IR Drop 与 RedHawk：芯片为什么会死机</h1>
       <p class="hero-en">IR Drop & RedHawk</p>
       <p class="hero-sum">时序全绿、DRC 全清，芯片照样可能死机——因为电压不够。这一课讲静态与动态 IR drop 的物理来源、一次 1A/10mΩ 的手算、RedHawk 需要的七类输入、报告的三要素、EM 的平均电流与峰值电流，以及课程环境没有 RedHawk 时怎么练。</p>
@@ -61,8 +61,14 @@
   <div class="term-h"><span class="term-en">IR Drop</span><span class="term-zh">电压降</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>电流流过有电阻的电源网络时产生的电压损失。<code>V = I × R</code>，I 是电流，R 是从电源 pad 到该单元的等效电阻。<br>芯片内部不是一个电阻，是一张三维的网格（mesh），所以实际计算要解节点方程——这就是 RedHawk 这类工具做的事。</p></div>
 </div>
+<p>两种压降的成因和它们在版图上的样子，先看一眼全景：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/ir-drop.png" data-fig="ir-drop"><img src="/fig/ir-drop.png" alt="IR drop 的成因与热图：左边两个公式（静态 V=IR、动态 L×di/dt）解释电压为什么掉，右边热图是工具的输出。重点看红区位置——那就是"电压最低、最容易失效"的地方，下面两小节会分别手算这两个公式。" loading="lazy" decoding="async"></a><figcaption>IR drop 的成因与热图：左边两个公式（静态 V=IR、动态 L×di/dt）解释电压为什么掉，右边热图是工具的输出。重点看红区位置——那就是"电压最低、最容易失效"的地方，下面两小节会分别手算这两个公式。</figcaption></figure>
+<p>从图里要看出什么：<strong>压降是"位置"的问题，不只是"数值"的问题</strong>。同一个芯片，红区在哪，决定该加 stripe、补 via 还是加 decap。</p>
 <h3>静态 IR drop：电阻分压</h3>
 <p>所有单元都在消耗平均电流，电流从 pad 经过电源环（ring）、电源条（stripe）、via、再到单元，每一段都有电阻。</p>
+<p>这条"从 pad 到单元"的送电路径，层层接力长这样：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/pg-tree.png" data-fig="pg-tree"><img src="/fig/pg-tree.png" alt="电源从封装焊球到单元内部的五级接力，每一级都比上一级更细更密，右边的手算说明供电为什么必须靠上层厚金属和并联。重点看每一级的电阻是怎么累起来的——静态 IR 的 V=IR 里那个 R，就是这五级串出来的等效值。" loading="lazy" decoding="async"></a><figcaption>电源从封装焊球到单元内部的五级接力，每一级都比上一级更细更密，右边的手算说明供电为什么必须靠上层厚金属和并联。重点看每一级的电阻是怎么累起来的——静态 IR 的 V=IR 里那个 R，就是这五级串出来的等效值。</figcaption></figure>
+<p>从图里要看出什么：<strong>R 不是某一个电阻，是五级串联的结果</strong>。所以"加宽某一级"只救那一级的账，哪一级最细，哪一级就是瓶颈。</p>
 <p>手算一次最简模型：某条支路总电流 1A，从 pad 到该单元的等效电阻 10mΩ，标称电压 0.9V。</p>
 <ul><li><code>V_drop = 1A × 10mΩ = 10mV</code></li><li>占标称电压：<code>10mV / 900mV = 1.1%</code></li></ul>
 <p>看起来很小。但真实芯片的电流远不止 1A：</p>
@@ -221,12 +227,12 @@
         <h3>这一课学完了吗？</h3>
         <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <button id="btn-done" class="pri">标记本课完成</button>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/06-02-path-debug/">← 时序路径调试：从 WNS 数字走到那一个单元</a><a class="nav-btn" href="/lesson/08-01-experience/">工程经验：新手最容易踩的 12 个坑 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/06-04-timing-advanced/">← 高级时序分析：多 corner、报告瓶颈与噪声余量</a><a class="nav-btn" href="/lesson/08-01-experience/">工程经验：新手最容易踩的 12 个坑 →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

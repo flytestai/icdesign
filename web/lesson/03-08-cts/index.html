@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CTS 时钟树（一）：为什么几万个触发器要同时收到时钟 · 19 | IC 后端学院</title>
+<title>CTS 时钟树（一）：为什么几万个触发器要同时收到时钟 · 21 | IC 后端学院</title>
 <meta name="description" content="时钟是芯片的心跳。几万个触发器要"同时"收到时钟，靠的是插入缓冲器建成一棵树。这一课讲清 skew、insertion delay、NDR 这三个词，CTS 的五个步骤，以及 CTS 之后必须看的三份报告。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-08-cts">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>CTS 时钟树（一）：为什么几万个触发器要同时收到时钟</b></div>
     <div class="hero">
-      <div class="hero-no">19</div>
+      <div class="hero-no">21</div>
       <h1>CTS 时钟树（一）：为什么几万个触发器要同时收到时钟</h1>
       <p class="hero-en">Clock Tree Synthesis</p>
       <p class="hero-sum">时钟是芯片的心跳。几万个触发器要"同时"收到时钟，靠的是插入缓冲器建成一棵树。这一课讲清 skew、insertion delay、NDR 这三个词，CTS 的五个步骤，以及 CTS 之后必须看的三份报告。</p>
@@ -63,6 +63,9 @@
   <div class="ch-h"><span class="ch-n">02</span><h2>时钟树的三个指标，先记住再看命令</h2></div>
   <div class="tbl"><table><thead><tr><th>指标</th><th>含义</th><th>典型目标（40nm 量级）</th><th>变差的后果</th></tr></thead><tbody><tr><td>Skew</td><td>叶子之间到达时间差</td><td>全局 &lt; 100~150ps，局部 &lt; 30~50ps</td><td>setup/hold 预算被吃掉</td></tr><tr><td>Insertion delay</td><td>源到叶子的总延迟</td><td>越短越好，通常 0.8~1.5ns</td><td>功耗高、OCV 悲观度变大</td></tr><tr><td>Transition（slew）</td><td>波形陡不陡</td><td>时钟网络 &lt; 100~150ps</td><td>亚稳态、漏电增加、EM 变差</td></tr></tbody></table></div>
 <p>这三个指标是<strong>互相拉扯</strong>的：想 skew 小，就多插几级 buffer 把树做平衡，但级数一多 insertion delay 就变长、功耗上去；想 delay 短，树就做得浅，skew 又压不住。</p>
+<p>transition 差到极端是什么后果，看这张图：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/wave-pulse.png" data-fig="wave-pulse"><img src="/fig/wave-pulse.png" alt="最小脉宽检查：时钟经过太多缓冲器后，高电平会被"削窄"；窄到触发器锁不住时，芯片会随机出错。重点看脉宽被一级一级削短的过程——这就是上表里 transition 一行的后果写着"亚稳态"的原因，这类问题仿真几乎看不出来，只能靠 STA 的脉宽检查拦住。" loading="lazy" decoding="async"></a><figcaption>最小脉宽检查：时钟经过太多缓冲器后，高电平会被"削窄"；窄到触发器锁不住时，芯片会随机出错。重点看脉宽被一级一级削短的过程——这就是上表里 transition 一行的后果写着"亚稳态"的原因，这类问题仿真几乎看不出来，只能靠 STA 的脉宽检查拦住。</figcaption></figure>
+<p>从这张图里要看出什么：transition 不是"慢一点"，是"波形还完不完整"的问题——所以 target_max_trans 是硬指标，不是可以拿来交换的优化目标。</p>
 <div class="note"><div class="note-h">一个常被搞混的点</div><p>skew 小 ≠ 时序好。CTS 的目标不是"skew = 0"，而是"在满足 transition 和功耗的前提下，把时序做到能收敛"。有些路径故意留一点 skew 反而更好——这就是后面 OptCts 课里的 useful skew。</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="metrics"><span>这一章我学完了</span></label>
 </section>
@@ -71,6 +74,9 @@
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">                    clk 源（root）</span><span class="ln ">                         │</span><span class="ln ">              ┌──────────┴──────────┐</span><span class="ln ">            buf                   buf          ← 第 1 级（驱动主干）</span><span class="ln ">          ┌──┴──┐               ┌──┴──┐</span><span class="ln ">        buf   buf             buf   buf        ← 第 2 级</span><span class="ln ">        ┌┴┐   ┌┴┐             ┌┴┐   ┌┴┐</span><span class="ln ">       FF FF FF FF           FF FF FF FF       ← 叶子（触发器时钟端）</span></code></pre></div>
 <p>几个必须知道的细节：</p>
 <ol><li><strong>每一级 buffer 的扇出有限</strong>（一般 8~16），所以树是"一层层扇出去"的，叶子数量决定树的深度。几万个叶子通常是 5~7 级。</li><li><strong>叶子不一定是触发器</strong>。clock gating cell（门控时钟单元）、macro 的时钟引脚、ICG 的 CK 端，都在树上，都要平衡。</li><li><strong>树不是唯一形态</strong>。H-tree、mesh（网格）用于高性能芯片的全局时钟，代价是占用大量布线资源；普通项目用常规树就够了。</li><li><strong>时钟分主次</strong>。主时钟（root）到各个子时钟（generated clock）要分别建树，跨时钟域的两棵树之间不做平衡。</li></ol>
+<p>建好的树在版图上长这个样子：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-cts.png" data-fig="innovus-cts"><img src="/fig/innovus-cts.png" alt="时钟树综合后的版图：绿色线条是从时钟源（树根）一路分叉到每个触发器的时钟网络，绿点是工具自动插入的缓冲器。重点看分叉是否均匀、有没有某条分支明显更长——那条分支就是 skew 和绕线问题的来源。" loading="lazy" decoding="async"></a><figcaption>时钟树综合后的版图：绿色线条是从时钟源（树根）一路分叉到每个触发器的时钟网络，绿点是工具自动插入的缓冲器。重点看分叉是否均匀、有没有某条分支明显更长——那条分支就是 skew 和绕线问题的来源。</figcaption></figure>
+<p>从这张图里要看出什么：时钟树不是示意图，是版图上真实的一张网——判断树好不好，先看这张网的分叉形状，再去核对报告里的数字。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">NDR (Non-Default Rule)</span><span class="term-zh">非默认规则</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>给时钟网络单独指定的线宽和间距规则，比如"双倍线宽 + 双倍间距"。线宽加倍降低电阻（延迟和 EM 都变好），间距加倍降低耦合电容（串扰变小）。</p></div>
@@ -116,6 +122,9 @@
 <p><code>slack = 周期 − 逻辑延迟 − setup − uncertainty − skew</code></p>
 <ul><li>skew = 0.05ns：<code>2.5 − 1.6 − 0.15 − 0.1 − 0.05 = 0.6ns</code> → 有余量</li><li>skew = 0.40ns：<code>2.5 − 1.6 − 0.15 − 0.1 − 0.40 = 0.25ns</code> → 勉强</li><li>skew = 0.60ns：<code>2.5 − 1.6 − 0.15 − 0.1 − 0.60 = 0.05ns</code> → 一点 OCV 波动就违例</li></ul>
 <p>结论：这条设计里 skew 目标给 100~150ps 合理，超过 300ps 就开始吃时序余量。反过来说——<strong>skew 目标不是拍脑袋的数字，而是从时序预算里分出来的</strong>。</p>
+<p>这笔账背后的物理图像，就是 skew 在波形上的样子：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/wave-skew.png" data-fig="wave-skew"><img src="/fig/wave-skew.png" alt="skew 的形成：同一个时钟源，因为走线长短不同，到达两个触发器的时间不一样。重点看 B 比 A 晚的那一段——CTS 的全部工作，就是把这段差压进目标值；压不动的那部分，就是时序预算里要为它预留的账。" loading="lazy" decoding="async"></a><figcaption>skew 的形成：同一个时钟源，因为走线长短不同，到达两个触发器的时间不一样。重点看 B 比 A 晚的那一段——CTS 的全部工作，就是把这段差压进目标值；压不动的那部分，就是时序预算里要为它预留的账。</figcaption></figure>
+<p>从这张图里要看出什么：skew 是"到达时间差"，不是"延迟大"——只能靠把两条路径做得一样长来压，这也解释了为什么绕开宏单元的分支最难平衡。</p>
   <label class="ch-done"><input type="checkbox" data-mark="hand-calc"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="pitfalls" data-ch="pitfalls">
@@ -189,7 +198,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

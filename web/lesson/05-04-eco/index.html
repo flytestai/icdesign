@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ECO 实战：从 PT 的违例到版图上的一次改动 · 33 | IC 后端学院</title>
+<title>ECO 实战：从 PT 的违例到版图上的一次改动 · 35 | IC 后端学院</title>
 <meta name="description" content="版图都快送厂了，PT 报出 3 条 hold 违例。全流程重跑要两天，ECO 只要两小时。这一课讲清 ECO 的三种类型、五环节链路、清单格式、可执行脚本、PT 侧 fix_eco_timing 的用法、SVF 与 Formality 为什么不能省，以及一次真实的 -0.07ns hold 修复全过程。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="05-04-eco">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-5">阶段五 · 28nm 全流程</a><span>/</span><b>ECO 实战：从 PT 的违例到版图上的一次改动</b></div>
     <div class="hero">
-      <div class="hero-no">33</div>
+      <div class="hero-no">35</div>
       <h1>ECO 实战：从 PT 的违例到版图上的一次改动</h1>
       <p class="hero-en">Engineering Change Order in Practice</p>
       <p class="hero-sum">版图都快送厂了，PT 报出 3 条 hold 违例。全流程重跑要两天，ECO 只要两小时。这一课讲清 ECO 的三种类型、五环节链路、清单格式、可执行脚本、PT 侧 fix_eco_timing 的用法、SVF 与 Formality 为什么不能省，以及一次真实的 -0.07ns hold 修复全过程。</p>
@@ -85,6 +85,9 @@
 <section class="ch" id="flow" data-ch="flow">
   <div class="ch-h"><span class="ch-n">03</span><h2>完整链路：五个环节，一个都不能省</h2></div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">① PT 出违例报告（带具体 pin 名和 4 位小数的 slack）</span><span class="ln ">      ↓</span><span class="ln ">② 生成 ECO 改动清单（哪个单元、换成什么、插在哪、为什么）</span><span class="ln ">      ↓</span><span class="ln ">③ 人工审核 + 在 PR 工具里应用（改网表 + 改布局）</span><span class="ln ">      ↓</span><span class="ln ">④ 局部合法化 + 局部布线 + 局部时序优化（不是全芯片）</span><span class="ln ">      ↓</span><span class="ln ">⑤ 回签：PT 复算时序、Formality 验证等价、DRC 复查</span></code></pre></div>
+<p>这五个环节的易错点不一样，图里标出了最危险的两处：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/eco-flow.png" data-fig="eco-flow"><img src="/fig/eco-flow.png" alt="ECO 五环节：出报告 → 出清单 → 人工审核并应用 → 局部重布 → 复算与等价性检查。重点看第 ② 步和第 ⑤ 步——人工审核决定改法合不合理，复算加 Formality 决定有没有改坏，这两步被跳过的 ECO 是所有深夜事故的来源。" loading="lazy" decoding="async"></a><figcaption>ECO 五环节：出报告 → 出清单 → 人工审核并应用 → 局部重布 → 复算与等价性检查。重点看第 ② 步和第 ⑤ 步——人工审核决定改法合不合理，复算加 Formality 决定有没有改坏，这两步被跳过的 ECO 是所有深夜事故的来源。</figcaption></figure>
+<p>从图里要看出什么：<strong>ECO 的风险不在"改"，在"改了没人核"</strong>。下表把每个环节的交付物和"做错了会怎样"列全，评审时就按这张表问。</p>
 <div class="tbl"><table><thead><tr><th>环节</th><th>谁做</th><th>工具</th><th>交付物</th><th>做错了会怎样</th></tr></thead><tbody><tr><td>① 找违例</td><td>STA 工程师</td><td>PrimeTime</td><td>违例清单（含坐标级的 pin 名）</td><td>修错对象，白忙一轮</td></tr><tr><td>② 出清单</td><td>STA + 脚本</td><td>PT / 自写脚本</td><td><code>eco.txt</code>（人可读 + 机器可执行）</td><td>清单歧义，脚本执行到一半失败</td></tr><tr><td>③ 应用</td><td>PR 工程师</td><td>ICC2 / Innovus</td><td>改过的数据库</td><td>单元重叠、连线错乱</td></tr><tr><td>④ 局部重布</td><td>PR 工程师</td><td>同上</td><td>布线后的数据库 + 新网表/SPEF</td><td>引入新 DRC、新违例</td></tr><tr><td>⑤ 回签</td><td>STA 工程师</td><td>PT + Formality</td><td>新报告 + 等价性结论</td><td>改了但没验证，等于没改</td></tr></tbody></table></div>
 <p>三个最容易省的环节，恰恰最不能省：</p>
 <ul><li><strong>③ 之前的人工审核</strong>：PT 只看时序不看物理，它的建议可能放不下。</li><li><strong>④ 的合法化</strong>：新单元坐标是浮点，不和轨道对齐，不 legalize 就是一堆 DRC。</li><li><strong>⑤ 的 Formality</strong>：改了网表不做等价性检查，你根本不知道改的是不是还是原来那个电路。</li></ul>
@@ -145,6 +148,9 @@
 <p>综合工具会把你的 RTL 改得面目全非：寄存器复制、常数传播、无用逻辑删除、状态机重编码。这些改动在形式上是"不等价"的（结构完全不同），但功能等价。</p>
 <p>Formality 如果只看两份网表，会报几万个 mismatch。SVF 就是那份"改动说明书"：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：Formality 读入 SVF，知道哪些差异是工具优化造成的、可以接受</span><span class="ln cmt"># 用法：fm_shell 里在 verify 之前设置</span><span class="ln ">set_svf ./svf/top.svf                      ;# 综合阶段产生的引导文件</span><span class="ln ">read_verilog -container r -libname WORK ./netlist/rtl_style.v   ;# 参考设计</span><span class="ln ">read_verilog -container i -libname WORK ./netlist/final.v        ;# 实现后设计</span><span class="ln ">set_top r:/WORK/top                        ;# 指定参考侧的顶层</span><span class="ln ">set_top i:/WORK/top                        ;# 指定实现侧的顶层</span><span class="ln ">match                                      ;# 按名字配对比较点</span><span class="ln ">verify                                     ;# 开始形式验证</span></code></pre></div>
+<p>把 ECO 落到版图、再回到签核，完整闭环长这样：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-eco.png" data-fig="term-eco"><img src="/fig/term-eco.png" alt="ECO 落地链：PT 出改动清单 → PR 工具按清单改 + 局部重布线 → 复算签核。重点看最后那行 Formality 检查——它证明"改了版图但功能没变"，这一节讲的 SVF 和 dont_verify_points 的边界，全是为这一行服务的。" loading="lazy" decoding="async"></a><figcaption>ECO 落地链：PT 出改动清单 → PR 工具按清单改 + 局部重布线 → 复算签核。重点看最后那行 Formality 检查——它证明"改了版图但功能没变"，这一节讲的 SVF 和 dont_verify_points 的边界，全是为这一行服务的。</figcaption></figure>
+<p>从图里要看出什么：<strong>回签不是"再跑一遍时序"，是时序 + 等价性 + DRC 三件事</strong>。少了 Formality，你交付的是一个没人证明过的电路。</p>
 <h3>ECO 的手工改动为什么不在 SVF 里</h3>
 <p>关键点：<strong>SVF 是综合/优化工具写的，你手工改的网表它不知道。</strong></p>
 <p><code>insert_buffer</code> 插了一个延迟单元，逻辑上完全等价（buffer 不改变逻辑值），但结构上多了一个实例。Formality 在两边找不到对应点，就报 <code>unmatched</code>。</p>
@@ -279,7 +285,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

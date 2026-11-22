@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>物理验证：DRC / LVS / ERC / Antenna · 32 | IC 后端学院</title>
+<title>物理验证：DRC / LVS / ERC / Antenna · 34 | IC 后端学院</title>
 <meta name="description" content="版图交出去之前，必须证明两件事：工厂造得出来（DRC/ERC/Antenna），造出来和网表一致（LVS）。这一课讲四种检查各自查什么、报告怎么读到坐标和层、LVS 三类差异怎么定位，以及课程环境用 KLayout 替代 Calibre 的边界。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="05-03-pv">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-5">阶段五 · 28nm 全流程</a><span>/</span><b>物理验证：DRC / LVS / ERC / Antenna</b></div>
     <div class="hero">
-      <div class="hero-no">32</div>
+      <div class="hero-no">34</div>
       <h1>物理验证：DRC / LVS / ERC / Antenna</h1>
       <p class="hero-en">Physical Verification</p>
       <p class="hero-sum">版图交出去之前，必须证明两件事：工厂造得出来（DRC/ERC/Antenna），造出来和网表一致（LVS）。这一课讲四种检查各自查什么、报告怎么读到坐标和层、LVS 三类差异怎么定位，以及课程环境用 KLayout 替代 Calibre 的边界。</p>
@@ -69,6 +69,9 @@
 <p>PV 不是流程末尾才做的一次性动作。它在每个阶段都要跑：</p>
 <div class="tbl"><table><thead><tr><th>阶段</th><th>跑什么</th><th>目的</th></tr></thead><tbody><tr><td>布局后（有电源网络）</td><td>早期 DRC（只查 metal/via 基本规则）</td><td>及早发现电源网格的间距问题</td></tr><tr><td>CTS 后</td><td>局部 DRC</td><td>时钟网络 NDR 有没有违规</td></tr><tr><td>布线后</td><td>全量 DRC + Antenna</td><td>第一次接近签核的检查</td></tr><tr><td>修补（ECO）后</td><td>增量 DRC + LVS</td><td>确认改动没有引入新问题</td></tr><tr><td>流片前</td><td>全量 DRC + LVS + ERC + Antenna，官方 deck</td><td>签核</td></tr></tbody></table></div>
 <p>关键认知：<strong>越早跑越便宜</strong>。布线后一万条 DRC，可能是某个布线参数错了，改一次消掉九千条；等到流片前才发现，改动空间已经很小了。</p>
+<p>流片前那次"全量检查"，最后要对着一张清单逐项画勾：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/finish-checklist.png" data-fig="finish-checklist"><img src="/fig/finish-checklist.png" alt="送厂前的 10 项检查：左边是每一条的判据，右边是出报告的工具。重点看底部那三条"最常见的形式主义错误"——报告在，但报告是旧的：检查跑了、报告也交了，交的却是上一版的输出。" loading="lazy" decoding="async"></a><figcaption>送厂前的 10 项检查：左边是每一条的判据，右边是出报告的工具。重点看底部那三条"最常见的形式主义错误"——报告在，但报告是旧的：检查跑了、报告也交了，交的却是上一版的输出。</figcaption></figure>
+<p>从图里要看出什么：<strong>每一项都要"判据 + 工具 + 报告日期"对得上</strong>。PV 的纪律"宁可多跑一遍，不可少看一眼"，最后就落在这张清单的每一行上。</p>
   <label class="ch-done"><input type="checkbox" data-mark="when"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="drc" data-ch="drc">
@@ -78,6 +81,9 @@
 <p>一行里有四个信息，缺一不可：</p>
 <div class="tbl"><table><thead><tr><th>字段</th><th>例子</th><th>含义</th></tr></thead><tbody><tr><td>规则名</td><td><code>M2.SPACE.1</code></td><td>层 + 规则类型 + 序号。<code>M2</code> = 第二层金属，<code>SPACE</code> = 间距，<code>.1</code> = 该规则的第一条变体</td></tr><tr><td>坐标</td><td><code>@ (1200, 3400)</code></td><td>违例位置，单位是数据库单位（database unit，通常 0.001µm 或 0.005µm）</td></tr><tr><td>实测值</td><td><code>0.08um</code></td><td>版图里实际的尺寸</td></tr><tr><td>要求值</td><td><code>0.10um</code></td><td>规则要求的最小值</td></tr></tbody></table></div>
 <p><strong>坐标要会换算。</strong> 如果 database unit 是 0.001µm，那么 <code>(1200, 3400)</code> 就是 <code>(1.2µm, 3.4µm)</code>。这个换算决定了你能否在版图编辑器里跳过去看——打错一个零，就跳到芯片另一头去了。</p>
+<p>报告里的规则名和坐标，落到 Calibre 的结果查看窗口（RVE）里是这样对应的：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/calibre-rve.png" data-fig="calibre-rve"><img src="/fig/calibre-rve.png" alt="Calibre RVE 结果窗口：左边按规则名分组列出各类违例条数，右边上半是版图（红框标出问题位置），下半是明细表（规则名、实测值、限制值、坐标）。重点练左边——先按规则分类看条数，再点进坐标看版图，这正是"分类 + 聚类"两个动作的工具入口。" loading="lazy" decoding="async"></a><figcaption>Calibre RVE 结果窗口：左边按规则名分组列出各类违例条数，右边上半是版图（红框标出问题位置），下半是明细表（规则名、实测值、限制值、坐标）。重点练左边——先按规则分类看条数，再点进坐标看版图，这正是"分类 + 聚类"两个动作的工具入口。</figcaption></figure>
+<p>从图里要看出什么：<strong>学会在这张窗口里"先分类、再跳坐标"，等于学会了改 DRC</strong>。后面 pitfall 里"卡在几百条就乱调参数"的错误，用这张图的工作流就能避开。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Rule Deck</span><span class="term-zh">规则文件</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>工厂提供的 DRC 规则集合，通常是一个几百 MB 的文本/SVRF 文件，里面用 Calibre 的语法把每条规则写成几何运算："M2 层任意两个图形的间距不得小于 0.10µm" → <code>M2.space(0.10)</code>。<br><strong>规则文件由工厂维护，禁止自己改。</strong> 你能改的只有"跑哪些规则"，不能改"规则是多少"。</p></div>
@@ -243,7 +249,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ICC2：换一套工具，把同一件事再做一遍 · 27 | IC 后端学院</title>
+<title>ICC2：换一套工具，把同一件事再做一遍 · 29 | IC 后端学院</title>
 <meta name="description" content="IC Compiler II 的第一课：同一批后端动作在 Innovus 和 ICC2 里有两套名词，标准单元库还要先"建"成 NDM 才能用。这一课给出 20 组命令对照、OPT-041 的逐词读法，以及建库时最先撞上的版本坑。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="04-01-icc2">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-4">阶段四 · ICC2 32nm 项目</a><span>/</span><b>ICC2：换一套工具，把同一件事再做一遍</b></div>
     <div class="hero">
-      <div class="hero-no">27</div>
+      <div class="hero-no">29</div>
       <h1>ICC2：换一套工具，把同一件事再做一遍</h1>
       <p class="hero-en">ICC2 Fundamentals</p>
       <p class="hero-sum">IC Compiler II 的第一课：同一批后端动作在 Innovus 和 ICC2 里有两套名词，标准单元库还要先"建"成 NDM 才能用。这一课给出 20 组命令对照、OPT-041 的逐词读法，以及建库时最先撞上的版本坑。</p>
@@ -41,6 +41,9 @@
   <div class="goal"><span>本章目标</span>学完这一课，你能把一条 Innovus 命令翻译成 ICC2 的对应命令，能独立判断"库建得对不对"，并在看到 <code>OPT-041</code> 时先往上翻日志而不是乱改脚本。</div>
 <p>会开一辆车，不等于会开另一辆。方向盘、油门、刹车都在，但雨刷在左边还是右边、挡位是旋钮还是拨杆，全变了。你越想凭肌肉记忆操作，越容易在第一个路口熄火。</p>
 <p>Innovus 换到 ICC2 就是这样。<strong>动作是同一批</strong>：读网表、摆单元、建时钟树、布线、导出。<strong>名词全换了</strong>，而且底层的数据组织方式也换了。</p>
+<p>先认一下 ICC2 的脸：以后所有 review、所有排错，最后都要回到它的主窗口上看。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/icc2-gui.png" data-fig="icc2-gui"><img src="/fig/icc2-gui.png" alt="ICC2 的主窗口：左边是设计层次树，中间是版图视图，底部是 Tcl 命令窗——结构和 Innovus 几乎一样，但菜单名和命令全换了。重点先找底部命令窗，最后那行 LINK-5 报错是 ICC2 最经典的开场白，意思是库里有个东西没找到，本课讲的建库问题十有八九会以它收尾。" loading="lazy" decoding="async"></a><figcaption>ICC2 的主窗口：左边是设计层次树，中间是版图视图，底部是 Tcl 命令窗——结构和 Innovus 几乎一样，但菜单名和命令全换了。重点先找底部命令窗，最后那行 LINK-5 报错是 ICC2 最经典的开场白，意思是库里有个东西没找到，本课讲的建库问题十有八九会以它收尾。</figcaption></figure>
+<p>从图里要看出什么：<strong>"长得像"不等于"用得对"</strong>。三个区域的位置可以照搬 Innovus 的习惯，但每一条命令都要重新学——这正是下面两章要给对照表的理由。</p>
 <p>卡住通常发生在两个层面：</p>
 <ul><li><strong>名词层</strong>：你想查一个实例的坐标，手上只有 <code>dbGet</code> 的记忆；ICC2 只认 <code>get_cells</code> + <code>get_attribute</code>。</li><li><strong>数据层</strong>：Innovus 直接读 <code>.lef</code> 和 <code>.lib</code> 就能开工；ICC2 必须先把它们"合成"成一个 NDM 库。库没建好，后面每条命令都跑不动。</li></ul>
 <p>这一课先把这两层拆开讲清楚，再给对照表。命令可以查，<strong>"为什么这条命令在这个工具里不存在"必须想明白</strong>，否则每次换工具都要从零开始。</p>
@@ -75,6 +78,9 @@
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：在 Innovus 里按名字找 SRAM，并打印坐标</span><span class="ln cmt"># 用法：Innovus 命令行直接执行；当前设计已经 open 且有实例 u_sram0</span><span class="ln ">set insts [dbGet -p top.insts.name u_sram*]      ;# 按通配符筛出名字以 u_sram 开头的实例</span><span class="ln ">foreach i $insts {                                ;# dbGet 返回的是列表，可以直接 foreach</span><span class="ln ">    puts "[dbGet $i.name] [dbGet $i.pt]"          ;# 取实例名和坐标（pt 是 point 的缩写）</span><span class="ln ">}</span></code></pre></div>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：同一件事在 ICC2 里的写法</span><span class="ln cmt"># 用法：icc2_shell 里执行；先 open_block，否则 get_cells 返回空</span><span class="ln ">set insts [get_cells u_sram*]                                   ;# 返回 collection，不是列表</span><span class="ln ">foreach_in_collection i $insts {                                ;# 遍历 collection 必须用这个命令</span><span class="ln ">    puts "[get_attribute $i full_name] [get_attribute $i origin]" ;# 取属性要用 get_attribute</span><span class="ln ">}</span></code></pre></div>
 <p>记住一句话：<strong>Innovus 把数据库当 Tcl 列表用，ICC2 把数据库当对象集合用。</strong> 这一条能解释一半的"命令不认识"。</p>
+<p>Innovus 那一边的 <code>dbGet</code> 会话长什么样，下面这张图是一段真实摘录。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/dbget-shell.png" data-fig="dbget-shell"><img src="/fig/dbget-shell.png" alt="`dbGet` 的查询会话摘录：几条 `dbGet` 的返回是一串 `0x…` 的对象句柄，加了 `.name` 才变成可读的名字；最后一行是属性名写错时的 `can't read` 报错。重点看这个报错——工具不会猜你的意思。翻译到 ICC2，`0x` 句柄对应 collection，`.属性` 对应 `get_attribute`，"报错不猜"的习惯两边一样。" loading="lazy" decoding="async"></a><figcaption>`dbGet` 的查询会话摘录：几条 `dbGet` 的返回是一串 `0x…` 的对象句柄，加了 `.name` 才变成可读的名字；最后一行是属性名写错时的 `can't read` 报错。重点看这个报错——工具不会猜你的意思。翻译到 ICC2，`0x` 句柄对应 collection，`.属性` 对应 `get_attribute`，"报错不猜"的习惯两边一样。</figcaption></figure>
+<p>从图里要看出什么：<strong><code>dbGet</code> 返回的是对象不是值</strong>，想要值必须再点一层属性。这是"命令不认识"的另一半来源——返回值形态变了，旧写法整套作废，不是只换个命令名。</p>
 <p>再补一个高频差异：设全局开关。Innovus 用 <code>setOptMode -fixFanoutLoad true</code>，一个命令管一类行为；ICC2 用 <code>set_app_options -name place.coarse.continue_on_missing_scandef -value true</code> 这种"点分路径"，每个开关一个完整名字。ICC2 的写法更长，但好处是能按前缀列出相关开关（<code>get_app_options</code>），排查时不用翻整本手册。开关名随版本增删，照抄教程前先 <code>man set_app_options</code> 确认。</p>
 <div class="note"><div class="note-h">命名风格也有规律</div><p>ICC2 的命令更像"动词 + 名词"的英文：<code>create_lib</code>、<code>open_block</code>、<code>report_qor</code>。Innovus 里 camelCase（驼峰）更多：<code>restoreDesign</code>、<code>place_opt_design</code>、<code>report_area</code>。</p>
 <p>看到一条陌生命令，先判断它是"读/写/建/报"哪一类，再去对照表里找同一类，比死记快。</p></div>
@@ -220,7 +226,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

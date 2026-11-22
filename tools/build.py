@@ -28,7 +28,7 @@
    :::check       （每行 "- 过关项"）
    :::note 旁注标题
    :::sandbox 预设名 | 提示语
-   :::svg         （块内直接写 <svg>...</svg>）
+   :::svg         （块内直接写 <svg>...</svg>）\n   :::fig <id> | 图注   （引用 web/fig/<id>.png，点击可放大）
 """
 import json
 import os
@@ -205,9 +205,22 @@ def render_block(name, arg, body):
         return f'<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul>{items}</ul></div>'
     if name == "sandbox":
         return render_sandbox(arg)
+    if name == "fig":
+        return render_fig(arg)
     if name == "svg":
         return '<div class="fig">' + "\n".join(body).strip() + "</div>"
     return md(chr(10).join(body))
+
+
+def render_fig(arg):
+    """:::fig <id> | 图注   —— 引用 web/fig/<id>.png"""
+    parts = [x.strip() for x in (arg or "").split("|")]
+    fid = parts[0]
+    cap = parts[1] if len(parts) > 1 else ""
+    src = "/fig/" + fid + ".png"
+    return (f'<figure class="fig-img"><a class="fig-a" href="{src}" data-fig="{esc(fid)}">'
+            f'<img src="{src}" alt="{esc(cap)}" loading="lazy" decoding="async"></a>'
+            f'<figcaption>{esc(cap)}</figcaption></figure>')
 
 
 def render_code(lang, body):

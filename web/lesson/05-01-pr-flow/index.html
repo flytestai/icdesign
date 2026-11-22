@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>28nm 全流程（一）：把 PR 串成项目 · 30 | IC 后端学院</title>
+<title>28nm 全流程（一）：把 PR 串成项目 · 32 | IC 后端学院</title>
 <meta name="description" content="前面学的是"每个阶段怎么做"，这一课讲"怎么把它们串成一条不会断的流水线"：目录怎么分、每步产物叫什么、通过标准是什么、怎么交接给 PT、跑批脚本怎么写才能失败即停、断点续跑。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="05-01-pr-flow">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-5">阶段五 · 28nm 全流程</a><span>/</span><b>28nm 全流程（一）：把 PR 串成项目</b></div>
     <div class="hero">
-      <div class="hero-no">30</div>
+      <div class="hero-no">32</div>
       <h1>28nm 全流程（一）：把 PR 串成项目</h1>
       <p class="hero-en">28nm PR Flow</p>
       <p class="hero-sum">前面学的是"每个阶段怎么做"，这一课讲"怎么把它们串成一条不会断的流水线"：目录怎么分、每步产物叫什么、通过标准是什么、怎么交接给 PT、跑批脚本怎么写才能失败即停、断点续跑。</p>
@@ -43,6 +43,9 @@
 <p>这两件事的差别，像<strong>装修工人</strong>和<strong>装修项目经理</strong>：</p>
 <ul><li>工人关心"这面墙怎么刷平"——对应 floorplan 怎么摆、CTS 怎么调。</li><li>项目经理关心"水电什么时候进场、瓷砖什么时候到、验收单谁签"——对应每个阶段的输入输出、交接物、通过标准。</li></ul>
 <p>后端工程师在项目里，一半时间是在做项目经理的事：<strong>管交付物</strong>，而不是敲命令。命令敲错可以重跑，交付物管错会让下游白干一周。</p>
+<p>先把自己在这条流水线里的位置钉死——后端管的是中间那一段：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/flow-overview.png" data-fig="flow-overview"><img src="/fig/flow-overview.png" alt="全流程图：左边灰色虚线框是前端做完交给你的东西，右边蓝色框是后端的各个阶段直到交付。本课关心的是"怎么把 PR 这几步串成项目"——每一步的输入从哪来、产物交给谁、通过标准是什么。" loading="lazy" decoding="async"></a><figcaption>全流程图：左边灰色虚线框是前端做完交给你的东西，右边蓝色框是后端的各个阶段直到交付。本课关心的是"怎么把 PR 这几步串成项目"——每一步的输入从哪来、产物交给谁、通过标准是什么。</figcaption></figure>
+<p>从图里要看出什么：<strong>PR 的交付物不是给自己看的，是给右边 STA、PV 接力的</strong>。后面目录、命名、交接的所有规矩，都是为了让这条接力不断棒。</p>
 <div class="scene"><div class="scene-h">工作场景 · 一次交接会，三个问题全答不上来</div><div class="scene-b"><p>周五下午，STA 工程师来要数据："你们 PR 这版跑完了吗？给我网表、SPEF 和 SDC。"</p>
 <p>你打开 <code>pnr/out/</code>，里面有 <code>final.v</code>、<code>final.spef</code>、<code>final.sdc</code>，还有 <code>final_v2.v</code>、<code>final_old.spef</code>。你也不知道哪个是最后一版。</p>
 <p>STA 问了三句话：</p>
@@ -73,6 +76,9 @@
 <section class="ch" id="tree" data-ch="tree">
   <div class="ch-h"><span class="ch-n">02</span><h2>推荐目录结构</h2></div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proj/28nm/</span><span class="ln ">├── rtl/                       # RTL 源码，只读；PR 不改，出问题找前端</span><span class="ln ">├── syn/</span><span class="ln ">│   ├── scripts/               # 综合脚本</span><span class="ln ">│   ├── netlist/ipa_top.v      # ← PR 的输入（综合后的门级网表）</span><span class="ln ">│   └── reports/               # 综合的时序/面积报告，PR 对照用</span><span class="ln ">├── pnr/</span><span class="ln ">│   ├── scripts/</span><span class="ln ">│   │   ├── 00_setup.tcl       # 变量、路径、库版本，所有脚本都 source 它</span><span class="ln ">│   │   ├── 01_init.tcl        # 读库、读网表、读约束</span><span class="ln ">│   │   ├── 02_floorplan.tcl   # 边界、宏、row</span><span class="ln ">│   │   ├── 03_power.tcl       # 电源环、电源条、PG 连接</span><span class="ln ">│   │   ├── 04_place.tcl       # 布局 + 预 CTS 优化</span><span class="ln ">│   │   ├── 05_cts.tcl         # 时钟树</span><span class="ln ">│   │   ├── 06_route.tcl       # 布线 + 后优</span><span class="ln ">│   │   └── 07_finish.tcl      # filler、导出、最终报告</span><span class="ln ">│   ├── db/                    # 每阶段存盘：01_init.enc ... 07_finish.enc</span><span class="ln ">│   ├── out/                   # 交付物：def / v / spef / sdc</span><span class="ln ">│   ├── rpt/                   # 每阶段报告</span><span class="ln ">│   └── log/                   # 每阶段日志</span><span class="ln ">├── sta/</span><span class="ln ">│   ├── scripts/               # PrimeTime 脚本</span><span class="ln ">│   └── reports/</span><span class="ln ">├── pv/                        # DRC / LVS</span><span class="ln ">└── run/</span><span class="ln ">    └── 20261122_1400/         # 本次运行的完整现场（软链到上面各目录）</span></code></pre></div>
+<p>这张目录图上的规矩，比目录本身更重要：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/pr-dir.png" data-fig="pr-dir"><img src="/fig/pr-dir.png" alt="推荐的项目目录结构，右边是四条配套规矩。重点看第一条：脚本要能从头重跑——左边目录树里的 scripts/、db/、run/ 怎么分，全是围绕这一条服务的。" loading="lazy" decoding="async"></a><figcaption>推荐的项目目录结构，右边是四条配套规矩。重点看第一条：脚本要能从头重跑——左边目录树里的 scripts/、db/、run/ 怎么分，全是围绕这一条服务的。</figcaption></figure>
+<p>从图里要看出什么：<strong>目录是给别人的接口</strong>。STA 找 out/，接手人找 scripts/ 和 run/latest，评审找 rpt/——每个人都能在固定位置拿到固定东西，这个项目才接得住。</p>
 <p>每个目录放什么、谁能删，必须写清楚：</p>
 <div class="tbl"><table><thead><tr><th>目录</th><th>放什么</th><th>谁写</th><th>谁读</th><th>能不能删</th></tr></thead><tbody><tr><td><code>rtl/</code></td><td>RTL 源码</td><td>前端</td><td>综合、验证</td><td>不能，只读</td></tr><tr><td><code>syn/netlist/</code></td><td>门级网表</td><td>综合</td><td>PR</td><td>不能，按版本保留</td></tr><tr><td><code>pnr/scripts/</code></td><td>分阶段 Tcl</td><td>PR</td><td>PR、接手人</td><td>不能，进 git</td></tr><tr><td><code>pnr/db/</code></td><td>阶段存盘</td><td>PR</td><td>PR</td><td>只保留最近 2~3 版</td></tr><tr><td><code>pnr/out/</code></td><td>交付物</td><td>PR</td><td>STA、PV、封装</td><td>按版本保留</td></tr><tr><td><code>pnr/rpt/</code></td><td>报告</td><td>PR</td><td>PR、review</td><td>随 run 目录保留</td></tr><tr><td><code>pnr/log/</code></td><td>日志</td><td>工具</td><td>所有人</td><td>至少留到项目结束</td></tr><tr><td><code>run/&lt;时间戳&gt;/</code></td><td>本次现场</td><td>脚本</td><td>追溯</td><td>项目结束前不删</td></tr></tbody></table></div>
 <p><strong>脚本按阶段编号</strong>，是整个结构的关键。想重跑"从 CTS 开始"，只要 <code>restoreDesign db/04_place.enc</code> 再跑 05、06、07，不用从头来。</p>
@@ -223,7 +229,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

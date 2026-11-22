@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>低功耗与 UPF：让芯片省电的四种手段 · 29 | IC 后端学院</title>
+<title>低功耗与 UPF：让芯片省电的四种手段 · 31 | IC 后端学院</title>
 <meta name="description" content="功耗分动态、静态、短路三块，降功耗有四类手段。UPF 用一份声明式文件把"哪里能断电、断电时怎么隔离、跨压域怎么转换"讲给综合、PR、STA 和验证工具听。这一课给公式手算、四种手段的代价，以及一份能读懂的最小 UPF。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="04-03-upf">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-4">阶段四 · ICC2 32nm 项目</a><span>/</span><b>低功耗与 UPF：让芯片省电的四种手段</b></div>
     <div class="hero">
-      <div class="hero-no">29</div>
+      <div class="hero-no">31</div>
       <h1>低功耗与 UPF：让芯片省电的四种手段</h1>
       <p class="hero-en">Low Power & UPF</p>
       <p class="hero-sum">功耗分动态、静态、短路三块，降功耗有四类手段。UPF 用一份声明式文件把"哪里能断电、断电时怎么隔离、跨压域怎么转换"讲给综合、PR、STA 和验证工具听。这一课给公式手算、四种手段的代价，以及一份能读懂的最小 UPF。</p>
@@ -86,6 +86,9 @@
 <p>整个域断电。这是省电最彻底的手段：动态功耗归零，漏电也归零。</p>
 <ul><li><strong>省什么</strong>：断电域的漏电 100%，动态 100%。</li><li><strong>代价</strong>：数据丢失，重新上电要复位；需要四类特殊单元和一套开关序列。</li></ul>
 <div class="tbl"><table><thead><tr><th>需要什么</th><th>作用</th><th>不加会怎样</th></tr></thead><tbody><tr><td>Switch（电源开关）</td><td>控制域电源通断，通常是一排 header/footer 单元</td><td>关不掉，或者关断时电流倒灌</td></tr><tr><td>Isolation（隔离单元）</td><td>断电域的输出钳到固定值</td><td>输出悬空，常开域收到错误值，甚至短路电流</td></tr><tr><td>Level Shifter（电平转换）</td><td>域电压和外部不同时做转换</td><td>高电平识别不了，功能随机出错</td></tr><tr><td>Retention（保持寄存器）</td><td>断电前存状态，上电后恢复</td><td>每次唤醒都要重新初始化，唤醒时间变长</td></tr></tbody></table></div>
+<p>这四类特殊单元里，最容易画错的是域交界处那两种——隔离和电平转换长什么样、插在哪，看这张图：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/upf-domain.png" data-fig="upf-domain"><img src="/fig/upf-domain.png" alt="两个电源域与交界处的两种特殊单元：ISO 负责断电时把输出钳住，LS 负责把低压域的高电平抬到高压域能识别的程度。重点看交界处——本课反复强调的"isolation 必须接常开电"，指的就是图里 ISO 单元那根从常开域引过来的电源。" loading="lazy" decoding="async"></a><figcaption>两个电源域与交界处的两种特殊单元：ISO 负责断电时把输出钳住，LS 负责把低压域的高电平抬到高压域能识别的程度。重点看交界处——本课反复强调的"isolation 必须接常开电"，指的就是图里 ISO 单元那根从常开域引过来的电源。</figcaption></figure>
+<p>从图里要看出什么：<strong>特殊单元全挤在域边界这一圈</strong>。它们不是随手散在芯片里的，边界留不留得出地方，直接决定低功耗版图做不做得成——后面"版图上多出来的是什么"一节会算这笔面积账。</p>
 <p>一个域省 10 mW，可能要多花两周验证。所以域不是划得越多越好，通常只关"长时间不用、且状态可以重建"的模块（比如视频解码器、无线收发）。</p>
 <h3>4. Body Bias（体偏置）</h3>
 <p>晶体管的阈值电压 Vt 可以通过衬底/体端电压调。反偏（RBB，reverse body bias）让 Vt 升高，漏电下降；正偏（FBB）让 Vt 降低，速度快但漏电增加。</p>
@@ -103,6 +106,9 @@
 <p>类比建筑图纸里的"配电系统图"：它不砌墙、不拉线，但电工、消防、验收都得看同一张图。UPF 就是芯片的配电系统图，综合（DC）、布局布线（ICC2/Innovus）、时序（PrimeTime）、验证（VC LP）读的是同一份。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：UPF 的最简形态——只声明"有一个域、它用哪个电源"</span><span class="ln cmt"># 用法：这是 UPF 文件内容，不是在某个人工会话里敲的命令；工具用 read_upf/load_upf 读它</span><span class="ln ">create_power_domain PD_TOP                       ;# 声明一个电源域，不写 -elements 表示包含顶层所有逻辑</span><span class="ln ">create_supply_port VDD -domain PD_TOP             ;# 声明芯片的电源入口（对应一个电源 pad）</span><span class="ln ">create_supply_port VSS -domain PD_TOP             ;# 声明地的入口</span><span class="ln ">create_supply_net VDD -domain PD_TOP              ;# 声明一条名为 VDD 的电源网络</span><span class="ln ">create_supply_net VSS -domain PD_TOP              ;# 声明地网络</span><span class="ln ">connect_supply_net VDD -ports VDD                 ;# 把端口和网络连起来，缺这句网络是悬空的</span><span class="ln ">connect_supply_net VSS -ports VSS                 ;# 地同样要连</span><span class="ln ">set_domain_supply_net PD_TOP -primary_power_net VDD -primary_ground_net VSS  ;# 指定这个域的主电源和主地</span></code></pre></div>
 <p>这几句话说的是四件事：<strong>有哪些域、电从哪进来、网络叫什么、谁用哪条网络</strong>。后面所有复杂功能（开关、隔离、保持）都是在这四件基础上加。</p>
+<p>"电从哪进来"再往下追一层，电源其实在芯片里层层接力：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/pg-tree.png" data-fig="pg-tree"><img src="/fig/pg-tree.png" alt="电源从封装焊球到单元内部的五级接力，每一级都比上一级更细更密，右边的手算说明供电为什么必须靠上层厚金属和并联。重点看最下面两级——UPF 里声明的 supply net，最终要靠 PR 阶段把这些网络真的布到每个单元的电源轨上，声明和版图才能对上。" loading="lazy" decoding="async"></a><figcaption>电源从封装焊球到单元内部的五级接力，每一级都比上一级更细更密，右边的手算说明供电为什么必须靠上层厚金属和并联。重点看最下面两级——UPF 里声明的 supply net，最终要靠 PR 阶段把这些网络真的布到每个单元的电源轨上，声明和版图才能对上。</figcaption></figure>
+<p>从图里要看出什么：<strong>UPF 里每一条 <code>create_supply_net</code>，最后都对应图里某一级真实的金属</strong>。这也是为什么电源域一多，PR 阶段的电源布线就成倍变难。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">UPF (Unified Power Format)</span><span class="term-zh">统一电源格式</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>IEEE 1801 标准定义的电源意图描述语言，语法基于 Tcl。它描述"电源域、电源网络、开关、隔离、电平转换、保持"这些<strong>意图</strong>，由实现工具翻译成真实的单元和连线。</p></div>
@@ -214,7 +220,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@
 <title>实战：用 Tcsh 写一个真正能用的跑批脚本 · 07 | IC 后端学院</title>
 <meta name="description" content="把前两课拼起来：读懂公司的 .cshrc、用 module 切工具版本、写出一个带参数校验/时间戳目录/日志/失败即停的跑批脚本，并在它跑一半停住时按固定顺序排查。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="01-06-runscript">
 <header class="top">
@@ -42,6 +42,9 @@
 <p>新账号登进去第一件事，是看 <code>.cshrc</code>。它决定了你这一个终端里工具能不能用。上一课讲了它<strong>什么时候被读</strong>，这一课讲它<strong>里面写了什么</strong>、为什么那样分层。</p>
 <p>一个典型的芯片公司 <code>.cshrc</code>：</p>
 <div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：公司/项目环境配置的典型结构（三层：系统 → 项目 → 个人）</span><span class="ln cmt"># 用法：放在 ~/.cshrc；改之前先 cp ~/.cshrc ~/.cshrc.bak</span><span class="ln ">set path = ( $HOME/bin /usr/local/bin /usr/bin /bin $path )   # ① 基础 PATH</span><span class="ln "> </span><span class="ln ">setenv PDK_ROOT   /home/proj/pdk/28nm        # ② 工艺库根目录（全组共用）</span><span class="ln ">setenv PROJ_ROOT  /home/proj/28nm/backend    # ② 项目根目录</span><span class="ln ">setenv LM_LICENSE_FILE 27000@lic.company.com # ② license 服务器</span><span class="ln "> </span><span class="ln ">alias ll 'ls -lht'                           # ③ 个人习惯</span><span class="ln ">alias cd.. 'cd ..'</span><span class="ln "> </span><span class="ln ">if ( -f $PROJ_ROOT/setup.csh ) then          # ④ 项目级环境：存在才加载</span><span class="ln ">    source $PROJ_ROOT/setup.csh              #    工具版本、额外的库路径都在里面</span><span class="ln ">endif</span></code></pre></div>
+<p>这份文件里两种赋值写法都出现了，先分清它们在 tcsh 里的分工：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-tcsh.png" data-fig="term-tcsh"><img src="/fig/term-tcsh.png" alt="tcsh 和 bash 最大的差别：设环境变量用 setenv，设本地变量用 set，两者不能混。重点看两类变量的用途差别——setenv 的变量会传给 dc_shell 这类子进程，set 的只活在当前 shell 里，.cshrc 里绝大多数应该是前者。" loading="lazy" decoding="async"></a><figcaption>tcsh 和 bash 最大的差别：设环境变量用 setenv，设本地变量用 set，两者不能混。重点看两类变量的用途差别——setenv 的变量会传给 dc_shell 这类子进程，set 的只活在当前 shell 里，.cshrc 里绝大多数应该是前者。</figcaption></figure>
+<p>从这张图里要看出什么：环境变量要"传下去"，本地变量只"自己用"——写混了不会报错，但工具会在某个时刻找不到库，这是 tcsh 新手最隐蔽的坑。</p>
 <p>这份文件体现的纪律是<strong>分层</strong>：</p>
 <ul><li><strong>系统级</strong>（<code>/etc/csh.cshrc</code>、<code>/etc/profile.d/</code>）由 IT 维护，你不用碰。</li><li><strong>项目级</strong>（<code>$PROJ_ROOT/setup.csh</code>）由项目负责人维护，切项目就换它。</li><li><strong>个人级</strong>（<code>~/.cshrc</code> 里的别名和小工具路径）只影响你自己。</li></ul>
 <p>新人常犯的错是把自己的工具路径直接写进 <code>~/.cshrc</code>，结果换项目、换版本时忘了删，<code>which dc_shell</code> 指向去年那个版本，跑出来的报告和同事对不上。<strong>工具版本应该由 <code>module</code> 管，不该写死在 <code>.cshrc</code> 里。</strong></p>
@@ -52,6 +55,9 @@
   <div class="ch-h"><span class="ch-n">02</span><h2>module：一人一套工具版本</h2></div>
   <p>大公司不会让你手动 <code>set path</code>。他们用 <strong>module</strong> 系统：一堆工具版本登记在册，你按需加载。</p>
 <div class="code"><div class="code-h"><span class="code-lang">csh</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：module 的五条常用命令</span><span class="ln cmt"># 用法：在终端里交互使用；写进脚本时要放在所有工具调用之前</span><span class="ln ">module avail                    # 列出所有可加载的模块（按名字排序，q 退出分页）</span><span class="ln ">module avail synopsys           # 只看含 synopsys 的（很多系统的 avail 支持过滤）</span><span class="ln ">module load synopsys/dc/R-2020.09   # 加载某个版本：本质是改 PATH/LD_LIBRARY_PATH</span><span class="ln ">module list                     # 看当前加载了哪些（写进日志，事后能查版本）</span><span class="ln ">module show synopsys/dc/R-2020.09   # 看这个模块到底改了哪些变量（排障神器）</span><span class="ln ">module unload synopsys/dc/R-2020.09 # 卸载</span><span class="ln ">module purge                    # 全卸，回到干净状态</span><span class="ln ">module switch innovus/20.1 innovus/21.1  # 换版本（等价 unload 旧的 + load 新的）</span></code></pre></div>
+<p>module 在终端里操作起来是这个样子：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-module.png" data-fig="term-module"><img src="/fig/term-module.png" alt="module load 是芯片公司的标配：同一个人可能同时跑三个项目、各要不同版本，module 就是"切环境变量"的开关。重点看 load 之后 module list 的输出——它证明的是"当前这个终端"用哪个版本，换一个窗口就作废。" loading="lazy" decoding="async"></a><figcaption>module load 是芯片公司的标配：同一个人可能同时跑三个项目、各要不同版本，module 就是"切环境变量"的开关。重点看 load 之后 module list 的输出——它证明的是"当前这个终端"用哪个版本，换一个窗口就作废。</figcaption></figure>
+<p>从这张图里要看出什么：module 改的只是当前 shell 的环境变量，<code>module list</code> 列出的就是这份终端私有状态——这正是后面"脚本里必须自己 load 一次"的原因。</p>
 <p><code>module load</code> 不是一个程序，而是一个 shell 里的函数/别名，它执行一段叫 modulefile 的脚本，往你的环境里写 PATH、<code>LD_LIBRARY_PATH</code>、<code>MANPATH</code> 和一堆 <code>XXX_ROOT</code> 变量。所以：</p>
 <p><strong>第一，它只影响当前 shell。</strong> 你在终端 A 里 <code>module load</code>，终端 B 里没有。脚本里也一样，脚本开头必须自己 load 一次，不能指望"我终端里有"。</p>
 <p><strong>第二，版本冲突的表现很隐蔽。</strong> 先 load 2019 再 load 2021，PATH 里两个目录都在，前面的优先——你以为在用 2021，其实用的是 2019。<code>module list</code> 会同时列出两个，这就是信号。正确做法是先 <code>module purge</code> 再 load，或者用 <code>module switch</code>。</p>
@@ -117,6 +123,9 @@
   <p>"跑到一半没动静了"是最常见的求助。按固定顺序走，别乱试：</p>
 <p><strong>第一步：看日志尾部。</strong> <code>tail -50 log/syn.log</code>。脚本自己不打印的错（工具崩了、license 拿不到、磁盘满）都在这里。如果日志最后一行是半句话，说明进程是被强杀的（OOM 或 <code>kill -9</code>）。</p>
 <p><strong>第二步：确认进程还在不在。</strong> <code>ps -p &lt;那个 PID&gt;</code> 或者 <code>ps -ef | grep 关键词</code>。进程没了但日志没写完 = 被杀；进程在但 CPU 0% = 在等 license 或在等 I/O。</p>
+<p><code>ps</code> 看出来的两种状态，在屏幕上是这样区分的：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-ps.png" data-fig="term-ps"><img src="/fig/term-ps.png" alt="进程与后台任务：跑综合要好几个小时，关掉终端就死掉是最常见的翻车——正确做法是 nohup 或 screen。重点看 STAT 和 CPU 两列：进程在但 CPU 是 0%，多半在等 license 或等 I/O，这正是第二步要分辨的两种"卡住"。" loading="lazy" decoding="async"></a><figcaption>进程与后台任务：跑综合要好几个小时，关掉终端就死掉是最常见的翻车——正确做法是 nohup 或 screen。重点看 STAT 和 CPU 两列：进程在但 CPU 是 0%，多半在等 license 或等 I/O，这正是第二步要分辨的两种"卡住"。</figcaption></figure>
+<p>从这张图里要看出什么：进程"没了"和"在但不动"是两条完全不同的排查路径——前者查是谁杀的（OOM、kill），后者查它在等什么，ps 一眼就能把两者分开。</p>
 <p><strong>第三步：开 <code>-x</code> 重跑，看脚本走到哪一行。</strong></p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：逐行回显展开后的命令，定位脚本停在哪</span><span class="ln cmt"># 用法：不改脚本，命令行加 -x；输出重定向到文件方便翻</span><span class="ln ">tcsh -x run_syn.csh ipa_top 2.5 &gt;&amp; trace.log</span><span class="ln ">grep -n "Undefined variable\|No match\|not found" trace.log | head</span></code></pre></div>
 <p><code>-x</code> 的输出是"展开后"的命令，所以你能看到 <code>$TOP</code> 到底是空的还是拼错了。查 <code>if</code> 为什么没进去，这是唯一可靠的办法。</p>
@@ -215,7 +224,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

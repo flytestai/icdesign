@@ -6,7 +6,7 @@
 <title>版本管理与自动化：git、make 和日志归档 · 08 | IC 后端学院</title>
 <meta name="description" content="后端一天改二十次脚本，改错了必须能退回；跑一次几小时，跑完必须知道是哪一版跑的。这一课讲 git 三层与最小命令集、分支做参数实验、.gitignore 该写什么、make 的规则与 Tab 坑，以及把版本号写进运行目录。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="01-07-version">
 <header class="top">
@@ -57,6 +57,9 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">工作区（你正在编辑的文件）</span><span class="ln ">   │  git add</span><span class="ln ">   ▼</span><span class="ln ">暂存区（这次要提交的清单）</span><span class="ln ">   │  git commit</span><span class="ln ">   ▼</span><span class="ln ">仓库（历史版本，.git/ 目录）</span></code></pre></div>
 <div class="tbl"><table><thead><tr><th>层</th><th>英文</th><th>是什么</th><th>对应命令</th><th>类比</th></tr></thead><tbody><tr><td>工作区</td><td>working tree</td><td>你现在打开的那个文件</td><td>编辑器直接改</td><td>桌上的草稿</td></tr><tr><td>暂存区</td><td>staging area / index</td><td>"这次提交包含哪些改动"</td><td><code>git add</code></td><td>装进信封的纸</td></tr><tr><td>仓库</td><td>repository</td><td>已保存的历史</td><td><code>git commit</code></td><td>寄出去存档的信</td></tr></tbody></table></div>
 <p>为什么要中间这个"暂存区"？因为你改了五个文件，但这次只想提交其中两个（另外三个还没改完）。暂存区让你<strong>挑着提交</strong>。跳过它直接用 <code>git commit -a</code> 也行，但你会失去"这次改动的边界"——而边界正是三个月后你能看懂历史的原因。</p>
+<p>这三层在终端里操作一圈，就是下面这个样子：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-git.png" data-fig="term-git"><img src="/fig/term-git.png" alt="git 三个区：工作区（你改的文件）→ 暂存区（git add 之后）→ 仓库（git commit 之后）。重点看每条命令把文件从哪个区搬到哪个区，以及 git status 里红色和绿色分别代表"还没 add"和"已 add 未 commit"。" loading="lazy" decoding="async"></a><figcaption>git 三个区：工作区（你改的文件）→ 暂存区（git add 之后）→ 仓库（git commit 之后）。重点看每条命令把文件从哪个区搬到哪个区，以及 git status 里红色和绿色分别代表"还没 add"和"已 add 未 commit"。</figcaption></figure>
+<p>从这张图里要看出什么：文件在三个区之间单向流动，<code>git status</code> 的红绿两色就是在报告它此刻停在哪一层——先看清位置，再决定是 add 还是 commit。</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：git 的最小命令集，覆盖日常 90% 的操作</span><span class="ln cmt"># 用法：在项目根目录执行；第一次用先 init 和 config</span><span class="ln ">git init                              # 在当前目录建仓库（生成 .git/，只需一次）</span><span class="ln ">git config user.name  "weizhen"       # 提交记录里显示的名字（--global 是全局）</span><span class="ln ">git config user.email "w@company.com" # 邮箱，和名字一起只需设一次</span><span class="ln "> </span><span class="ln ">git status                            # 哪些文件改了：红色=未暂存，绿色=已暂存</span><span class="ln ">git diff                              # 工作区 vs 暂存区，具体改了哪几行（最常用）</span><span class="ln ">git diff --cached                     # 暂存区 vs 上次提交，commit 前最后看一眼</span><span class="ln ">git add pnr.tcl                       # 把这个文件放进暂存区</span><span class="ln ">git add -p pnr.tcl                    # 同一个文件里挑着加（改动多时很有用）</span><span class="ln ">git commit -m "util 0.30-&gt;0.40, DRC 0-&gt;1874"   # 存成一个版本</span><span class="ln "> </span><span class="ln ">git log --oneline                     # 一行一个版本，带短 hash</span><span class="ln ">git log --oneline -5                  # 只看最近 5 条</span><span class="ln ">git show a1b2c3                       # 某个版本具体改了什么</span><span class="ln ">git diff HEAD~1 HEAD -- pnr.tcl       # 上一版和这一版在这个文件上的差异</span><span class="ln "> </span><span class="ln ">git checkout HEAD~1 -- pnr.tcl        # 只把这个文件退回上一版（别的文件不动）</span><span class="ln ">git revert a1b2c3                     # 生成一个"反向提交"撤销那次改动（推荐，历史保留）</span><span class="ln ">git stash                             # 把没提交的改动先收起来，工作区变干净</span><span class="ln ">git stash pop                         # 再放回来</span></code></pre></div>
 <p>几个必须理解的点：</p>
 <p><strong>commit 保存的是"整个项目的快照"，不是"这次改的那几行"。</strong> 所以你回到任意 commit，拿到的是完整的、当时能跑的状态，不会出现"只回退了一半"。</p>
@@ -142,6 +145,9 @@
 <p>先看现象和原因。make 解析规则时，判断"这一行是命令还是新规则"的唯一依据是<strong>行首是不是 Tab</strong>。看到 Tab 就把整行当成命令交给 shell；看到空格就以为还是规则的一部分，于是去里面找冒号，找不到就报 <code>missing separator</code>——"缺少分隔符"。这个措辞和"缩进错了"完全没关系，所以新人根本想不到。</p>
 <p>三种查看方式，按方便程度排：</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：三种看出 Tab / 空格的方法</span><span class="ln cmt"># 用法：在 Makefile 所在目录执行</span><span class="ln ">cat -A Makefile | head -20      # Tab 显示为 ^I，行尾是 $，一眼分辨</span><span class="ln ">sed -n '10,20l' Makefile        # -l 选项：Tab 显示为 \t</span><span class="ln ">grep -nP "^\t" Makefile         # 列出所有以 Tab 开头的行（GNU grep 支持 -P）</span><span class="ln ">grep -nP "^    " Makefile       # 列出所有以 4 个空格开头的行——重点怀疑对象</span></code></pre></div>
+<p>这条报错在终端里只有一行，但它值得一张图：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/term-make.png" data-fig="term-make"><img src="/fig/term-make.png" alt="Makefile 最常见的一行报错：missing separator。99% 的原因是把 Tab 打成了空格——这不是格式洁癖，是 make 的语法要求。重点看报错里的行号，直接跳到那一行，用上面的 cat -A 验证。" loading="lazy" decoding="async"></a><figcaption>Makefile 最常见的一行报错：missing separator。99% 的原因是把 Tab 打成了空格——这不是格式洁癖，是 make 的语法要求。重点看报错里的行号，直接跳到那一行，用上面的 cat -A 验证。</figcaption></figure>
+<p>从这张图里要看出什么：报错措辞里没有"缩进"两个字，所以新人想不到——把"missing separator = 行首不是 Tab"这个映射记住，以后十秒定位。</p>
 <p>vim 里用 <code>:set list</code> 打开可见字符，Tab 会显示成 <code>^I</code>；<code>:set list!</code> 关掉。更根本的办法是改 vim 配置：写 Makefile 时 <code>:set noexpandtab tabstop=8</code>，别让编辑器把 Tab 自动换成空格。</p>
 <p>还有两个相关的坑，一并记住：</p>
 <p><strong>从网页/文档里复制 Makefile 会丢 Tab。</strong> 很多网页把 Tab 渲染成空格，你复制下来看着一样，但已经全是空格了。<strong>永远不要从浏览器里复制 Makefile</strong>，宁可照着重敲一遍。</p>
@@ -159,6 +165,9 @@
 <div class="tbl"><table><thead><tr><th>做法</th><th>解决什么</th></tr></thead><tbody><tr><td>目录带时间戳（到分钟）</td><td>一天跑十次也不覆盖</td></tr><tr><td>目录名带关键参数（util30）</td><td>一眼看出这次试的是什么</td></tr><tr><td><code>2&gt;&amp;1</code> 后再接 <code>tee</code></td><td>屏幕看进度，文件留证据</td></tr><tr><td>指标单独抽到 <code>rpt/</code></td><td>对比两次结果不用翻全量日志</td></tr><tr><td>运行结束写一行 <code>DONE</code>/<code>FAIL</code></td><td>一眼看出这份日志跑完了没有</td></tr></tbody></table></div>
 <p>最后一条容易被忽略：日志末尾有没有明确的结束标记，决定了你能否在三十份日志里快速分出"跑完的"和"挂掉的"。在脚本最后加一句 <code>echo "[DONE] $(date)" &gt;&gt; $RUN/log/pnr.log</code> 就够了。</p>
 <p>算一下空间：一次 PNR 的日志 400MB（典型值），一天 4 次 = 1.6GB，一周 5 天 = 8GB，一个月 32GB。所以归档还要配清理策略：<code>find run_* -maxdepth 0 -mtime +14 -exec rm -rf {} \;</code> 只留两周。<strong>先确认哪些还被引用再删</strong>——有人三个月后回来找某次失败的日志，是很常见的事。</p>
+<p>把这一课散落的规矩拼起来，就是一张项目目录结构图：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/pr-dir.png" data-fig="pr-dir"><img src="/fig/pr-dir.png" alt="推荐的项目目录结构。重点看右边四条规矩的第一条——脚本要能从头重跑：时间戳目录、tee 日志、version.txt 这些动作共同服务的都是这一条，它决定了别人（和三个月后的你）能不能复现结果。" loading="lazy" decoding="async"></a><figcaption>推荐的项目目录结构。重点看右边四条规矩的第一条——脚本要能从头重跑：时间戳目录、tee 日志、version.txt 这些动作共同服务的都是这一条，它决定了别人（和三个月后的你）能不能复现结果。</figcaption></figure>
+<p>从这张图里要看出什么：脚本、运行目录、报告各归各位——人写的进 git，工具跑的留在 run 目录，正是前面 .gitignore 那条"谁写的"判断标准在目录上的落地。</p>
 <div class="note"><div class="note-h">2&gt;&amp;1 到底在干嘛</div><p><code>2&gt;&amp;1</code> 的意思是"把标准错误（2 号）送到标准输出（1 号）当前指向的地方"。不加这一句，工具报的 Error 只显示在屏幕上，不会进日志——你事后查日志会发现"怎么没有报错"，其实报错根本没被记录。</p>
 <p>顺序不能反：<code>2&gt;&amp;1 | tee</code> 对，<code>| tee 2&gt;&amp;1</code> 错。管道只接管标准输出，所以必须先把错误并进标准输出，再进管道。</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="log"><span>这一章我学完了</span></label>
@@ -257,7 +266,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

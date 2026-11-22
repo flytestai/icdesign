@@ -6,7 +6,7 @@
 <title>后端八阶段：谁给谁交付什么 · 10 | IC 后端学院</title>
 <meta name="description" content="综合、布局规划、电源、布局、时钟树、布线、收尾、签核，八个阶段串成一条流水线。每个阶段给一张"输入—做什么—输出—交给谁"四栏表，最后落到一份文件名级的交付清单和一张返工代价排序表。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="02-02-flow">
 <header class="top">
@@ -41,6 +41,9 @@
   <div class="goal"><span>本章目标</span>能按顺序画出八个阶段，对每个阶段说出"输入是什么文件、产出什么文件、交给谁"，并判断出问题该往回退到哪一步。</div>
 <p>后端不是"一个软件跑一遍"，而是<strong>八个阶段串起来的流水线</strong>。每个阶段的输出就是下一个阶段的输入，中间任何一个环节偷工，后面都要加倍偿还。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">RTL 代码</span><span class="ln ">   │  ① 综合 Synthesis            → 网表 .v + 约束 .sdc + 时序库 .db</span><span class="ln ">   ▼</span><span class="ln ">门级网表</span><span class="ln ">   │  ② 布局规划 Floorplan        → 芯片尺寸、引脚、宏单元位置  (.def)</span><span class="ln ">   │  ③ 电源规划 Power Plan       → 电源网格、电源环、通孔</span><span class="ln ">   │  ④ 布局 Placement            → 每个标准单元的坐标</span><span class="ln ">   │  ⑤ 时钟树 CTS                → 时钟缓冲器 + 平衡后的时钟网络</span><span class="ln ">   │  ⑥ 布线 Route                → 所有信号的金属连线</span><span class="ln ">   │  ⑦ 收尾 Chip Finish          → filler、DRC 修复、导出 GDSII</span><span class="ln ">   ▼</span><span class="ln ">   │  ⑧ 签核 Signoff              → STA 时序 + PV 物理验证 + IR/EM</span><span class="ln ">   ▼</span><span class="ln ">GDSII → 工厂</span></code></pre></div>
+<p>上面是用文字画的流程线。真实项目里，这八个阶段是并行准备、串行跑完的，图能把"谁在等谁"看得更清楚。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/flow-overview.png" data-fig="flow-overview"><img src="/fig/flow-overview.png" alt="左侧虚线框是前端成果，右侧蓝色框是后端八阶段。重点看箭头方向：每个阶段都往下交付，而③电源、④布局、⑤CTS 之间是严格串行的，不能跳。" loading="lazy" decoding="async"></a><figcaption>左侧虚线框是前端成果，右侧蓝色框是后端八阶段。重点看箭头方向：每个阶段都往下交付，而③电源、④布局、⑤CTS 之间是严格串行的，不能跳。</figcaption></figure>
+<p>从图里要看出什么：八个阶段不是并列的八个任务，而是<strong>一条依赖链</strong>——前面任何一阶段改了，后面全部要重跑。这条链的形状，决定了下一节"返工代价排序"里为什么 floorplan 最贵。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Gate-level Netlist</span><span class="term-zh">门级网表</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>综合的输出。里面不再是 <code>always @(posedge clk)</code>，而是一堆标准单元实例和它们之间的连线。<br>把它想成"配料表"：用了哪些门、各多少个、谁连谁。<strong>网表只描述连接关系，不描述位置</strong>——位置是后面布局阶段才决定的。</p></div>
@@ -156,16 +159,38 @@
 <div class="tbl"><table><thead><tr><th>阶段</th><th>交付物（典型文件名）</th><th>下一环谁用</th></tr></thead><tbody><tr><td>① 综合</td><td><code>netlist/soc_top.v</code>、<code>constraints/soc_top.sdc</code>、<code>rpt/syn_timing.rpt</code>、<code>rpt/syn_area.rpt</code></td><td>PR</td></tr><tr><td>② Floorplan</td><td><code>def/02_fp.def</code>、<code>rpt/fp_util.rpt</code>、<code>rpt/fp_macro.rpt</code></td><td>电源</td></tr><tr><td>③ Power</td><td><code>def/03_power.def</code>、<code>rpt/ir_est.rpt</code>、<code>rpt/pgv.rpt</code></td><td>布局</td></tr><tr><td>④ Place</td><td><code>def/04_place.def</code>、<code>rpt/place_congestion.rpt</code>、<code>rpt/place_timing.rpt</code></td><td>CTS</td></tr><tr><td>⑤ CTS</td><td><code>def/05_cts.def</code>、<code>rpt/cts_tree.rpt</code>、<code>rpt/cts_skew.rpt</code></td><td>布线</td></tr><tr><td>⑥ Route</td><td><code>def/06_route.def</code>、<code>netlist/06_route.v</code>、<code>rpt/route_drc.rpt</code>、<code>spef/06_route.spef</code></td><td>收尾 / STA</td></tr><tr><td>⑦ Finish</td><td><code>gds/soc_top.gds</code>、<code>def/07_finish.def</code>、<code>netlist/07_final.v</code>、<code>rpt/fill_density.rpt</code></td><td>PV / 工厂</td></tr><tr><td>⑧ Signoff</td><td><code>sta/</code>（PT 报告）、<code>pv/drc.res</code>、<code>pv/lvs.res</code>、<code>power/redhawk.rpt</code>、<code>signoff_checklist.xlsx</code></td><td>流片</td></tr></tbody></table></div>
 <p>几点说明：</p>
 <ul><li><code>.def</code> 是布局布线信息的标准交换格式，<strong>同一种格式从头传到尾，每阶段存一版</strong>，所以文件名要带序号。</li><li><code>.spef</code> 是寄生参数文件（每根线的电阻电容），STA 靠它算真实线延迟。没有它，时序报告只能按"估算线延迟"算，不准。</li><li>报告不要只留最后一版。签核出问题时，需要回看"哪一版开始变差的"，历史报告就是证据。</li></ul>
+<p>这些文件在硬盘上怎么摆，直接影响"能不能从头重跑"。推荐的结构是这样：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/pr-dir.png" data-fig="pr-dir"><img src="/fig/pr-dir.png" alt="左边是推荐的目录树：`db/` 存每阶段存档、`rpt/` 存报告、`netlist/` 和 `spef/` 存交换文件、`scripts/` 存脚本。右边四条规矩里，最重要是第一条"脚本能从头重跑"。" loading="lazy" decoding="async"></a><figcaption>左边是推荐的目录树：`db/` 存每阶段存档、`rpt/` 存报告、`netlist/` 和 `spef/` 存交换文件、`scripts/` 存脚本。右边四条规矩里，最重要是第一条"脚本能从头重跑"。</figcaption></figure>
+<p>从图里要看出什么：<strong>目录按"产物类型"分，不按"日期"分</strong>。这样别人接手时，<code>ls db/</code> 就能看到流程走到哪一步，<code>ls rpt/</code> 就知道有哪些报告——而不是在一堆 <code>run_final_bak/</code> 里猜。图上第二条规矩（脚本带版本、不进 db 目录）也值得记住：脚本和数据库混放，回退时最容易拿错版本。</p>
 <p>为什么强调"文件名级"？因为交接时最常发生的对话是："你说的那份报告是哪个？"——目录里有五份 <code>timing.rpt</code>，谁也不知道哪份对应哪一版数据库。文件名里带阶段序号和日期，这个问题就不存在了。<strong>能说清文件名，才说明你真的知道自己交付了什么。</strong></p>
 <p>这张表还有一个用法：当成 review 的检查表。逐项问"这一步的文件在哪"，指不出来的那一行，就是这一步没做完。</p>
   <label class="ch-done"><input type="checkbox" data-mark="deliverables"><span>这一章我学完了</span></label>
 </section>
+<section class="ch" id="time" data-ch="time">
+  <div class="ch-h"><span class="ch-n">11</span><h2>时间都花在哪：一个真实项目的阶段占比</h2></div>
+  <p>新手常以为"最难的阶段最耗时"。实际统计下来，<strong>最耗时的是迭代次数最多的阶段</strong>，而不是技术难度最高的阶段。</p>
+<p>下面是一个中等规模模块（约 100 万门、40nm、单机跑）从头到尾的典型时间分布。含机器时间和人调时间，不含排队等集群。数值是典型值，随设计规模、工具版本、团队熟练度浮动很大：</p>
+<div class="tbl"><table><thead><tr><th>阶段</th><th>机器时间占比</th><th>人的介入时间占比</th><th>为什么</th></tr></thead><tbody><tr><td>① 综合</td><td>5%</td><td>5%</td><td>跑一次几小时，但通常只跑 2~3 轮</td></tr><tr><td>② Floorplan</td><td>5%</td><td>15%</td><td>机器几分钟，人要想清楚、要开会</td></tr><tr><td>③ 电源规划</td><td>3%</td><td>5%</td><td>画网快，检查慢</td></tr><tr><td>④ 布局</td><td>20%</td><td>15%</td><td>要跑 2~3 轮，每轮都调参数</td></tr><tr><td>⑤ CTS</td><td>12%</td><td>10%</td><td>建树一次，但报告要看两三遍</td></tr><tr><td>⑥ 布线</td><td>35%</td><td>25%</td><td>迭代最多：布线 8 小时，改一版再 8 小时</td></tr><tr><td>⑦ 收尾</td><td>8%</td><td>10%</td><td>filler、DRC、密度，杂活多</td></tr><tr><td>⑧ 签核</td><td>12%</td><td>15%</td><td>多 corner 重跑，等报告</td></tr></tbody></table></div>
+<p>三条读法：</p>
+<ol><li><strong>布线独占三分之一以上。</strong> 不是布线算法难，是它"跑一次很久、改一次要重跑"——迭代成本高。所以前面 floorplan 和 place 做得好不好，直接体现在布线要跑几轮上。</li><li><strong>人的时间集中在 floorplan 和 review。</strong> 机器在跑的时候，人在开会、看报告、跟封装和前端确认。所以"工期"不等于"机器时间"，排计划时要把人的评审时间算进去。</li><li><strong>签核看着占比不高，但它是唯一不能压缩的一段。</strong> 前面所有阶段都能"先跑起来再优化"，签核不行——corner 少一个，结论就不成立。</li></ol>
+<p>一个实用的估算方法：<strong>如果你知道布线要跑几轮，就能反推整个工期</strong>。布线 3 轮 × 8 小时 ≈ 24 小时机器时间，占 35%，那总机器时间大约 68 小时；再乘 1.5 的排队和人工系数，约 100 小时，也就是两周左右。这个数比"拍脑袋说一个月"靠谱得多。</p>
+<div class="pit"><div class="pit-h">常见坑 · 按"最快一次"排工期</div><div class="pit-b"><p>现象：计划写"三天完成"，实际做了十天。复盘发现：布线跑了 4 轮，CTS 返工 1 次，签核补了 2 个 corner。</p>
+<p>原因：排期时按"每个阶段跑一次"算，没算迭代。而真实项目里，<strong>每个阶段平均要跑 2~3 次</strong>——第一版看趋势、第二版调参数、第三版才收尾。</p>
+<p>怎么改：排期按"阶段数 × 平均迭代次数 × 单次耗时"算，再留 30% 缓冲。给 leader 报计划时，把"假设几轮"写清楚——轮数假设错了，工期一定错。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="time"><span>这一章我学完了</span></label>
+</section>
 <section class="ch" id="rework" data-ch="rework">
-  <div class="ch-h"><span class="ch-n">11</span><h2>哪个阶段最容易返工</h2></div>
+  <div class="ch-h"><span class="ch-n">12</span><h2>哪个阶段最容易返工</h2></div>
   <p>答案是：<strong>布局规划</strong>。其次是综合（网表质量），再其次是 CTS。</p>
 <div class="tbl"><table><thead><tr><th>返工点</th><th>什么时候发现</th><th>返工代价</th><th>为什么要重来</th></tr></thead><tbody><tr><td>宏单元位置 / die 尺寸</td><td>布线拥塞、放不下</td><td>最高：布局 8h + CTS 3h + 布线 6h，约 2 天</td><td>所有坐标相对 floorplan，改了等于坐标全废</td></tr><tr><td>网表质量（面积/结构）</td><td>floorplan 排不下、时序差太远</td><td>高：重综合数小时 + 全流程重跑</td><td>单元数和连接关系变了，后面全要重做</td></tr><tr><td>时钟约束 / CTS 设置</td><td>CTS 报告 skew 超标</td><td>中高：CTS 到布线要重跑</td><td>树结构变了，布线资源分配跟着变</td></tr><tr><td>利用率 / 布局密度</td><td>布线 DRC 爆炸</td><td>中：布局到布线重跑，约 1 天</td><td>单元位置要重摆</td></tr><tr><td>布线参数</td><td>布线 DRC 残留</td><td>低：重跑布线几小时</td><td>只影响布线本身</td></tr><tr><td>filler / 密度</td><td>收尾检查</td><td>低：几十分钟</td><td>只加单元，不动逻辑</td></tr><tr><td>签核 corner 缺失</td><td>签核前一周</td><td>表面低、实际致命：可能要改设计</td><td>前面所有"通过"都不作数</td></tr></tbody></table></div>
 <p>判断该退回哪一步，有个简单方法：<strong>问"这个错误的根源在哪一阶段的输入里"</strong>。</p>
 <ul><li>布线拥塞 → 看是不是宏单元通道窄（退回 floorplan）</li><li>时序全线差 → 看是不是网表本身太慢（退回综合）</li><li>hold 大面积崩 → 先看是不是 CTS 后正常暴露（不用退，交给 OptCts）</li></ul>
+<h3>返工代价的量级：为什么"往回退一格"这么贵</h3>
+<p>返工代价不是一个阶段的耗时，而是<strong>这个阶段加上它后面所有阶段的耗时之和</strong>。用一条流水线打比方：第 5 道工序返工，第 6、7、8 道已经做过的活全部作废，要等第 5 道重做完再依次重做。</p>
+<p>按课程环境这一套万门设计的实测耗时（40nm、单机、非集群）折算：</p>
+<div class="tbl"><table><thead><tr><th>返工点</th><th>要重跑哪些阶段</th><th>单次耗时（量级）</th><th>相对"只重跑布线"的倍数</th></tr></thead><tbody><tr><td>filler / 密度</td><td>只补 fill</td><td>0.5 小时</td><td>0.1×</td></tr><tr><td>布线参数</td><td>route</td><td>6 小时</td><td>1×（基准）</td></tr><tr><td>布局密度 / 禁放区</td><td>place → CTS → route</td><td>4 + 3 + 6 ≈ 13 小时</td><td>约 2×</td></tr><tr><td>CTS 设置（skew 目标、NDR）</td><td>CTS → route → finish</td><td>3 + 6 + 1 ≈ 10 小时</td><td>约 1.7×</td></tr><tr><td>floorplan（宏位置 / die 尺寸）</td><td>floorplan → place → CTS → route → finish</td><td>8 + 4 + 3 + 6 + 1 ≈ 22 小时</td><td>约 3.7×</td></tr><tr><td>综合网表（单元数、结构）</td><td>重综合 + 全流程</td><td>4 + 22 ≈ 26 小时起</td><td>约 4.3× 起</td></tr></tbody></table></div>
+<p><strong>CTS 返工 vs route 返工，差的不是那 4 小时，是"可信度"。</strong> 只重跑 route，前面 place 和 CTS 的时序基线还在，你可以拿新旧报告逐条对比，知道"是布线变差了还是本来就这样"；CTS 一返工，时钟延迟全变，setup/hold 的所有历史结论作废，等于重新建立一次基线。所以工程上宁愿在 CTS 前多花两小时核对约束，也不愿 CTS 后返工一次。</p>
+<p>还有一个隐性成本没算进表里：<strong>返工期间数据库要重新存档、报告要重新归档、review 要重开</strong>。这部分时间和人数成正比，人越多越贵。所以"返工代价"在 review 上要报两个数——机器时间、人力时间。</p>
 <div class="pit"><div class="pit-h">常见坑 · 一出问题就从头上重跑</div><div class="pit-b"><p>现象：布线 DRC 多，工程师直接 <code>restoreDesign</code> 回综合后，从头跑一遍，跑了两天还是同样的 DRC。</p>
 <p>原因：问题根源在 floorplan 的宏单元位置，从头跑只是重复同一个错误。</p>
 <p>正确做法：先定位。看拥塞热图落在哪、是不是正好在两个宏单元之间；看违例类型是不是全是同一种 spacing。定位到阶段再回退，比盲目重跑快十倍。</p></div></div>
@@ -227,7 +252,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

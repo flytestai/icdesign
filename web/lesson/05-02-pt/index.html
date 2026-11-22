@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PrimeTime 签核：自己给自己签字不算数 · 31 | IC 后端学院</title>
+<title>PrimeTime 签核：自己给自己签字不算数 · 33 | IC 后端学院</title>
 <meta name="description" content="布局布线工具自己算的时序只能算"边做边估"，不能作为流片依据。这一课从读入三件套讲到 SDC 五条核心约束、report_timing 逐列解读、OCV 手算、多 corner 场景表、假违例识别，最后给一份能照着跑的 PT 签核脚本和一套通过线。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="05-02-pt">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-5">阶段五 · 28nm 全流程</a><span>/</span><b>PrimeTime 签核：自己给自己签字不算数</b></div>
     <div class="hero">
-      <div class="hero-no">31</div>
+      <div class="hero-no">33</div>
       <h1>PrimeTime 签核：自己给自己签字不算数</h1>
       <p class="hero-en">PrimeTime Signoff</p>
       <p class="hero-sum">布局布线工具自己算的时序只能算"边做边估"，不能作为流片依据。这一课从读入三件套讲到 SDC 五条核心约束、report_timing 逐列解读、OCV 手算、多 corner 场景表、假违例识别，最后给一份能照着跑的 PT 签核脚本和一套通过线。</p>
@@ -122,6 +122,9 @@
 <p>20ps 看起来很小。但一条路径上如果有 30 段这样的线，加起来 600ps；而 28nm 下一个周期才 2ns。<strong>这就是为什么"没读 SPEF"的时序一定是假的乐观。</strong></p>
 <h3>标准读入流程与顺序纪律</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ============================================================</span><span class="ln cmt"># 作用：PT 读入三件套的最小可用流程</span><span class="ln cmt"># 用法：pt_shell -f read_design.tcl，在 signoff/pt/ 目录下跑</span><span class="ln cmt"># 前提：netlist.v / final.spef / constraints.sdc 都在当前目录</span><span class="ln cmt"># ============================================================</span><span class="ln "> </span><span class="ln cmt"># ---- 1. 设库搜索路径。三部分：当前目录、工艺库、宏库 ----</span><span class="ln ">set link_path "* \</span><span class="ln ">  /pdk/28nm/lib/ss_0p81v_125c/std_cell_ss.db \</span><span class="ln ">  /pdk/28nm/lib/ss_0p81v_125c/sram_2048x64_ss.db \</span><span class="ln ">  /pdk/28nm/lib/ss_0p81v_125c/io_ss.db"</span><span class="ln cmt"># 说明："*" 表示"当前 design 里已有的库优先"，必须有</span><span class="ln cmt"># 说明：每个 .db 都要写绝对路径，别依赖未知的 search_path</span><span class="ln "> </span><span class="ln cmt"># ---- 2. 读网表并解析 ----</span><span class="ln ">read_verilog ./netlist/final.v          ;# 只建立层次和连接，还没解析单元</span><span class="ln ">link_design -keep_sub_designs           ;# 解析每个实例对应的库单元</span><span class="ln cmt"># 说明：link 之后立刻看有没有 unresolved reference 的 warning</span><span class="ln "> </span><span class="ln cmt"># ---- 3. 读 SDC。必须在 link 之后！----</span><span class="ln ">source ./constraints/final.sdc          ;# 时钟、IO 延迟、例外全在这</span><span class="ln cmt"># 说明：link 之前读，get_ports 会返回空，约束静默失效（见下面的坑）</span><span class="ln "> </span><span class="ln cmt"># ---- 4. 读寄生参数 ----</span><span class="ln ">read_parasitics -format SPEF ./spef/final_ss_cmax.spef</span><span class="ln cmt"># 说明：一个 corner 一份 SPEF，别混用</span><span class="ln "> </span><span class="ln cmt"># ---- 5. 确认三件事都生效了 ----</span><span class="ln ">report_design -library                  ;# 列出实际用到的库，逐个对</span><span class="ln ">report_clocks                           ;# 时钟有没有、周期对不对</span><span class="ln ">check_timing                            ;# 未约束/无时钟/无输入延迟</span></code></pre></div>
+<p>把上面这套读入跑起来，屏幕上大致是这个样子：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/pt-shell.png" data-fig="pt-shell"><img src="/fig/pt-shell.png" alt="PrimeTime 的签核会话：上半部分命令窗依次完成读库、读网表、读 SPEF、读约束、check_timing，下半部分是 report_timing 的输出。重点看命令窗的顺序——库在最前、SDC 在 link 之后，顺序错一步，下面整份报告都作废。" loading="lazy" decoding="async"></a><figcaption>PrimeTime 的签核会话：上半部分命令窗依次完成读库、读网表、读 SPEF、读约束、check_timing，下半部分是 report_timing 的输出。重点看命令窗的顺序——库在最前、SDC 在 link 之后，顺序错一步，下面整份报告都作废。</figcaption></figure>
+<p>从图里要看出什么：<strong>签核是一次"顺序敏感"的会话，不是逐条敲命令</strong>。下面两个 pitfall 讲的"静默失效"，全都发生在顺序错的那一步。</p>
 <div class="pit"><div class="pit-h">常见坑 · SDC 读在 link 之前，约束"静默失效"</div><div class="pit-b"><p>现象：<code>report_clocks</code> 是空的，<code>report_timing</code> 报 <code>No paths</code>，或者所有路径都不受约束。PT 只给一句 <code>Warning: No clocks found</code>，不报错。</p>
 <p>原因：SDC 里写的是 <code>[get_ports clk]</code>。<code>link_design</code> 之前，设计还没有端口对象，<code>get_ports clk</code> 返回空列表。于是 <code>create_clock -period 2.0 []</code> 什么都没创建。后面的 <code>set_input_delay</code> 同理，全部作用在空集合上。</p>
 <p>为什么危险：PT 对"空集合"只给 warning，脚本不会中断。你可能跑完一整套报告、写进 PPT，才发现报告里一条路径都没有。</p>
@@ -207,6 +210,9 @@
 <p>很多人看报告只看最后那个 <code>slack</code>。这就像看体检报告只看"合格"两个字——真出了问题，你不知道是哪项指标、哪个器官。</p>
 <p>下面是一条完整的 setup 路径报告（数字是教学用的构造值，格式按 PT 的 <code>full_clock_expanded</code>）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Startpoint: u_core/u_reg[3]/CK          (rising edge-triggered flip-flop clocked by clk_core)</span><span class="ln ">Endpoint:   u_core/u_alu/out_reg[7]/D   (rising edge-triggered flip-flop clocked by clk_core)</span><span class="ln ">Path Group: clk_core</span><span class="ln ">Path Type:  max</span><span class="ln ">Corner:     ss_0p81v_125c</span><span class="ln ">Scenario:   func_ss</span><span class="ln "> </span><span class="ln ">  Point                                    Incr       Path</span><span class="ln ">  ---------------------------------------------------------------</span><span class="ln ">  clock clk_core (rise edge)               0.0000     0.0000</span><span class="ln ">  clock source latency                     0.0000     0.0000</span><span class="ln ">  clock network delay (propagated)         0.6200     0.6200</span><span class="ln ">  u_core/u_reg[3]/CK                       0.0000     0.6200</span><span class="ln ">  u_core/u_reg[3]/CK-&gt;Q                    0.1200     0.7400</span><span class="ln ">  u_core/u_alu/U1204/Z                     0.3100     1.0500</span><span class="ln ">  u_core/u_alu/U1188/Z                     0.5400     1.5900</span><span class="ln ">  u_core/u_alu/out_reg[7]/D                0.0000     1.5900</span><span class="ln ">  data arrival time                                   1.5900</span><span class="ln "> </span><span class="ln ">  clock clk_core (rise edge)               2.0000     2.0000</span><span class="ln ">  clock network delay (propagated)         0.5800     2.5800</span><span class="ln ">  clock uncertainty                       -0.1500     2.4300</span><span class="ln ">  u_core/u_alu/out_reg[7]/CK               0.0000     2.4300</span><span class="ln ">  library setup time                      -0.0800     2.3500</span><span class="ln ">  data required time                                  2.3500</span><span class="ln ">  ---------------------------------------------------------------</span><span class="ln ">  data required time                                  2.3500</span><span class="ln ">  data arrival time                                  -1.5900</span><span class="ln ">  ---------------------------------------------------------------</span><span class="ln ">  slack (MET)                                         0.7600</span></code></pre></div>
+<p>这份报告每一行在说什么，对照着看更清楚：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/report-timing-annotated.png" data-fig="report-timing-annotated"><img src="/fig/report-timing-annotated.png" alt="report_timing 的输出逐行注解：左边是真实格式的报告（起点终点、Incr、Path、required、slack），右边把每一段的含义写清。重点看 Incr 与 Path 两列的差别，以及捕获侧 required 是怎么被 uncertainty 和 setup 一层层扣出来的。" loading="lazy" decoding="async"></a><figcaption>report_timing 的输出逐行注解：左边是真实格式的报告（起点终点、Incr、Path、required、slack），右边把每一段的含义写清。重点看 Incr 与 Path 两列的差别，以及捕获侧 required 是怎么被 uncertainty 和 setup 一层层扣出来的。</figcaption></figure>
+<p>从图里要看出什么：<strong>瓶颈看 Incr 最大的那一行，skew 看发射与捕获两侧时钟延迟的差</strong>。下面几节就是把这张图里的每一段拆开讲。</p>
 <h3>头部四行是什么意思</h3>
 <div class="tbl"><table><thead><tr><th>行</th><th>含义</th><th>读它干什么</th></tr></thead><tbody><tr><td><code>Startpoint</code></td><td>发射触发器（launch FF）的<strong>时钟引脚</strong></td><td>确认是哪个寄存器发的数据；带 <code>CK</code> 说明起点取的是时钟端</td></tr><tr><td><code>Endpoint</code></td><td>捕获触发器（capture FF）的<strong>数据引脚</strong></td><td>带 <code>D</code> 说明终点取的是数据端；如果这里是 <code>CK</code>，多半是 recovery/removal 检查</td></tr><tr><td><code>Path Group</code></td><td>这条路径属于哪个时钟组</td><td>统计 WNS 时按组分别看，别把两个组的数混在一起</td></tr><tr><td><code>Path Type: max</code></td><td>max = setup 检查（最长路径）；min = hold 检查（最短路径）</td><td>看 hold 报告要确认这里真的是 <code>min</code></td></tr></tbody></table></div>
 <p><code>Corner</code> 和 <code>Scenario</code> 两行是 MCMM 模式下才有的。它们非常重要——<strong>同一路径在不同 corner 下 slack 可能差 0.3ns</strong>，报告不带 corner 就没法讨论。</p>
@@ -311,6 +317,9 @@
 </div>
 <p>一个典型项目的场景表（示意，实际按项目定）：</p>
 <div class="tbl"><table><thead><tr><th>场景名</th><th>模式</th><th>Corner</th><th>RC</th><th>查什么</th><th>必须跑?</th></tr></thead><tbody><tr><td>func_ss_cmax</td><td>功能</td><td>ss_0p81v_125c</td><td>Cmax</td><td>setup</td><td>是</td></tr><tr><td>func_ss_cmax_lt</td><td>功能</td><td>ss_0p81v_m40c</td><td>Cmax</td><td>setup（温度反转）</td><td>是</td></tr><tr><td>func_ff_cmin</td><td>功能</td><td>ff_0p99v_m40c</td><td>Cmin</td><td>hold</td><td>是</td></tr><tr><td>func_ff_cmax</td><td>功能</td><td>ff_0p99v_125c</td><td>Cmax</td><td>hold + EM</td><td>是</td></tr><tr><td>scan_ss_cmax</td><td>扫描测试</td><td>ss_0p81v_125c</td><td>Cmax</td><td>setup（测试模式时钟慢）</td><td>是</td></tr><tr><td>func_tt</td><td>功能</td><td>tt_0p9v_25c</td><td>Ctypical</td><td>功耗/面积评估</td><td>否</td></tr></tbody></table></div>
+<p>把上面这张场景表画成矩阵，读法是固定的：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/corner-matrix.png" data-fig="corner-matrix"><img src="/fig/corner-matrix.png" alt="多 corner 签核表：每一行是一个工艺+电压+温度的组合，各查各的项目。重点看"SS 行查 setup、FF 行查 hold"这条主线，再看温度反转让 ss 的高温、低温两行都要跑——这正是本课强调"最差 corner 必须实算"的原因。" loading="lazy" decoding="async"></a><figcaption>多 corner 签核表：每一行是一个工艺+电压+温度的组合，各查各的项目。重点看"SS 行查 setup、FF 行查 hold"这条主线，再看温度反转让 ss 的高温、低温两行都要跑——这正是本课强调"最差 corner 必须实算"的原因。</figcaption></figure>
+<p>从图里要看出什么：<strong>签核是跑一张表，不是跑一次</strong>。上面场景表的每一行都对应这张矩阵里的一格，裁掉任何一格，就有一个条件永远没人证明过。</p>
 <p><strong>场景数量会爆炸</strong>：3 corner × 2 模式 × 2 RC × 2 温度 = 24 个。实际项目靠"裁剪"控制：只保留能产生最坏值的组合，其余用工程判断排除，并<strong>在签核记录里写明裁剪理由</strong>。</p>
 <div class="note"><div class="note-h">场景裁剪的红线</div><p>探索阶段可以裁剪（先跑 4 个主场景看看大概）；<strong>签核阶段不能裁</strong>——一旦某个场景被裁掉，就没有任何报告能证明它在那个条件下能工作。</p>
 <p>被裁掉的场景要写进 waiver 清单，注明"由谁判断、依据是什么"。这句话在 tapeout review 上会被问到。</p></div>
@@ -334,6 +343,9 @@
 <div class="tbl"><table><thead><tr><th>指标</th><th>全称</th><th>含义</th><th>为什么重要</th></tr></thead><tbody><tr><td>WNS</td><td>Worst Negative Slack</td><td>最差那条路径的 slack（没有负值时为 0）</td><td>一条路径决定整个芯片能不能跑这个频率</td></tr><tr><td>TNS</td><td>Total Negative Slack</td><td>所有负 slack 之和</td><td>衡量"烂得有多广"，WNS 只反映一个点</td></tr><tr><td>NVP</td><td>Number of Violating Paths</td><td>负 slack 路径条数</td><td>决定 ECO 工作量</td></tr><tr><td>Area</td><td>单元面积总和</td><td>—</td><td>成本</td></tr><tr><td>Utilization</td><td>利用率</td><td>单元面积 / 核心面积</td><td>太高布不通</td></tr></tbody></table></div>
 <div class="note"><div class="note-h">WNS 和 TNS 要一起看</div><ul><li>WNS −0.05、TNS −2：只有几十条路径差一点点，一轮 ECO 能收。</li><li>WNS −0.05、TNS −800：几千条路径都差一点点，说明是<strong>系统性问题</strong>（约束太紧、库不对、频率定高了），ECO 修不完。</li></ul>
 <p>看到第二种，先别写 ECO，先去查约束和库。</p></div>
+<p>拿到 WNS / TNS / NVP 这三个数之后怎么用，这张图给出固定的分流顺序：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/timing-summary.png" data-fig="timing-summary"><img src="/fig/timing-summary.png" alt="时序汇总表的读法：WNS、TNS、违例条数三个数是"体检报告的第一页"，先靠它们决定往单点修还是系统性查，再按现象分流到具体路径。重点看下半部分的分流顺序——和上面 note 里"先查约束和库再动手"是同一个逻辑。" loading="lazy" decoding="async"></a><figcaption>时序汇总表的读法：WNS、TNS、违例条数三个数是"体检报告的第一页"，先靠它们决定往单点修还是系统性查，再按现象分流到具体路径。重点看下半部分的分流顺序——和上面 note 里"先查约束和库再动手"是同一个逻辑。</figcaption></figure>
+<p>从图里要看出什么：<strong>三个数决定方向，具体路径决定动作</strong>。跳过第一页直接修路径，就是本课反复警告的"用 ECO 修系统性问题"。</p>
   <label class="ch-done"><input type="checkbox" data-mark="checks"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="eco" data-ch="eco">
@@ -478,7 +490,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

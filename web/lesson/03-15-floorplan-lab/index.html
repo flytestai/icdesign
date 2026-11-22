@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Floorplan 实战：利用率、IO 与电源走廊的一体化决策 · 26 | IC 后端学院</title>
+<title>Floorplan 实战：利用率、IO 与电源走廊的一体化决策 · 28 | IC 后端学院</title>
 <meta name="description" content="把 floorplan 当成一道要交方案的题：给定单元数、macro 清单、封装引脚数，算出 die 尺寸、通道宽度、电源走廊位置，并说清每个数字的依据。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-15-floorplan-lab">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>Floorplan 实战：利用率、IO 与电源走廊的一体化决策</b></div>
     <div class="hero">
-      <div class="hero-no">26</div>
+      <div class="hero-no">28</div>
       <h1>Floorplan 实战：利用率、IO 与电源走廊的一体化决策</h1>
       <p class="hero-en">Floorplan Lab</p>
       <p class="hero-sum">把 floorplan 当成一道要交方案的题：给定单元数、macro 清单、封装引脚数，算出 die 尺寸、通道宽度、电源走廊位置，并说清每个数字的依据。</p>
@@ -135,6 +135,9 @@
 <p>走廊宽度要把 stripe、间距、通孔包边都算进去：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">走廊 = 2（线宽）+ 2×1.5（两侧间距）+ 2×1（via 包边）= 7 µm → 取 10 µm</span></code></pre></div>
 <p>10µm 的走廊在 40µm 的横向通道里占四分之一，这就是为什么横向通道不能按 20µm 给——<strong>电源先占，剩下的才是信号的。</strong></p>
+<p>把信号和电源两笔账加在一起，通道的完整构成是这样的：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/fp-channel.png" data-fig="fp-channel"><img src="/fig/fp-channel.png" alt="宏单元通道宽度的手算过程：两个 SRAM 面对面摆、引脚朝内，中间这条通道要同时容纳引脚拉出的线、两条电源走廊和余量，下面的色条把这个加法拆开了。重点看三段的占比——信号占大头、电源占固定一份、余量是安全垫，本题 70µm 就是这么加出来的。" loading="lazy" decoding="async"></a><figcaption>宏单元通道宽度的手算过程：两个 SRAM 面对面摆、引脚朝内，中间这条通道要同时容纳引脚拉出的线、两条电源走廊和余量，下面的色条把这个加法拆开了。重点看三段的占比——信号占大头、电源占固定一份、余量是安全垫，本题 70µm 就是这么加出来的。</figcaption></figure>
+<p>从这张图里要看出什么：通道宽度不是拍一个数，是三项加法——少算任何一项，布线阶段都会以拥塞的形式把账讨回来。</p>
 <p>顺手做一个压降量级检查：一条 2µm 宽、350µm 长的 M5，方块电阻按 0.05Ω/□ 算：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">方块数 = 350 ÷ 2 = 175</span><span class="ln ">电阻 = 175 × 0.05 = 8.75 Ω</span><span class="ln ">单条压降 = 8.75 × 3.1mA = 27 mV</span></code></pre></div>
 <p>27mV 是标称 1.0V 的 2.7%，单条看有点紧。但 29 条并联、加上 M6 横向网格，实际局部压降会明显低于这个数。<strong>这一步只做量级判断，最终以 IR 分析工具为准</strong>——课程环境跑不了 IR 分析，真实项目里你会看到一张按颜色分级的压降图。</p>
@@ -165,6 +168,9 @@
 <p>本题的分配（假设数据流从左进、从右出）：</p>
 <div class="tbl"><table><thead><tr><th>边</th><th>放什么</th><th>数量</th><th>理由</th></tr></thead><tbody><tr><td>左</td><td>输入数据总线、参考时钟</td><td>90</td><td>数据从左进来，直接进核心</td></tr><tr><td>右</td><td>输出数据总线、测试口</td><td>80</td><td>数据从右出去，走线不交叉</td></tr><tr><td>下</td><td>配置总线、复位、中断</td><td>60</td><td>低速信号，离核心控制区近</td></tr><tr><td>上</td><td>电源地 + 少量模拟</td><td>90</td><td>电源在四边均匀分布，上边补足</td></tr><tr><td>四角</td><td>电源地</td><td>含在上面</td><td>角落放电最稳</td></tr></tbody></table></div>
 <p>电源地 60 个要<strong>均匀摊到四边</strong>，不能全挤一边——一侧供电不足，IR drop 会在那一侧集中。所以上表里每边的数字都含了一部分电源脚。</p>
+<p>按信号流向分完之后，四边 pin 的分布长这样：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/fp-io.png" data-fig="fp-io"><img src="/fig/fp-io.png" alt="IO 引脚分配图：黄色是输入、绿色是输出、红色是电源地。重点看两点——输入集中在数据进来的那边、电源地均匀摊在四边，这正是上面分配表的图形化；分法的依据是信号流向，不是数量平均。" loading="lazy" decoding="async"></a><figcaption>IO 引脚分配图：黄色是输入、绿色是输出、红色是电源地。重点看两点——输入集中在数据进来的那边、电源地均匀摊在四边，这正是上面分配表的图形化；分法的依据是信号流向，不是数量平均。</figcaption></figure>
+<p>从这张图里要看出什么：总线不拆、电源不挤一边，飞线才不会拧成一团——布局后的飞线图是验证 pin 分配最快的方式。</p>
 <h3><code>editPin</code> 的四个要素</h3>
 <p>命令名在不同版本里可能是 <code>editPin</code> 或 <code>create_io_pin</code>，但四件事永远不变：<strong>哪条边、哪一层、什么顺序、多大间距。</strong></p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：把 32 位输入总线按顺序摆到 die 左边，双排交错，间距 10µm</span><span class="ln cmt"># 用法：floorplan 与电源规划之后执行；pin 名必须与网表端口名完全一致</span><span class="ln ">editPin -pin {din[0] din[1] din[2] din[3] din[4] din[5] din[6] din[7]} \</span><span class="ln ">        -side Left \</span><span class="ln ">        -layer M5 \</span><span class="ln ">        -spreadType range \</span><span class="ln ">        -start {45 300} -end {45 460} \</span><span class="ln ">        -spacing 10</span><span class="ln cmt"># -side：放哪条边（Left/Right/Top/Bottom）</span><span class="ln cmt"># -layer：焊盘所在金属层，要和封装打线/凸点匹配</span><span class="ln cmt"># -spreadType range：在 start 到 end 这一段里均匀铺开（center 是整边居中）</span><span class="ln cmt"># -start/-end：这一段的两端坐标，用来把总线约束在某个区间</span><span class="ln cmt"># -spacing：相邻 pin 中心距；双排时给 10，等于单排的 20</span></code></pre></div>
@@ -192,6 +198,9 @@
 <p>这个结果和基础课里"利用率从 0.62 提到 0.72，面积省 12%"完全相反。原因就是宏单元占比 95%——利用率只作用在 5% 的面积上，杠杆几乎没有。</p>
 <p>结论很直接：<strong>在这个设计里，省面积这个理由不成立，应该往松了给。</strong></p>
 <div class="tbl"><table><thead><tr><th>方案</th><th>好处</th><th>风险</th></tr></thead><tbody><tr><td>0.55</td><td>条带多 8µm（约 7 行），布线和 ECO 都有余量；IR drop 更好</td><td>多花 0.9% 面积，几乎无成本</td></tr><tr><td>0.65</td><td>常规值，好交代</td><td>条带 45µm，40 行，走线密度中等</td></tr><tr><td>0.72</td><td>条带 41µm，省 0.4% 面积</td><td>条带内只剩 36 行，局部拥塞概率明显上升；后期 ECO 没地方插单元</td></tr></tbody></table></div>
+<p>利用率这个旋钮的取舍，用四个方格看最直观：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/util-overview.png" data-fig="util-overview"><img src="/fig/util-overview.png" alt="利用率取舍图：四个方格是同一个设计在四种利用率下的密度，右边是各自的风险。重点看"密度升高、风险跳变"的位置——本题宏单元占 95%，利用率只作用在 5% 的条带上，所以图上的跳变被大大推迟了。" loading="lazy" decoding="async"></a><figcaption>利用率取舍图：四个方格是同一个设计在四种利用率下的密度，右边是各自的风险。重点看"密度升高、风险跳变"的位置——本题宏单元占 95%，利用率只作用在 5% 的条带上，所以图上的跳变被大大推迟了。</figcaption></figure>
+<p>从这张图里要看出什么：利用率每提一档，省的面积是小量、冒的风险是跳变——宏占比越高这个不等式越倾斜，越该往松了给，这正是"推荐 0.55~0.60"的图形依据。</p>
 <p>推荐 0.55~0.60。理由不是"保守"，是<strong>这笔交易的赔率不对</strong>：省 1.4% 面积，换的是布线阶段可能多花两天。</p>
 <p>如果评审坚持要 0.72，也不是不能做，但要换来两件事：一是把省下的空间明确记成"无 ECO 余量"，后面所有插 buffer 的动作都要走正式 ECO 流程；二是在电源规划上多给一点，因为条带变矮、单元变密，局部电流密度上升，IR drop 会比 0.55 方案差几个毫伏。<strong>每一个"省"都要在别处标出它的账。</strong></p>
 <p>这也是一条可以带走的判断规则：<strong>宏单元占比超过 50% 的设计，利用率这个旋钮基本失效，决策重心应该转到宏块形状和通道宽度上。</strong></p>
@@ -275,7 +284,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

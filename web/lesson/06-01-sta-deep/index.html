@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>STA 深水区：时钟组、跨时钟域与悲观度 · 34 | IC 后端学院</title>
+<title>STA 深水区：时钟组、跨时钟域与悲观度 · 36 | IC 后端学院</title>
 <meta name="description" content="会算 setup/hold 只是入门。真实项目里最难的是"哪些路径该查、该怎么查"：时钟组为什么必须写、false path / multicycle / max_delay 三者怎么选、OCV / CPPR / AOCV 各自消除什么、2.5ns 的周期怎么分给逻辑和余量，以及 report_timing 的三个高级用法。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="06-01-sta-deep">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-6">阶段六 · STA 静态时序分析</a><span>/</span><b>STA 深水区：时钟组、跨时钟域与悲观度</b></div>
     <div class="hero">
-      <div class="hero-no">34</div>
+      <div class="hero-no">36</div>
       <h1>STA 深水区：时钟组、跨时钟域与悲观度</h1>
       <p class="hero-en">Advanced STA</p>
       <p class="hero-sum">会算 setup/hold 只是入门。真实项目里最难的是"哪些路径该查、该怎么查"：时钟组为什么必须写、false path / multicycle / max_delay 三者怎么选、OCV / CPPR / AOCV 各自消除什么、2.5ns 的周期怎么分给逻辑和余量，以及 report_timing 的三个高级用法。</p>
@@ -76,8 +76,7 @@
 </section>
 <section class="ch" id="exceptions" data-ch="exceptions">
   <div class="ch-h"><span class="ch-n">02</span><h2>二、false path 与 multicycle：该松的松，该紧的紧</h2></div>
-  <div class="goal"><span>本章目标</span>学完这一章，你能为一条路径选出正确的例外约束，并说出"如果写错，会漏掉哪一类真实违例"。</div>
-<p>三条命令长得很像，语义完全不同。先看一张定位表：</p>
+  <p>三条命令长得很像，语义完全不同。先看一张定位表：</p>
 <div class="tbl"><table><thead><tr><th>约束</th><th>一句话语义</th><th>还检不检查</th><th>检查基准</th></tr></thead><tbody><tr><td><code>set_false_path</code></td><td>这条路径永远不用查</td><td>完全不查</td><td>无</td></tr><tr><td><code>set_multicycle_path N</code></td><td>允许 N 个周期完成</td><td>查，但放宽到第 N 拍</td><td>时钟周期 × N</td></tr><tr><td><code>set_max_delay D</code></td><td>绝对延迟不许超过 D</td><td>查，用绝对值</td><td>D 本身，与周期无关</td></tr></tbody></table></div>
 <p>记法：<strong>false path 是"删掉"，multicycle 是"往后挪"，max_delay 是"换个尺子量"。</strong></p>
 <div class="term" tabindex="0">
@@ -112,8 +111,7 @@
 </section>
 <section class="ch" id="pessimism" data-ch="pessimism">
   <div class="ch-h"><span class="ch-n">03</span><h2>三、悲观度：签核要多保守</h2></div>
-  <div class="goal"><span>本章目标</span>学完这一章，你能说清 OCV、CPPR、AOCV 各自在消除什么，并手算出一条 2.5ns 路径在四种模式下的 slack。</div>
-<p>05-02 已经讲过 derate（降额系数）的基本公式和 5% 吃掉多少，这里不重复推导。这一章换个角度：<strong>把三种悲观度当成三笔账，看每一笔在修什么问题。</strong></p>
+  <p>05-02 已经讲过 derate（降额系数）的基本公式和 5% 吃掉多少，这里不重复推导。这一章换个角度：<strong>把三种悲观度当成三笔账，看每一笔在修什么问题。</strong></p>
 <p>买电阻的类比还记得：标称 100Ω、精度 ±5%，一盒里实际是 95~105Ω。如果你拿 20 个串联，最坏是不是 20×5Ω？不是——误差有正有负，全同向的概率极低。但签核必须按最坏算，因为要量产几百万颗。</p>
 <p>OCV 就是"全按最坏算"。它的问题也在这里：<strong>太粗。</strong></p>
 <div class="tbl"><table><thead><tr><th>机制</th><th>在消除什么</th><th>消除不了什么</th><th>代价</th></tr></thead><tbody><tr><td>OCV / derate</td><td>给随机偏差留余量（覆盖，不是消除）</td><td>分不清深路径和浅路径</td><td>深路径过度悲观</td></tr><tr><td>CPPR</td><td>公共路径被 late/early 各算一次的<strong>虚假</strong>悲观</td><td>分叉之后的真实偏差</td><td>需要工具支持，计算稍慢</td></tr><tr><td>AOCV</td><td>深路径上"统一系数"的过度悲观</td><td>同一深度内不同单元的真实差异</td><td>需要 foundry 给表</td></tr><tr><td>POCV / LVF</td><td>线性相加的过度悲观（改方差相加）</td><td>模型本身的误差</td><td>文件巨大、跑得慢</td></tr></tbody></table></div>
@@ -143,14 +141,19 @@
 <div class="scene"><div class="scene-h">工作场景 · 三个人，三份报告，三个结论</div><div class="scene-b"><p>同一版网表，三个人各跑一次 PT：</p>
 <div class="tbl"><table><thead><tr><th>跑法</th><th>setup WNS</th><th>结论</th></tr></thead><tbody><tr><td>不开 OCV</td><td>+0.35ns</td><td>"这设计很宽松"</td></tr><tr><td>5% derate</td><td>−0.12ns</td><td>"要修两周"</td></tr><tr><td>AOCV + CPPR</td><td>+0.08ns</td><td>"可以签核"</td></tr></tbody></table></div>
 <p>会上吵起来的根本不是设计，是悲观度。所以签核会的第一页必须是"本次使用的模式与参数"，而不是 WNS 数字。<strong>没有参数说明的 WNS 没有意义。</strong></p></div></div>
+<p>吵完之后怎么收敛？回到汇总数字本身：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/timing-summary.png" data-fig="timing-summary"><img src="/fig/timing-summary.png" alt="时序汇总表的读法：WNS、TNS、违例条数三个数是"体检报告的第一页"，先靠它们定方向，再按现象分流。重点看上半部分——三个数必须和"本次使用的悲观度模式"写在同一页，这正是上面 scene 里三个人吵不起来的解法。" loading="lazy" decoding="async"></a><figcaption>时序汇总表的读法：WNS、TNS、违例条数三个数是"体检报告的第一页"，先靠它们定方向，再按现象分流。重点看上半部分——三个数必须和"本次使用的悲观度模式"写在同一页，这正是上面 scene 里三个人吵不起来的解法。</figcaption></figure>
+<p>从图里要看出什么：<strong>汇报时先报模式与参数，再报三个数</strong>。没有参数说明的 WNS 没有意义，这句话在这张图里落成了固定的呈现顺序。</p>
   <label class="ch-done"><input type="checkbox" data-mark="pessimism"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="budget" data-ch="budget">
   <div class="ch-h"><span class="ch-n">04</span><h2>四、时序预算：把周期分给谁</h2></div>
-  <div class="goal"><span>本章目标</span>学完这一章，你能把 2.5ns 的周期拆成五份，并判断一条 30 级逻辑的路径还有没有余量。</div>
-<p>时序预算（timing budget）就是"一个周期怎么花"。它的作用和家庭预算一样：先定各项上限，超了就知道该砍哪一项，而不是月底看账单发呆。</p>
+  <p>时序预算（timing budget）就是"一个周期怎么花"。它的作用和家庭预算一样：先定各项上限，超了就知道该砍哪一项，而不是月底看账单发呆。</p>
 <p>基本式子（setup 视角）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">T_period = T_ckq + T_logic + T_setup + T_skew + T_uncertainty + T_margin</span></code></pre></div>
+<p>这个式子画成一条路径的解剖图，就是下面这张：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/timing-path.png" data-fig="timing-path"><img src="/fig/timing-path.png" alt="一条时序路径的解剖图：Tcq 是触发器内部的输出延迟，Tlogic 是中间组合逻辑的总延迟，Tsetup 是终点触发器要求数据提前稳定多久，下面两个公式是所有时序分析的基础。重点看三段延迟怎么和预算表里的 T_ckq、T_logic、T_setup 一一对应——周期就是按这张图拆给每一项的。" loading="lazy" decoding="async"></a><figcaption>一条时序路径的解剖图：Tcq 是触发器内部的输出延迟，Tlogic 是中间组合逻辑的总延迟，Tsetup 是终点触发器要求数据提前稳定多久，下面两个公式是所有时序分析的基础。重点看三段延迟怎么和预算表里的 T_ckq、T_logic、T_setup 一一对应——周期就是按这张图拆给每一项的。</figcaption></figure>
+<p>从图里要看出什么：<strong>预算表的每一行，都能在图里指到一个具体的位置</strong>。28 级还是 38 级的争论，本质上就是 T_logic 这一段能不能塞进它的预算。</p>
 <p>每一项都要有人负责：</p>
 <div class="tbl"><table><thead><tr><th>项目</th><th>谁负责</th><th>怎么定</th></tr></thead><tbody><tr><td><code>T_ckq</code></td><td>库</td><td>查 lib，触发器 CK→Q 的延迟</td></tr><tr><td><code>T_logic</code></td><td>前端 + 后端</td><td>逻辑级数 × 单级延迟；这是唯一能大幅压缩的一项</td></tr><tr><td><code>T_setup</code></td><td>库</td><td>查 lib，且随 transition 变化（见第六章）</td></tr><tr><td><code>T_skew</code></td><td>CTS</td><td>目标值，CTS 后用实测替换</td></tr><tr><td><code>T_uncertainty</code></td><td>签核</td><td>jitter + 残余 skew + 建模误差</td></tr><tr><td><code>T_margin</code></td><td>项目</td><td>布线后恶化、后期 ECO、模型误差</td></tr></tbody></table></div>
 <h3>2.5ns 的预算表</h3>
@@ -173,9 +176,11 @@
 </section>
 <section class="ch" id="report-adv" data-ch="report-adv">
   <div class="ch-h"><span class="ch-n">05</span><h2>五、report_timing 的三个高级用法</h2></div>
-  <div class="goal"><span>本章目标</span>学完这一章，你能用三条命令回答三个具体问题：这个单元拖了多少条路径、改完这一条有没有好、这 0.9ns 的时钟延迟花在哪几级。</div>
-<p><code>report_timing</code> 有几十个参数，但真正改变"你能看到什么"的只有三个：<code>-through</code>、<code>-from/-to</code>、<code>-path_type</code>。默认输出把时钟路径折叠成一行，很多问题因此看不见。</p>
+  <p><code>report_timing</code> 有几十个参数，但真正改变"你能看到什么"的只有三个：<code>-through</code>、<code>-from/-to</code>、<code>-path_type</code>。默认输出把时钟路径折叠成一行，很多问题因此看不见。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：三种高级用法，分别对应"经过谁""只看这一条""skew 从哪来"</span><span class="ln cmt"># 用法：定位阶段用第一条，ECO 复验用第二条，查时钟用第三条</span><span class="ln ">report_timing -through [get_pins u_alu/U1188/Z] -max_paths 20</span><span class="ln cmt"># 说明：-through 只保留经过该引脚的路径，用来数"这个单元拖了多少条违例"</span><span class="ln cmt"># 说明：出现在 200 条违例里的单元，换掉它比修 200 条路径划算</span><span class="ln "> </span><span class="ln ">report_timing -from [get_pins u_ctrl/state_reg[2]/CK] -to [get_pins u_dp/acc_reg[7]/D]</span><span class="ln cmt"># 说明：-from/-to 精确锁定一对端点；改完 ECO 只看这一条，避免被别的路径干扰</span><span class="ln cmt"># 说明：-from 写 CK 引脚表示"由这个触发器的时钟沿发射"，写 cell 则包含它的所有起点</span><span class="ln "> </span><span class="ln ">report_timing -from [get_pins u_ctrl/state_reg[2]/CK] -to [get_pins u_dp/acc_reg[7]/D] \</span><span class="ln ">              -path_type full_clock_expanded -max_paths 1</span><span class="ln cmt"># 说明：full_clock_expanded 把时钟路径逐级展开</span><span class="ln cmt"># 说明：默认只给一行 "clock network delay 0.90"，展开后能看到每一级 buffer 的 Incr</span></code></pre></div>
+<p>这三种用法捞出来的报告长什么样，先看一张逐行注解的全景：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/report-timing-annotated.png" data-fig="report-timing-annotated"><img src="/fig/report-timing-annotated.png" alt="report_timing 的输出逐行注解：左边是真实格式的报告，右边把每一段在说什么写清。重点看 `-path_type full_clock_expanded` 展开出来的时钟那几行——第三条命令要回答的"0.9ns 花在哪几级"，答案就在 Incr 列里。" loading="lazy" decoding="async"></a><figcaption>report_timing 的输出逐行注解：左边是真实格式的报告，右边把每一段在说什么写清。重点看 `-path_type full_clock_expanded` 展开出来的时钟那几行——第三条命令要回答的"0.9ns 花在哪几级"，答案就在 Incr 列里。</figcaption></figure>
+<p>从图里要看出什么：<strong>报告不是只读最后那个 slack，是读中间每一行的 Incr</strong>。三个高级用法全是在帮你把"哪一级"定位出来。</p>
 <h3><code>-through</code>：找"惯犯单元"</h3>
 <p>一个问题单元往往会出现在很多条违例里。<code>-through</code> 就是筛子。</p>
 <p>用法上有两个细节：</p>
@@ -194,8 +199,7 @@
 </section>
 <section class="ch" id="transition" data-ch="transition">
   <div class="ch-h"><span class="ch-n">06</span><h2>六、transition 为什么会让 setup 变差</h2></div>
-  <div class="goal"><span>本章目标</span>学完这一章，你能解释"时钟边沿变慢 100ps，setup 为什么涨 40ps"，并知道修 setup 之前为什么要先修 DRV。</div>
-<div class="term" tabindex="0">
+  <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Transition</span><span class="term-zh">转换时间</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>也叫 slew（斜率）。信号从低到高（或从高到低）跨越阈值区间所花的时间。库里的每一张延迟表、每一张约束表，都以它为自变量之一。<br>transition 差 = 边沿"爬"得慢 = 波形不再是陡直的台阶。</p></div>
 </div>
@@ -215,8 +219,7 @@
 </section>
 <section class="ch" id="discipline" data-ch="discipline">
   <div class="ch-h"><span class="ch-n">07</span><h2>七、例外约束的纪律：四条，缺一条就出事</h2></div>
-  <div class="goal"><span>本章目标</span>学完这一章，你能给出一条例外约束的完整"证据链"，并在评审会上经得住三连问。</div>
-<p>例外约束（exception）是 SDC 里唯一能"让违例消失"的东西。所以它也是唯一需要流程管控的东西。</p>
+  <p>例外约束（exception）是 SDC 里唯一能"让违例消失"的东西。所以它也是唯一需要流程管控的东西。</p>
 <p>四条纪律：</p>
 <ol><li><strong>每条例外都要有注释</strong>，写清依据：设计规格第几节、前端谁的确认、哪封邮件。没有依据的 false path 等于在签核报告上造假。</li><li><strong>每条例外都要能被复查</strong>。写法上尽量用 clock group 和 <code>-from/-to</code> 成对，避免"只写 -from"这种覆盖整个域的写法。</li><li><strong>改动要留 diff</strong>。SDC 进版本管理，每次改动一个 commit，message 写"为什么"。评审时看 diff 比看全文快十倍。</li><li><strong>数量要能解释</strong>。一个中等项目的例外约束通常几十条；如果你的 SDC 里有三百条 false path，那不是约束，是掩盖。</li></ol>
 <p>评审会上的三连问，提前准备答案：</p>
@@ -282,7 +285,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>

@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>修时序：六种手段和它们的代价 · 18 | IC 后端学院</title>
+<title>修时序：六种手段和它们的代价 · 20 | IC 后端学院</title>
 <meta name="description" content="违例不是"点一下优化就没了"。这一课把六种手段的收益、代价和禁用场景摆在一张表上，讲清 useful skew 的三条纪律、先 setup 后 hold 的完整论证，以及修完必须复算的三份报告。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795358787">
+<link rel="stylesheet" href="/assets/app.css?v=1795359684">
 </head>
 <body data-page="lesson" data-lesson="03-07-fix-timing">
 <header class="top">
@@ -26,7 +26,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目</a><span>/</span><b>修时序：六种手段和它们的代价</b></div>
     <div class="hero">
-      <div class="hero-no">18</div>
+      <div class="hero-no">20</div>
       <h1>修时序：六种手段和它们的代价</h1>
       <p class="hero-en">Timing Closure</p>
       <p class="hero-sum">违例不是"点一下优化就没了"。这一课把六种手段的收益、代价和禁用场景摆在一张表上，讲清 useful skew 的三条纪律、先 setup 后 hold 的完整论证，以及修完必须复算的三份报告。</p>
@@ -43,6 +43,9 @@
 <p>每种办法都能让这一段快一点，但都要付钱：钱、面积、功耗、或者别人的时间。</p>
 <p>先说一条判断原则，它决定你该翻到哪一节：<strong>看延迟构成。</strong></p>
 <div class="tbl"><table><thead><tr><th>报告的构成</th><th>说明问题在</th><th>优先手段</th></tr></thead><tbody><tr><td>cell delay 占 70% 以上</td><td>逻辑本身慢</td><td>upsize、换 LVT、改逻辑</td></tr><tr><td>net delay 占 60% 以上</td><td>距离太远</td><td>挪位置、插 buffer</td></tr><tr><td>延迟不大但 fanout &gt; 32</td><td>一个驱动带太多负载</td><td>插 buffer 树</td></tr><tr><td>slack 只差 30~80ps</td><td>差一点点</td><td>useful skew、小幅 upsize</td></tr><tr><td>逻辑级数 &gt; 20 级</td><td>结构问题</td><td>改逻辑、重定时</td></tr></tbody></table></div>
+<p>选手段之前，先看体检报告的第一页，三个数定方向：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/timing-summary.png" data-fig="timing-summary"><img src="/fig/timing-summary.png" alt="时序汇总表的读法：WNS / TNS / 违例条数是"体检报告的第一页"，先看它们决定往哪个方向查，再去看具体路径。重点看下半部分按现象分流的处理顺序——它和上面的"延迟构成"表是一件事的两种说法。" loading="lazy" decoding="async"></a><figcaption>时序汇总表的读法：WNS / TNS / 违例条数是"体检报告的第一页"，先看它们决定往哪个方向查，再去看具体路径。重点看下半部分按现象分流的处理顺序——它和上面的"延迟构成"表是一件事的两种说法。</figcaption></figure>
+<p>从这张图里要看出什么：三个数必须一起看——WNS 变好但违例条数变多，说明修好了最差的、弄坏了更多中等的，这种"变好"不算数。</p>
 <p>六种手段的全景表：</p>
 <div class="tbl"><table><thead><tr><th>手段</th><th>改善什么</th><th>代价</th><th>什么时候别用</th></tr></thead><tbody><tr><td>upsize（换大驱动）</td><td>cell delay 降 10%~25%</td><td>面积↑、功耗↑、输入电容↑拖累上一级</td><td>net delay 占主导、已到最大尺寸、单元是 <code>dont_touch</code></td></tr><tr><td>换 VT（低阈值）</td><td>cell delay 降 20%~40%，面积不变</td><td>漏电涨 3~5 倍</td><td>漏电预算已紧、常开域（always-on）、模拟/IO 附近</td></tr><tr><td>插 buffer</td><td>长线延迟从平方增长变线性</td><td>面积↑、功耗↑、拥塞↑、多一级延迟</td><td>短线（纯加延迟）、已拥塞区、时钟网络</td></tr><tr><td>挪位置</td><td>net delay 降，可能降一半</td><td>拥塞搬家、可能破坏别的路径</td><td>密度已 &gt;0.85、被宏单元挡住、一次挪太多</td></tr><tr><td>useful skew</td><td>借几十 ps，零面积零功耗</td><td>下游路径少同样的时间</td><td>跨时钟域、下游没余量、时钟树未定稿</td></tr><tr><td>改逻辑</td><td>从根上减级数，收益最大</td><td>要前端配合、重跑综合与验证</td><td>临近 tapeout、IP 内部、没验证资源</td></tr></tbody></table></div>
 <p><strong>这张表的使用方式不是"从上往下试"，是"先看报告再选行"。</strong> 拿一条 net delay 占 78% 的路径去 upsize，等于给堵在高速上的车换发动机——钱花了，路还是堵。</p>
@@ -50,6 +53,9 @@
   <div class="term-h"><span class="term-en">ECO</span><span class="term-zh">Engineering Change Order，工程变更单</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>在不推翻整个流程的前提下，对设计做小范围修改：换一个单元、插一个 buffer、挪一个位置、改一根线的连接。<br>后端 80% 的时序修复靠 ECO 完成，因为重跑一次全流程要几小时到几天，而一次 ECO 只要几分钟。代价是<strong>每次 ECO 都会让之前的报告作废</strong>，必须复算。</p></div>
 </div>
+<p>这一课的所有手段都发生在 ECO 里，先把 ECO 的完整生命周期看一遍：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/eco-flow.png" data-fig="eco-flow"><img src="/fig/eco-flow.png" alt="ECO 五环节：第②步人工审核和第⑤步复算与等价性检查最容易被跳过。重点看这两步——②决定"这个改法合不合理"，⑤决定"有没有改坏"，跳过它们的 ECO 是所有深夜事故的来源。" loading="lazy" decoding="async"></a><figcaption>ECO 五环节：第②步人工审核和第⑤步复算与等价性检查最容易被跳过。重点看这两步——②决定"这个改法合不合理"，⑤决定"有没有改坏"，跳过它们的 ECO 是所有深夜事故的来源。</figcaption></figure>
+<p>从这张图里要看出什么：本章讲的是第③步"执行改动"里的六种手段，但②和⑤才是 ECO 不出事的保证——本章最后的"三份报告"就是第⑤步的具体动作。</p>
 <div class="scene"><div class="scene-h">工作场景 · tapeout 前三天，两个负数</div><div class="scene-b"><p>周五下午，距离定版还有三天：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Path Group   Type    WNS      TNS     Violating Paths</span><span class="ln ">clk_core     setup   -0.12    -3.40   47</span><span class="ln ">clk_core     hold    -0.04    -0.31   12</span></code></pre></div>
 <p>会议室里三种意见：</p>
@@ -231,6 +237,9 @@
 <p>复算要跑三份，对应三个不同的问题：</p>
 <h3>第一份：时序全量（setup + hold，全 corner）</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：在最终数据库上重跑完整时序，覆盖 setup/hold 和所有 signoff corner</span><span class="ln cmt"># 用法：postRoute 之后执行；-outDir 指定输出目录，报告要归档</span><span class="ln ">timeDesign -postRoute -outDir rpt/final          ;# Innovus：一次生成 summary + 路径 + DRV</span><span class="ln ">report_timing -delay_type max -max_paths 50 &gt; rpt/final/setup_top50.rpt   ;# setup 最差 50 条</span><span class="ln ">report_timing -delay_type min -max_paths 50 &gt; rpt/final/hold_top50.rpt    ;# hold 最差 50 条</span></code></pre></div>
+<p>三份报告里两份都是 report_timing，先把它的输出格式认一遍：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/report-timing-annotated.png" data-fig="report-timing-annotated"><img src="/fig/report-timing-annotated.png" alt="report_timing 的输出逐行注解：左边是真实格式的报告，右边把每一段在说什么写清楚。重点看两处——数据到达时间和要求时间的差就是 slack；每一段延迟是 cell 还是 net，对应本章开头"延迟构成"表里的一行。" loading="lazy" decoding="async"></a><figcaption>report_timing 的输出逐行注解：左边是真实格式的报告，右边把每一段在说什么写清楚。重点看两处——数据到达时间和要求时间的差就是 slack；每一段延迟是 cell 还是 net，对应本章开头"延迟构成"表里的一行。</figcaption></figure>
+<p>从这张图里要看出什么：拿到报告先拆"差在哪一段"——cell 占主导翻回手段一、二，net 占主导翻回手段二、三，这就是"先看报告再选行"的落地动作。</p>
 <p>看什么：WNS（最差那条）、TNS（所有负 slack 之和）、违例条数。<strong>三个数要一起看</strong>：WNS 从 −0.12 变 −0.10 但条数从 47 变 120，说明你修好了最差的、弄坏了更多中等的。</p>
 <h3>第二份：物理（DRC + 拥塞 + 合法性）</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 作用：确认 ECO 没引入新的物理问题</span><span class="ln cmt"># 用法：postRoute 之后执行；DRC 要在最终布线结果上跑</span><span class="ln ">verify_drc                        ;# 设计规则检查：间距、宽度、通孔、天线</span><span class="ln ">reportCongestion -hotSpot         ;# 拥塞：新插的 buffer 有没有把某片区域压垮</span><span class="ln ">checkPlace                        ;# 合法性：挪位置之后有没有落在非法坐标上</span></code></pre></div>
@@ -312,7 +321,7 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795358787"></script>
-<script src="/assets/app.js?v=1795358787"></script>
+<script src="/assets/shell.js?v=1795359684"></script>
+<script src="/assets/app.js?v=1795359684"></script>
 </body>
 </html>
