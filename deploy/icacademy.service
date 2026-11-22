@@ -1,0 +1,18 @@
+[Unit]
+Description=IC Backend Academy (ic.feice.net)
+After=network.target
+
+[Service]
+Type=simple
+User=weizhen
+Group=weizhen
+WorkingDirectory=/home/weizhen/icacademy
+Environment=ICL_BASE=/home/weizhen/icacademy
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/weizhen/icacademy/venv/bin/uvicorn app:app --host 127.0.0.1 --port 8710 --workers 2 --proxy-headers
+Restart=always
+RestartSec=3
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,3471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VCS × Verdi 交互式实训实验室</title>
+<style>
+:root{
+  --bg:#080c11;
+  --bg2:#0b1118;
+  --panel:#0f1620;
+  --panel2:#131c27;
+  --line:#1d2a38;
+  --line2:#25364a;
+  --text:#d9e4f0;
+  --muted:#8fa3ba;
+  --dim:#5f7288;
+  --green:#25d99b;
+  --green-d:#0e8f66;
+  --blue:#4d90ff;
+  --cyan:#31d0e8;
+  --yellow:#f5c451;
+  --red:#ff5f6d;
+  --purple:#b585ff;
+  --orange:#ff9f45;
+  --mono:"JetBrains Mono","Cascadia Code",Consolas,"SF Mono",Menlo,monospace;
+  --sans:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:radial-gradient(1200px 700px at 75% -10%,#12202e 0%,transparent 60%),var(--bg);
+  color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(37,217,155,.28)}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#22303f;border-radius:6px}
+::-webkit-scrollbar-thumb:hover{background:#31465c}
+
+/* ============ 布局 ============ */
+#app{display:flex;min-height:100vh}
+#sidebar{
+  width:288px;flex:0 0 288px;background:linear-gradient(180deg,#0c141d,#080d13);
+  border-right:1px solid var(--line);height:100vh;position:sticky;top:0;
+  display:flex;flex-direction:column;z-index:40;
+}
+.brand{padding:22px 20px 16px;border-bottom:1px solid var(--line)}
+.brand .logo{display:flex;align-items:center;gap:10px}
+.brand .mark{
+  width:34px;height:34px;border-radius:9px;flex:0 0 34px;
+  background:linear-gradient(145deg,#25d99b,#0f8d68);position:relative;
+  box-shadow:0 6px 18px rgba(37,217,155,.28);
+}
+.brand .mark:after{
+  content:"";position:absolute;inset:9px 9px auto 9px;height:2px;background:#06231a;
+  box-shadow:0 5px 0 #06231a,0 10px 0 #06231a;opacity:.85;
+}
+.brand h1{font-size:15px;letter-spacing:.3px;font-weight:650}
+.brand p{font-size:11px;color:var(--dim);letter-spacing:1.4px;text-transform:uppercase;margin-top:2px;font-family:var(--mono)}
+
+.progress-wrap{padding:14px 20px 10px;border-bottom:1px solid var(--line)}
+.progress-top{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:7px;font-family:var(--mono)}
+.bar{height:5px;background:#16202b;border-radius:4px;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#0f8d68,#25d99b,#5df0c0);transition:width .5s cubic-bezier(.2,.8,.2,1);border-radius:4px}
+
+nav{flex:1;overflow-y:auto;padding:10px 12px 20px}
+nav .grp{font-size:10px;letter-spacing:1.6px;color:#4d5f74;margin:16px 8px 6px;font-family:var(--mono);text-transform:uppercase}
+nav a{
+  display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:8px;
+  color:var(--muted);text-decoration:none;font-size:13.2px;line-height:1.4;
+  transition:.18s;border:1px solid transparent;cursor:pointer;
+}
+nav a:hover{background:#111b25;color:var(--text)}
+nav a.on{background:linear-gradient(90deg,rgba(37,217,155,.14),rgba(37,217,155,.03));color:#eaf6f1;border-color:rgba(37,217,155,.28)}
+nav a .num{
+  font-family:var(--mono);font-size:10.5px;color:#5b7086;width:20px;flex:0 0 20px;text-align:center;
+  border:1px solid var(--line2);border-radius:5px;line-height:17px;height:19px;
+}
+nav a.on .num{color:#08221a;background:var(--green);border-color:var(--green);font-weight:700}
+nav a .dot{width:6px;height:6px;border-radius:50%;background:#25455a;margin-left:auto;flex:0 0 6px}
+nav a.done .dot{background:var(--green);box-shadow:0 0 8px rgba(37,217,155,.8)}
+
+#main{flex:1;min-width:0;display:flex;flex-direction:column}
+#topbar{
+  height:56px;border-bottom:1px solid var(--line);display:flex;align-items:center;
+  padding:0 34px;gap:14px;position:sticky;top:0;background:rgba(8,12,17,.82);
+  backdrop-filter:blur(14px);z-index:30;
+}
+#topbar .crumb{font-family:var(--mono);font-size:12px;color:var(--dim);letter-spacing:.4px}
+#topbar .crumb b{color:var(--text);font-weight:500}
+#topbar .spacer{flex:1}
+.pill{
+  font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:20px;
+  border:1px solid var(--line2);color:var(--muted);
+}
+.pill.live{border-color:rgba(37,217,155,.4);color:var(--green)}
+
+#content{padding:34px 40px 140px;max-width:1180px;width:100%;margin:0 auto}
+section.lesson{display:none;animation:rise .38s cubic-bezier(.2,.8,.2,1);scroll-margin-top:76px}
+section.lesson.on{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ============ 排版 ============ */
+.kicker{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:2px;color:var(--green);
+  text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:9px;
+}
+.kicker:before{content:"";width:22px;height:1px;background:var(--green);display:block}
+h2.title{font-size:29px;line-height:1.28;font-weight:680;letter-spacing:-.4px;margin-bottom:12px}
+.subtitle{color:var(--muted);font-size:14.5px;max-width:820px;margin-bottom:26px}
+h3{font-size:17.5px;font-weight:640;margin:34px 0 12px;letter-spacing:-.1px;display:flex;align-items:center;gap:10px}
+h3 .ic{width:22px;height:22px;border-radius:6px;background:rgba(77,144,255,.14);border:1px solid rgba(77,144,255,.3);display:grid;place-items:center;font-size:11px;color:var(--blue);font-family:var(--mono)}
+h4{font-size:14px;font-weight:640;margin:18px 0 8px;color:#cfe0ef}
+p{margin-bottom:12px;color:#c3d2e2}
+p.lead{font-size:15.5px;color:#cfe0ef}
+ul,ol{margin:0 0 14px 20px;color:#c3d2e2}
+li{margin-bottom:6px}
+li::marker{color:var(--green)}
+b,strong{color:#eaf3fb;font-weight:640}
+code.inl{
+  font-family:var(--mono);font-size:12.8px;background:#16222e;border:1px solid #22323f;
+  padding:1px 6px;border-radius:5px;color:#8ff0c8;
+}
+a.link{color:var(--cyan);text-decoration:none;border-bottom:1px dashed rgba(49,208,232,.4)}
+
+.card{
+  background:linear-gradient(180deg,var(--panel),#0c131b);border:1px solid var(--line);
+  border-radius:14px;padding:20px 22px;margin:16px 0;
+}
+.card.tight{padding:14px 16px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1080px){.g2,.g3,.g4{grid-template-columns:1fr}}
+
+.note{
+  border-left:3px solid var(--yellow);background:linear-gradient(90deg,rgba(245,196,81,.09),transparent 70%);
+  padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;font-size:13.6px;color:#dfd3b4;
+}
+.note.green{border-color:var(--green);background:linear-gradient(90deg,rgba(37,217,155,.09),transparent 70%);color:#bfe7d8}
+.note.blue{border-color:var(--blue);background:linear-gradient(90deg,rgba(77,144,255,.1),transparent 70%);color:#c3d6f5}
+.note.red{border-color:var(--red);background:linear-gradient(90deg,rgba(255,95,109,.1),transparent 70%);color:#f0c5c9}
+.note b{color:#fff}
+.note .tag{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;
+  display:inline-block;margin-right:8px;padding:1px 7px;border-radius:4px;
+  background:rgba(255,255,255,.09);
+}
+
+/* 引述课件 */
+.quote{
+  border:1px dashed #2a3d50;border-radius:10px;padding:14px 16px;margin:14px 0;
+  background:rgba(19,28,39,.5);font-size:13.4px;color:#a9bccd;
+}
+.quote .src{font-family:var(--mono);font-size:10.5px;color:var(--dim);display:block;margin-bottom:6px;letter-spacing:1px}
+
+/* ============ 表格 ============ */
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13.3px;margin:14px 0}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line)}
+th{
+  background:#111a24;color:#9fb3c8;font-weight:600;font-size:12px;letter-spacing:.4px;
+  border-bottom:1px solid var(--line2);position:sticky;top:0;
+}
+th:first-child{border-radius:8px 0 0 0}
+th:last-child{border-radius:0 8px 0 0}
+tbody tr:hover{background:rgba(77,144,255,.05)}
+td:first-child{font-family:var(--mono);color:#8ff0c8;font-size:12.6px;white-space:nowrap}
+table.plain td:first-child{font-family:var(--sans);color:inherit;white-space:normal}
+.tbl-wrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:14px 0}
+.tbl-wrap table{margin:0}
+.tbl-wrap th:first-child,.tbl-wrap th:last-child{border-radius:0}
+
+/* ============ 代码块 ============ */
+.code{
+  background:#0a1018;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:14px 0;
+  font-family:var(--mono);font-size:12.8px;line-height:1.85;
+}
+.code .hd{
+  display:flex;align-items:center;gap:8px;padding:7px 13px;background:#0e161f;
+  border-bottom:1px solid var(--line);font-size:11px;color:var(--dim);letter-spacing:.6px;
+}
+.code .hd .d{width:8px;height:8px;border-radius:50%;background:#2b3d4e}
+.code .hd .name{margin-left:auto;color:#6b8099}
+.code pre{padding:12px 15px;overflow-x:auto;color:#c7d6e6;tab-size:4}
+.code pre .c{color:#54708a;font-style:italic}
+.code pre .k{color:#ff9f45}
+.code pre .s{color:#8ff0c8}
+.code pre .v{color:#7cb7ff}
+.code pre .t{color:#f5c451}
+.code pre .tab{display:inline-block;width:1.25em;background:linear-gradient(90deg,rgba(37,217,155,.22),rgba(37,217,155,.04));box-shadow:inset 2px 0 0 rgba(37,217,155,.55);border-radius:2px}
+
+/* ============ 按钮 ============ */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:8px;
+  border:1px solid var(--line2);background:#131e29;color:var(--text);font-size:13px;
+  cursor:pointer;transition:.16s;font-family:var(--sans);font-weight:500;
+}
+.btn:hover{background:#1a2836;border-color:#31465c;transform:translateY(-1px)}
+.btn:active{transform:none}
+.btn.pri{background:linear-gradient(180deg,#25d99b,#12a374);border-color:#25d99b;color:#04241a;font-weight:650}
+.btn.pri:hover{background:linear-gradient(180deg,#3ae9ab,#14b381)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.42;cursor:not-allowed;transform:none}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+
+/* ============ 交互面板通用 ============ */
+.lab{
+  border:1px solid var(--line2);border-radius:14px;overflow:hidden;margin:20px 0;
+  background:#0a1017;box-shadow:0 20px 50px -30px #000;
+}
+.lab-hd{
+  display:flex;align-items:center;gap:12px;padding:11px 16px;
+  background:linear-gradient(90deg,#101b26,#0c141d);border-bottom:1px solid var(--line);
+}
+.lab-hd .tag{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:1.3px;padding:3px 9px;border-radius:5px;
+  background:rgba(37,217,155,.13);color:var(--green);border:1px solid rgba(37,217,155,.3);
+}
+.lab-hd .ttl{font-size:13.4px;font-weight:600;color:#dfeaf5}
+.lab-hd .st{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.lab-bd{padding:16px}
+.task-list{list-style:none;margin:0;padding:0;font-size:13px}
+.task-list li{
+  display:flex;gap:10px;align-items:flex-start;padding:7px 10px;border-radius:7px;
+  color:var(--muted);transition:.2s;margin:0 0 4px;
+}
+.task-list li .box{
+  width:16px;height:16px;flex:0 0 16px;border-radius:4px;border:1.5px solid #33506a;margin-top:3px;
+  display:grid;place-items:center;font-size:10px;color:transparent;transition:.2s;
+}
+.task-list li.ok{color:#a8e9cd;background:rgba(37,217,155,.07)}
+.task-list li.ok .box{background:var(--green);border-color:var(--green);color:#04241a}
+.task-list li.ok .box:after{content:"✓"}
+
+/* ============ 终端 ============ */
+.term{
+  background:#07100c;border-radius:10px;border:1px solid #17281f;overflow:hidden;
+  font-family:var(--mono);font-size:12.6px;line-height:1.62;
+}
+.term-hd{
+  display:flex;align-items:center;gap:7px;padding:7px 12px;background:#0d1a14;
+  border-bottom:1px solid #17281f;font-size:11px;color:#5f8371;letter-spacing:.5px;
+}
+.term-hd .d{width:9px;height:9px;border-radius:50%}
+.term-hd .d.r{background:#ff5f6d}.term-hd .d.y{background:#f5c451}.term-hd .d.g{background:#25d99b}
+.term-hd .path{margin-left:8px;color:#7ba58c}
+.term-hd .rt{margin-left:auto;color:#3f5f4d}
+.term-bd{
+  padding:12px 14px;height:300px;overflow-y:auto;color:#b9d8c6;white-space:pre-wrap;
+  word-break:break-word;
+}
+.term-bd::-webkit-scrollbar-thumb{background:#1d3a2a}
+.term-line{display:block;min-height:1.62em}
+.term-line.cmd{color:#e8f6ee}
+.term-line.cmd .ps1{color:#25d99b}
+.term-line.cmd .ps2{color:#4d90ff}
+.term-line.err{color:#ff7f89}
+.term-line.warn{color:#f5c451}
+.term-line.ok{color:#4ee8a8}
+.term-line.dim{color:#6d8f7d}
+.term-line.info{color:#7fc8ff}
+.term-input-row{display:flex;align-items:center;gap:7px;padding:9px 14px;border-top:1px solid #17281f;background:#08130e}
+.term-input-row .ps1{color:#25d99b;font-family:var(--mono);font-size:12.4px;white-space:nowrap}
+.term-input-row input{
+  flex:1;background:transparent;border:0;outline:0;color:#e8f6ee;font-family:var(--mono);
+  font-size:12.6px;caret-color:#25d99b;
+}
+.term-input-row .hint{font-size:10.5px;color:#3f5f4d;font-family:var(--mono)}
+.cmd-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{
+  font-family:var(--mono);font-size:11.5px;padding:4px 9px;border-radius:6px;cursor:pointer;
+  background:#101c26;border:1px solid #22323f;color:#8fb3c9;transition:.15s;
+}
+.chip:hover{background:#17293a;color:#cfeeff;border-color:#31506b}
+
+/* ============ 波形 ============ */
+.wave{
+  background:#05090d;border:1px solid #16202b;border-radius:9px;overflow:hidden;
+}
+.wave-hd{
+  display:flex;align-items:center;gap:10px;padding:6px 10px;background:#0a1119;
+  border-bottom:1px solid #16202b;font-family:var(--mono);font-size:11px;color:#5d7c96;
+}
+.wave-hd .name{color:#9fc4dd}
+.wave-hd .sp{flex:1}
+.wave-hd button{
+  background:#101c26;border:1px solid #22323f;color:#8fb3c9;font-size:10.5px;padding:2px 7px;
+  border-radius:5px;cursor:pointer;font-family:var(--mono);
+}
+.wave-hd button:hover{color:#fff;border-color:#3c5f7d}
+.wave-hd button.on{background:rgba(37,217,155,.16);color:#25d99b;border-color:rgba(37,217,155,.4)}
+.wave svg{display:block;width:100%;height:auto;cursor:crosshair}
+.wave .empty{
+  padding:34px;text-align:center;color:#3c5568;font-family:var(--mono);font-size:12px;
+}
+.wave-foot{
+  display:flex;gap:16px;padding:5px 10px;background:#0a1119;border-top:1px solid #16202b;
+  font-family:var(--mono);font-size:11px;color:#5d7c96;
+}
+.wave-foot b{color:#25d99b;font-weight:500}
+
+/* ============ DVE / Verdi 模拟窗口 ============ */
+.mock{
+  border:1px solid #2a3a4a;border-radius:10px;overflow:hidden;background:#e9edf1;
+  box-shadow:0 24px 60px -34px #000;font-size:12px;
+}
+.mock *{box-sizing:border-box}
+.mock .win-hd{
+  display:flex;align-items:center;gap:8px;padding:5px 10px;background:linear-gradient(180deg,#f7f9fb,#e2e7ec);
+  border-bottom:1px solid #c2ccd6;font-size:11.5px;color:#31465a;
+}
+.mock .win-hd .ttl{font-weight:600}
+.mock .win-hd .btns{margin-left:auto;display:flex;gap:6px;color:#7d8fa0;font-size:10px}
+.mock .toolbar{
+  display:flex;align-items:center;gap:4px;padding:4px 8px;background:#f2f5f8;
+  border-bottom:1px solid #cdd6df;flex-wrap:wrap;
+}
+.mock .tb{
+  padding:2px 7px;border-radius:4px;border:1px solid transparent;color:#33506b;cursor:pointer;
+  font-size:11px;white-space:nowrap;user-select:none;
+}
+.mock .tb:hover{background:#dfe8f1;border-color:#c2d1de}
+.mock .tb.on{background:#cfe0f2;border-color:#93b4d4;font-weight:600}
+.mock .tb.sep{width:1px;height:14px;background:#cbd6e0;padding:0;margin:0 3px;pointer-events:none}
+.mock .tb.play{color:#1a7f4b}
+.mock .body{display:flex;min-height:230px;background:#fff}
+.mock .pane{border-right:1px solid #d5dde5;display:flex;flex-direction:column;min-width:0}
+.mock .pane:last-child{border-right:0}
+.mock .pane-hd{
+  padding:2px 8px;background:#eef2f6;border-bottom:1px solid #d5dde5;font-size:10.5px;
+  color:#4b627a;display:flex;gap:6px;align-items:center;
+}
+.mock .pane-bd{overflow:auto;flex:1;background:#fff}
+.mock .tree{padding:4px 0;font-size:11.5px;color:#22303c}
+.mock .tree .node{
+  padding:2px 8px;cursor:pointer;display:flex;gap:5px;align-items:center;white-space:nowrap;
+}
+.mock .tree .node:hover{background:#e8f1fa}
+.mock .tree .node.sel{background:#cfe3f7;outline:1px solid #7aa9d6}
+.mock .tree .node .tw{color:#5c7a95;width:11px;display:inline-block;text-align:center}
+.mock .tree .node .ico{font-size:10px;color:#7a8fa3}
+.mock .src{
+  font-family:var(--mono);font-size:11.5px;line-height:1.65;padding:6px 0;color:#1f2c38;
+  background:#fff;
+}
+.mock .src .ln{display:flex;white-space:pre}
+.mock .src .ln .no{
+  width:34px;flex:0 0 34px;text-align:right;padding-right:9px;color:#93a4b4;user-select:none;
+  border-right:1px solid #eef2f6;
+}
+.mock .src .ln .tx{padding-left:9px;flex:1;white-space:pre}
+.mock .src .ln.hl{background:#fff7cc}
+.mock .src .ln.drv{background:#dff2e4}
+.mock .src .ln.ld{background:#e2ecfb}
+.mock .src .sig{color:#0b63a8;cursor:pointer;border-bottom:1px dotted #7fb0d8}
+.mock .src .sig:hover{background:#d6ecff}
+.mock .src .kw{color:#8b2fa0}
+.mock .src .num{color:#b35309}
+.mock .var{font-size:11.5px}
+.mock .var .row{
+  display:grid;grid-template-columns:58px 44px 1fr;padding:1px 8px;cursor:pointer;
+  white-space:nowrap;color:#1f2c38;
+}
+.mock .var .row:hover{background:#e8f1fa}
+.mock .var .row.sel{background:#cfe3f7}
+.mock .var .row .n{color:#0b3c66;overflow:hidden}
+.mock .var .row .v{color:#8a5b00;font-family:var(--mono)}
+.mock .var .row .t{color:#7b8b99;flex:1;overflow:hidden;text-overflow:ellipsis}
+.mock .cons{
+  font-family:var(--mono);font-size:11px;background:#fff;color:#26333f;padding:5px 9px;
+  height:78px;overflow:auto;border-top:1px solid #d5dde5;line-height:1.6;
+}
+.mock .cons .c-err{color:#c0392b}
+.mock .cons .c-ok{color:#1a7f4b}
+.mock .cons .c-cmd{color:#0b3c66}
+.mock .ctx{
+  position:absolute;background:#fbfcfd;border:1px solid #9fb0c0;border-radius:4px;
+  box-shadow:0 8px 22px rgba(0,0,0,.25);font-size:11.5px;padding:3px 0;z-index:50;min-width:170px;
+}
+.mock .ctx div{padding:3px 14px;cursor:pointer;color:#22303c;white-space:nowrap}
+.mock .ctx div:hover{background:#d7e8f8}
+.mock .ctx div.sep{height:1px;background:#dde5ec;padding:0;margin:3px 0;pointer-events:none}
+.mock .ctx div.arrow:after{content:"▸";float:right;margin-left:16px;color:#7f92a4}
+
+/* ============ 工具地图 ============ */
+.eda-map{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:16px 0}
+@media(max-width:900px){.eda-map{grid-template-columns:1fr 1fr}}
+.eda-stage{
+  border:1px solid var(--line);border-radius:10px;padding:10px;background:#0d151e;
+  transition:.2s;
+}
+.eda-stage.hi{border-color:rgba(37,217,155,.5);background:rgba(37,217,155,.06);box-shadow:0 0 0 1px rgba(37,217,155,.2) inset}
+.eda-stage .sh{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:1px;margin-bottom:8px}
+.tool-chip{
+  display:block;width:100%;text-align:left;padding:6px 9px;margin-bottom:5px;border-radius:6px;
+  background:#121d28;border:1px solid #1e2d3c;color:#a9c4da;font-size:11.8px;cursor:pointer;
+  font-family:var(--mono);transition:.15s;
+}
+.tool-chip:hover{border-color:#3a5a78;color:#dff0ff}
+.tool-chip.on{background:rgba(77,144,255,.18);border-color:#4d90ff;color:#fff}
+.tool-info{
+  border:1px solid var(--line2);border-radius:10px;padding:14px 16px;background:#0b131b;margin-top:6px;
+  font-size:13.2px;min-height:96px;
+}
+
+/* ============ 测验 ============ */
+.quiz-q{border:1px solid var(--line);border-radius:11px;padding:16px 18px;margin:14px 0;background:#0c141d}
+.quiz-q .qh{display:flex;gap:10px;font-size:14px;font-weight:600;margin-bottom:12px;color:#e6f0fa}
+.quiz-q .qn{
+  font-family:var(--mono);font-size:11px;color:#08221a;background:var(--green);border-radius:5px;
+  padding:1px 7px;height:20px;flex:0 0 auto;
+}
+.opt{
+  display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-radius:8px;cursor:pointer;
+  border:1px solid #1d2b39;background:#101a24;margin-bottom:7px;font-size:13.4px;transition:.15s;
+}
+.opt:hover{border-color:#33506b;background:#14212d}
+.opt .k{
+  font-family:var(--mono);font-size:11px;color:#8fb3c9;border:1px solid #2a3f54;border-radius:4px;
+  width:19px;height:19px;display:grid;place-items:center;flex:0 0 19px;margin-top:2px;
+}
+.opt.right{border-color:rgba(37,217,155,.65);background:rgba(37,217,155,.12)}
+.opt.right .k{background:var(--green);color:#04241a;border-color:var(--green)}
+.opt.wrong{border-color:rgba(255,95,109,.6);background:rgba(255,95,109,.1)}
+.opt.wrong .k{background:var(--red);color:#2a0509;border-color:var(--red)}
+.opt.lock{cursor:default}
+.exp{
+  margin-top:10px;padding:11px 14px;border-radius:8px;background:#0a1a14;border:1px solid #1c3a2c;
+  font-size:13px;color:#a9d9c4;display:none;
+}
+.exp.show{display:block}
+.exp b{color:#7ff0bd}
+
+/* ============ 页脚导航 ============ */
+.foot-nav{
+  display:flex;justify-content:space-between;gap:14px;margin-top:44px;padding-top:22px;
+  border-top:1px solid var(--line);
+}
+.foot-nav .btn{max-width:48%}
+.foot-nav .btn small{display:block;font-size:10.5px;color:var(--dim);font-family:var(--mono);letter-spacing:.6px}
+.foot-nav .btn span{display:block;font-size:13.5px}
+
+/* 小徽标 */
+.badge{
+  display:inline-block;font-family:var(--mono);font-size:10.5px;padding:1px 7px;border-radius:4px;
+  background:#16222e;border:1px solid #24384b;color:#8fb3c9;margin-right:6px;
+}
+.badge.g{background:rgba(37,217,155,.12);border-color:rgba(37,217,155,.3);color:#25d99b}
+.badge.b{background:rgba(77,144,255,.12);border-color:rgba(77,144,255,.3);color:#8fbcff}
+.badge.y{background:rgba(245,196,81,.12);border-color:rgba(245,196,81,.3);color:#f5c451}
+
+/* 步骤条 */
+.steps{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
+.step{
+  flex:1;min-width:130px;border:1px solid var(--line);border-radius:9px;padding:9px 11px;
+  background:#0d151e;position:relative;
+}
+.step .sn{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px}
+.step .st{font-size:12.6px;color:#cfdfee;margin-top:2px}
+.step .sc{font-family:var(--mono);font-size:10.5px;color:#25d99b;margin-top:4px}
+.step.act{border-color:rgba(37,217,155,.45);background:rgba(37,217,155,.07)}
+
+/* 文件树 */
+.ftree{font-family:var(--mono);font-size:12.4px;line-height:1.9;color:#a9c1d6}
+.ftree .dir{color:#7cb7ff}
+.ftree .f{color:#c7d6e6}
+.ftree .cm{color:#4f6a82}
+
+/* 分割 */
+.hr{height:1px;background:var(--line);margin:26px 0}
+
+/* 搜索高亮 */
+mark{background:rgba(245,196,81,.25);color:#ffe6a6;padding:0 2px;border-radius:2px}
+
+/* 课件原图 */
+details.ref{border:1px solid var(--line);border-radius:11px;background:#0b131b;margin:16px 0;overflow:hidden}
+details.ref>summary{
+  cursor:pointer;padding:11px 16px;font-size:13px;color:#a9c4da;list-style:none;
+  display:flex;align-items:center;gap:9px;user-select:none;
+}
+details.ref>summary::-webkit-details-marker{display:none}
+details.ref>summary:before{content:"▸";color:var(--green);font-size:11px;transition:.2s}
+details.ref[open]>summary:before{transform:rotate(90deg)}
+details.ref>summary:hover{background:#101b26}
+details.ref .body{padding:0 16px 16px}
+details.ref img{width:100%;border-radius:8px;border:1px solid #1d2b39;display:block}
+details.ref .cap{font-size:12px;color:#7f95aa;margin-top:8px;font-family:var(--mono);line-height:1.6}
+
+/* 小屏幕 */
+@media(max-width:820px){
+  #sidebar{position:fixed;left:-300px;transition:.3s;height:100vh}
+  #sidebar.open{left:0;box-shadow:0 0 60px #000}
+  #content{padding:22px 18px 120px}
+  h2.title{font-size:23px}
+  #topbar{padding:0 18px}
+  .mock .body{flex-wrap:wrap}
+}
+#menu-btn{display:none}
+@media(max-width:820px){#menu-btn{display:inline-flex}}
+@media(max-width:960px){
+  #lab1-grid,#dve-grid,#nt-grid,#ns-grid,#mk-grid,#fsdb-grid{grid-template-columns:1fr !important}
+  .eda-map{grid-template-columns:1fr 1fr !important}
+  .mock .body{flex-wrap:wrap;height:auto !important}
+  .mock .pane{flex:1 1 100% !important;border-right:0;border-bottom:1px solid #d5dde5;max-height:230px}
+}
+</style>
+
+<style>
+/* —— 嵌入平台时的外壳适配 —— */
+html.icl-embedded, html.icl-embedded body{background:#080c11}
+html.icl-embedded #sidebar{display:none!important}
+html.icl-embedded #topbar{display:none!important}
+html.icl-embedded #app{display:block}
+html.icl-embedded #main{width:100%;min-height:100vh}
+html.icl-embedded #content{padding:30px 40px 80px;max-width:1080px;margin:0 auto}
+html.icl-embedded .foot-nav{margin-bottom:20px}
+@media(max-width:820px){html.icl-embedded #content{padding:22px 20px 70px}}
+</style>
+</head>
+<body>
+<div id="app">
+<aside id="sidebar">
+  <div class="brand">
+    <div class="logo">
+      <div class="mark"></div>
+      <div>
+        <h1>VCS × Verdi 实训实验室</h1>
+        <p>IC Verification Lab</p>
+      </div>
+    </div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-top"><span>学习进度</span><span id="prog-text">0 / 13</span></div>
+    <div class="bar"><i id="prog-bar"></i></div>
+  </div>
+  <nav id="nav">
+    <div class="grp">准备</div>
+    <a data-go="intro"><span class="num">00</span>课程导览与学习地图<span class="dot"></span></a>
+    <a data-go="eda"><span class="num">01</span>EDA 工具全景<span class="dot"></span></a>
+    <a data-go="env"><span class="num">02</span>工程目录与环境<span class="dot"></span></a>
+    <div class="grp">VCS 编译与仿真</div>
+    <a data-go="makefile"><span class="num">03</span>Makefile 自动化脚本<span class="dot"></span></a>
+    <a data-go="vcs-flow"><span class="num">04</span>VCS 三步式流程<span class="dot"></span></a>
+    <a data-go="vcs-lab"><span class="num">05</span>实战一：命令行编译仿真<span class="dot"></span></a>
+    <a data-go="dve"><span class="num">06</span>实战二：DVE 波形调试<span class="dot"></span></a>
+    <div class="grp">波形数据库</div>
+    <a data-go="fsdb"><span class="num">07</span>产生 fsdb 的三种方法<span class="dot"></span></a>
+    <div class="grp">Verdi 调试</div>
+    <a data-go="verdi-intro"><span class="num">08</span>Verdi 架构与四大工具<span class="dot"></span></a>
+    <a data-go="ntrace"><span class="num">09</span>实战三：nTrace 溯源<span class="dot"></span></a>
+    <a data-go="nwave"><span class="num">10</span>实战四：nWave 与 nSchema<span class="dot"></span></a>
+    <div class="grp">收尾</div>
+    <a data-go="debug"><span class="num">11</span>常见错误排查<span class="dot"></span></a>
+    <a data-go="quiz"><span class="num">12</span>结业测验<span class="dot"></span></a>
+  </nav>
+</aside>
+
+<div id="main">
+  <div id="topbar">
+    <button class="btn sm ghost" id="menu-btn">☰</button>
+    <div class="crumb" id="crumb">课程 / <b>课程导览</b></div>
+    <div class="spacer"></div>
+    <div class="pill live" id="clock">VCS V-2018.09-SP2 · Verdi O-2018.09-SP1</div>
+  </div>
+  <div id="content">
+
+  <!-- ================= 00 导览 ================= -->
+  <section class="lesson on" id="intro">
+    <div class="kicker">Course Map</div>
+    <h2 class="title">从一个 mux2to1 开始，走完 IC 验证的<b>编译—仿真—看波形—溯源</b>全链路</h2>
+    <p class="subtitle">这套课件是一堂完整的实操课：从 Linux 工程目录、Makefile、VCS 三步式编译仿真，到 DVE 看波形、产生 fsdb、再用 Verdi 的 nTrace / nWave / nSchema 定位 bug。下面 13 个关卡把课件里的<b>每一个操作</b>都变成了可以点、可以敲、可以出错的练习。</p>
+
+    <div class="grid g3">
+      <div class="card tight">
+        <div class="badge g">4 个实训</div>
+        <h4 style="margin-top:10px">能真的动手</h4>
+        <p style="font-size:13px;margin:0;color:#a9bccd">命令行终端、DVE 界面、Verdi nTrace/nWave/nSchema、Makefile 编辑器，全部是交互模拟，不是视频。</p>
+      </div>
+      <div class="card tight">
+        <div class="badge b">116 页</div>
+        <h4 style="margin-top:10px">课件全覆盖</h4>
+        <p style="font-size:13px;margin:0;color:#a9bccd">EDA 工具表、vlogan/vcs/simv 选项、DVE 波形窗口组成、fsdb 三种产生方式、nTrace 工具栏逐个拆解。</p>
+      </div>
+      <div class="card tight">
+        <div class="badge y">会出错</div>
+        <h4 style="margin-top:10px">错误也是课程</h4>
+        <p style="font-size:13px;margin:0;color:#a9bccd">少写 <code class="inl">-debug_access</code>、Makefile 用了空格、两种 fsdb 方法混用……故意犯错能看到真实报错。</p>
+      </div>
+    </div>
+
+    <h3><span class="ic">01</span>学习地图</h3>
+    <div class="card">
+      <div class="steps" style="margin:0">
+        <div class="step act"><div class="sn">STAGE 1</div><div class="st">环境与脚本</div><div class="sc">01 – 03</div></div>
+        <div class="step"><div class="sn">STAGE 2</div><div class="st">VCS 编译仿真</div><div class="sc">04 – 06</div></div>
+        <div class="step"><div class="sn">STAGE 3</div><div class="st">fsdb 波形落地</div><div class="sc">07</div></div>
+        <div class="step"><div class="sn">STAGE 4</div><div class="st">Verdi 深度调试</div><div class="sc">08 – 10</div></div>
+        <div class="step"><div class="sn">STAGE 5</div><div class="st">排错与考核</div><div class="sc">11 – 12</div></div>
+      </div>
+      <p style="margin:14px 0 0;font-size:13.2px;color:#9fb3c8">每一页读完点右下角「下一关」，左侧目录会打上绿点，顶部进度条会记录你完成了多少关（进度保存在本地浏览器）。</p>
+    </div>
+
+    <h3><span class="ic">02</span>课件里的实验对象</h3>
+    <p>整堂课围绕一个 2 选 1 数据选择器展开。它足够小，小到你一眼能看懂全部逻辑；又足够典型，覆盖了编译、仿真、波形、层次化追踪的所有动作。</p>
+    <div class="grid g2">
+      <div class="code">
+        <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">rtl/mux2to1.v</span></div>
+<pre><span class="k">module</span> mux2to1 (
+    <span class="k">input</span>      a,      <span class="c">// 输入 A</span>
+    <span class="k">input</span>      b,      <span class="c">// 输入 B</span>
+    <span class="k">input</span>      s,      <span class="c">// 选择信号</span>
+    <span class="k">output</span> <span class="k">reg</span> out       <span class="c">// 输出</span>
+);
+    <span class="k">always</span> @(*) <span class="k">begin</span>
+        <span class="k">if</span> (s) <span class="k">begin</span>
+            out = b;
+        <span class="k">end</span> <span class="k">else</span> <span class="k">begin</span>
+            out = a;
+        <span class="k">end</span>
+    <span class="k">end</span>
+<span class="k">endmodule</span></pre>
+      </div>
+      <div class="code">
+        <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">tb/mux2to1_tb.v（节选）</span></div>
+<pre>    <span class="c">// 激励：先复位，再切换 a / b / s</span>
+    <span class="k">initial</span> <span class="k">begin</span>
+        a = <span class="num">0</span>; b = <span class="num">1</span>; s = <span class="num">0</span>;
+        #<span class="num">10</span> a = <span class="num">1</span>;
+        #<span class="num">10</span> b = <span class="num">0</span>; s = <span class="num">1</span>;
+        #<span class="num">10</span> $display(<span class="s">"t=%0t out=%b"</span>, $time, out);
+        #<span class="num">4000</span> $stop;
+    <span class="k">end</span>
+
+    <span class="c">// 课件里的 fsdb 方法二：写在 tb 的 initial 块</span>
+    <span class="k">initial</span> <span class="k">begin</span>
+        $fsdbDumpfile(<span class="s">"test.fsdb"</span>);
+        $fsdbDumpvars;
+    <span class="k">end</span></pre>
+      </div>
+    </div>
+    <div class="note blue"><span class="tag">课件原话</span>「使用 VCS 编译仿真的准备工作：<b>1. RTL 设计代码和 TB 测试代码；2. 文件路径（files.f）；3. 正确的 Makefile</b>。」这三样东西，就是接下来每一关都要反复打交道的对象。</div>
+
+    <div class="foot-nav">
+      <div></div>
+      <button class="btn pri" data-go="eda"><small>下一关</small><span>01 EDA 工具全景 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 01 EDA ================= -->
+  <section class="lesson" id="eda">
+    <div class="kicker">Chapter 01</div>
+    <h2 class="title">EDA 工具全景：你手里的 VCS 和 Verdi 站在流程的哪一格</h2>
+    <p class="subtitle">课件第一张内容页就给出了一张「工具—功能」对照表。先建立全局坐标，后面每个命令才知道自己为什么要敲。</p>
+
+    <h3><span class="ic">A</span>什么是 EDA</h3>
+    <p class="lead">EDA = electronic design automation（电子设计自动化），指利用计算机辅助设计（CAD）软件，来完成<b>超大规模集成电路（VLSI）</b>芯片的<b>功能设计、综合、验证、物理设计</b>（包括布局、布线、版图、设计规则检查等）等流程的设计方式。</p>
+    <p>可编程逻辑阵列、标准单元库（与或非门）、全/半定制设计、专用集成电路设计是 EDA 工具的硬件要求。在电子设计自动化出现之前，设计人员必须手工完成集成电路的设计、布线等工作 —— 因为当时集成电路的复杂度还远不及现在。</p>
+
+    <h3><span class="ic">B</span>课件那张工具表（点击卡片看它在流程中的位置）</h3>
+    <div class="tbl-wrap">
+      <table class="plain">
+        <thead><tr><th style="width:26%">EDA 工具举例</th><th style="width:22%">功能</th><th>本课程覆盖</th></tr></thead>
+        <tbody>
+          <tr><td><b>VCS / QuestaSim / NC</b></td><td>编译仿真</td><td><span class="badge g">核心</span>整门课的主线</td></tr>
+          <tr><td><b>Verdi</b></td><td>可视化工具</td><td><span class="badge g">核心</span>nTrace / nWave / nSchema</td></tr>
+          <tr><td>SpyGlass</td><td>语法检查（Lint）</td><td>后续课程</td></tr>
+          <tr><td>Jasper</td><td>property 验证</td><td>后续课程</td></tr>
+          <tr><td>DC</td><td>逻辑综合</td><td>后续课程</td></tr>
+          <tr><td>IC Compiler</td><td>布局布线</td><td>后续课程</td></tr>
+          <tr><td>PrimeTime</td><td>静态时序分析</td><td>后续课程</td></tr>
+          <tr><td>PowerArtist</td><td>功耗分析</td><td>后续课程</td></tr>
+          <tr><td>Calibre</td><td>物理检查</td><td>后续课程</td></tr>
+          <tr><td>LEC</td><td>一致性检查</td><td>后续课程</td></tr>
+          <tr><td>StarRC</td><td>RC 参数提取</td><td>后续课程</td></tr>
+          <tr><td>VC Static</td><td>ISO 检查</td><td>后续课程</td></tr>
+          <tr><td>DFT Mentor</td><td>DFT</td><td>后续课程</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">交互</span><span class="ttl">点一个工具，看它在芯片设计流程中的位置</span><span class="st" id="eda-st">选择一个工具</span></div>
+      <div class="lab-bd">
+        <div class="eda-map" id="eda-map">
+          <div class="eda-stage" data-stage="spec"><div class="sh">SPEC / 设计</div>
+            <button class="tool-chip" data-tool="verdi">Verdi</button>
+            <button class="tool-chip" data-tool="spyglass">SpyGlass</button>
+            <button class="tool-chip" data-tool="jasper">Jasper</button>
+          </div>
+          <div class="eda-stage" data-stage="sim"><div class="sh">编译 / 仿真</div>
+            <button class="tool-chip" data-tool="vcs">VCS</button>
+            <button class="tool-chip" data-tool="questa">QuestaSim</button>
+            <button class="tool-chip" data-tool="nc">NC-Verilog</button>
+          </div>
+          <div class="eda-stage" data-stage="syn"><div class="sh">综合 / 实现</div>
+            <button class="tool-chip" data-tool="dc">DC</button>
+            <button class="tool-chip" data-tool="icc">IC Compiler</button>
+            <button class="tool-chip" data-tool="lec">LEC</button>
+          </div>
+          <div class="eda-stage" data-stage="signoff"><div class="sh">签核</div>
+            <button class="tool-chip" data-tool="pt">PrimeTime</button>
+            <button class="tool-chip" data-tool="calibre">Calibre</button>
+            <button class="tool-chip" data-tool="starrc">StarRC</button>
+          </div>
+          <div class="eda-stage" data-stage="lowpower"><div class="sh">功耗 / 测试</div>
+            <button class="tool-chip" data-tool="pa">PowerArtist</button>
+            <button class="tool-chip" data-tool="vcstatic">VC Static</button>
+            <button class="tool-chip" data-tool="dft">DFT Mentor</button>
+          </div>
+        </div>
+        <div class="tool-info" id="eda-info">左边五个阶段，就是一颗芯片从想法到可制造要走的顺序。点任意工具，这里会告诉你它属于哪一步、输入什么、输出什么。</div>
+      </div>
+    </div>
+
+    <h3><span class="ic">C</span>为什么先学这两个</h3>
+    <p>VCS 负责把 Verilog 变成能跑的仿真器，并吐出波形；Verdi 负责把波形和源代码、层次结构、逻辑图绑在一起看。验证工程师 70% 的时间都花在这两件事上：<b>跑起来</b>和<b>找出为什么不对</b>。</p>
+    <div class="note green"><span class="tag">记忆锚点</span>VCS = <b>Compile &amp; Simulate</b>（把代码跑起来）；Verdi = <b>Debug &amp; Trace</b>（把问题追到底）。一个负责「动」，一个负责「看」。</div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="intro"><small>上一关</small><span>← 00 课程导览</span></button>
+      <button class="btn pri" data-go="env"><small>下一关</small><span>02 工程目录与环境 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 02 环境 ================= -->
+  <section class="lesson" id="env">
+    <div class="kicker">Chapter 02</div>
+    <h2 class="title">工程目录与环境：以后所有命令都在 sim/ 里敲</h2>
+    <p class="subtitle">课件开头花了很长时间在远程 Linux 服务器上 <code class="inl">ls</code>、<code class="inl">cd</code>、看时间戳。这不是浪费 —— 目录结构错了，后面每条命令都会失败。</p>
+
+    <h3><span class="ic">A</span>标准工程结构</h3>
+    <div class="grid g2">
+      <div class="code">
+        <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">mux2to1/ 工程目录</span></div>
+<pre class="ftree"><span class="dir">mux2to1/</span>
+├── <span class="dir">rtl/</span>
+│   └── <span class="f">mux2to1.v</span>        <span class="cm"># 设计代码</span>
+├── <span class="dir">tb/</span>
+│   └── <span class="f">mux2to1_tb.v</span>     <span class="cm"># 测试平台</span>
+└── <span class="dir">sim/</span>                <span class="cm"># ← 所有命令在这里敲</span>
+    ├── <span class="f">files.f</span>         <span class="cm"># 源文件清单</span>
+    ├── <span class="f">Makefile</span>        <span class="cm"># 自动化脚本</span>
+    ├── <span class="f">run.tcl</span>         <span class="cm"># UCLI / fsdb 脚本</span>
+    ├── <span class="f">wave_gen.tcl</span>    <span class="cm"># 课件里的另一种命名</span>
+    ├── <span class="f">novas.rc</span>        <span class="cm"># Verdi 资源文件</span>
+    └── <span class="f">novas.conf</span>      <span class="cm"># Verdi 界面配置</span></pre>
+      </div>
+      <div>
+        <h4>编译后会多出什么</h4>
+        <div class="code">
+          <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">编译 + 仿真产物</span></div>
+<pre><span class="c"># 编译产物</span>
+<span class="f">csrc/</span>          <span class="cm"># 生成的 C 源码</span>
+<span class="f">simv</span>           <span class="cm"># 可执行仿真器（最重要）</span>
+<span class="f">simv.daidir/</span>   <span class="cm"># 编译数据库</span>
+<span class="f">ucli.key</span>       <span class="cm"># UCLI 授权/会话文件</span>
+<span class="f">comp.log</span>       <span class="cm"># 编译日志</span>
+
+<span class="c"># 仿真产物</span>
+<span class="f">inter.vpd</span>      <span class="cm"># DVE 的 VCD+ 波形</span>
+<span class="f">DVEfiles/</span>      <span class="cm"># DVE 配置</span>
+<span class="f">dump.fsdb</span>      <span class="cm"># Verdi 的 FSDB 波形</span>
+<span class="f">run.log</span>        <span class="cm"># 仿真日志</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <h3><span class="ic">B</span>files.f：把一长串路径收进一个文件</h3>
+    <p>课件里 <code class="inl">files.f</code> 只有两行，而且是<b>绝对路径</b>：</p>
+    <div class="code">
+      <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">sim/files.f</span></div>
+<pre><span class="c">1</span> /home/project/cp_training_fv/users/nihao/target/sim/exercise/select.v
+<span class="c">2</span> /home/project/cp_training_fv/users/nihao/target/sim/exercise/select_tb.v</pre>
+    </div>
+    <p>有了它，命令行就变成 <code class="inl">vcs -f ./files.f</code>，不用每次敲一长串文件名。<b>注意顺序</b>：一般把被例化的模块（RTL）写在前面，testbench 写在后面，VCS 好按依赖顺序解析。</p>
+
+    <h3><span class="ic">C</span>synopsys_sim.setup（VCS_MX 混合流程才需要）</h3>
+    <p>课件「VCS_MX Tool Flow」那张图里，第一步叫 <b>Setup file: synopsys_sim.setup</b>。纯 Verilog 流程可以忽略，但一旦混合 VHDL（<code class="inl">vlogan</code> + <code class="inl">vhdlan</code>），它会指定库映射（work / logic 库放在哪个目录）。</p>
+    <div class="note"><span class="tag">实操提醒</span>课件里所有演示的工作目录都是 <code class="inl">.../mux2to1/sim</code>。如果你在 <code class="inl">sim/</code> 外面敲 <code class="inl">make</code>，会得到 <code class="inl">make: *** No targets specified and no makefile found. Stop.</code> —— 这不是工具坏了，是你站错了目录。</div>
+
+    <h3><span class="ic">D</span>动手：认识你的工作目录</h3>
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">实操</span><span class="ttl">迷你终端 · 先熟悉环境</span><span class="st" id="env-st">试试 ls / pwd / cat files.f</span></div>
+      <div class="lab-bd">
+        <div id="env-term"></div>
+        <div class="cmd-chips" id="env-chips">
+          <span class="chip" data-cmd="pwd">pwd</span>
+          <span class="chip" data-cmd="ls">ls</span>
+          <span class="chip" data-cmd="ls -l">ls -l</span>
+          <span class="chip" data-cmd="cd ..">cd ..</span>
+          <span class="chip" data-cmd="cat files.f">cat files.f</span>
+          <span class="chip" data-cmd="cat Makefile">cat Makefile</span>
+        </div>
+      </div>
+    </div>
+    <div class="note blue"><span class="tag">观察</span>注意 <code class="inl">ls -l</code> 输出里 <code class="inl">simv</code> 是 9 万多字节的可执行文件，<code class="inl">simv.daidir</code> 是目录。这两个东西只有在<b>编译成功</b>之后才会出现 —— 下一关我们就让它们出现。</div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="eda"><small>上一关</small><span>← 01 EDA 工具全景</span></button>
+      <button class="btn pri" data-go="makefile"><small>下一关</small><span>03 Makefile 自动化脚本 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 03 Makefile ================= -->
+  <section class="lesson" id="makefile">
+    <div class="kicker">Chapter 03</div>
+    <h2 class="title">Makefile：一条 make 命令，替掉几十行 vcs 参数</h2>
+    <p class="subtitle">课件专门用一整节讲 Makefile，因为它是整个流程的「总开关」。写好之后，编译 + 仿真 + 开波形 + 清理，四个字母就能搞定。</p>
+
+    <h3><span class="ic">A</span>Makefile 能做什么</h3>
+    <div class="quote"><span class="src">课件原文</span>makefile 定义了一系列的规则，来规定哪些部分先执行、哪些部分后执行。写好 makefile 以后，只需一个 make 命令就可以让整个工程完全自动编译。所以简单地说，makefile 实现了大工程的自动化编译。</div>
+
+    <h3><span class="ic">B</span>规则的三个组成</h3>
+    <div class="code">
+      <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">规则语法</span></div>
+<pre><span class="t">target</span> ... : <span class="t">prerequisites</span> ...
+<span class="tab">	</span>command
+<span class="tab">	</span>...</pre>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:24%">要素</th><th style="width:22%">名称</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>target</td><td>规则的目标</td><td>要生成的东西，或一个「动作名」（如 <code class="inl">all</code>、<code class="inl">clean</code>）</td></tr>
+          <tr><td>prerequisites</td><td>规则的依赖</td><td>目标依赖哪些文件；依赖比目标新时才重新执行</td></tr>
+          <tr><td>command</td><td>规则的命令行</td><td><b>必须以 TAB 字符开头</b>（这是新手第一大坑）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note red"><span class="tag">第一大坑</span>command 前面用了 4 个空格而不是 TAB，make 会直接报 <code class="inl">*** missing separator. Stop.</code>。课件特别强调：<b>必须以 TAB 字符开头</b>。</div>
+
+    <h3><span class="ic">C</span>课件里那份完整的 Makefile</h3>
+    <div class="code">
+      <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">sim/Makefile（课件第 71 页原样）</span></div>
+<pre><span class="c"> 1</span> <span class="t">all</span>:clean elab run
+<span class="c"> 2</span>
+<span class="c"> 3</span> <span class="t">elab</span>:
+<span class="c"> 4</span> <span class="tab">	</span>vcs -full64 -debug_acc+all -sverilog -l comp.log \
+<span class="c"> 5</span> <span class="tab">	</span>-f ./files.f  \
+<span class="c"> 6</span> <span class="tab">	</span>-timescale=1ns/1ps
+<span class="c"> 7</span> <span class="t">run</span>:
+<span class="c"> 8</span> <span class="tab">	</span>./simv -gui -l run.log
+<span class="c"> 9</span>
+<span class="c">10</span> <span class="t">verdi</span>:
+<span class="c">11</span> <span class="tab">	</span>verdi -f ./files.f -ssf ./test.fsdb &amp;
+<span class="c">12</span>
+<span class="c">13</span> <span class="t">clean</span>:
+<span class="c">14</span> <span class="tab">	</span>rm -rf AN.DB DVEfiles csrc simv.* *simv inter.vpd ucli.key *.log novas* *fsdb verdilog</pre>
+    </div>
+    <p>这份文件里有三个关键设计：</p>
+    <ul>
+      <li><b>all:clean elab run</b> —— 一条命令串起「清理 → 编译 → 仿真」，保证每次都是干净构建。</li>
+      <li><b>反斜杠 \ 续行</b> —— 让长命令可读；课件原话：「必要的换行符可以增强 Makefile 的可读性」。</li>
+      <li><b>clean 里 rm -rf 一长串</b> —— 把 <code class="inl">simv*</code>、<code class="inl">csrc</code>、<code class="inl">*.log</code>、<code class="inl">*fsdb</code> 全部删掉，回到干净状态。</li>
+    </ul>
+
+    <h3><span class="ic">D</span>动手：改 Makefile，然后真的跑起来</h3>
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">实操</span><span class="ttl">Makefile 编辑器 · 语法校验 + 试运行</span><span class="st" id="mk-st">待校验</span></div>
+      <div class="lab-bd">
+        <p style="font-size:13px;color:#9fb3c8;margin-top:0">下面这份 Makefile 在 <code class="inl">elab</code> 的 command 行被改成了 4 个空格（模拟新手的真实错误）。把它改成 TAB，然后点「校验并运行」。</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" id="mk-grid">
+          <div>
+            <textarea id="mk-editor" spellcheck="false" style="width:100%;height:250px;background:#0a1018;color:#c7d6e6;border:1px solid #22323f;border-radius:9px;padding:12px;font-family:var(--mono);font-size:12.6px;line-height:1.7;resize:vertical;outline:none"></textarea>
+            <div class="btn-row" style="margin-top:10px">
+              <button class="btn pri sm" id="mk-run">校验并运行 make all</button>
+              <button class="btn sm" id="mk-fix">直接看正确写法</button>
+            </div>
+          </div>
+          <div id="mk-term" style="min-height:250px"></div>
+        </div>
+      </div>
+    </div>
+
+    <h3><span class="ic">E</span>常用目标速查</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>命令</th><th>作用</th><th>典型输出</th></tr></thead>
+        <tbody>
+          <tr><td>make all</td><td>清理 + 编译 + 仿真一条龙</td><td>VCS 编译信息 → simv 启动</td></tr>
+          <tr><td>make elab</td><td>只编译（elaborate）</td><td>生成 simv / simv.daidir / csrc</td></tr>
+          <tr><td>make run</td><td>只跑仿真</td><td>./simv -gui -l run.log</td></tr>
+          <tr><td>make verdi</td><td>打开 Verdi 并加载 fsdb</td><td>verdi -f files.f -ssf test.fsdb &amp;</td></tr>
+          <tr><td>make clean</td><td>清理全部产物</td><td>rm -rf …（无输出即成功）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="env"><small>上一关</small><span>← 02 工程目录与环境</span></button>
+      <button class="btn pri" data-go="vcs-flow"><small>下一关</small><span>04 VCS 三步式流程 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 04 VCS 流程 ================= -->
+  <section class="lesson" id="vcs-flow">
+    <div class="kicker">Chapter 04</div>
+    <h2 class="title">VCS 三步式流程：分析 → 精化 → 仿真</h2>
+    <p class="subtitle">课件用一张蓝色流程图讲清了 VCS_MX 的三步式（混合编译仿真）。理解这三步的边界，你就知道错误应该去哪一步找。</p>
+
+    <h3><span class="ic">A</span>三步式流程图</h3>
+    <div class="card" style="padding:22px">
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:760px;margin:0 auto">
+        <div style="text-align:center;padding:11px;border-radius:10px;background:rgba(181,133,255,.12);border:1px solid rgba(181,133,255,.35);font-family:var(--mono);font-size:13px;color:#d6bcff">synopsys_sim.setup <span style="color:#8f7bb0">（库映射，混合流程才需要）</span></div>
+        <div style="text-align:center;color:#3f5568">↓</div>
+        <div style="padding:13px 16px;border-radius:10px;background:rgba(77,144,255,.12);border:1px solid rgba(77,144,255,.35)">
+          <div style="font-size:13.5px;font-weight:600;color:#bcd4ff">Analyze VHDL and Verilog</div>
+          <div style="font-family:var(--mono);font-size:12.4px;color:#8fb3c9;margin-top:4px">vlogan &lt;files.v&gt;　·　vhdlan &lt;files.vhd&gt;　<span style="color:#5f7288">// 分析，生成中间库</span></div>
+        </div>
+        <div style="text-align:center;color:#3f5568">↓</div>
+        <div style="padding:13px 16px;border-radius:10px;background:rgba(77,144,255,.12);border:1px solid rgba(77,144,255,.35)">
+          <div style="font-size:13.5px;font-weight:600;color:#bcd4ff">Elaborate / Compile Design</div>
+          <div style="font-family:var(--mono);font-size:12.4px;color:#8fb3c9;margin-top:4px">vcs &lt;option&gt; &lt;design_top&gt;　<span style="color:#5f7288">// 生成可执行文件 simv</span></div>
+        </div>
+        <div style="text-align:center;color:#3f5568">↓</div>
+        <div style="padding:13px 16px;border-radius:10px;background:rgba(37,217,155,.1);border:1px solid rgba(37,217,155,.35)">
+          <div style="font-size:13.5px;font-weight:600;color:#a9f0d5">Simulate the design</div>
+          <div style="font-family:var(--mono);font-size:12.4px;color:#8fb3c9;margin-top:4px">simv &lt;options&gt;　<span style="color:#5f7288">// 跑仿真，可 -gui 进 DVE</span></div>
+        </div>
+        <div style="text-align:center;color:#3f5568">↓</div>
+        <div style="text-align:center;padding:9px;border-radius:8px;border:1px dashed #2a3d50;font-family:var(--mono);font-size:12.5px;color:#8fa3ba">debug　/　gui mode（GUI = Graphical User Interface）</div>
+      </div>
+    </div>
+    <div class="note blue"><span class="tag">课件原话</span>「VCS_MX：Mixed hdl 仿真器，支持 vhdl + verilog + sv 的混合仿真；工具使用手册：<b>vcsmx_ug、vcsmx_ucli</b>」。</div>
+
+    <h3><span class="ic">B</span>纯 Verilog 流程：两步就够了</h3>
+    <p>日常 RTL 仿真（本课程那个 mux2to1）不需要 <code class="inl">vlogan</code>，直接 <code class="inl">vcs</code> 一步完成「分析 + 精化」，然后 <code class="inl">simv</code> 跑起来：</p>
+    <div class="code">
+      <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">两步式</span></div>
+<pre><span class="c"># 第一步：编译（elaborate），生成 simv</span>
+vcs -full64 -debug_access+all -sverilog -l comp.log \
+    -f ./files.f -timescale=1ns/1ps
+
+<span class="c"># 第二步：仿真</span>
+./simv -gui -l run.log        <span class="c"># 开 DVE 图形界面</span>
+./simv -l run.log             <span class="c"># 纯命令行跑</span>
+./simv -ucli -i run.tcl       <span class="c"># 用 tcl 脚本驱动</span></pre>
+    </div>
+
+    <h3><span class="ic">C</span>vlogan 常用选项（课件表格）</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:26%">选项</th><th>含义</th></tr></thead>
+        <tbody>
+          <tr><td>-full64</td><td>支持 64 位模式运行</td></tr>
+          <tr><td>-l logfile</td><td>Log file generation（输出日志到文件）</td></tr>
+          <tr><td>-q</td><td>Quiet（no internal messages and banner）</td></tr>
+          <tr><td>-nc</td><td>Suppresses copyright header</td></tr>
+          <tr><td>+v2k</td><td>Enable Verilog 2001 constructs（default since 2012.09）</td></tr>
+          <tr><td>-sverilog</td><td>Enable SystemVerilog constructs</td></tr>
+          <tr><td>-timescale=1ns/1ps</td><td>指定仿真时间单位与精度</td></tr>
+          <tr><td>-f file</td><td>Specify files as well as command options</td></tr>
+          <tr><td>+incdir+&lt;dir&gt;</td><td>Specifies search directory for included files</td></tr>
+          <tr><td>+define+&lt;macro&gt;</td><td>Defines a macro in the Verilog source</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><span class="tag">课件小技巧</span><code class="inl">vlogan -help</code> 出来的是超长帮助：<b>按住 Shift 可以往下翻，直接按到底退出，也可以敲 q 退出</b>。</div>
+
+    <h3><span class="ic">D</span>vcs 常用选项（课件表格）</h3>
+    <p>课件的原话是：vcs 这一步的目的是 <b>Creates statically linked simulator executable (simv)</b> —— 生成可执行的仿真文件。</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:26%">选项</th><th>含义</th></tr></thead>
+        <tbody>
+          <tr><td>-o &lt;simname&gt;</td><td>Rename simulation executable（默认叫 simv）</td></tr>
+          <tr><td>-debug</td><td>Enable debug capabilities</td></tr>
+          <tr><td>-debug_all</td><td>Enable source-line debugging</td></tr>
+          <tr><td>-l &lt;logfile&gt;</td><td>Create runtime log file</td></tr>
+          <tr><td>-debug_access+all</td><td>课件实战用的写法：开放全部调试访问权限（DVE / Verdi / UCLI 都需要）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3><span class="ic">E</span>动手：拼一条能跑通的 vcs 命令</h3>
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">实操</span><span class="ttl">选项构建器 · 勾选后自动生成命令并执行</span><span class="st" id="opt-st">0 个选项</span></div>
+      <div class="lab-bd">
+        <div class="grid g2">
+          <div>
+            <div style="font-size:12px;color:var(--dim);font-family:var(--mono);letter-spacing:1px;margin-bottom:8px">编译选项</div>
+            <div id="opt-list" style="display:flex;flex-direction:column;gap:6px"></div>
+            <div class="btn-row">
+              <button class="btn pri sm" id="opt-run">执行这条 vcs</button>
+              <button class="btn sm" id="opt-reset">重置</button>
+            </div>
+          </div>
+          <div>
+            <div class="code" style="margin-top:0">
+              <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">生成的命令</span></div>
+              <pre id="opt-cmd" style="min-height:56px">vcs</pre>
+            </div>
+            <div id="opt-term" style="margin-top:12px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="makefile"><small>上一关</small><span>← 03 Makefile 自动化脚本</span></button>
+      <button class="btn pri" data-go="vcs-lab"><small>下一关</small><span>05 实战一：命令行编译仿真 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 05 实战一 终端 ================= -->
+  <section class="lesson" id="vcs-lab">
+    <div class="kicker">Lab 01</div>
+    <h2 class="title">实战一：从空目录到 simv，把编译和仿真敲出来</h2>
+    <p class="subtitle">这一关是一个可以真的敲命令的终端。它有文件系统、有编译状态、会报错，也会在你做对时吐出 VCS 的启动横幅。左边是任务清单，完成一项勾一项。</p>
+
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">Terminal</span><span class="ttl">/home/proj/ect/cp_training_id/users/exer/exercise/mux2to1/sim</span><span class="st" id="lab1-st">任务 0 / 6</span></div>
+      <div class="lab-bd">
+        <div style="display:grid;grid-template-columns:230px 1fr;gap:16px" id="lab1-grid">
+          <div>
+            <div style="font-size:11px;color:var(--dim);font-family:var(--mono);letter-spacing:1px;margin-bottom:8px">任务清单</div>
+            <ul class="task-list" id="lab1-tasks">
+              <li data-k="ls"><span class="box"></span><span>用 <code class="inl">ls</code> 看清目录里有什么</span></li>
+              <li data-k="cat"><span class="box"></span><span><code class="inl">cat files.f</code> 确认源文件清单</span></li>
+              <li data-k="clean"><span class="box"></span><span><code class="inl">make clean</code> 清掉旧产物</span></li>
+              <li data-k="elab"><span class="box"></span><span><code class="inl">make elab</code> 编译出 simv</span></li>
+              <li data-k="run"><span class="box"></span><span><code class="inl">./simv</code> 跑通仿真</span></li>
+              <li data-k="verdi"><span class="box"></span><span><code class="inl">make verdi</code> 打开 Verdi</span></li>
+            </ul>
+            <div class="note" style="margin-top:14px;font-size:12.5px;padding:9px 12px">卡住了？点下面的常用命令，或输入 <code class="inl">help</code> 看支持的命令。</div>
+            <div class="cmd-chips" id="lab1-chips">
+              <span class="chip" data-cmd="ls">ls</span>
+              <span class="chip" data-cmd="cat files.f">cat files.f</span>
+              <span class="chip" data-cmd="make clean">make clean</span>
+              <span class="chip" data-cmd="make elab">make elab</span>
+              <span class="chip" data-cmd="./simv">./simv</span>
+              <span class="chip" data-cmd="./simv -gui">./simv -gui</span>
+              <span class="chip" data-cmd="make verdi">make verdi</span>
+            </div>
+          </div>
+          <div><div id="lab1-term"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <h3><span class="ic">A</span>逐条看懂你要敲的命令</h3>
+    <div class="code">
+      <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">完整实验记录（课件 1–48 页的实操浓缩）</span></div>
+<pre><span class="c"># 1. 进入 sim 目录，确认文件都在</span>
+$ ls
+comp.log  files.f  Makefile  simv  simv.daidir  ucli.key  ...
+
+<span class="c"># 2. 编译：一步生成 simv（约 192 秒编译 + 343 秒链接，取决于机器）</span>
+$ make elab
+rm -rf AN.DB DVEfiles csrc simv.* ...
+vcs -full64 -debug_access+all -sverilog -l comp.log \
+    -f ./files.f -timescale=1ns/1ps
+Chronologic VCS simulator copyright 1991-2018
+Contains Synopsys proprietary information.
+Compiler version O-2018.09-SP2_Full64; Runtime version O-2018.09-SP2_Full64
+
+<span class="c"># 3. 仿真（-gui 进 DVE，不加则纯命令行跑完退出）</span>
+$ ./simv -gui -l run.log
+VCD+ Writer O-2018.09-SP2_Full64
+The file ".../sim/inter.vpd" was opened successfully</pre>
+    </div>
+
+    <h3><span class="ic">B</span>课件里的真实编译输出，记住这几行</h3>
+    <div class="grid g2">
+      <div class="card tight">
+        <div class="badge g">成功</div>
+        <pre style="font-family:var(--mono);font-size:11.8px;color:#a9d9c4;white-space:pre-wrap;margin-top:8px">Chronologic VCS simulator copyright 1991-2018
+Contains Synopsys proprietary information.
+Compiler version O-2018.09-SP2_Full64;
+Runtime version O-2018.09-SP2_Full64
+CPU time: 192 seconds to compile + 343 seconds to link</pre>
+        <p style="font-size:12.5px;color:#8fb3c9;margin:8px 0 0">看到 Compiler + Runtime 两行版本号，说明 simv 已经生成。</p>
+      </div>
+      <div class="card tight">
+        <div class="badge">仿真启动</div>
+        <pre style="font-family:var(--mono);font-size:11.8px;color:#a9d9c4;white-space:pre-wrap;margin-top:8px">VCD+ Writer O-2018.09-SP2_Full64
+Copyright (c) 1991-2018 by Synopsys Inc.
+The file ".../sim/inter.vpd" was opened successfully</pre>
+        <p style="font-size:12.5px;color:#8fb3c9;margin:8px 0 0"><code class="inl">inter.vpd</code> 就是 DVE 的波形数据库，后面 DVE 里的波形全部来自它。</p>
+      </div>
+    </div>
+
+    <h3><span class="ic">C</span>三个最容易踩的坑</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:34%">报错/现象</th><th>真实原因</th></tr></thead>
+        <tbody>
+          <tr><td>make: *** No targets specified and no makefile found.</td><td>不在 <code class="inl">sim/</code> 目录里，或者文件名写成了 <code class="inl">makefile</code>（小写 m 也可以，但要拼对）</td></tr>
+          <tr><td>bash: ./simv: No such file or directory</td><td>还没编译，或者编译失败（看 <code class="inl">comp.log</code> 里的 Error）</td></tr>
+          <tr><td>Error-[MFNF] Module not found</td><td><code class="inl">files.f</code> 里路径写错 / 顺序不对 / 模块名与文件名不一致</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="vcs-flow"><small>上一关</small><span>← 04 VCS 三步式流程</span></button>
+      <button class="btn pri" data-go="dve"><small>下一关</small><span>06 实战二：DVE 波形调试 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 06 DVE ================= -->
+  <section class="lesson" id="dve">
+    <div class="kicker">Lab 02</div>
+    <h2 class="title">实战二：DVE 里把信号拖进波形窗口</h2>
+    <p class="subtitle">课件用了十几页讲 DVE 的点击顺序。这里把它压缩成一个可以真实点击的 DVE 模拟器：层次树、变量列表、源代码、UCLI 控制台、波形窗口，全部联动。</p>
+
+    <h3><span class="ic">A</span>DVE 界面四个区（课件标注）</h3>
+    <div class="grid g2">
+      <div class="card tight">
+        <h4 style="margin-top:0">左上 · design hierarchy</h4>
+        <p style="font-size:13px;margin:0;color:#a9bccd">设计层次树。绿色箭头的 <b>+</b> 点开可以看到实例化代码；点中某个模块，右边变量列表会跟着变。</p>
+      </div>
+      <div class="card tight">
+        <h4 style="margin-top:0">中上 · local variable and ports</h4>
+        <p style="font-size:13px;margin:0;color:#a9bccd">当前模块的信号列表（端口 + 内部变量）。<b>红色箭头</b>指的就是这个区，它随层次选择而变化。</p>
+      </div>
+      <div class="card tight">
+        <h4 style="margin-top:0">右侧 · Source code</h4>
+        <p style="font-size:13px;margin:0;color:#a9bccd">源代码窗口，双击信号名可以高亮它在代码中出现的位置。</p>
+      </div>
+      <div class="card tight">
+        <h4 style="margin-top:0">底部 · UCLI command</h4>
+        <p style="font-size:13px;margin:0;color:#a9bccd">命令行控制台。可以敲 <code class="inl">run</code>、<code class="inl">fsdbDumpvars</code> 等命令，和图形操作等价。</p>
+      </div>
+    </div>
+
+    <details class="ref">
+      <summary>课件原图 · DVE 界面四区标注</summary>
+      <div class="body"><img loading="lazy" decoding="async" src="img/img_s063.jpg" alt="DVE 界面四区标注">
+      <div class="cap">课件对应页：design hierarchy / local variable and ports / Source code / UCLI command 四个区域的原始标注图。</div></div>
+    </details>
+
+    <h3><span class="ic">B</span>动手：完成 DVE 的 6 个操作</h3>
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">Simulator</span><span class="ttl">DVE · 双击层次树、右键、全选、跑仿真</span><span class="st" id="dve-st">0 / 6</span></div>
+      <div class="lab-bd">
+        <div style="display:grid;grid-template-columns:240px 1fr;gap:16px" id="dve-grid">
+          <div>
+            <ul class="task-list" id="dve-tasks">
+              <li data-k="sel"><span class="box"></span><span>展开层次，选中 <code class="inl">mux2to1</code> 实例</span></li>
+              <li data-k="dump"><span class="box"></span><span>右键 → <b>Add Dump</b>，勾选 aggregates 后 Dump</span></li>
+              <li data-k="wave"><span class="box"></span><span>变量列表 <b>Ctrl+A</b> 全选 → 右键 Add To Waves → New Wave View</span></li>
+              <li data-k="run"><span class="box"></span><span>点 <b>Start/Continue</b> 跑起来，波形出现变化</span></li>
+              <li data-k="radix"><span class="box"></span><span>全选后右键 <b>Set Radix</b> 切成 Hex</span></li>
+              <li data-k="zoom"><span class="box"></span><span>在波形上拖拽 <b>Drag zoom</b> 放大一段</span></li>
+            </ul>
+            <div class="note green" style="font-size:12.5px;padding:9px 12px;margin-top:12px">操作提示：所有右键菜单都在界面里真实弹出；Ctrl+A 需先点一下变量列表。</div>
+          </div>
+          <div id="dve-mock"></div>
+        </div>
+      </div>
+    </div>
+
+    <h3><span class="ic">C</span>课件里的三个关键动作</h3>
+    <div class="steps">
+      <div class="step"><div class="sn">STEP 1</div><div class="st">右键 Add Dump</div><div class="sc">勾选 aggregates → Dump</div></div>
+      <div class="step"><div class="sn">STEP 2</div><div class="st">Ctrl+A 全选</div><div class="sc">Add To Waves → New Wave View</div></div>
+      <div class="step"><div class="sn">STEP 3</div><div class="st">Start/Continue</div><div class="sc">波形开始刷新</div></div>
+    </div>
+    <div class="quote"><span class="src">课件原文（第 64–69 页）</span>「鼠标右键选择 Add Dump，会出现以下界面，勾选中 aggregates 后点击 Dump。」<br>「在红色箭头部分按 Ctrl+A 可以全选信号，右键选择 Add To Waves → New Wave View。/ Ctrl+4」<br>「会出现如下界面，然后点击 start/continue 按键。」<br>「还是这个界面，我们依旧按 Ctrl+A 可以全选信号，右键选择 Set Radix，选择不同进制的数制。」<br>「选择不同进制的数制后，Value 值随着选择进制的变化而变化。」</div>
+
+    <h3><span class="ic">D</span>波形窗口的组成（课件标注图）</h3>
+    <div class="tbl-wrap">
+      <table class="plain">
+        <thead><tr><th style="width:30%">区域 / 控件</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td>Set time</td><td>跳到指定时刻，或设置当前时间</td></tr>
+          <tr><td>Search icons</td><td>在波形里搜索信号 / 跳转</td></tr>
+          <tr><td>Upper timescale<br><span style="color:#7f93a6;font-size:12px">Current range display</span></td><td>当前显示区间的时间刻度（局部）</td></tr>
+          <tr><td>Lower timescale<br><span style="color:#7f93a6;font-size:12px">Entire range display</span></td><td>整个仿真时间的全局刻度条</td></tr>
+          <tr><td>Signal groups</td><td>信号分组（Aggregate / 自定义组）</td></tr>
+          <tr><td>Drag zoom</td><td>在波形区拖拽框选放大</td></tr>
+          <tr><td>数字区 / Value</td><td>每个信号当前值，随进制切换变化</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <details class="ref">
+      <summary>课件原图 · 波形窗口组成</summary>
+      <div class="body"><img loading="lazy" decoding="async" src="img/img_s070.jpg" alt="波形窗口组成">
+      <div class="cap">课件原图：Set time、Search icons、Upper/Lower timescale、Signal groups、Drag zoom、数字区。</div></div>
+    </details>
+
+    <div class="note"><span class="tag">为什么值是红的/绿的</span>DVE 用颜色区分 0/1/X/Z：绿色高电平、深色低电平、红色 X 态。看到一条信号整段发红，先查是否有未初始化或驱动冲突。</div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="vcs-lab"><small>上一关</small><span>← 05 实战一：命令行编译仿真</span></button>
+      <button class="btn pri" data-go="fsdb"><small>下一关</small><span>07 产生 fsdb 的三种方法 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 07 fsdb ================= -->
+  <section class="lesson" id="fsdb">
+    <div class="kicker">Chapter 07</div>
+    <h2 class="title">产生 fsdb 的三种方法：选错会踩坑</h2>
+    <p class="subtitle">Verdi 只认 FSDB（Fast Signal Database）。课件用四页讲同一个标题、三种做法，并明确写了两条警告：命名不可控、两种方法不要混用。</p>
+
+    <h3><span class="ic">A</span>三种方法对照</h3>
+    <div class="tbl-wrap">
+      <table class="plain">
+        <thead><tr><th style="width:6%">#</th><th style="width:26%">做法</th><th style="width:20%">产物文件名</th><th>优点 / 缺点</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-family:var(--mono);color:#8ff0c8">1</td>
+            <td>Makefile 编译命令里加 <code class="inl">+vcs+fsdbon</code></td>
+            <td><code class="inl">novas.fsdb</code>（固定）</td>
+            <td><b>优点</b>：只改 Makefile，无需额外操作。<br><b>缺点</b>：无论什么设计和验证代码，波形都叫 <code class="inl">novas.fsdb</code></td>
+          </tr>
+          <tr>
+            <td style="font-family:var(--mono);color:#8ff0c8">2</td>
+            <td>在 tb 的 initial 块里调用 <code class="inl">$fsdbDumpfile</code> / <code class="inl">$fsdbDumpvars</code></td>
+            <td>自己命名，如 <code class="inl">test.fsdb</code></td>
+            <td><b>优点</b>：可自己命名，便于后续保存查找。<br><b>缺点</b>：每个 tb 都要加，工作量大</td>
+          </tr>
+          <tr>
+            <td style="font-family:var(--mono);color:#8ff0c8">3</td>
+            <td>sim 目录放脚本 <code class="inl">run.tcl</code>，Makefile 用 <code class="inl">-ucli -i run.tcl</code> 驱动</td>
+            <td>自己命名，如 <code class="inl">mux2to1.fsdb</code></td>
+            <td><b>优点</b>：可自定义命名，脚本可复用，只改波形名；VCS 与 Verdi 联合仿真</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3><span class="ic">B</span>三种写法的原文</h3>
+    <div class="grid g3">
+      <div class="code">
+        <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">方法 1 · Makefile</span></div>
+<pre>elab:
+	vcs -full64 \
+	  -debug_acc+all \
+	  -sverilog -l comp.log \
+	  -f ./files.f \
+	  -timescale=1ns/1ps \
+	  <span class="s">+vcs+fsdbon</span></pre>
+      </div>
+      <div class="code">
+        <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">方法 2 · tb.v</span></div>
+<pre><span class="k">initial</span> <span class="k">begin</span>
+  $fsdbDumpfile(<span class="s">"test.fsdb"</span>);
+  $fsdbDumpvars;
+<span class="k">end</span></pre>
+      </div>
+      <div class="code">
+        <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">方法 3 · run.tcl</span></div>
+<pre><span class="c">1</span> call {$fsdbDumpfile(<span class="s">"mux2to1.fsdb"</span>)}
+<span class="c">2</span> call {$fsdbDumpvars}
+<span class="c">3</span> run</pre>
+      </div>
+    </div>
+    <p>方法 3 的 Makefile 关键行：<code class="inl">./simv -ucli -i run.tcl -l run.log</code>。课件标注：<b>-ucli 打开交互式命令行，启动后自动执行指定的 tcl 脚本</b>。</p>
+
+    <div class="note red"><span class="tag">课件警告</span>「<b>两种方法不要混用</b>，以防产生多个不同名字的 fsdb 波形文件。」方法 1 的 <code class="inl">+vcs+fsdbon</code> 与方法 2 的 <code class="inl">$fsdbDumpfile</code> 同时存在时，你会得到 <code class="inl">novas.fsdb</code> 和 <code class="inl">test.fsdb</code> 两个文件，Verdi 加载哪个全凭运气。</div>
+
+    <details class="ref">
+      <summary>课件原图 · 方法 1：+vcs+fsdbon</summary>
+      <div class="body"><img loading="lazy" decoding="async" src="img/img_s079.jpg" alt="方法 1：+vcs+fsdbon">
+      <div class="cap">课件原图：在 Makefile 的 vcs 命令行加入 +vcs+fsdbon，产物固定为 novas.fsdb。</div></div>
+    </details>
+
+    <h3><span class="ic">C</span>动手：三种方法各跑一遍，看产物</h3>
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">实操</span><span class="ttl">fsdb 发生器 · 选方法 → 编译 → 看目录里多了什么</span><span class="st" id="fsdb-st">未执行</span></div>
+      <div class="lab-bd">
+        <div class="btn-row" style="margin-top:0" id="fsdb-methods">
+          <button class="btn sm" data-fsdb="1">方法 1 · +vcs+fsdbon</button>
+          <button class="btn sm" data-fsdb="2">方法 2 · tb 里 $fsdbDumpfile</button>
+          <button class="btn sm" data-fsdb="3">方法 3 · run.tcl + -ucli</button>
+          <button class="btn sm" data-fsdb="mix">故意混用 1 + 2</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px" id="fsdb-grid">
+          <div id="fsdb-term"></div>
+          <div>
+            <div class="code" style="margin:0">
+              <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">sim/ 目录（执行后）</span></div>
+              <pre id="fsdb-ls" style="min-height:190px">点击上面任一方法…</pre>
+            </div>
+            <div class="tool-info" id="fsdb-info" style="margin-top:10px;min-height:70px">三种方法都会产生 fsdb，但文件名、可复用性、以及对 tb 的侵入程度不同。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3><span class="ic">D</span>Verdi 怎么加载它</h3>
+    <div class="code">
+      <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">加载 fsdb 的两种途径</span></div>
+<pre><span class="c"># 1) 启动时用 -ssf 指定（课件 Makefile 的 verdi 目标）</span>
+verdi -f ./files.f -ssf ./test.fsdb &amp;
+
+<span class="c"># 2) 已经打开 Verdi，再手动加波形文件（课件第 96 页）</span>
+File → Open → 选择 dump.fsdb        <span class="c"># 或 nWave 里 ls 命令列出</span></pre>
+    </div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="dve"><small>上一关</small><span>← 06 实战二：DVE 波形调试</span></button>
+      <button class="btn pri" data-go="verdi-intro"><small>下一关</small><span>08 Verdi 架构与四大工具 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 08 Verdi 简介 ================= -->
+  <section class="lesson" id="verdi-intro">
+    <div class="kicker">Chapter 08</div>
+    <h2 class="title">Verdi：不只是看波形，而是一套调试系统</h2>
+    <p class="subtitle">课件先讲清楚 Verdi 的出身和架构，再进界面。这一段是理解 nTrace / nSchema 为什么强的前提。</p>
+
+    <h3><span class="ic">A</span>出身与定位</h3>
+    <p class="lead">VCS 和 Verdi 这两个工具目前都属于 Synopsys 公司。Verdi 最开始是由 <b>Novas</b> 公司设计的，2012 年被 Synopsys 收购 —— 这就是为什么工程里到处是 <code class="inl">novas.rc</code>、<code class="inl">novas.conf</code> 这样的文件名。</p>
+    <p>Verdi 自动调试平台是一种用于调试数字电路设计的高级解决方案，可用于提高复杂的片上系统（SoC）、ASIC 和 FPGA 设计效率。传统的调试工具仅依靠结构信息和发挥工程师的个人能力，从结构中推断出设计行为；Verdi 平台提供强大的技术，帮助工程师理解复杂和不熟悉的设计行为，自动化困难和繁琐的调试过程，统一各种复杂的调试环境，并推断设计的动态行为。</p>
+
+    <h3><span class="ic">B</span>架构：两个数据库 + 五种引擎 + 五个可视化</h3>
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">架构</span><span class="ttl">Comprehensive Debug System — More Than Simple Visualization</span><span class="st">点击任一可视化工具</span></div>
+      <div class="lab-bd">
+        <div style="display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:14px;align-items:stretch">
+          <div>
+            <div class="sh" style="font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:1px;margin-bottom:8px">输入</div>
+            <div style="border:1px solid var(--line2);border-radius:9px;padding:12px;background:#0d151e;font-size:12.8px;line-height:2;color:#a9c1d6">
+              Design<br>Testbench<br>Assertions<br>Specification<br>Layout Info
+            </div>
+            <div style="text-align:center;color:#3f5568;padding:6px">↓</div>
+            <div style="border:1px solid rgba(181,133,255,.35);border-radius:9px;padding:12px;background:rgba(181,133,255,.08);font-size:12.6px;color:#d6bcff;line-height:1.9">
+              KDB · Knowledge Database<br>FSDB · Event Database
+            </div>
+          </div>
+          <div>
+            <div class="sh" style="font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:1px;margin-bottom:8px">分析引擎</div>
+            <div style="border:1px solid rgba(255,159,69,.35);border-radius:9px;padding:12px;background:rgba(255,159,69,.07);font-size:12.8px;line-height:2.1;color:#ffd0a3">
+              Behavior Analysis<br>Structure Analysis<br>Behavior Exploration<br>Behavior Query<br>Knowledge Reuse
+            </div>
+          </div>
+          <div>
+            <div class="sh" style="font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:1px;margin-bottom:8px">可视化（点我）</div>
+            <div id="vis-list" style="display:flex;flex-direction:column;gap:6px">
+              <button class="tool-chip" data-vis="flow">Behavior Flow Graph</button>
+              <button class="tool-chip" data-vis="ntrace">Source Code Trace · <b>nTrace</b></button>
+              <button class="tool-chip" data-vis="nwave">Waveform / Event · <b>nWave</b></button>
+              <button class="tool-chip" data-vis="nschema">Schematic / Structure · <b>nSchema</b></button>
+              <button class="tool-chip" data-vis="nstate">FSM / Flow Chart · <b>nState</b></button>
+              <button class="tool-chip" data-vis="block">Block Diagram / Documentation</button>
+            </div>
+          </div>
+        </div>
+        <div class="tool-info" id="vis-info" style="margin-top:14px">左边输入设计、右侧输出洞察，中间两个数据库撑着。点上面任意一个可视化工具看它解决什么问题。</div>
+      </div>
+    </div>
+
+    <h3><span class="ic">C</span>两个数据库到底是什么</h3>
+    <div class="grid g2">
+      <div class="card">
+        <div class="badge b">KDB</div>
+        <h4>Knowledge Database</h4>
+        <p style="font-size:13.2px;margin:0;color:#a9bccd">Verdi 编译设计后生成的知识库：模块层次、端口连接、驱动/负载关系、信号与源码的映射。nTrace 能「点信号跳代码、点代码看驱动」，靠的就是它。</p>
+      </div>
+      <div class="card">
+        <div class="badge g">FSDB</div>
+        <h4>Fast Signal Database</h4>
+        <p style="font-size:13.2px;margin:0;color:#a9bccd">仿真产生的波形数据库。相比 VCD 体积小、写入快，并且支持「按信号按时间」随机访问 —— 所以 nWave 拖动时间轴不卡。</p>
+      </div>
+    </div>
+    <div class="note green"><span class="tag">课件原文</span>「基于 KDB 和 FSDB，Verdi 平台为不同的应用提供了一系列的分析引擎，包括：结构分析、行为分析、断言评估、事务/消息分析、功耗状态评估等。其中<b>最核心的是先进的结构可视化和分析工具</b>，包括：nTrace 用于源代码、nWave 用于波形、nSchema 用于原理图/逻辑图、nState 用于有限状态机（FSM）。」</div>
+
+    <h3><span class="ic">D</span>启动 Verdi 的两个方式</h3>
+    <div class="code">
+      <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">启动</span></div>
+<pre><span class="c"># 带设计 + 波形一起打开（推荐）</span>
+$ verdi -f ./files.f -ssf ./test.fsdb &amp;
+
+<span class="c"># 只开界面，之后再 File → Import Design 加代码</span>
+$ verdi &amp;
+
+<span class="c"># 课件里出现过的启动横幅</span>
+Release Verdi_O-2018.09-SP1 for (RH Linux x86_64/64bit)
+rcfile = /home/.../sim/novas.rc
+guiConfFile (read) = /home/.../sim/novas.conf</pre>
+    </div>
+    <div class="note"><span class="tag">课件细节</span>nTrace 打开后会显示 <code class="inl">&lt;nWave:2&gt; No File Opened</code>，直到你加载 fsdb 才会变成 <code class="inl">dump.fsdb</code>。课件第 95、96 页讲的就是「加入代码文件后信号出现」和「加入波形文件」两件事。</div>
+
+    <h3><span class="ic">E</span>设置字体大小（课件第 94 页）</h3>
+    <p>课件里还专门讲了一个「刚上手最先想调」的细节：默认字体偏小。</p>
+    <div class="card tight">
+      <ol style="margin:0 0 0 18px;font-size:13.4px">
+        <li><b>Tools → Preferences</b> 打开首选项</li>
+        <li>左侧选 <b>Source Code</b>，右侧页签选 <b>Colors/Fonts</b></li>
+        <li>点 <b>Font</b> 后面的选择框，挑一个字号（如 <code class="inl">-adobe-helvetica-medium-r-normal--12-...</code>）</li>
+        <li>点 <b>Apply</b> 立即生效</li>
+      </ol>
+    </div>
+    <p>这些界面设置会写进工作目录下的 <code class="inl">novas.rc</code> 与 <code class="inl">novas.conf</code>，所以课件里 <code class="inl">ls</code> 能看到它们和 <code class="inl">verdiLog</code> 一起躺在 sim 目录里 —— 换台机器时把这两个文件带过去，界面就还是你熟悉的样子。</p>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="fsdb"><small>上一关</small><span>← 07 产生 fsdb 的三种方法</span></button>
+      <button class="btn pri" data-go="ntrace"><small>下一关</small><span>09 实战三：nTrace 溯源 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 09 nTrace ================= -->
+  <section class="lesson" id="ntrace">
+    <div class="kicker">Lab 03</div>
+    <h2 class="title">实战三：nTrace，把信号一路追到源头</h2>
+    <p class="subtitle">课件对 nTrace 的定义很精炼：debug 时用来「追溯源头」的工具，追寻一个信号的来龙去脉，就是一个溯源的过程。</p>
+
+    <h3><span class="ic">A</span>nTrace 工具栏：10 个按钮解决 90% 的追踪</h3>
+    <div class="tbl-wrap">
+      <table class="plain">
+        <thead><tr><th style="width:22%">按钮</th><th style="width:26%">英文名</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td>显示定义</td><td>Show Definition</td><td>跳到信号/模块的定义处（Ctrl+双击）</td></tr>
+          <tr><td>追踪驱动</td><td>Trace Driver</td><td>往「谁驱动了它」的方向走一层</td></tr>
+          <tr><td>追踪负载</td><td>Trace Load</td><td>往「它驱动了谁」的方向走一层</td></tr>
+          <tr><td>调用者</td><td>Show Calling</td><td>跳到调用当前模块的上层</td></tr>
+          <tr><td>下一个/上一个</td><td>Show Next / Show Previous</td><td>同一层里顺序切换</td></tr>
+          <tr><td>层次下钻</td><td>Show Next in Hierarchy<br>Show Previous in Hierarchy</td><td>在层次结构里上下移动</td></tr>
+          <tr><td>前进/后退历史</td><td>Forward / Backward History</td><td>像浏览器一样回到刚才看的位置</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note blue"><span class="tag">课件原文</span>「First, Trace - and, backward：只用一个 backward 操作去找到所有 driver。」—— 追驱动不是一层层点，Verdi 支持一次追到源。</div>
+
+    <details class="ref">
+      <summary>课件原图 · nTrace 工具栏逐个按钮</summary>
+      <div class="body"><img loading="lazy" decoding="async" src="img/img_s105.jpg" alt="nTrace 工具栏逐个按钮">
+      <div class="cap">课件原图：Show Definition / Trace Driver / Trace Load / Show Calling / 层次切换 / 前进后退历史。</div></div>
+    </details>
+
+    <h3><span class="ic">B</span>Find Scope：层次太深时的直达电梯</h3>
+    <div class="quote"><span class="src">课件原文</span><b>Scope - Find Scope</b>：It is a fast way to directly open a Verilog module if the design tree is deep.
+<ul style="margin:8px 0 0 18px"><li>Search Scope by Name, Active/module, Module, Task or function.</li><li>Enter search filter using wildcards.</li></ul></div>
+    <p>设计有几百个模块时，别在层次树里点。直接 <code class="inl">Find Scope</code> 输 <code class="inl">*mux*</code> 之类的通配符，一步跳过去。</p>
+
+    <h3><span class="ic">C</span>Find Signals and Instances</h3>
+    <div class="quote"><span class="src">课件原文</span><b>Find Signals and Instances</b>：
+<ul style="margin:8px 0 0 18px"><li>Search for the full path of Signals/Instances in full design or selected scope.</li><li>Supports wildcard characters and regular expressions.</li></ul></div>
+    <p>它的价值在于「全路径」：你在 nWave 里看到一个叫 <code class="inl">out</code> 的信号，但设计里可能有 200 个 <code class="inl">out</code>。<code class="inl">Find Signals</code> 会把 <code class="inl">mux2to1_tb.mux2to1.out</code> 这样的完整路径列出来，让你确认到底看的是哪一个。</p>
+
+    <h3><span class="ic">D</span>动手：在 nTrace 里追踪一个信号</h3>
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">Simulator</span><span class="ttl">Verdi · nTrace + nWave</span><span class="st" id="nt-st">0 / 5</span></div>
+      <div class="lab-bd">
+        <div style="display:grid;grid-template-columns:240px 1fr;gap:16px" id="nt-grid">
+          <div>
+            <ul class="task-list" id="nt-tasks">
+              <li data-k="load"><span class="box"></span><span>点工具栏 <b>Import Design</b> 加载 files.f</span></li>
+              <li data-k="scope"><span class="box"></span><span>用 <b>Find Scope</b> 搜 <code class="inl">mux2to1</code> 直跳</span></li>
+              <li data-k="def"><span class="box"></span><span>在源码里点 <code class="inl">out</code> 看 <b>Show Definition</b></span></li>
+              <li data-k="driver"><span class="box"></span><span>点 <b>Trace Driver</b> 追它的驱动</span></li>
+              <li data-k="wave"><span class="box"></span><span>把 <code class="inl">out</code> 双击送进 nWave 看波形</span></li>
+            </ul>
+            <div class="note green" style="font-size:12.5px;padding:9px 12px;margin-top:12px">模拟器里源码中的蓝色信号名可以点，工具栏按钮也会真的改变高亮行。</div>
+          </div>
+          <div id="nt-mock"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note"><span class="tag">调试心法</span>波形上看到 <code class="inl">out</code> 在 40ns 变成了不该出现的值。人的第一反应是「谁把它写成这样的」——Trace Driver 就是回答这个问题的；第二反应是「这个错值又影响了谁」——Trace Load。一前一后，就是一次完整的溯源。</div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="verdi-intro"><small>上一关</small><span>← 08 Verdi 架构与四大工具</span></button>
+      <button class="btn pri" data-go="nwave"><small>下一关</small><span>10 实战四：nWave 与 nSchema →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 10 nWave / nSchema ================= -->
+  <section class="lesson" id="nwave">
+    <div class="kicker">Lab 04</div>
+    <h2 class="title">实战四：nWave 存信号、nSchema 追电路</h2>
+    <p class="subtitle">课件最后几十页都在演示这两件事：怎么把辛苦挑出来的信号存下来，怎么在逻辑图上顺着网线找问题。</p>
+
+    <h3><span class="ic">A</span>nWave：Save / Restore Signals</h3>
+    <div class="quote"><span class="src">课件原文</span><b>Use File &gt; Save Signals</b> to save all waveform objects including:
+<ul style="margin:8px 0 0 18px">
+  <li>Groups（信号组）</li>
+  <li>Containers（容器）</li>
+  <li>Markers and status（标记与状态）</li>
+  <li>Grid options（网格设置）</li>
+  <li>Crossed Bars（交叉游标）</li>
+</ul>
+<b>Restore the signals saved</b>：Use <b>File &gt; Restore Signals</b> to restore signals, or use the <b>Restore Signals</b> toolbar button.<br>
+<span style="color:#c99">Note: If you have multiple waveform windows, the Restore Signals command will not overwrite the current simulation results.</span></div>
+    <p>翻译成人话：调 bug 时你花 10 分钟从几百个信号里挑出 12 个关键信号，存成 <code class="inl">.rc</code> 文件；下次换个仿真重跑，<code class="inl">Restore Signals</code> 一键全部回来，连分组和游标位置都在。</p>
+
+    <details class="ref">
+      <summary>课件原图 · Verdi 里加入波形文件</summary>
+      <div class="body"><img loading="lazy" decoding="async" src="img/img_s096.jpg" alt="Verdi 里加入波形文件">
+      <div class="cap">课件原图：File → Open 加载 fsdb，或 nWave 中用 ls 命令列出波形文件。</div></div>
+    </details>
+
+    <h3><span class="ic">B</span>nSchema：Trace X 顺着电路走</h3>
+    <p>nSchema 把 Verilog 变成逻辑图。选中一根线，按 <code class="inl">Trace X</code>（或 <code class="inl">x</code> 键）就能高亮它往上游（fan-in）或下游（fan-out）的整条路径。对组合逻辑尤其好用：<b>不用读代码，直接看电路</b>。</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:26%">操作</th><th>效果</th></tr></thead>
+        <tbody>
+          <tr><td>双击模块</td><td>进入该模块内部，展开子电路</td></tr>
+          <tr><td>Trace X（x）</td><td>高亮选中网线的扇入 / 扇出锥</td></tr>
+          <tr><td>Trace Driver / Load</td><td>跨层次追驱动与负载</td></tr>
+          <tr><td>与 nWave 联动</td><td>图上选中网线 → 波形里自动定位同一信号</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3><span class="ic">C</span>动手：nSchema 上追一根线</h3>
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">Simulator</span><span class="ttl">Verdi · nSchema + nWave 联动</span><span class="st" id="ns-st">0 / 4</span></div>
+      <div class="lab-bd">
+        <div style="display:grid;grid-template-columns:240px 1fr;gap:16px" id="ns-grid">
+          <div>
+            <ul class="task-list" id="ns-tasks">
+              <li data-k="open"><span class="box"></span><span>从 nTrace 打开 <b>nSchema</b></span></li>
+              <li data-k="click"><span class="box"></span><span>点中 <code class="inl">sel</code> 这根输入线</span></li>
+              <li data-k="trace"><span class="box"></span><span>按 <b>Trace X</b> 高亮扇出路径</span></li>
+              <li data-k="sync"><span class="box"></span><span>看 nWave 里对应信号被联动定位</span></li>
+            </ul>
+            <div class="note green" style="font-size:12.5px;padding:9px 12px;margin-top:12px">图上三根输入线都可以点，Trace X 会画出不同颜色的路径。</div>
+          </div>
+          <div id="ns-mock"></div>
+        </div>
+      </div>
+    </div>
+
+    <h3><span class="ic">D</span>保存与恢复：一个真实的调试习惯</h3>
+    <div class="code">
+      <div class="hd"><span class="d"></span><span class="d"></span><span class="d"></span><span class="name">典型用法</span></div>
+<pre><span class="c"># 1. 调完一轮，把关键信号存下来</span>
+nWave → File → Save Signals → debug_top.rc
+
+<span class="c"># 2. 改了 RTL 重新仿真，波形全变了</span>
+$ make elab &amp;&amp; ./simv -ucli -i run.tcl
+
+<span class="c"># 3. 打开新波形，一键恢复上次的信号布局</span>
+nWave → File → Restore Signals → debug_top.rc</pre>
+    </div>
+    <div class="note"><span class="tag">课件提醒</span>有多个波形窗口时，<code class="inl">Restore Signals</code> <b>不会覆盖当前仿真结果</b> —— 它只恢复信号的排列与显示，不动数据。</div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="ntrace"><small>上一关</small><span>← 09 实战三：nTrace 溯源</span></button>
+      <button class="btn pri" data-go="debug"><small>下一关</small><span>11 常见错误排查 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 11 错误排查 ================= -->
+  <section class="lesson" id="debug">
+    <div class="kicker">Chapter 11</div>
+    <h2 class="title">常见错误排查：报错信息是最好的老师</h2>
+    <p class="subtitle">下面 6 个报错全部来自课件演示中真实出现过的场景。先自己判断原因，再点开看解析。</p>
+
+    <div class="lab">
+      <div class="lab-hd"><span class="tag">诊断</span><span class="ttl">给报错找病因</span><span class="st" id="dbg-st">0 / 6</span></div>
+      <div class="lab-bd" id="dbg-list"></div>
+    </div>
+
+    <h3><span class="ic">A</span>一张排查顺序表</h3>
+    <div class="tbl-wrap">
+      <table class="plain">
+        <thead><tr><th style="width:22%">阶段</th><th style="width:34%">先看哪里</th><th>再确认</th></tr></thead>
+        <tbody>
+          <tr><td>编译报错</td><td><code class="inl">comp.log</code> 第一个 Error</td><td>文件是否都在、<code class="inl">-sverilog</code> 是否加、timescale 是否缺</td></tr>
+          <tr><td>仿真跑不起来</td><td><code class="inl">./simv</code> 是否存在</td><td>编译是否真的成功（别被 Warning 骗了）</td></tr>
+          <tr><td>没有波形</td><td>fsdb / vpd 文件是否生成</td><td>是否加了 <code class="inl">-debug_access</code>、dump 语句是否执行到</td></tr>
+          <tr><td>波形是空的</td><td>dump 的层次范围</td><td><code class="inl">$fsdbDumpvars</code> 参数、add dump 勾选的 aggregates</td></tr>
+          <tr><td>Verdi 打不开设计</td><td>files.f 路径</td><td>是否用了绝对路径、编译产物是否在同一目录</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="nwave"><small>上一关</small><span>← 10 实战四：nWave 与 nSchema</span></button>
+      <button class="btn pri" data-go="quiz"><small>下一关</small><span>12 结业测验 →</span></button>
+    </div>
+  </section>
+
+  <!-- ================= 12 测验 ================= -->
+  <section class="lesson" id="quiz">
+    <div class="kicker">Final Check</div>
+    <h2 class="title">结业测验：10 题检验你是否真的会了</h2>
+    <p class="subtitle">全部来自课件内容。选完立即判分并给出解析，做错的题建议回到对应关卡重看。</p>
+    <div class="lab" style="background:#0a1017">
+      <div class="lab-hd"><span class="tag">Quiz</span><span class="ttl">单选 · 共 10 题</span><span class="st" id="quiz-st">0 / 10</span></div>
+      <div class="lab-bd" id="quiz-list"></div>
+    </div>
+    <div class="card" id="quiz-result" style="display:none">
+      <h4 style="margin-top:0">测验完成</h4>
+      <p id="quiz-score" style="font-size:15px;margin:0"></p>
+    </div>
+
+    <div class="foot-nav">
+      <button class="btn ghost" data-go="debug"><small>上一关</small><span>← 11 常见错误排查</span></button>
+      <button class="btn pri" data-go="intro"><small>回到开头</small><span>⟲ 00 课程导览</span></button>
+    </div>
+  </section>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+<script>
+/* ============================================================
+   VCS × Verdi 交互式实训实验室
+   ============================================================ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+/* ---------- 进度存储 ---------- */
+const STORE_KEY = 'vcs_verdi_lab_v2';
+const store = {
+  data: { lessons: {}, tasks: {} },
+  load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) this.data = Object.assign(this.data, JSON.parse(raw));
+    } catch (e) { }
+  },
+  save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(this.data)); } catch (e) { } },
+  lessonDone(id) { this.data.lessons[id] = 1; this.save(); renderProgress(); },
+  task(group, key) {
+    const arr = this.data.tasks[group] || (this.data.tasks[group] = []);
+    if (!arr.includes(key)) { arr.push(key); this.save(); }
+    return arr;
+  },
+  has(group, key) { return (this.data.tasks[group] || []).includes(key); }
+};
+store.load();
+
+const LESSONS = ['intro', 'eda', 'env', 'makefile', 'vcs-flow', 'vcs-lab', 'dve', 'fsdb', 'verdi-intro', 'ntrace', 'nwave', 'debug', 'quiz'];
+
+function renderProgress() {
+  const done = LESSONS.filter(id => store.data.lessons[id]).length;
+  $('#prog-text').textContent = done + ' / ' + LESSONS.length;
+  $('#prog-bar').style.width = (done / LESSONS.length * 100).toFixed(1) + '%';
+  $$('#nav a').forEach(a => {
+    if (store.data.lessons[a.dataset.go]) a.classList.add('done');
+  });
+}
+
+/* ---------- 导航 ---------- */
+let current = 'intro';
+function go(id) {
+  if (!id) return;
+  const target = document.getElementById(id);
+  if (!target) return;
+  $$('section.lesson').forEach(s => s.classList.remove('on'));
+  target.classList.add('on');
+  $$('#nav a').forEach(a => a.classList.toggle('on', a.dataset.go === id));
+  const label = $('#nav a[data-go="' + id + '"]');
+  $('#crumb').innerHTML = '课程 / <b>' + (label ? label.textContent.replace(/^\d+\s*/, '') : id) + '</b>';
+  current = id;
+  window.scrollTo(0, 0);
+  requestAnimationFrame(() => window.scrollTo(0, 0));
+  store.lessonDone(id);
+  if (history.replaceState) history.replaceState(null, '', '#' + id);
+  $('#sidebar').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-go]');
+  if (t) { go(t.dataset.go); }
+});
+$('#menu-btn').addEventListener('click', () => $('#sidebar').classList.toggle('open'));
+
+/* ============================================================
+   终端盒子
+   ============================================================ */
+function termBox(container, opt = {}) {
+  const wrap = document.createElement('div');
+  wrap.className = 'term';
+  wrap.innerHTML = `
+    <div class="term-hd">
+      <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+      <span class="path">${esc(opt.path || 'bash')}</span>
+      <span class="rt">${esc(opt.right || '')}</span>
+    </div>
+    <div class="term-bd"></div>
+    ${opt.input ? `<div class="term-input-row"><span class="ps1">${esc(opt.prompt || '$')}</span><input type="text" spellcheck="false" autocomplete="off"><span class="hint">Enter 执行 · ↑↓ 历史</span></div>` : ''}
+  `;
+  container.innerHTML = '';
+  container.appendChild(wrap);
+  const bd = $('.term-bd', wrap);
+  const inp = $('input', wrap);
+  const api = {
+    wrap, bd,
+    print(text, cls = '') {
+      const d = document.createElement('div');
+      d.className = 'term-line ' + cls;
+      d.innerHTML = text === '' ? '&nbsp;' : text;
+      bd.appendChild(d);
+      bd.scrollTop = bd.scrollHeight;
+      return d;
+    },
+    printCmd(cmd) {
+      api.print(`<span class="ps1">[exer@trainingsvr6 sim]$</span> <span class="ps2"></span>${esc(cmd)}`, 'cmd');
+    },
+    clear() { bd.innerHTML = ''; },
+    setPath(p) { const el = $('.path', wrap); if (el) el.textContent = p; },
+    focus() { if (inp) inp.focus(); },
+    input: inp
+  };
+  if (inp && opt.onSubmit) {
+    const hist = []; let hi = -1;
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const v = inp.value.trim();
+        if (v) { hist.push(v); hi = hist.length; }
+        inp.value = '';
+        opt.onSubmit(v);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (hi > 0) { hi--; inp.value = hist[hi] || ''; }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (hi < hist.length - 1) { hi++; inp.value = hist[hi] || ''; } else { hi = hist.length; inp.value = ''; }
+      }
+    });
+  }
+  return api;
+}
+
+/* ============================================================
+   模拟文件系统 + Shell
+   ============================================================ */
+const BASE_FILES = {
+  'files.f': `1 /home/proj/ect/cp_training_id/users/exer/exercise/mux2to1/rtl/mux2to1.v
+2 /home/proj/ect/cp_training_id/users/exer/exercise/mux2to1/tb/mux2to1_tb.v`,
+  'Makefile': `all:clean elab run
+
+elab:
+\tvcs -full64 -debug_access+all -sverilog -l comp.log \\
+\t-f ./files.f \\
+\t-timescale=1ns/1ps
+
+run:
+\t./simv -gui -l run.log
+
+verdi:
+\tverdi -f ./files.f -ssf ./test.fsdb &
+
+clean:
+\trm -rf AN.DB DVEfiles csrc simv.* *simv inter.vpd ucli.key *.log novas* *fsdb verdilog`,
+  'run.tcl': `call {$fsdbDumpfile("mux2to1.fsdb")}
+call {$fsdbDumpvars}
+run`,
+  'wave_gen.tcl': `call {$fsdbDumpfile("test.fsdb")}
+call {$fsdbDumpvars}
+run`,
+  'novas.rc': `# Verdi resource file (nWave signal groups, colors ...)
+WindowGeometry: 1200x800+40+40
+SignalColor: { 0: green, 1: green }`,
+  'novas.conf': `# Verdi GUI configuration
+Font: -adobe-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1
+WaveformHeight: 320`
+};
+
+class Shell {
+  constructor(mount, opts = {}) {
+    this.opts = opts;
+    this.state = { compiled: false, ran: false, dumped: false, verdi: false, cleaned: true, fsdb: null };
+    this.dir = 'sim';
+    this.files = Object.assign({}, BASE_FILES);
+    this.t = termBox(mount, {
+      path: 'bash — /home/proj/ect/cp_training_id/users/exer/exercise/mux2to1/sim',
+      right: opts.right || 'VCS V-2018.09-SP2_Full64',
+      input: true,
+      prompt: '$',
+      onSubmit: cmd => this.exec(cmd)
+    });
+    this.banner();
+  }
+  banner() {
+    this.t.print('<span class="dim">Last login: Mon Jun 16 20:41:07 2025 from 10.20.30.11</span>');
+    this.t.print('<span class="dim">欢迎来到 VCS × Verdi 实训终端。输入 <b>help</b> 查看支持的命令。</span>');
+    this.t.print('');
+  }
+  ok(msg) { this.t.print(msg, 'ok'); }
+  err(msg) { this.t.print(msg, 'err'); }
+  dim(msg) { this.t.print(msg, 'dim'); }
+  warn(msg) { this.t.print(msg, 'warn'); }
+  info(msg) { this.t.print(msg, 'info'); }
+
+  snap() { return this.opts.onEvent || (() => { }); }
+
+  exec(raw) {
+    const cmd = raw.trim();
+    if (!cmd) return;
+    this.t.printCmd(cmd);
+    const parts = cmd.split(/\s+/);
+    const c0 = parts[0];
+    const args = parts.slice(1);
+    const handler = this['cmd_' + c0.replace(/[^a-zA-Z0-9_]/g, '_')];
+    if (c0 === './simv' || c0 === 'simv') return this.doSimv(args);
+    if (c0 === 'vcs') return this.doVcs(args);
+    if (c0 === 'verdi') return this.doVerdi(args);
+    if (c0 === 'vlogan') return this.doVlogan(args);
+    if (c0 === 'make') return this.doMake(args);
+    if (c0 === 'help') return this.doHelp();
+    if (c0 === 'clear') { this.t.clear(); return; }
+    if (handler) return handler.call(this, args);
+    this.err(`bash: ${esc(c0)}: command not found`);
+    this.dim('（本模拟终端只支持课件里出现的命令，输入 help 查看）');
+  }
+
+  cmd_pwd() { this.t.print('/home/proj/ect/cp_training_id/users/exer/exercise/mux2to1/' + this.dir); }
+  cmd_whoami() { this.t.print('exer'); }
+  cmd_date() { this.t.print(new Date().toString()); }
+
+  cmd_cd(args) {
+    const p = args[0];
+    if (!p || p === '~') { this.dir = 'mux2to1'; this.t.setPath('bash — .../exercise/mux2to1'); return; }
+    if (p === '..' && this.dir === 'sim') {
+      this.dir = 'mux2to1';
+      this.info('当前目录：.../exercise/mux2to1　其中 rtl/ tb/ sim/');
+      return;
+    }
+    if (p === 'sim' && this.dir !== 'sim') { this.dir = 'sim'; this.info('回到 sim/，所有编译仿真命令都在这里敲'); return; }
+    if (p === 'rtl' || p === 'tb') { this.info(`cd ${p}/ → 这里只有源码，不在这里编译`); return; }
+    this.err(`bash: cd: ${esc(p)}: No such file or directory`);
+  }
+
+  cmd_ls(args) {
+    const long = args.includes('-l') || args.includes('-la') || args.includes('-lh');
+    if (this.dir !== 'sim') {
+      if (long) this.t.print('drwxr-xr-x 3 exer coachchip_stu 4096 Jun 16 21:01 rtl\ndrwxr-xr-x 3 exer coachchip_stu 4096 Jun 16 21:01 tb\ndrwxr-xr-x 4 exer coachchip_stu 4096 Jun 16 21:01 sim');
+      else this.t.print('rtl  tb  sim');
+      return;
+    }
+    let list = Object.keys(this.files);
+    if (this.state.compiled) list = list.concat(['simv', 'simv.daidir', 'csrc', 'ucli.key', 'comp.log']);
+    if (this.state.ran) list = list.concat(['inter.vpd', 'DVEfiles', 'run.log']);
+    if (this.state.verdi) list = list.concat(['verdiLog']);
+    if (this.state.fsdb) list = list.concat([this.state.fsdb]);
+    list = [...new Set(list)];
+    if (!long) {
+      this.t.print(list.map(f => {
+        if (f.endsWith('.fsdb') || f === 'simv') return `<span class="ok">${esc(f)}</span>`;
+        if (f === 'Makefile' || f === 'files.f') return `<span class="info">${esc(f)}</span>`;
+        return esc(f);
+      }).join('  '));
+      return;
+    }
+    const rows = list.map(f => {
+      const isDir = f === 'simv.daidir' || f === 'csrc' || f === 'DVEfiles' || f === 'verdiLog';
+      const size = isDir ? 4096 : (f === 'simv' ? 913152 : f === 'files.f' ? 36 : f === 'Makefile' ? 302 : 1159);
+      const mode = isDir ? 'drwxr-xr-x' : (f === 'simv' ? '-rwxr-xr-x' : '-rw-r--r--');
+      const color = f.endsWith('.fsdb') ? 'ok' : (f === 'simv' ? 'ok' : (f === 'Makefile' ? 'ok' : ''));
+      return `${mode} 2 exer coachchip_stu ${String(size).padStart(7)} Jun 16 21:01 ${color ? `<span class="${color}">${esc(f)}</span>` : esc(f)}`;
+    });
+    this.t.print(rows.join('\n'));
+    this.t.print('total 1084', 'dim');
+  }
+
+  cmd_cat(args) {
+    const f = args[0];
+    if (!f) { this.err('cat: 缺少文件名'); return; }
+    if (f === 'files.f' || f === 'Makefile' || f === 'run.tcl' || f === 'wave_gen.tcl' || f === 'novas.rc' || f === 'novas.conf') {
+      const content = this.files[f] || BASE_FILES[f];
+      this.t.print(esc(content).replace(/\t/g, '    '));
+      return;
+    }
+    if (this.state.compiled && f === 'comp.log') {
+      this.t.print('Chronologic VCS simulator copyright 1991-2018\nContains Synopsys proprietary information.\nCompiler version O-2018.09-SP2_Full64; Runtime version O-2018.09-SP2_Full64\nLoading libs ... Done\nCPU time: 12 seconds to compile + 3 seconds to link');
+      return;
+    }
+    this.err(`cat: ${esc(f)}: No such file or directory`);
+  }
+
+  cmd_rm(args) {
+    const f = args[args.length - 1];
+    if (!f) { this.err('rm: 缺少操作数'); return; }
+    if (this.files[f]) { delete this.files[f]; this.info(`已删除 ${f}`); }
+    else this.err(`rm: cannot remove '${esc(f)}': No such file or directory`);
+  }
+
+  cmd_help() {
+    this.t.print(`<span class="info">支持的命令：</span>
+  ls / ls -l / pwd / cd ..        查看目录
+  cat files.f | cat Makefile      查看文件内容
+  make clean | elab | run | verdi 走 Makefile 的四个目标
+  make all                        清理 + 编译 + 仿真
+  vcs [选项]                       手写编译命令（可试错）
+  ./simv [-gui] [-ucli -i run.tcl] 跑仿真
+  verdi -f files.f -ssf xxx.fsdb  打开 Verdi
+  clear / help                    清屏 / 帮助`);
+  }
+
+  /* ---- 编译 ---- */
+  compileFromMakefile() {
+    this.t.print('<span class="dim">vcs -full64 -debug_access+all -sverilog -l comp.log \\</span>');
+    this.t.print('<span class="dim">    -f ./files.f \\</span>');
+    this.t.print('<span class="dim">    -timescale=1ns/1ps</span>');
+    this.doCompileSuccess(true, false);
+  }
+
+  doCompileSuccess(withDebug, fsdbon) {
+    this.t.print('');
+    this.t.print('Chronologic VCS simulator copyright 1991-2018');
+    this.t.print('Contains Synopsys proprietary information.');
+    this.t.print('Compiler version O-2018.09-SP2_Full64; Runtime version O-2018.09-SP2_Full64');
+    this.t.print('');
+    this.t.print('Loading libs ... Done');
+    if (fsdbon) {
+      this.t.print('FSDB dump enabled by +vcs+fsdbon (Verdi PLI).', 'info');
+    }
+    this.t.print('CPU time: 12 seconds to compile + 3 seconds to link', 'dim');
+    this.t.print('');
+    this.ok('✓ 编译成功，已生成可执行文件 simv');
+    if (!withDebug) {
+      this.warn('⚠ Note: 没有 -debug_access，仿真时无法 dump 波形，DVE/Verdi 里将看不到任何信号。');
+      this.dim('   编译日志：comp.log；产物：simv / simv.daidir / csrc');
+    } else {
+      this.dim('   产物：simv（913KB 可执行）/ simv.daidir / csrc / ucli.key / comp.log');
+    }
+    this.state.compiled = true;
+    this.state.cleaned = false;
+    this.snap()('compile', this.state);
+  }
+
+  doMake(args) {
+    const tgt = args[0] || 'all';
+    if (tgt === 'clean') {
+      this.t.print('rm -rf AN.DB DVEfiles csrc simv.* *simv inter.vpd ucli.key *.log novas* *fsdb verdilog', 'dim');
+      this.state = { compiled: false, ran: false, dumped: false, verdi: false, cleaned: true, fsdb: null };
+      this.t.print('');
+      this.ok('✓ 目录已清理（无输出即成功）');
+      this.snap()('clean', this.state);
+      return;
+    }
+    if (tgt === 'elab') {
+      this.dim('rm -rf AN.DB DVEfiles csrc simv.* *simv inter.vpd ucli.key *.log novas* *fsdb verdilog');
+      this.compileFromMakefile();
+      return;
+    }
+    if (tgt === 'all') {
+      this.dim('rm -rf AN.DB DVEfiles csrc simv.* *simv inter.vpd ucli.key *.log novas* *fsdb verdilog');
+      this.compileFromMakefile();
+      setTimeout(() => { this.t.print(''); this.t.printCmd('./simv -gui -l run.log'); this.doSimv(['-gui']); }, 30);
+      return;
+    }
+    if (tgt === 'run') {
+      this.t.printCmd('./simv -gui -l run.log');
+      this.doSimv(['-gui']);
+      return;
+    }
+    if (tgt === 'verdi') {
+      const f = this.state.fsdb || (this.state.dumped ? 'test.fsdb' : null);
+      this.t.printCmd(`verdi -f ./files.f${f ? ' -ssf ./' + f : ''} &`);
+      this.doVerdi(f ? ['-f', 'files.f', '-ssf', f] : ['-f', 'files.f']);
+      return;
+    }
+    this.err(`make: *** No rule to make target '${esc(tgt)}'.  Stop.`);
+  }
+
+  doVcs(args) {
+    const s = args.join(' ');
+    if (!args.length) {
+      this.err('Error-[VCS] No source file specified.');
+      this.dim('用法：vcs [options] <files>  或  vcs -f ./files.f');
+      return;
+    }
+    if (!/files\.f|-f\s|\.v\b/.test(s)) {
+      this.err('Error-[MFNF] Module not found');
+      this.dim('  没有指定任何源文件。用 -f ./files.f 把文件清单喂给它。');
+      return;
+    }
+    if (/-f\s*\.?\/?files\.f/.test(s) && !this.state.cleaned && false) { }
+    const withDebug = /-debug_access(\+all)?|-debug_all|-debug\b/.test(s);
+    if (/-sverilog/.test(s) === false) {
+      this.warn('Warning-[SV] 源码里出现 SystemVerilog 语法时，需要 -sverilog；本次设计是纯 Verilog，暂可编过。');
+    }
+    if (!/-timescale/.test(s)) this.warn('Warning: 没有指定 -timescale，仿真时间单位将取默认值（通常是 1s/1s），波形时间轴会很怪。');
+    this.doCompileSuccess(withDebug, /\+vcs\+fsdbon/.test(s));
+    if (/\+vcs\+fsdbon/.test(s)) this.state.fsdb = 'novas.fsdb';
+  }
+
+  doVlogan(args) {
+    this.t.print('vlogan -full64 -sverilog -timescale=1ns/1ps ...', 'dim');
+    this.t.print('Chronologic VCS (TM)');
+    this.t.print('Analyzing Verilog file(s) ...');
+    this.ok('✓ 分析完成，生成中间库（AN.DB / work 库）');
+    this.dim('下一步：vcs <design_top> 做 elaborate');
+  }
+
+  doSimv(args) {
+    if (!this.state.compiled) {
+      this.err('bash: ./simv: No such file or directory');
+      this.dim('先编译：make elab（或 vcs -f ./files.f ...）');
+      return;
+    }
+    const gui = args.includes('-gui');
+    const ucli = args.includes('-ucli');
+    this.t.print('Chronologic VCS simulator copyright 1991-2018');
+    this.t.print('Contains Synopsys proprietary information.');
+    this.t.print('VCD+ Writer O-2018.09-SP2_Full64');
+    this.t.print('The file ".../mux2to1/sim/inter.vpd" was opened successfully', 'dim');
+    if (ucli) {
+      const tcl = args[args.indexOf('-i') + 1] || 'run.tcl';
+      this.t.print('');
+      this.t.print(`UCLI: 打开交互式命令行，自动执行脚本 ${tcl}`, 'info');
+      this.t.print('call {$fsdbDumpfile("mux2to1.fsdb")}');
+      this.t.print('call {$fsdbDumpvars}');
+      this.t.print('run');
+      this.state.fsdb = 'mux2to1.fsdb';
+      this.state.dumped = true;
+      this.ok('✓ 已产生 mux2to1.fsdb');
+    }
+    this.t.print('');
+    this.t.print('$time = 0        out = 0');
+    this.t.print('$time = 10000    out = 1');
+    this.t.print('$time = 20000    out = 0');
+    this.t.print('$time = 30000    out = 1');
+    this.t.print('$time = 40000    out = x', 'warn');
+    this.t.print('');
+    if (gui) this.info('→ DVE 图形界面启动（design hierarchy / variables / source / UCLI console）');
+    this.t.print('$finish at simulation time 40000', 'dim');
+    this.state.ran = true;
+    this.state.dumped = true;
+    this.snap()('run', this.state);
+  }
+
+  doVerdi(args) {
+    const s = args.join(' ');
+    this.t.print('Release Verdi_O-2018.09-SP1 for (RH Linux x86_64/64bit)');
+    this.t.print('Copyright (c) 1999 - 2018 Synopsys, Inc.');
+    this.t.print('rcfile = /home/proj/ect/cp_training_id/users/exer/exercise/mux2to1/sim/novas.rc', 'dim');
+    this.t.print('guiConfFile (read) = .../sim/novas.conf', 'dim');
+    const m = s.match(/-ssf\s+(\S+)/);
+    if (m) {
+      this.ok(`✓ 已加载波形：${m[1]}`);
+      this.state.fsdb = m[1].replace('./', '');
+    } else {
+      this.warn('⚠ 没有 -ssf 参数：Verdi 打开了，但 nWave 是空的（<nWave:2> No File Opened）');
+    }
+    this.state.verdi = true;
+    this.snap()('verdi', this.state);
+  }
+}
+
+/* ============================================================
+   波形视图
+   ============================================================ */
+function waveData() {
+  const a = [[0, 2], [15, 5], [35, 9], [55, 3], [75, 1]];
+  const b = [[0, 7], [25, 4], [45, 6], [65, 2], [85, 8]];
+  const s = [[0, 0], [30, 1], [60, 0], [90, 1]];
+  const clk = [];
+  for (let t = 0; t <= 100; t += 5) clk.push([t, (t / 5) % 2]);
+  const valAt = (arr, t) => { let v = arr[0][1]; for (const [tt, vv] of arr) { if (tt <= t) v = vv; else break; } return v; };
+  const times = [...new Set([...a, ...b, ...s].map(p => p[0]))].sort((x, y) => x - y);
+  const out = times.map(t => [t, valAt(s, t) ? valAt(b, t) : valAt(a, t)]);
+  return [
+    { name: 'clk', w: 1, color: '#f5c451', changes: clk, type: 'clk' },
+    { name: 'a', w: 4, color: '#31d0e8', changes: a },
+    { name: 'b', w: 4, color: '#31d0e8', changes: b },
+    { name: 's', w: 1, color: '#b585ff', changes: s },
+    { name: 'out', w: 4, color: '#25d99b', changes: out }
+  ];
+}
+
+class WaveView {
+  constructor(mount, opt = {}) {
+    this.opt = Object.assign({ tEnd: 100, radix: 'bin', height: 26, labelW: 96 }, opt);
+    this.signals = [];
+    this.t0 = 0; this.t1 = this.opt.tEnd;
+    this.cursor = null;
+    this.el = document.createElement('div');
+    this.el.className = 'wave';
+    mount.innerHTML = '';
+    mount.appendChild(this.el);
+    this.vals = this.opt.radix;
+    this.render();
+  }
+  setSignals(signals) { this.signals = signals; this.render(); }
+  setRadix(r) { this.radix = r; this.render(); }
+  setView(t0, t1) { this.t0 = Math.max(0, t0); this.t1 = Math.min(this.opt.tEnd, t1); if (this.t1 - this.t0 < 2) this.t1 = this.t0 + 2; this.render(); }
+  resetView() { this.t0 = 0; this.t1 = this.opt.tEnd; this.render(); }
+  fmt(v, sig) {
+    const r = this.radix || 'bin';
+    if (sig.type === 'clk' || sig.w === 1) return String(v);
+    if (r === 'hex') return 'h' + Number(v).toString(16).toUpperCase();
+    if (r === 'dec') return String(v);
+    return Number(v).toString(2).padStart(sig.w, '0');
+  }
+  render() {
+    const W = 940;
+    const rows = Math.max(this.signals.length, 2);
+    const H = 30 + rows * this.opt.height + 8;
+    const padL = this.opt.labelW, padR = 14, top = 22;
+    const sigs = this.signals;
+    const t0 = this.t0, t1 = this.t1;
+    const x = t => padL + (t - t0) / (t1 - t0) * (W - padL - padR);
+    let g = '';
+    // 时间网格
+    const span = t1 - t0;
+    let step = span <= 10 ? 1 : span <= 25 ? 5 : span <= 60 ? 10 : 20;
+    for (let t = Math.ceil(t0 / step) * step; t <= t1; t += step) {
+      const px = x(t);
+      g += `<line x1="${px}" y1="${top - 6}" x2="${px}" y2="${H - 4}" stroke="#16242f" stroke-width="1"/>`;
+      g += `<text x="${px}" y="${top - 9}" fill="#4b6a83" font-size="9.5" font-family="monospace" text-anchor="middle">${t}</text>`;
+    }
+    if (!sigs.length) {
+      g += `<text x="${W / 2}" y="${H / 2}" fill="#2f4657" font-size="12" font-family="monospace" text-anchor="middle">no signals — 先把信号 Add To Waves</text>`;
+    }
+    sigs.forEach((sig, i) => {
+      const yTop = top + i * this.opt.height;
+      const yHi = yTop + 5, yLo = yTop + this.opt.height - 9;
+      g += `<text x="10" y="${yTop + this.opt.height / 2 + 4}" fill="#8fb3c9" font-size="11" font-family="monospace">${esc(sig.name)}</text>`;
+      if (sig.nodata) {
+        g += `<text x="${x(t0) + 8}" y="${yTop + this.opt.height / 2 + 4}" fill="#3b5566" font-size="10" font-family="monospace">— no data —</text>`;
+        return;
+      }
+      const ch = sig.changes.filter(c => c[0] <= t1);
+      if (!ch.length) return;
+      const startV = (() => { let v = ch[0][1]; for (const [tt, vv] of ch) { if (tt <= t0) v = vv; else break; } return v; })();
+      // 时间分段（含端点值）
+      const segs = [];
+      let segStart = t0, segVal = startV;
+      for (const [tt, vv] of ch) {
+        if (tt <= t0) { segVal = vv; continue; }
+        if (tt > t1) break;
+        segs.push([segStart, tt, segVal]);
+        segStart = tt; segVal = vv;
+      }
+      segs.push([segStart, t1, segVal]);
+      const isBus = sig.w > 1 && sig.type !== 'clk';
+      if (isBus) {
+        // 总线：上下两条平行线 + 跳变处的交叉 X
+        let top2 = `M${x(t0)},${yHi}`, bot = `M${x(t0)},${yLo}`;
+        for (const [tt] of ch) {
+          if (tt <= t0 || tt >= t1) continue;
+          const nx = x(tt);
+          top2 += ` L${nx},${yHi}`; bot += ` L${nx},${yLo}`;
+        }
+        top2 += ` L${x(t1)},${yHi}`; bot += ` L${x(t1)},${yLo}`;
+        g += `<path d="${top2}" fill="none" stroke="${sig.color}" stroke-width="1.4" opacity="0.85"/>`;
+        g += `<path d="${bot}" fill="none" stroke="${sig.color}" stroke-width="1.4" opacity="0.85"/>`;
+        let cross = '';
+        for (const [tt] of ch) {
+          if (tt <= t0 || tt >= t1) continue;
+          const nx = x(tt);
+          cross += `<path d="M${nx - 3},${yHi} L${nx + 3},${yLo} M${nx - 3},${yLo} L${nx + 3},${yHi}" stroke="${sig.color}" stroke-width="1.2" fill="none" opacity="0.9"/>`;
+        }
+        g += cross;
+        // 值标注（半透明底衬）
+        segs.forEach(([s0, s1, v]) => {
+          if (x(s1) - x(s0) < 30) return;
+          const cx = (x(s0) + x(s1)) / 2, cy = yTop + this.opt.height / 2 + 3.5;
+          const txt = this.fmt(v, sig);
+          g += `<rect x="${cx - txt.length * 3.4 - 2}" y="${cy - 8}" width="${txt.length * 6.8 + 4}" height="11" fill="#05090d" opacity="0.72" rx="2"/>`;
+          g += `<text x="${cx}" y="${cy}" fill="${sig.color}" font-size="9.5" font-family="monospace" text-anchor="middle">${esc(txt)}</text>`;
+        });
+      } else {
+        let d = `M${x(t0)},${startV ? yLo : yHi}`;
+        let py = startV ? yLo : yHi;
+        for (const [tt, vv] of ch) {
+          if (tt <= t0) continue;
+          const nx = x(tt), ny = vv ? yLo : yHi;
+          d += ` L${nx},${py} L${nx},${ny}`;
+          py = ny;
+        }
+        d += ` L${x(t1)},${py}`;
+        g += `<path d="${d}" fill="none" stroke="${sig.color}" stroke-width="1.7"/>`;
+        segs.forEach(([s0, s1, v]) => {
+          if (x(s1) - x(s0) < 22) return;
+          g += `<text x="${(x(s0) + x(s1)) / 2}" y="${yTop + this.opt.height / 2 + 3.5}" fill="${sig.color}" font-size="9.5" font-family="monospace" text-anchor="middle">${esc(this.fmt(v, sig))}</text>`;
+        });
+      }
+      g += `<line x1="${padL}" y1="${yTop + this.opt.height - 1}" x2="${W - padR}" y2="${yTop + this.opt.height - 1}" stroke="#16232d"/>`;
+    });
+    // 光标
+    if (this.cursor !== null && this.cursor >= t0 && this.cursor <= t1) {
+      const cx = x(this.cursor);
+      g += `<line x1="${cx}" y1="${top - 6}" x2="${cx}" y2="${H - 4}" stroke="#25d99b" stroke-width="1" stroke-dasharray="3,3"/>`;
+      g += `<text x="${cx + 4}" y="${top + 4}" fill="#25d99b" font-size="9.5" font-family="monospace">${this.cursor}ns</text>`;
+    }
+    this.el.innerHTML = `
+      <div class="wave-hd">
+        <span class="name">nWave / Wave View</span>
+        <span class="sp"></span>
+        <button data-r="bin" class="${(this.radix || 'bin') === 'bin' ? 'on' : ''}">BIN</button>
+        <button data-r="hex" class="${this.radix === 'hex' ? 'on' : ''}">HEX</button>
+        <button data-r="dec" class="${this.radix === 'dec' ? 'on' : ''}">DEC</button>
+        <button data-act="fit">Fit</button>
+      </div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:${Math.max(104, Math.min(340, H))}px">${g}</svg>
+      <div class="wave-foot">
+        <span>光标 <b>${this.cursor === null ? '—' : this.cursor + ' ns'}</b></span>
+        <span>范围 <b>${this.t0}–${this.t1} ns</b></span>
+        <span>值进制 <b>${(this.radix || 'bin').toUpperCase()}</b></span>
+      </div>`;
+    // 交互
+    const svg = $('svg', this.el);
+    let downX = null, downT = null;
+    const tAt = clientX => {
+      const r = svg.getBoundingClientRect();
+      const frac = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+      const vx = frac * W;
+      const f2 = Math.max(0, Math.min(1, (vx - padL) / (W - padL - padR)));
+      return this.t0 + f2 * (this.t1 - this.t0);
+    };
+    svg.addEventListener('mousedown', e => {
+      downX = e.clientX;
+      downT = tAt(e.clientX);
+    });
+    svg.addEventListener('mouseup', e => {
+      if (downX === null) return;
+      const dx = Math.abs(e.clientX - downX);
+      const upT = tAt(e.clientX);
+      if (dx > 14) {
+        const lo = Math.min(downT, upT), hi = Math.max(downT, upT);
+        if (hi - lo > 0.8) { this.setView(lo, hi); this.opt.onZoom && this.opt.onZoom(lo, hi); }
+      } else {
+        this.cursor = Math.round(upT);
+        this.render();
+        this.opt.onCursor && this.opt.onCursor(this.cursor);
+      }
+      downX = null;
+    });
+    $$('button[data-r]', this.el).forEach(b => b.onclick = () => { this.radix = b.dataset.r; this.render(); this.opt.onRadix && this.opt.onRadix(b.dataset.r); });
+    const fit = $('button[data-act="fit"]', this.el);
+    if (fit) fit.onclick = () => { this.resetView(); };
+  }
+  markNoData(list) {
+    this.signals = this.signals.map(s => Object.assign({}, s, { nodata: list.includes(s.name) }));
+    this.render();
+  }
+}
+</script>
+<script>
+/* ============================================================
+   01 EDA 工具地图
+   ============================================================ */
+const EDA = {
+  vcs: { n: 'VCS', s: 'sim', t: '编译仿真', d: '把 Verilog/SystemVerilog 编译成可执行仿真器 simv，跑仿真并产生波形（VPD/FSDB）。本课程的主角。', io: '输入：RTL + TB + files.f ｜ 输出：simv、inter.vpd、comp.log' },
+  questa: { n: 'QuestaSim', s: 'sim', t: '编译仿真', d: 'Mentor（现 Siemens EDA）的主力仿真器，支持 Verilog/VHDL/SystemVerilog/UVM，断言调试能力强。', io: '输入：RTL + TB ｜ 输出：仿真结果 + WLF 波形' },
+  nc: { n: 'NC-Verilog', s: 'sim', t: '编译仿真', d: 'Cadence 的老牌仿真器（Incisive / Xcelium 前身），与 VCS 并列为业界两大主力。', io: '输入：RTL + TB ｜ 输出：仿真结果 + SHM/VCD' },
+  verdi: { n: 'Verdi', s: 'spec', t: '可视化调试', d: 'Synopsys 的调试平台（原 Novas）。nTrace 追源码、nWave 看波形、nSchema 看电路、nState 看状态机。本课程的另一位主角。', io: '输入：KDB + FSDB ｜ 输出：根因定位' },
+  spyglass: { n: 'SpyGlass', s: 'spec', t: '语法检查 / Lint', d: '静态检查 RTL 的可综合性、编码规范、跨时钟域（CDC）风险。在编译之前就把低级错误挡掉。', io: '输入：RTL ｜ 输出：Lint / CDC 报告' },
+  jasper: { n: 'Jasper', s: 'spec', t: 'property 验证', d: '形式化验证工具（JasperGold），用 SVA 属性去证明设计在所有可能输入下都满足要求，不需要跑激励。', io: '输入：RTL + SVA ｜ 输出：proved / cex 反例' },
+  dc: { n: 'DC', s: 'syn', t: '逻辑综合', d: 'Design Compiler，把 RTL 映射成标准单元网表，同时做时序/面积/功耗的初步优化。', io: '输入：RTL + .lib + 约束 ｜ 输出：门级网表' },
+  icc: { n: 'IC Compiler', s: 'syn', t: '布局布线', d: '把网表变成物理版图：摆放标准单元、连时钟树、布线，输出 GDS。', io: '输入：网表 + 物理库 ｜ 输出：版图 GDS' },
+  lec: { n: 'LEC', s: 'syn', t: '一致性检查', d: 'Logic Equivalence Check，证明综合/优化前后的网表逻辑等价，防止工具「优化错了」。', io: '输入：RTL vs 网表 ｜ 输出：equivalent / non-equivalent' },
+  pt: { n: 'PrimeTime', s: 'signoff', t: '静态时序分析', d: '签核级 STA，检查 setup/hold、跨时钟域、OCV 等，是流片前必过的一关。', io: '输入：网表 + SPEF + 约束 ｜ 输出：时序报告' },
+  calibre: { n: 'Calibre', s: 'signoff', t: '物理检查', d: 'DRC / LVS 的事实标准：检查版图是否符合工艺规则、版图与网表是否一致。', io: '输入：GDS + 规则文件 ｜ 输出：DRC/LVS 报告' },
+  starrc: { n: 'StarRC', s: 'signoff', t: 'RC 参数提取', d: '从版图提取寄生电阻电容，生成 SPEF 供 PrimeTime 做精确时序分析。', io: '输入：GDS ｜ 输出：SPEF' },
+  pa: { n: 'PowerArtist', s: 'lowpower', t: '功耗分析', d: 'RTL 级功耗分析与优化，找出高翻转、高功耗的模块。', io: '输入：RTL + 波形 ｜ 输出：功耗热点报告' },
+  vcstatic: { n: 'VC Static', s: 'lowpower', t: 'ISO 检查', d: '低功耗结构检查（UPF/CPF 相关），验证电源域隔离、电平转换是否正确。', io: '输入：RTL + UPF ｜ 输出：低功耗违例' },
+  dft: { n: 'DFT Mentor', s: 'lowpower', t: 'DFT', d: '可测试性设计：插入扫描链、生成 ATPG 向量，让芯片出厂可测。', io: '输入：网表 ｜ 输出：扫描链 + 测试向量' }
+};
+(function initEDA() {
+  const info = $('#eda-info');
+  const st = $('#eda-st');
+  $$('#eda-map .tool-chip').forEach(b => {
+    b.onclick = () => {
+      const k = b.dataset.tool, d = EDA[k];
+      if (!d) return;
+      $$('#eda-map .tool-chip').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      $$('#eda-map .eda-stage').forEach(s => s.classList.toggle('hi', s.dataset.stage === d.s));
+      st.textContent = '已选择：' + d.n;
+      info.innerHTML = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <b style="font-size:15px;color:#eaf3fb">${esc(d.n)}</b>
+          <span class="badge g">${esc(d.t)}</span>
+        </div>
+        <div style="color:#b9cadb;font-size:13.2px">${esc(d.d)}</div>
+        <div style="color:#6f889e;font-size:12.2px;font-family:var(--mono);margin-top:7px">${esc(d.io)}</div>`;
+    };
+  });
+})();
+
+/* ============================================================
+   08 Verdi 架构可视化工具说明
+   ============================================================ */
+const VIS = {
+  flow: { t: 'Behavior Flow Graph', d: '把一次仿真中的行为流程画成图：谁先动、谁后动、条件分支怎么走。适合理解不熟悉的设计。' },
+  ntrace: { t: 'nTrace · 源代码追踪', d: 'Verdi 最核心的窗口。看源码、追驱动（Trace Driver）、追负载（Trace Load）、Find Scope / Find Signals。回答「这个信号为什么是这个值」。' },
+  nwave: { t: 'nWave · 波形与事件', d: '看 FSDB 波形。支持信号分组、Save/Restore Signals、交叉游标、按值搜索。回答「什么时候出的错」。' },
+  nschema: { t: 'nSchema · 原理图 / 逻辑图', d: '把 RTL 变成电路图，Trace X 顺着网线追扇入扇出。回答「这条路径上还有谁」。' },
+  nstate: { t: 'nState · 有限状态机', d: '自动提取 FSM，画出状态转移图，标注每个状态转移的条件与覆盖率。回答「状态机卡在哪一步」。' },
+  block: { t: 'Block Diagram', d: '从设计自动生成框图与文档，便于架构评审和交接。' }
+};
+(function initVis() {
+  const info = $('#vis-info');
+  $$('#vis-list .tool-chip').forEach(b => {
+    b.onclick = () => {
+      const d = VIS[b.dataset.vis];
+      $$('#vis-list .tool-chip').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      info.innerHTML = `<b style="color:#eaf3fb">${esc(d.t)}</b><div style="color:#b9cadb;margin-top:5px;font-size:13.2px">${esc(d.d)}</div>`;
+    };
+  });
+})();
+
+/* ============================================================
+   02 环境终端
+   ============================================================ */
+const envShell = new Shell($('#env-term'), { right: 'mux2to1/sim' });
+$$('#env-chips .chip').forEach(c => c.onclick = () => { envShell.exec(c.dataset.cmd); envShell.t.focus(); });
+
+/* ============================================================
+   03 Makefile 编辑器
+   ============================================================ */
+const MK_SPACES = `all:clean elab run
+
+elab:
+    vcs -full64 -debug_access+all -sverilog -l comp.log \\
+    -f ./files.f \\
+    -timescale=1ns/1ps
+
+run:
+    ./simv -gui -l run.log
+
+verdi:
+    verdi -f ./files.f -ssf ./test.fsdb &
+
+clean:
+    rm -rf AN.DB DVEfiles csrc simv.* *simv inter.vpd ucli.key *.log novas* *fsdb verdilog`;
+
+const MK_GOOD = `all:clean elab run
+
+elab:
+\tvcs -full64 -debug_access+all -sverilog -l comp.log \\
+\t-f ./files.f \\
+\t-timescale=1ns/1ps
+
+run:
+\t./simv -gui -l run.log
+
+verdi:
+\tverdi -f ./files.f -ssf ./test.fsdb &
+
+clean:
+\trm -rf AN.DB DVEfiles csrc simv.* *simv inter.vpd ucli.key *.log novas* *fsdb verdilog`;
+
+(function initMakefile() {
+  const ta = $('#mk-editor');
+  const out = $('#mk-st');
+  const term = termBox($('#mk-term'), { path: 'make', right: 'GNU Make 4.2' });
+  ta.value = MK_SPACES;
+  ta.addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const s = ta.selectionStart, en = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + '\t' + ta.value.slice(en);
+      ta.selectionStart = ta.selectionEnd = s + 1;
+    }
+  });
+
+  function check() {
+    const txt = ta.value;
+    const lines = txt.split('\n');
+    const errs = [];
+    let inRule = false;
+    lines.forEach((ln, i) => {
+      if (/^[A-Za-z0-9_.\-\/]+\s*:/.test(ln)) { inRule = true; return; }
+      if (!ln.trim()) return;
+      if (/^\t/.test(ln)) return;
+      if (/^ +\S/.test(ln)) errs.push({ i: i + 1, t: '空格缩进', m: 'missing separator（command 行必须用 TAB 开头，不能用空格）' });
+      else if (inRule) errs.push({ i: i + 1, t: '未缩进', m: 'recipe commences before first target / 缺少 TAB' });
+    });
+    return errs;
+  }
+
+  $('#mk-run').onclick = () => {
+    term.clear();
+    term.printCmd('make all');
+    const errs = check();
+    if (errs.length) {
+      out.textContent = '校验失败 · ' + errs.length + ' 处';
+      out.style.color = '#ff5f6d';
+      errs.forEach(e => {
+        term.print(`Makefile:${e.i}: *** ${e.m}.  Stop.`, 'err');
+        term.print(`  → 第 ${e.i} 行：${esc(ta.value.split('\n')[e.i - 1].slice(0, 60))}`, 'dim');
+      });
+      term.print('');
+      term.print('提示：把那几行开头的 4 个空格删掉，按一次 Tab 键（编辑器已支持 Tab 插入）。', 'warn');
+      return;
+    }
+    out.textContent = '校验通过 · 开始执行';
+    out.style.color = '#25d99b';
+    term.print('rm -rf AN.DB DVEfiles csrc simv.* *simv inter.vpd ucli.key *.log novas* *fsdb verdilog', 'dim');
+    term.print('vcs -full64 -debug_access+all -sverilog -l comp.log \\');
+    term.print('    -f ./files.f \\');
+    term.print('    -timescale=1ns/1ps');
+    term.print('');
+    setTimeout(() => {
+      term.print('Chronologic VCS simulator copyright 1991-2018');
+      term.print('Compiler version O-2018.09-SP2_Full64; Runtime version O-2018.09-SP2_Full64');
+      term.print('');
+      term.print('✓ 编译成功 → simv', 'ok');
+      term.printCmd('./simv -gui -l run.log');
+      term.print('VCD+ Writer O-2018.09-SP2_Full64');
+      term.print('The file ".../sim/inter.vpd" was opened successfully', 'dim');
+      term.print('✓ 仿真结束，波形已生成', 'ok');
+      term.print('');
+      term.print('三步都成功了：clean → elab → run。这就是 Makefile 的价值。', 'info');
+    }, 420);
+  };
+  $('#mk-fix').onclick = () => {
+    ta.value = MK_GOOD;
+    out.textContent = '已修复缩进';
+    out.style.color = '#25d99b';
+    term.clear();
+    term.print('提示：现在所有 command 行都以 TAB 开头，点「校验并运行」试试。', 'info');
+  };
+})();
+
+/* ============================================================
+   04 选项构建器
+   ============================================================ */
+const VCS_OPTS = [
+  { f: '-full64', on: true, d: '64 位模式' },
+  { f: '-sverilog', on: true, d: '支持 SystemVerilog' },
+  { f: '-debug_access+all', on: true, d: '开放全部调试能力（DVE/Verdi/UCLI 必需）' },
+  { f: '-l comp.log', on: true, d: '编译日志' },
+  { f: '-f ./files.f', on: true, d: '源文件清单' },
+  { f: '-timescale=1ns/1ps', on: true, d: '时间单位 / 精度' },
+  { f: '+vcs+fsdbon', on: false, d: '联编 Verdi，自动产生 novas.fsdb' },
+  { f: '-q', on: false, d: '安静模式，不打印 banner' }
+];
+(function initOptBuilder() {
+  const list = $('#opt-list'), cmdEl = $('#opt-cmd'), st = $('#opt-st');
+  const term = termBox($('#opt-term'), { path: 'vcs', right: 'build command' });
+  function build() {
+    const on = VCS_OPTS.filter(o => o.on).map(o => o.f);
+    const cmd = 'vcs ' + on.join(' ');
+    cmdEl.textContent = cmd;
+    st.textContent = on.length + ' 个选项';
+    return cmd;
+  }
+  VCS_OPTS.forEach((o, i) => {
+    const row = document.createElement('label');
+    row.style.cssText = 'display:flex;gap:9px;align-items:flex-start;padding:7px 10px;border:1px solid #1d2b39;border-radius:8px;background:#101a24;cursor:pointer;font-size:12.6px';
+    row.innerHTML = `<input type="checkbox" ${o.on ? 'checked' : ''} style="margin-top:4px;accent-color:#25d99b">
+      <span><code class="inl">${esc(o.f)}</code><br><span style="color:#7f95aa;font-size:11.6px">${esc(o.d)}</span></span>`;
+    const cb = $('input', row);
+    cb.onchange = () => { o.on = cb.checked; build(); };
+    list.appendChild(row);
+  });
+  build();
+  $('#opt-run').onclick = () => {
+    const cmd = build();
+    term.clear();
+    term.printCmd(cmd);
+    const hasF = /-f \.\/files\.f/.test(cmd);
+    const hasDbg = /-debug_access\+all/.test(cmd);
+    if (!hasF) {
+      term.print('Error-[VCS] No source file specified.', 'err');
+      term.print('  少了 -f ./files.f，VCS 不知道要编译哪些文件。', 'dim');
+      return;
+    }
+    if (!hasDbg) {
+      term.print('Chronologic VCS simulator copyright 1991-2018', 'dim');
+      term.print('Compiler version O-2018.09-SP2_Full64; Runtime version O-2018.09-SP2_Full64');
+      term.print('CPU time: 12 seconds to compile + 3 seconds to link', 'dim');
+      term.print('');
+      term.print('⚠ 编译通过了，但没有 -debug_access：', 'warn');
+      term.print('  仿真时无法 dump 信号 → DVE 里 add dump 会失败 → Verdi 也拿不到 fsdb。', 'warn');
+      term.print('  这类「编得过但看不到波形」的坑，90% 是这个选项漏了。', 'dim');
+      return;
+    }
+    term.print('Chronologic VCS simulator copyright 1991-2018');
+    term.print('Compiler version O-2018.09-SP2_Full64; Runtime version O-2018.09-SP2_Full64');
+    term.print('CPU time: 12 seconds to compile + 3 seconds to link');
+    term.print('');
+    term.print('✓ 生成 simv（913KB）', 'ok');
+    if (/\+vcs\+fsdbon/.test(cmd)) term.print('✓ 同时会输出 novas.fsdb（方法 1：Makefile 里 +vcs+fsdbon）', 'ok');
+    if (/-q/.test(cmd)) term.print('（-q 模式：以上 banner 本应被抑制）', 'dim');
+  };
+  $('#opt-reset').onclick = () => {
+    VCS_OPTS.forEach((o, i) => { o.on = i < 6; });
+    $$('#opt-list input').forEach((cb, i) => cb.checked = VCS_OPTS[i].on);
+    build(); term.clear();
+  };
+})();
+</script>
+<script>
+/* ============================================================
+   05 实战一：终端任务
+   ============================================================ */
+(function initLab1() {
+  const listEl = $('#lab1-tasks');
+  const stEl = $('#lab1-st');
+  const shell = new Shell($('#lab1-term'), { right: 'exer@trainingsvr6' });
+  const keys = ['ls', 'cat', 'clean', 'elab', 'run', 'verdi'];
+
+  function paint() {
+    let n = 0;
+    $$('li', listEl).forEach(li => {
+      const k = li.dataset.k;
+      const ok = store.has('lab1', k);
+      li.classList.toggle('ok', ok);
+      if (ok) n++;
+    });
+    stEl.textContent = '任务 ' + n + ' / ' + keys.length;
+  }
+  function done(k) {
+    if (!keys.includes(k)) return;
+    store.task('lab1', k);
+    paint();
+  }
+  paint();
+
+  const orig = shell.exec.bind(shell);
+  shell.exec = raw => {
+    orig(raw);
+    const c = raw.trim();
+    if (/^ls\b/.test(c)) done('ls');
+    if (/^cat\s+files\.f/.test(c)) done('cat');
+    if (/^make\s+clean/.test(c)) done('clean');
+    if (/^make\s+elab|^vcs\b/.test(c)) done('elab');
+    if (/simv/.test(c) && shell.state.compiled) done('run');
+    if (/^make\s+verdi|^verdi\b/.test(c)) done('verdi');
+  };
+
+  $$('#lab1-chips .chip').forEach(c => c.onclick = () => { shell.exec(c.dataset.cmd); shell.t.focus(); });
+
+  // 已完成的提示
+  if (keys.every(k => store.has('lab1', k))) {
+    shell.t.print('');
+    shell.t.print('✓ 上一轮你已经走完了全部 6 个任务。可以重新走一遍，注意每条命令的输出。', 'ok');
+  }
+})();
+
+/* ============================================================
+   06 DVE 模拟器
+   ============================================================ */
+(function initDVE() {
+  const mount = $('#dve-mock');
+  const stEl = $('#dve-st');
+  const KEYS = ['sel', 'dump', 'wave', 'run', 'radix', 'zoom'];
+  const S = { sel: null, selects: new Set(['mux2to1']), dumped: false, ran: false, waveOn: false, radix: 'bin' };
+
+  const SRC = {
+    'mux2to1': [
+      ['module mux2to1 (', 'kw'],
+      ['    input      a,', ''],
+      ['    input      b,', ''],
+      ['    input      s,', ''],
+      ['    output reg out', ''],
+      [');', ''],
+      ['', ''],
+      ['always @(*) begin', 'kw'],
+      ['    if (s) begin', 'kw'],
+      ['        out = b;', ''],
+      ['    end else begin', 'kw'],
+      ['        out = a;', ''],
+      ['    end', 'kw'],
+      ['end', 'kw'],
+      ['endmodule', 'kw']
+    ],
+    'mux2to1_tb': [
+      ['module mux2to1_tb;', 'kw'],
+      ['    reg a, b, s;', ''],
+      ['    wire out;', ''],
+      ['', ''],
+      ['mux2to1 u_mux(.a(a), .b(b), .s(s), .out(out));', ''],
+      ['', ''],
+      ['initial begin', 'kw'],
+      ['    $fsdbDumpfile("test.fsdb");', ''],
+      ['    $fsdbDumpvars;', ''],
+      ['end', 'kw'],
+      ['endmodule', 'kw']
+    ]
+  };
+  const VARS = {
+    'mux2to1': [['a', '4', 'Wire', 'Port In'], ['b', '4', 'Wire', 'Port In'], ['s', '1', 'Wire', 'Port In'], ['out', '4', 'Reg', 'Port Out']],
+    'mux2to1_tb': [['clk', '1', 'Reg', 'Internal'], ['a', '4', 'Reg', 'Internal'], ['b', '4', 'Reg', 'Internal'], ['s', '1', 'Reg', 'Internal'], ['out', '4', 'Wire', 'Internal']]
+  };
+
+  mount.innerHTML = `
+    <div class="mock" id="dve-win" style="position:relative">
+      <div class="win-hd"><span class="ttl">DVE</span><span style="color:#7d8fa0">— /home/proj/.../mux2to1/sim/inter.vpd</span><span class="btns">— ▢ ✕</span></div>
+      <div class="toolbar">
+        <span class="tb play" id="tb-run">▶ Start/Continue</span>
+        <span class="tb" id="tb-step">⏭ Step</span>
+        <span class="tb" id="tb-stop">⏹ Stop</span>
+        <span class="tb sep"></span>
+        <span class="tb" id="tb-dump">Add Dump…</span>
+        <span class="tb" id="tb-selall">全选 Ctrl+A</span>
+        <span class="tb sep"></span>
+        <span class="tb" id="tb-hex">Set Radix ▾</span>
+        <span class="tb" id="tb-fit">Zoom Fit</span>
+      </div>
+      <div class="body" style="height:288px">
+        <div class="pane" style="flex:0 0 33%">
+          <div class="pane-hd">Hierarchy</div>
+          <div class="pane-bd"><div class="tree" id="dve-tree"></div></div>
+        </div>
+        <div class="pane" style="flex:0 0 30%">
+          <div class="pane-hd">Variables <span style="margin-left:auto;color:#8fa2b3;font-size:10px">右键操作</span></div>
+          <div class="pane-bd" id="dve-vars" tabindex="0" style="outline:none"><div class="var" id="dve-varlist"></div></div>
+        </div>
+        <div class="pane" style="flex:1">
+          <div class="pane-hd">Source Code</div>
+          <div class="pane-bd"><div class="src" id="dve-src"></div></div>
+        </div>
+      </div>
+      <div class="cons" id="dve-cons"></div>
+      <div style="padding:6px;background:#f7f9fb;border-top:1px solid #c9d3dc">
+        <div id="dve-wave"></div>
+      </div>
+    </div>`;
+
+  const cons = $('#dve-cons');
+  function log(t, cls = '') {
+    const d = document.createElement('div');
+    d.className = cls;
+    d.innerHTML = t;
+    cons.appendChild(d);
+    cons.scrollTop = cons.scrollHeight;
+  }
+  function paintTasks() {
+    let n = 0;
+    $$('#dve-tasks li').forEach(li => {
+      const ok = store.has('dve', li.dataset.k);
+      li.classList.toggle('ok', ok);
+      if (ok) n++;
+    });
+    stEl.textContent = n + ' / ' + KEYS.length;
+  }
+  function done(k) { store.task('dve', k); paintTasks(); }
+  paintTasks();
+
+  /* --- 波形 --- */
+  const wave = new WaveView($('#dve-wave'), {
+    radix: 'bin',
+    onZoom: () => { done('zoom'); log('<span class="c-ok">Drag zoom: 已放大到选定区间（Lower timescale 保持全局）</span>'); },
+    onRadix: r => {
+      S.radix = r;
+      log(`<span class="c-cmd">Set Radix → ${r.toUpperCase()}：Value 列的显示进制已切换</span>`);
+      if (r === 'hex') done('radix');
+    }
+  });
+  function showWaveRows() {
+    const sigs = waveData().filter(s => ['a', 'b', 's', 'out'].includes(s.name));
+    wave.setSignals(S.ran ? sigs : sigs.map(s => Object.assign({}, s, { nodata: true })));
+  }
+
+  /* --- 层次树 --- */
+  function renderTree() {
+    $('#dve-tree').innerHTML = `
+      <div class="node" data-m="mux2to1_tb" style="padding-left:6px"><span class="tw">−</span><span class="ico">▤</span> mux2to1_tb <span style="color:#8fa2b3">(top)</span></div>
+      <div class="node sel" data-m="mux2to1" style="padding-left:22px"><span class="tw">+</span><span class="ico">▤</span> mux2to1 <span style="color:#8fa2b3">u_mux</span></div>`;
+    $$('#dve-tree .node').forEach(n => n.onclick = () => {
+      S.sel = n.dataset.m;
+      $$('#dve-tree .node').forEach(x => x.classList.remove('sel'));
+      n.classList.add('sel');
+      renderVars(); renderSrc();
+      log(`<span class="c-cmd">选中层次：${S.sel}　→ Variables / Source 同步切换</span>`);
+      if (S.sel === 'mux2to1') done('sel');
+    });
+  }
+  function renderVars() {
+    const list = VARS[S.sel || 'mux2to1'];
+    $('#dve-varlist').innerHTML = list.map(v =>
+      `<div class="row${S.selects.has(v[0]) ? ' sel' : ''}" data-v="${v[0]}">
+        <span class="n">${v[0]}</span><span class="v">—</span><span class="t">${v[2]} ${v[3]}</span>
+      </div>`).join('');
+    $$('#dve-varlist .row').forEach(r => {
+      r.onclick = e => { S.selects = new Set([r.dataset.v]); renderVars(); };
+      r.oncontextmenu = e => { e.preventDefault(); if (!S.selects.has(r.dataset.v)) { S.selects = new Set([r.dataset.v]); renderVars(); } openCtx(e); };
+    });
+  }
+  function renderSrc() {
+    const m = S.sel || 'mux2to1';
+    const lines = SRC[m];
+    $('#dve-src').innerHTML = lines.map((l, i) =>
+      `<div class="ln"><span class="no">${i + 1}</span><span class="tx">${esc(l[0]).replace(/\b(module|input|output|reg|always|begin|end|if|else|endmodule|initial)\b/g, '<span class="kw">$1</span>')}</span></div>`
+    ).join('');
+  }
+  renderTree(); S.sel = 'mux2to1'; renderVars(); renderSrc();
+
+  /* --- 右键菜单 --- */
+  function openCtx(e) {
+    closeCtx();
+    const win = $('#dve-win');
+    const r = win.getBoundingClientRect();
+    const ctx = document.createElement('div');
+    ctx.className = 'ctx';
+    ctx.style.left = (e.clientX - r.left) + 'px';
+    ctx.style.top = (e.clientY - r.top) + 'px';
+    ctx.innerHTML = `
+      <div data-a="dump">Add Dump…</div>
+      <div data-a="waves" class="arrow">Add To Waves</div>
+      <div data-a="addto" class="arrow">Add To Lists</div>
+      <div data-a="radix" class="arrow">Set Radix</div>
+      <div class="sep"></div>
+      <div data-a="source">Show Source</div>`;
+    win.appendChild(ctx);
+    ctx.querySelectorAll('[data-a]').forEach(it => it.onclick = ev => {
+      const a = it.dataset.a;
+      ev.stopPropagation();
+      if (a === 'dump') { closeCtx(); openDumpDlg(); return; }
+      if (a === 'waves') { addToWaves(); closeCtx(); return; }
+      if (a === 'radix') {
+        ctx.innerHTML = `<div data-r="hex">Hex</div><div data-r="dec">Decimal</div><div data-r="bin">Binary</div>`;
+        ctx.querySelectorAll('[data-r]').forEach(x => x.onclick = ev2 => {
+          ev2.stopPropagation();
+          wave.setRadix(x.dataset.r);
+          closeCtx();
+        });
+        return;
+      }
+      if (a === 'source') { log('<span class="c-cmd">Show Source: 源码窗口已定位到选中信号</span>'); closeCtx(); }
+      if (a === 'addto') { log('<span class="c-cmd">Add To Lists: 已加入 Signals 列表</span>'); closeCtx(); }
+      closeCtx();
+    });
+  }
+  function closeCtx() { $$('#dve-win .ctx').forEach(c => c.remove()); }
+
+  function addToWaves() {
+    if (!S.selects.size) { log('<span class="c-err">没有选中信号</span>'); return; }
+    S.waveOn = true;
+    showWaveRows();
+    done('wave');
+    log(`<span class="c-cmd">Add To Waves → New Wave View：${[...S.selects].join(', ')} 已加入波形窗口</span>`);
+    if (!S.ran) log('<span style="color:#8a5b00">波形窗口里目前是空的 —— 因为仿真还没跑，没有数据。</span>');
+  }
+
+  /* --- Add Dump 对话框 --- */
+  function openDumpDlg() {
+    closeDlg();
+    const win = $('#dve-win');
+    const dlg = document.createElement('div');
+    dlg.id = 'dve-dlg';
+    dlg.style.cssText = 'position:absolute;left:50%;top:64px;transform:translateX(-50%);width:330px;background:#f5f8fa;border:1px solid #8ea3b6;border-radius:6px;box-shadow:0 14px 40px rgba(0,0,0,.3);font-size:11.5px;z-index:60;color:#22303c';
+    dlg.innerHTML = `
+      <div style="padding:5px 10px;background:linear-gradient(180deg,#e9eef3,#dde5ec);border-bottom:1px solid #c2ccd6;font-weight:600">Dump Values</div>
+      <div style="padding:10px">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+          <span>Scope</span><input value="./mux2to1_tb" style="flex:1;font-size:11px;padding:2px 5px;border:1px solid #b7c4d0;border-radius:3px">
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <span>Depth</span><input value="All" style="width:60px;font-size:11px;padding:2px 5px;border:1px solid #b7c4d0;border-radius:3px">
+        </div>
+        <label style="display:flex;gap:6px;align-items:flex-start;background:#fff8d8;border:1px solid #e8d48a;padding:6px;border-radius:3px;margin-bottom:8px">
+          <input type="checkbox" id="dlg-agg" style="margin-top:2px">
+          <span>aggregates (buses, records, VCD+_var_arrays)</span>
+        </label>
+        <div style="color:#5b7a94;margin-bottom:6px">Database: <b>VPD</b>（inter.vpd）</div>
+        <div style="display:flex;gap:6px;justify-content:flex-end">
+          <button id="dlg-ok" style="padding:3px 14px;border:1px solid #7d93a8;background:#e6eef6;border-radius:3px;cursor:pointer">Dump</button>
+          <button id="dlg-no" style="padding:3px 14px;border:1px solid #b7c4d0;background:#f0f3f6;border-radius:3px;cursor:pointer">Close</button>
+        </div>
+      </div>`;
+    win.appendChild(dlg);
+    $('#dlg-no').onclick = closeDlg;
+    $('#dlg-ok').onclick = () => {
+      S.dumped = true;
+      done('dump');
+      log('<span class="c-ok">Add Dump: 已对 ./mux2to1_tb 开启 dump（包含 aggregates），仿真时才会真正记录波形</span>');
+      closeDlg();
+    };
+  }
+  function closeDlg() { const d = $('#dve-dlg'); if (d) d.remove(); }
+
+  /* --- 工具栏 --- */
+  $('#tb-selall').onclick = () => { S.selects = new Set(VARS[S.sel || 'mux2to1'].map(v => v[0])); renderVars(); log('<span class="c-cmd">Ctrl+A：已全选 ' + S.selects.size + ' 个信号</span>'); };
+  $('#tb-dump').onclick = openDumpDlg;
+  $('#tb-hex').onclick = () => {
+    wave.setRadix('hex');
+    done('radix');
+    log('<span class="c-cmd">Set Radix → HEX：Value 列已切换为十六进制</span>');
+  };
+  $('#tb-fit').onclick = () => wave.resetView();
+  $('#tb-run').onclick = () => {
+    if (!S.dumped) {
+      log('<span class="c-err">Warning: dump 未开启，仿真可以跑，但波形里不会有任何数据。</span>');
+      log('<span style="color:#8a5b00">→ 先右键 Add Dump，勾选 aggregates 后点 Dump。</span>');
+      S.ran = true;
+      showWaveRows();
+      return;
+    }
+    S.ran = true;
+    showWaveRows();
+    done('run');
+    log('<span class="c-ok">Start/Continue：仿真从 0ns 跑到 40000ns（$finish）</span>');
+    log('<span class="c-cmd">波形已刷新：注意 out 在 30ns 之后跟随 b，在 60ns 之后跟随 a。</span>');
+  };
+  $('#tb-step').onclick = () => log('<span class="c-cmd">Step：单步推进一个时间点</span>');
+  $('#tb-stop').onclick = () => log('<span class="c-cmd">Stop：暂停在当前时间</span>');
+
+  const vp = $('#dve-vars');
+  vp.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+      e.preventDefault();
+      S.selects = new Set(VARS[S.sel || 'mux2to1'].map(v => v[0]));
+      renderVars();
+      log('<span class="c-cmd">Ctrl+A：已全选信号（红色箭头指的那个区域）</span>');
+    }
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('.ctx')) closeCtx(); });
+
+  log('<span class="c-cmd">DVE - Data Explorer · inter.vpd 已加载</span>');
+  log('<span style="color:#5b7a94">提示：先点层次树的 mux2to1，再右键变量列表。</span>');
+  if (store.has('dve', 'wave')) { /* 已学过一次，仍从空开始，鼓励重做 */ }
+})();
+</script>
+<script>
+/* ============================================================
+   07 fsdb 三种方法
+   ============================================================ */
+(function initFsdbLab() {
+  const term = termBox($('#fsdb-term'), { path: 'sim — fsdb generator', right: 'VCS + Verdi' });
+  const lsEl = $('#fsdb-ls'), info = $('#fsdb-info'), st = $('#fsdb-st');
+  const BASE = ['files.f', 'Makefile', 'run.tcl', 'simv', 'simv.daidir', 'inter.vpd', 'comp.log', 'ucli.key'];
+
+  function render(files, target) {
+    lsEl.innerHTML = files.map(f => {
+      if (f === target) return `<span style="color:#25d99b;font-weight:600">${esc(f)}  ← 新生成</span>`;
+      if (f.endsWith('.fsdb')) return `<span style="color:#25d99b">${esc(f)}</span>`;
+      return esc(f);
+    }).join('\n');
+  }
+
+  const CASES = {
+    '1': {
+      name: '方法 1 · +vcs+fsdbon',
+      files: BASE.concat(['novas.fsdb']), target: 'novas.fsdb',
+      lines: [
+        ['$ make elab', 'cmd'],
+        ['vcs -full64 -debug_access+all -sverilog -l comp.log \\', 'dim'],
+        ['    -f ./files.f -timescale=1ns/1ps +vcs+fsdbon', 'dim'],
+        ['', ''],
+        ['Chronologic VCS simulator copyright 1991-2018', ''],
+        ['FSDB dump enabled by +vcs+fsdbon (Verdi PLI)', 'info'],
+        ['✓ 编译成功 → simv', 'ok'],
+        ['', ''],
+        ['$ ./simv -l run.log', 'cmd'],
+        ['✓ 仿真结束，工作目录下自动出现 novas.fsdb', 'ok']
+      ],
+      info: '<b>优点</b>：只改 Makefile，一个字都不用动代码。<br><b>缺点</b>：文件名固定为 <code class="inl">novas.fsdb</code>，多个人多份波形放在同一目录会互相覆盖。'
+    },
+    '2': {
+      name: '方法 2 · tb 里 $fsdbDumpfile',
+      files: BASE.concat(['test.fsdb']), target: 'test.fsdb',
+      lines: [
+        ['// tb/mux2to1_tb.v 里已经写好：', 'dim'],
+        ['initial begin', ''],
+        ['  $fsdbDumpfile("test.fsdb");', 'info'],
+        ['  $fsdbDumpvars;', 'info'],
+        ['end', ''],
+        ['$ make elab && ./simv -l run.log', 'cmd'],
+        ['✓ 编译 + 仿真成功', 'ok'],
+        ['✓ 产生 test.fsdb（名字由 $fsdbDumpfile 决定）', 'ok']
+      ],
+      info: '<b>优点</b>：可以自己命名，波形文件和用例一一对应，便于归档。<br><b>缺点</b>：每个 tb 都要抄一遍，tb 多了维护成本高。'
+    },
+    '3': {
+      name: '方法 3 · run.tcl + -ucli',
+      files: BASE.concat(['mux2to1.fsdb']), target: 'mux2to1.fsdb',
+      lines: [
+        ['$ cat run.tcl', 'cmd'],
+        ['call {$fsdbDumpfile("mux2to1.fsdb")}', 'dim'],
+        ['call {$fsdbDumpvars}', 'dim'],
+        ['run', 'dim'],
+        ['', ''],
+        ['$ ./simv -ucli -i run.tcl -l run.log', 'cmd'],
+        ['UCLI: 打开交互式命令行，自动执行 run.tcl', 'info'],
+        ['call {$fsdbDumpfile("mux2to1.fsdb")}', ''],
+        ['call {$fsdbDumpvars}', ''],
+        ['run', ''],
+        ['✓ 产生 mux2to1.fsdb（脚本可复用，改个名字就行）', 'ok']
+      ],
+      info: '<b>优点</b>：波形名可控、脚本可复用、tb 无需改动，VCS 与 Verdi 联合仿真最常用的做法。<br><b>关键</b>：Makefile 里必须有 <code class="inl">-ucli -i run.tcl</code>。'
+    },
+    'mix': {
+      name: '混用 1 + 2',
+      files: BASE.concat(['novas.fsdb', 'test.fsdb']), target: 'novas.fsdb',
+      lines: [
+        ['$ make elab && ./simv', 'cmd'],
+        ['FSDB dump enabled by +vcs+fsdbon', 'info'],
+        ['$fsdbDumpfile("test.fsdb") 也在 tb 里执行了', 'dim'],
+        ['✓ 仿真结束', 'ok'],
+        ['⚠ 目录里出现了两个 fsdb：novas.fsdb 和 test.fsdb', 'warn'],
+        ['→ Verdi -ssf 加载哪个？团队协作时经常因此看错波形。', 'err']
+      ],
+      info: '<span style="color:#ff8f99"><b>课件警告</b></span>：两种方法不要混用，以防产生多个不同名字的 fsdb 波形文件。'
+    }
+  };
+
+  $$('#fsdb-methods button').forEach(b => {
+    b.onclick = () => {
+      const c = CASES[b.dataset.fsdb];
+      if (!c) return;
+      $$('#fsdb-methods button').forEach(x => x.classList.remove('pri'));
+      b.classList.add('pri');
+      st.textContent = c.name;
+      term.clear();
+      c.lines.forEach(([t, cls], i) => {
+        setTimeout(() => term.print(t === '' ? '' : esc(t), cls || ''), i * 45);
+      });
+      setTimeout(() => {
+        render(c.files, c.target);
+        info.innerHTML = c.info;
+      }, c.lines.length * 45 + 80);
+    };
+  });
+})();
+
+/* ============================================================
+   09 nTrace 模拟器
+   ============================================================ */
+(function initNTrace() {
+  const mount = $('#nt-mock');
+  const stEl = $('#nt-st');
+  const KEYS = ['load', 'scope', 'def', 'driver', 'wave'];
+  const S = { loaded: false, sel: null, sig: null, waveShown: false };
+
+  mount.innerHTML = `
+  <div class="mock" id="nt-win" style="position:relative">
+    <div class="win-hd"><span class="ttl">Verdi</span><span style="color:#7d8fa0">— nTrace : mux2to1_tb</span><span class="btns">— ▢ ✕</span></div>
+    <div class="toolbar">
+      <span class="tb" id="nt-import">Import Design…</span>
+      <span class="tb" id="nt-scope">Find Scope</span>
+      <span class="tb" id="nt-sig">Find Signals</span>
+      <span class="tb sep"></span>
+      <span class="tb" id="nt-def">Show Definition</span>
+      <span class="tb" id="nt-drv">Trace Driver</span>
+      <span class="tb" id="nt-load">Trace Load</span>
+      <span class="tb sep"></span>
+      <span class="tb" id="nt-schema">nSchema</span>
+      <span class="tb" id="nt-wave">nWave</span>
+      <span id="nt-scope-box" style="display:none;margin-left:6px"><input id="nt-scope-in" placeholder="*mux* 回车" style="font-size:11px;padding:2px 6px;border:1px solid #9fb0c0;border-radius:3px;width:110px"></span>
+    </div>
+    <div class="body" style="height:306px">
+      <div class="pane" style="flex:0 0 30%">
+        <div class="pane-hd">Hierarchy</div>
+        <div class="pane-bd"><div class="tree" id="nt-tree"><span style="color:#93a4b4">(no design loaded)</span></div></div>
+        <div class="pane-hd" style="border-top:1px solid #d5dde5">Signal List <span style="margin-left:auto;color:#8fa2b3;font-size:10px">双击→nWave</span></div>
+        <div class="pane-bd" style="max-height:118px"><div class="var" id="nt-sigs"><div style="padding:6px 8px;color:#93a4b4">—</div></div></div>
+      </div>
+      <div class="pane" style="flex:1">
+        <div class="pane-hd" id="nt-file">Source Code</div>
+        <div class="pane-bd"><div class="src" id="nt-src"><div style="padding:22px;color:#93a4b4;font-size:12px">File → Import Design… 加载 files.f 后，这里显示源代码</div></div></div>
+      </div>
+    </div>
+    <div class="cons" id="nt-cons"></div>
+    <div id="nt-wave-wrap" style="display:none;padding:6px;background:#f7f9fb;border-top:1px solid #c9d3dc"></div>
+  </div>`;
+
+  const cons = $('#nt-cons');
+  function log(t, cls = '') {
+    const d = document.createElement('div');
+    d.className = cls; d.innerHTML = t;
+    cons.appendChild(d); cons.scrollTop = cons.scrollHeight;
+  }
+  function paint() {
+    let n = 0;
+    $$('#nt-tasks li').forEach(li => { const ok = store.has('ntrace', li.dataset.k); li.classList.toggle('ok', ok); if (ok) n++; });
+    stEl.textContent = n + ' / ' + KEYS.length;
+  }
+  function done(k) { store.task('ntrace', k); paint(); }
+  paint();
+
+  const SRC_MUX = [
+    ['module mux2to1 (', 'kw'],
+    ['    input      <span class="sig" data-s="a">a</span>,', ''],
+    ['    input      <span class="sig" data-s="b">b</span>,', ''],
+    ['    input      <span class="sig" data-s="s">s</span>,', ''],
+    ['    output reg <span class="sig" data-s="out">out</span>', ''],
+    [');', ''],
+    ['', ''],
+    ['always @(*) begin', 'kw'],
+    ['    if (s) begin', 'kw'],
+    ['        out = b;', ''],
+    ['    end else begin', 'kw'],
+    ['        out = a;', ''],
+    ['    end', 'kw'],
+    ['end', 'kw'],
+    ['endmodule', 'kw']
+  ];
+  const SRC_TB = [
+    ['module mux2to1_tb;', 'kw'],
+    ['    reg a, b, s;', ''],
+    ['    wire out;', ''],
+    ['', ''],
+    ['mux2to1 u_mux(.a(a), .b(b), .s(s), .out(out));', ''],
+    ['', ''],
+    ['initial begin', 'kw'],
+    ['    $fsdbDumpfile("dump.fsdb");', ''],
+    ['    $fsdbDumpvars;', ''],
+    ['end', 'kw'],
+    ['endmodule', 'kw']
+  ];
+
+  function renderSrc(which) {
+    const arr = which === 'tb' ? SRC_TB : SRC_MUX;
+    $('#nt-file').textContent = which === 'tb' ? 'Source Code — mux2to1_tb.v' : 'Source Code — mux2to1.v';
+    $('#nt-src').innerHTML = arr.map((l, i) =>
+      `<div class="ln" data-line="${i + 1}"><span class="no">${i + 1}</span><span class="tx">${l[0]}</span></div>`
+    ).join('');
+    bindSrc();
+  }
+  function bindSrc() {
+    $$('#nt-src .sig').forEach(sg => {
+      sg.onclick = e => {
+        e.stopPropagation();
+        selectSig(sg.dataset.s, sg);
+      };
+    });
+  }
+  function selectSig(name, node) {
+    S.sig = name;
+    $$('#nt-src .ln').forEach(l => l.classList.remove('hl', 'drv', 'ld'));
+    const line = node.closest('.ln');
+    if (line) line.classList.add('hl');
+    log(`<span class="c-cmd">Show Definition: ${name} → mux2to1.v:${line ? line.dataset.line : '?'}</span>`);
+    if (name === 'out') log('<span style="color:#5b7a94">out 的定义：output reg out（mux2to1.v:5），由 always @(*) 块驱动</span>');
+    done('def');
+  }
+
+  /* 导入设计 */
+  $('#nt-import').onclick = () => {
+    const win = $('#nt-win');
+    const old = $('#nt-dlg'); if (old) old.remove();
+    const dlg = document.createElement('div');
+    dlg.id = 'nt-dlg';
+    dlg.style.cssText = 'position:absolute;left:50%;top:56px;transform:translateX(-50%);width:360px;background:#f5f8fa;border:1px solid #8ea3b6;border-radius:6px;box-shadow:0 14px 40px rgba(0,0,0,.3);font-size:11.5px;z-index:60;color:#22303c';
+    dlg.innerHTML = `
+      <div style="padding:5px 10px;background:linear-gradient(180deg,#e9eef3,#dde5ec);border-bottom:1px solid #c2ccd6;font-weight:600">Import Design</div>
+      <div style="padding:10px">
+        <div style="display:flex;gap:8px;margin-bottom:8px;border-bottom:1px solid #dde5ec;padding-bottom:6px">
+          <span style="font-weight:600">From File</span><span style="color:#8fa2b3">From Library</span><span style="color:#8fa2b3">From Elaboration Database</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:7px"><span style="width:52px">Language</span>
+          <select style="font-size:11px;padding:2px"><option>Verilog</option><option>SystemVerilog</option><option>VHDL</option></select></div>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:7px"><span style="width:52px">File</span>
+          <input value="files.f" style="flex:1;font-size:11px;padding:2px 5px;border:1px solid #b7c4d0;border-radius:3px"></div>
+        <div style="border:1px solid #b7c4d0;background:#fff;border-radius:3px;padding:5px 7px;font-family:monospace;font-size:11px;line-height:1.7;color:#33506b">
+          ./<br>&nbsp;&nbsp;mux2to1.v<br>&nbsp;&nbsp;mux2to1_tb.v<br>&nbsp;&nbsp;<b style="background:#cfe3f7">files.f</b>
+        </div>
+        <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:9px">
+          <button id="nt-ok" style="padding:3px 14px;border:1px solid #7d93a8;background:#e6eef6;border-radius:3px;cursor:pointer">OK</button>
+          <button id="nt-no" style="padding:3px 14px;border:1px solid #b7c4d0;background:#f0f3f6;border-radius:3px;cursor:pointer">Cancel</button>
+        </div>
+      </div>`;
+    win.appendChild(dlg);
+    $('#nt-no').onclick = () => dlg.remove();
+    $('#nt-ok').onclick = () => {
+      dlg.remove();
+      loadDesign();
+    };
+  };
+
+  function loadDesign() {
+    S.loaded = true;
+    $('#nt-tree').innerHTML = `
+      <div class="node" data-m="tb" style="padding-left:6px"><span class="tw">−</span><span class="ico">▤</span> mux2to1_tb</div>
+      <div class="node sel" data-m="mux" style="padding-left:22px"><span class="tw">+</span><span class="ico">▤</span> mux2to1 <span style="color:#8fa2b3">u_mux</span></div>`;
+    $$('#nt-tree .node').forEach(n => n.onclick = () => {
+      $$('#nt-tree .node').forEach(x => x.classList.remove('sel'));
+      n.classList.add('sel');
+      renderSrc(n.dataset.m === 'tb' ? 'tb' : 'mux');
+      log(`<span class="c-cmd">打开层次：${n.textContent.trim()}</span>`);
+    });
+    $('#nt-sigs').innerHTML = [['a', '4', 'Wire', 'Input'], ['b', '4', 'Wire', 'Input'], ['s', '1', 'Wire', 'Input'], ['out', '4', 'Reg', 'Output']]
+      .map(v => `<div class="row" data-v="${v[0]}"><span class="n">${v[0]}</span><span class="v">—</span><span class="t">${v[2]} ${v[3]}</span></div>`).join('');
+    $$('#nt-sigs .row').forEach(r => {
+      r.ondblclick = () => { showWave(); log(`<span class="c-cmd">Add to nWave: ${r.dataset.v}（双击信号送入波形窗口）</span>`); done('wave'); };
+    });
+    renderSrc('mux');
+    log('<span class="c-ok">Import Design 完成：KDB 已建立，nTrace 可以开始追踪</span>');
+    log('<span style="color:#5b7a94">试着点源码里的蓝色信号名，再用 Trace Driver。</span>');
+    done('load');
+  }
+
+  function showWave() {
+    if (S.waveShown) return;
+    S.waveShown = true;
+    $('#nt-wave-wrap').style.display = 'block';
+    const w = new WaveView($('#nt-wave-wrap'), { radix: 'hex', tEnd: 100 });
+    const sigs = waveData().filter(s => ['a', 'b', 's', 'out'].includes(s.name));
+    w.setSignals(sigs);
+  }
+
+  /* 工具栏 */
+  $('#nt-scope').onclick = () => {
+    if (!S.loaded) { log('<span class="c-err">先 Import Design</span>'); return; }
+    const box = $('#nt-scope-box');
+    box.style.display = box.style.display === 'none' ? 'inline' : 'none';
+    if (box.style.display === 'inline') $('#nt-scope-in').focus();
+  };
+  $('#nt-scope-in').addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const v = e.target.value.trim();
+    if (/mux2to1$/i.test(v) || /mux/i.test(v)) {
+      $$('#nt-tree .node').forEach(x => x.classList.remove('sel'));
+      const n = $('#nt-tree .node[data-m="mux"]');
+      if (n) n.classList.add('sel');
+      renderSrc('mux');
+      log(`<span class="c-ok">Find Scope: 匹配到 mux2to1_tb.u_mux（直接跳转，不用在深层次里点）</span>`);
+      done('scope');
+    } else {
+      log(`<span class="c-err">Find Scope: 没有匹配 "${esc(v)}" 的 scope</span>`);
+    }
+    $('#nt-scope-box').style.display = 'none';
+  });
+  $('#nt-sig').onclick = () => {
+    if (!S.loaded) { log('<span class="c-err">先 Import Design</span>'); return; }
+    log('<span class="c-cmd">Find Signals: 在全设计中搜索 "out"</span>');
+    log('  mux2to1_tb.out');
+    log('  mux2to1_tb.u_mux.out');
+    log('<span style="color:#5b7a94">全路径能区分同名信号 —— 这就是它比在波形里找靠谱的地方。</span>');
+  };
+  $('#nt-def').onclick = () => {
+    if (!S.loaded) { log('<span class="c-err">先 Import Design</span>'); return; }
+    if (!S.sig) { log('<span style="color:#8a5b00">先在源码里点一个信号</span>'); return; }
+    log(`<span class="c-cmd">Show Definition: ${S.sig}</span>`);
+    if (S.sig === 'out') done('def');
+  };
+  $('#nt-drv').onclick = () => {
+    if (!S.loaded) { log('<span class="c-err">先 Import Design</span>'); return; }
+    if (!S.sig) { log('<span style="color:#8a5b00">先在源码里点一个信号，再 Trace Driver</span>'); return; }
+    $$('#nt-src .ln').forEach(l => l.classList.remove('hl', 'drv', 'ld'));
+    $$('#nt-src .ln').forEach(l => { const n = +l.dataset.line; if (n >= 8 && n <= 14) l.classList.add('drv'); });
+    log(`<span class="c-ok">Trace Driver: ${S.sig} 的驱动来自 always @(*) 组合逻辑（mux2to1.v:8-14）</span>`);
+    log('<span style="color:#5b7a94">扇入锥：a、b、s。这就是「谁把它写成了这个值」的答案。</span>');
+    done('driver');
+  };
+  $('#nt-load').onclick = () => {
+    if (!S.loaded) return;
+    if (!S.sig) { log('<span style="color:#8a5b00">先选一个信号</span>'); return; }
+    $$('#nt-src .ln').forEach(l => l.classList.remove('drv', 'ld'));
+    const line = $('#nt-src .ln[data-line="5"]');
+    if (line) line.classList.add('ld');
+    log(`<span class="c-ok">Trace Load: ${S.sig} 作为输出，被 mux2to1_tb 的 wire out 接收</span>`);
+  };
+  $('#nt-schema').onclick = () => log('<span class="c-cmd">打开 nSchema：把当前模块画成逻辑图（见下一关）</span>');
+  $('#nt-wave').onclick = () => {
+    if (!S.loaded) { log('<span class="c-err">先 Import Design</span>'); return; }
+    showWave();
+    log('<span class="c-cmd">nWave 打开：dump.fsdb（双击左侧信号可加入波形）</span>');
+  };
+
+  log('<span class="c-cmd">Verdi O-2018.09-SP1 已启动 · nTrace 就绪</span>');
+  log('<span style="color:#5b7a94">第一步：点 Import Design… 加载 files.f</span>');
+})();
+
+/* ============================================================
+   10 nSchema 模拟器
+   ============================================================ */
+(function initNSchema() {
+  const mount = $('#ns-mock');
+  const stEl = $('#ns-st');
+  const KEYS = ['open', 'click', 'trace', 'sync'];
+  const S = { open: false, net: null, traced: false };
+
+  mount.innerHTML = `
+  <div class="mock" id="ns-win" style="position:relative">
+    <div class="win-hd"><span class="ttl">Verdi</span><span style="color:#7d8fa0">— nSchema : mux2to1</span><span class="btns">— ▢ ✕</span></div>
+    <div class="toolbar">
+      <span class="tb" id="ns-open">Open nSchema</span>
+      <span class="tb sep"></span>
+      <span class="tb" id="ns-trace">Trace X</span>
+      <span class="tb" id="ns-fit">Fit</span>
+      <span class="tb sep"></span>
+      <span class="tb" id="ns-wave">nWave 联动</span>
+    </div>
+    <div style="background:#05090d;padding:6px" id="ns-canvas">
+      <svg viewBox="0 0 520 230" style="width:100%;height:230px">
+        <defs>
+          <marker id="arw" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L7,3 z" fill="#4b6a83"/>
+          </marker>
+          <marker id="arw2" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L7,3 z" fill="#ff9f45"/>
+          </marker>
+        </defs>
+        <g font-family="monospace" font-size="10.5" fill="#7f9ab0">
+          <text x="16" y="52">a[3:0]</text>
+          <text x="16" y="112">b[3:0]</text>
+          <text x="16" y="154">s</text>
+          <text x="452" y="118">out[3:0]</text>
+        </g>
+        <g stroke="#4b6a83" stroke-width="1.6" fill="none">
+          <path class="net" data-net="a" d="M56,48 H140" marker-end="url(#arw)"/>
+          <path class="net" data-net="b" d="M56,108 H140" marker-end="url(#arw)"/>
+          <path class="net" data-net="s" d="M56,150 H140" marker-end="url(#arw)"/>
+          <path class="net" data-net="out" d="M340,110 H440" marker-end="url(#arw)"/>
+        </g>
+        <polygon points="140,36 340,64 340,156 140,184" fill="#0c1a24" stroke="#4b6a83" stroke-width="1.6"/>
+        <text x="240" y="105" fill="#25d99b" font-family="monospace" font-size="12" text-anchor="middle">MUX</text>
+        <text x="240" y="126" fill="#4b6a83" font-family="monospace" font-size="10" text-anchor="middle">mux2to1</text>
+        <g id="ns-hl" opacity="0"></g>
+      </svg>
+    </div>
+    <div class="cons" id="ns-cons"></div>
+    <div id="ns-wave-wrap" style="display:none;padding:6px;background:#f7f9fb;border-top:1px solid #c9d3dc"></div>
+  </div>`;
+
+  const cons = $('#ns-cons');
+  function log(t, cls = '') { const d = document.createElement('div'); d.className = cls; d.innerHTML = t; cons.appendChild(d); cons.scrollTop = cons.scrollHeight; }
+  function paint() {
+    let n = 0;
+    $$('#ns-tasks li').forEach(li => { const ok = store.has('nschema', li.dataset.k); li.classList.toggle('ok', ok); if (ok) n++; });
+    stEl.textContent = n + ' / ' + KEYS.length;
+  }
+  function done(k) { store.task('nschema', k); paint(); }
+  paint();
+
+  function showWave() {
+    if (S.waveShown) { $('#ns-wave-wrap').style.display = 'block'; return; }
+    S.waveShown = true;
+    $('#ns-wave-wrap').style.display = 'block';
+    const w = new WaveView($('#ns-wave-wrap'), { radix: 'bin', tEnd: 100 });
+    w.setSignals(waveData().filter(s => ['a', 'b', 's', 'out'].includes(s.name)));
+    w.cursor = 30; w.render();
+    S.wave = w;
+  }
+
+  $('#ns-open').onclick = () => {
+    S.open = true;
+    const svgEl = $('#ns-canvas svg');
+    if (svgEl) svgEl.style.opacity = 1;
+    log('<span class="c-ok">nSchema 已打开：mux2to1 的逻辑图（KDB 生成，不需要手画）</span>');
+    done('open');
+  };
+  $$('#ns-canvas .net').forEach(n => {
+    n.style.cursor = 'pointer';
+    n.onclick = () => {
+      $$('#ns-canvas .net').forEach(x => x.setAttribute('stroke', '#4b6a83'));
+      n.setAttribute('stroke', '#25d99b');
+      n.setAttribute('stroke-width', '3');
+      S.net = n.dataset.net;
+      log(`<span class="c-cmd">选中网线：${S.net}</span>`);
+      done('click');
+    };
+  });
+  $('#ns-trace').onclick = () => {
+    if (!S.open) { log('<span class="c-err">先 Open nSchema</span>'); return; }
+    if (!S.net) { log('<span style="color:#8a5b00">先在图里点一根线（比如 s）</span>'); return; }
+    const paths = {
+      a: ['M56,48 H140', 'M140,60 H300 V110', 'M340,110 H440'],
+      b: ['M56,108 H140', 'M140,120 H300 V110', 'M340,110 H440'],
+      s: ['M56,150 H140', 'M200,150 H300 V110', 'M340,110 H440'],
+      out: ['M340,110 H440']
+    }[S.net] || [];
+    const hl = $('#ns-hl');
+    hl.setAttribute('opacity', '1');
+    hl.innerHTML = paths.map(d => `<path d="${d}" fill="none" stroke="#ff9f45" stroke-width="2.4" stroke-dasharray="6 4" marker-end="url(#arw2)"/>`).join('');
+    S.traced = true;
+    log(`<span class="c-ok">Trace X: 已高亮 ${S.net} 的扇出路径 → 经过 MUX → out</span>`);
+    log('<span style="color:#5b7a94">橙色虚线经过的每一级都参与了这个值的变化，顺着它就能找到问题源头。</span>');
+    done('trace');
+  };
+  $('#ns-fit').onclick = () => { $('#ns-hl').setAttribute('opacity', '0'); log('<span class="c-cmd">Fit：视图复位</span>'); };
+  $('#ns-wave').onclick = () => {
+    showWave();
+    log('<span class="c-ok">nWave 联动：图中选中的网线在波形里同步定位（游标 30ns）</span>');
+    if (S.traced) done('sync');
+    else log('<span style="color:#8a5b00">先做一次 Trace X，再联动更直观。</span>');
+  };
+
+  log('<span class="c-cmd">nSchema 就绪（未打开）</span>');
+  log('<span style="color:#5b7a94">点 Open nSchema 把 RTL 变成电路图。</span>');
+})();
+</script>
+<script>
+/* ============================================================
+   11 错误诊断
+   ============================================================ */
+const DBG = [
+  {
+    q: 'Makefile:4: *** missing separator.  Stop.',
+    ctx: '你刚写完 Makefile，敲 make elab 就报这个。',
+    opts: ['command 行用了空格而不是 TAB', 'VCS 没装好', '源文件不存在'],
+    a: 0,
+    exp: 'make 靠行首的 <b>TAB</b> 区分「规则」和「命令」。第 4 行前面是 4 个空格，make 认为这不是命令，于是报 missing separator。把空格换成 TAB 即可。'
+  },
+  {
+    q: 'bash: ./simv: No such file or directory',
+    ctx: '你确定当前目录就是 sim/，ls 也能看到 files.f 和 Makefile。',
+    opts: ['编译没成功，simv 根本没生成', '磁盘空间不足', 'simv 没有执行权限'],
+    a: 0,
+    exp: 'simv 只在编译成功后才存在。先看 <b>comp.log</b> 里第一个 Error；常见原因是 files.f 路径不对或模块名不匹配。权限问题会报 <code class="inl">Permission denied</code>，不是这个提示。'
+  },
+  {
+    q: 'Error-[MFNF] Module not found: mux2to1',
+    ctx: 'files.f 里明明写了 mux2to1.v。',
+    opts: ['files.f 里的路径写错，或 tb 排在 rtl 前面导致解析顺序不对', '时钟信号没接', '没有开波形 dump'],
+    a: 0,
+    exp: 'MFNF = Module Not Found：VCS 没读到那个文件，或者读到但模块名与文件名不一致（文件叫 mux2to1.v，里面却写成 module mux_2to1）。先 <code class="inl">cat files.f</code> 再 <code class="inl">ls</code> 对应路径。'
+  },
+  {
+    q: '编译通过了，但 DVE 波形窗口里所有信号都是空的。',
+    ctx: 'comp.log 里没有任何 Error。',
+    opts: ['编译时没加 -debug_access，或者仿真前没做 Add Dump', '显示器分辨率太低', 'fsdb 文件太大'],
+    a: 0,
+    exp: '波形数据来自 dump。没有 <code class="inl">-debug_access</code>（或 <code class="inl">-debug_all</code>）VCS 就关闭了调试能力；即使编过了，也要在 DVE 里对层次做 Add Dump，仿真期间才会真正记录。'
+  },
+  {
+    q: 'Verdi 打开了，nWave 却显示 <nWave:2> No File Opened。',
+    ctx: '你只敲了 verdi -f ./files.f。',
+    opts: ['启动时没给 -ssf，之后也没手动加载 fsdb', 'KDB 损坏了', 'RTL 有语法错误'],
+    a: 0,
+    exp: '<code class="inl">-f</code> 只给设计和源码，<code class="inl">-ssf</code> 才给波形。补上 <code class="inl">-ssf ./test.fsdb</code>，或者 File → Open 手动加载。'
+  },
+  {
+    q: '目录里同时出现 novas.fsdb 和 test.fsdb，团队里有人看错了波形。',
+    ctx: 'Makefile 里加了 +vcs+fsdbon，tb 里也写了 $fsdbDumpfile("test.fsdb")。',
+    opts: ['混用了方法 1 和方法 2', '仿真跑了两遍', 'fsdb 自动分片'],
+    a: 0,
+    exp: '这正是课件警告的场景：「两种方法不要混用，以防产生多个不同名字的 fsdb 波形文件」。选一种，删掉另一种，团队约定统一命名。'
+  }
+];
+
+(function initDebug() {
+  const list = $('#dbg-list'), st = $('#dbg-st');
+  let doneCount = 0;
+  DBG.forEach((d, i) => {
+    const card = document.createElement('div');
+    card.className = 'quiz-q';
+    card.innerHTML = `
+      <div class="qh"><span class="qn">${i + 1}</span><span style="font-family:var(--mono);font-size:13px;color:#ff9f9f">${esc(d.q)}</span></div>
+      <div style="font-size:12.5px;color:#8fa3ba;margin:-6px 0 12px">${esc(d.ctx)}</div>
+      ${d.opts.map((o, j) => `<div class="opt" data-j="${j}"><span class="k">${'ABC'[j]}</span><span>${esc(o)}</span></div>`).join('')}
+      <div class="exp"></div>`;
+    list.appendChild(card);
+    let answered = false;
+    $$('.opt', card).forEach(opt => {
+      opt.onclick = () => {
+        if (answered) return;
+        answered = true;
+        const j = +opt.dataset.j;
+        $$('.opt', card).forEach((o, k) => {
+          o.classList.add('lock');
+          if (k === d.a) o.classList.add('right');
+          if (k === j && j !== d.a) o.classList.add('wrong');
+        });
+        const exp = $('.exp', card);
+        exp.classList.add('show');
+        exp.innerHTML = (j === d.a ? '<b>✓ 正确。</b>' : '<b>✗ 再想想。</b>') + d.exp;
+        if (j === d.a) {
+          doneCount++;
+          st.textContent = doneCount + ' / ' + DBG.length;
+          store.task('debug', 'd' + i);
+        }
+      };
+    });
+  });
+  st.textContent = '0 / ' + DBG.length;
+})();
+
+/* ============================================================
+   12 测验
+   ============================================================ */
+const QUIZ = [
+  {
+    q: 'VCS 编译（elaborate）成功后，生成的可执行仿真文件名默认是？',
+    o: ['simv', 'vcs.out', 'a.out', 'sim.exe'], a: 0,
+    e: '课件原文：Creates statically linked simulator executable (simv)。可以用 -o <simname> 改名，但默认就是 simv。'
+  },
+  {
+    q: 'Makefile 里 command 行必须以什么字符开头？',
+    o: ['4 个空格', 'TAB', '#', '$'], a: 1,
+    e: '课件特别强调：command 必须以 TAB 字符开头。用空格会得到 *** missing separator. Stop.'
+  },
+  {
+    q: '想让 DVE / Verdi 能 dump 波形，编译时最关键要加的选项是？',
+    o: ['-full64', '-sverilog', '-debug_access+all', '-l comp.log'], a: 2,
+    e: '-full64 是 64 位、-sverilog 是语言支持、-l 是日志。只有 -debug_access（或 -debug_all / -debug）才开放调试与 dump 能力。'
+  },
+  {
+    q: 'files.f 的作用是？',
+    o: ['记录编译日志', '列出参与编译的源文件（可含选项）', '保存波形', '定义时钟周期'], a: 1,
+    e: 'vcs/vlogan 的 -f 选项读取它，把一长串源文件路径（甚至其他选项）收进一个文件。'
+  },
+  {
+    q: '在 DVE 里把当前模块的所有信号一次性加入波形窗口，课件的操作是？',
+    o: ['逐个双击信号', 'Ctrl+A 全选 → 右键 Add To Waves → New Wave View（ctrl+4）', 'File → Export', '按 F5'], a: 1,
+    e: '课件：在变量列表按 Ctrl+A 全选信号，右键 Add To Waves → New Wave View，快捷键 Ctrl+4。'
+  },
+  {
+    q: '在 Makefile 的 vcs 命令里加 +vcs+fsdbon，产生的波形文件固定叫？',
+    o: ['test.fsdb', 'novas.fsdb', 'dump.vpd', 'simv.fsdb'], a: 1,
+    e: '方法 1 的缺点正是如此：无论什么设计和验证代码，波形文件都会命名为 novas.fsdb。'
+  },
+  {
+    q: '三种产生 fsdb 的方法中，哪一种「波形名可自定义、脚本可复用、tb 不用改」？',
+    o: ['方法 1：+vcs+fsdbon', '方法 2：tb 里 $fsdbDumpfile', '方法 3：run.tcl + simv -ucli -i', '三种都一样'], a: 2,
+    e: 'run.tcl 里 call {$fsdbDumpfile("mux2to1.fsdb")}，Makefile 用 ./simv -ucli -i run.tcl 驱动。改个名字就能复用。'
+  },
+  {
+    q: '在 nTrace 里想知道「out 这个信号是谁驱动的」，应该点哪个按钮？',
+    o: ['Trace Load', 'Trace Driver', 'Show Calling', 'Find Scope'], a: 1,
+    e: 'Trace Driver 往上游追驱动源；Trace Load 往下游追负载；Show Calling 跳到上层调用者；Find Scope 是按名字直达模块。'
+  },
+  {
+    q: 'nWave 里把辛苦挑好的信号布局保存下来，用哪个菜单？',
+    o: ['File → Save Signals', 'File → Export Waveform', 'View → Zoom Fit', 'Tools → Options'], a: 0,
+    e: 'Save Signals 保存 Groups、Containers、Markers、Grid options、Crossed Bars；下次用 File → Restore Signals 一键恢复。'
+  },
+  {
+    q: 'VCS_MX 三步式流程里，分析 VHDL 源码用哪条命令？',
+    o: ['vlogan', 'vhdlan', 'vcs', 'simv'], a: 1,
+    e: 'vlogan 分析 Verilog，vhdlan 分析 VHDL，两者都做完再 vcs 做 elaborate，最后 simv 仿真。'
+  }
+];
+
+(function initQuiz() {
+  const list = $('#quiz-list'), st = $('#quiz-st'), res = $('#quiz-result'), scoreEl = $('#quiz-score');
+  let score = 0, answered = 0;
+  QUIZ.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'quiz-q';
+    card.innerHTML = `<div class="qh"><span class="qn">${i + 1}</span><span>${esc(q.q)}</span></div>
+      ${q.o.map((o, j) => `<div class="opt" data-j="${j}"><span class="k">${'ABCD'[j]}</span><span>${esc(o)}</span></div>`).join('')}
+      <div class="exp"></div>`;
+    list.appendChild(card);
+    let locked = false;
+    $$('.opt', card).forEach(opt => {
+      opt.onclick = () => {
+        if (locked) return;
+        locked = true; answered++;
+        const j = +opt.dataset.j;
+        $$('.opt', card).forEach((o, k) => {
+          o.classList.add('lock');
+          if (k === q.a) o.classList.add('right');
+          if (k === j && j !== q.a) o.classList.add('wrong');
+        });
+        const exp = $('.exp', card);
+        exp.classList.add('show');
+        exp.innerHTML = (j === q.a ? '<b>✓ 正确。</b>' : '<b>✗ 正确答案是 ' + 'ABCD'[q.a] + '。</b>') + q.e;
+        if (j === q.a) score++;
+        st.textContent = answered + ' / ' + QUIZ.length;
+        if (answered === QUIZ.length) {
+          res.style.display = 'block';
+          const pct = Math.round(score / QUIZ.length * 100);
+          scoreEl.innerHTML = `得分 <b style="color:#25d99b;font-size:20px">${score} / ${QUIZ.length}</b>（${pct} 分）　` +
+            (pct >= 90 ? '可以上手真实工程了。' : pct >= 70 ? '基本掌握，建议回看错题对应关卡。' : '建议从 03 Makefile 和 04 VCS 流程重看一遍。');
+          store.lessonDone('quiz');
+        }
+      };
+    });
+  });
+  st.textContent = '0 / ' + QUIZ.length;
+})();
+
+/* ============================================================
+   启动
+   ============================================================ */
+(function boot() {
+  const hash = location.hash.replace('#', '');
+  go(LESSONS.includes(hash) ? hash : 'intro');
+  setTimeout(() => window.scrollTo(0, 0), 80);
+  renderProgress();
+  // 时间
+  const clock = $('#clock');
+  const tick = () => {
+    const d = new Date();
+    clock.textContent = 'VCS V-2018.09-SP2 · Verdi O-2018.09-SP1 · ' + d.toTimeString().slice(0, 5);
+  };
+  tick(); setInterval(tick, 30000);
+  // 键盘：左右箭头翻页
+  document.addEventListener('keydown', e => {
+    if (/input|textarea|select/i.test(e.target.tagName)) return;
+    if (e.key === 'ArrowRight') {
+      const i = LESSONS.indexOf(current);
+      if (i < LESSONS.length - 1) go(LESSONS[i + 1]);
+    } else if (e.key === 'ArrowLeft') {
+      const i = LESSONS.indexOf(current);
+      if (i > 0) go(LESSONS[i - 1]);
+    }
+  });
+})();
+</script>
+
+<script src="../../assets/lesson-bridge.js"></script>
+</body>
+</html>
