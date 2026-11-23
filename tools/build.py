@@ -376,7 +376,10 @@ def load_all():
         if L.get("status", "live") == "draft":
             continue
         lessons.append(L)
-    lessons.sort(key=lambda x: (int(x.get("stage", 9)), str(x.get("no", ""))))
+    def _no_key(x):
+        m = re.match(r"\d+", str(x.get("no", "")))
+        return int(m.group()) if m else 9999
+    lessons.sort(key=lambda x: (int(x.get("stage", 9)), _no_key(x)))
     return lessons
 
 
