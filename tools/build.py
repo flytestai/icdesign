@@ -448,13 +448,15 @@ HEAD = """<!DOCTYPE html>
 <header class="top">
   <a class="logo" href="/"><img class="mark" src="/assets/logo.svg" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav">{nav}</nav>
-  <div class="top-right">{right}</div>
+  <div class="top-right">{right}%%AUTHCHIP%%</div>
 </header>"""
 
-# 登录用户角标（右上角显示姓名 + 退出；管理员多一个审核入口）
+# 登录用户区（融入顶部导航右侧：头像 + 姓名 + 角色；管理员多一个审核入口）
 AUTH_CHIP = """
 <div id="userchip" class="userchip" hidden>
-  <span id="uc-name"></span>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
   <a id="uc-admin" href="/admin" hidden>审核管理</a>
   <button id="uc-logout" type="button">退出</button>
 </div>
@@ -464,8 +466,13 @@ AUTH_CHIP = """
     var el=document.getElementById('userchip');
     if(!el)return;
     el.hidden=false;
-    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
-    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
     document.getElementById('uc-logout').addEventListener('click',function(){
       fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
     });
@@ -517,7 +524,6 @@ PAGE = HEAD + """
 <script src="/assets/shell.js"></script>
 <script src="/assets/tcl.js"></script>
 <script src="/assets/app.js"></script>
-%%AUTHCHIP%%
 </body>
 </html>"""
 
@@ -528,7 +534,6 @@ SUB = HEAD + """
 <script src="/assets/shell.js"></script>
 <script src="/assets/tcl.js"></script>
 <script src="/assets/page.js"></script>
-%%AUTHCHIP%%
 </body>
 </html>"""
 
@@ -573,7 +578,6 @@ HOME = HEAD + """
   <p>IC 后端学院 · 课表 9 阶段 113 学时 + 实战补充 · 共 {nlesson} 课 {nchapter} 章</p>
 </footer>
 <script src="/assets/app.js"></script>
-%%AUTHCHIP%%
 </body>
 </html>"""
 

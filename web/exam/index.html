@@ -6,27 +6,17 @@
 <title>阶段验收 | IC 后端学院</title>
 <meta name="description" content="学完一个阶段来验一验：随机抽题、80 分过关、进度看板留痕。">
 <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795433649">
+<link rel="stylesheet" href="/assets/app.css?v=1795436871">
 </head>
 <body data-page="exam" data-lesson="exam">
 <header class="top">
   <a class="logo" href="/"><img class="mark" src="/assets/logo.svg" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a class="on" href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
-  <div class="top-right"><a class="ghost" href="/">← 课程</a></div>
-</header>
-<main class="sub">
-<div class="sub-h"><h1>阶段验收</h1><p>学完一个阶段来验一验：随机抽题、80 分过关、进度看板留痕。</p></div>
-<div class="xnote">每个阶段一套<b>验收卷</b>：从该阶段全部课程的自测题里随机抽题（题多的阶段抽 20 道，题少的全出）。逐题自评计分，<b>80 分过关</b>。过关记录保存在本机浏览器，进度看板上会标"已验收"。建议：学完一个阶段立刻验收——不过关的题会告诉你该回哪一课复习。</div>
-<div id="x-stages" class="xlist"></div>
-<div id="x-panel" class="xpanel" hidden></div>
-
-</main>
-<script src="/assets/shell.js?v=1795433649"></script>
-<script src="/assets/tcl.js?v=1795433649"></script>
-<script src="/assets/page.js?v=1795433649"></script>
-
+  <div class="top-right"><a class="ghost" href="/">← 课程</a>
 <div id="userchip" class="userchip" hidden>
-  <span id="uc-name"></span>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
   <a id="uc-admin" href="/admin" hidden>审核管理</a>
   <button id="uc-logout" type="button">退出</button>
 </div>
@@ -36,13 +26,29 @@
     var el=document.getElementById('userchip');
     if(!el)return;
     el.hidden=false;
-    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
-    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
     document.getElementById('uc-logout').addEventListener('click',function(){
       fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
     });
   }).catch(function(){});
 })();
-</script>
+</script></div>
+</header>
+<main class="sub">
+<div class="sub-h"><h1>阶段验收</h1><p>学完一个阶段来验一验：随机抽题、80 分过关、进度看板留痕。</p></div>
+<div class="xnote">每个阶段一套<b>验收卷</b>：从该阶段全部课程的自测题里随机抽题（题多的阶段抽 20 道，题少的全出）。逐题自评计分，<b>80 分过关</b>。过关记录保存在本机浏览器，进度看板上会标"已验收"。建议：学完一个阶段立刻验收——不过关的题会告诉你该回哪一课复习。</div>
+<div id="x-stages" class="xlist"></div>
+<div id="x-panel" class="xpanel" hidden></div>
+
+</main>
+<script src="/assets/shell.js?v=1795436871"></script>
+<script src="/assets/tcl.js?v=1795436871"></script>
+<script src="/assets/page.js?v=1795436871"></script>
 </body>
 </html>

@@ -6,13 +6,39 @@
 <title>题库 | IC 后端学院</title>
 <meta name="description" content="88 道自测题，按阶段筛选、随机抽题、自动记错题。">
 <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795433649">
+<link rel="stylesheet" href="/assets/app.css?v=1795436871">
 </head>
 <body data-page="quiz" data-lesson="quiz">
 <header class="top">
   <a class="logo" href="/"><img class="mark" src="/assets/logo.svg" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a class="on" href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
-  <div class="top-right"><a class="ghost" href="/">← 课程</a></div>
+  <div class="top-right"><a class="ghost" href="/">← 课程</a>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
 </header>
 <main class="sub">
 <div class="sub-h"><h1>题库</h1><p>88 道自测题，按阶段筛选、随机抽题、自动记错题。</p></div>
@@ -30,28 +56,8 @@
 <div id="quiz-panel" class="qpanel"><p class="qempty">点右上角"开始 10 题"，随机抽 10 道；答完点"看答案"自评，答错的会自动进错题本。</p></div>
 
 </main>
-<script src="/assets/shell.js?v=1795433649"></script>
-<script src="/assets/tcl.js?v=1795433649"></script>
-<script src="/assets/page.js?v=1795433649"></script>
-
-<div id="userchip" class="userchip" hidden>
-  <span id="uc-name"></span>
-  <a id="uc-admin" href="/admin" hidden>审核管理</a>
-  <button id="uc-logout" type="button">退出</button>
-</div>
-<script>
-(function(){
-  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
-    var el=document.getElementById('userchip');
-    if(!el)return;
-    el.hidden=false;
-    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
-    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
-    document.getElementById('uc-logout').addEventListener('click',function(){
-      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
-    });
-  }).catch(function(){});
-})();
-</script>
+<script src="/assets/shell.js?v=1795436871"></script>
+<script src="/assets/tcl.js?v=1795436871"></script>
+<script src="/assets/page.js?v=1795436871"></script>
 </body>
 </html>

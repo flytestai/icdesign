@@ -6,13 +6,39 @@
 <title>IC 后端学院 · 零基础到能上手做项目</title>
 <meta name="description" content="面向零基础的 IC 数字后端课程：113 学时、9 个阶段，概念讲到能听懂，命令逐行注释，每一课都有可验收的实战。">
 <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795433649">
+<link rel="stylesheet" href="/assets/app.css?v=1795436871">
 </head>
 <body data-page="home" data-lesson="home">
 <header class="top">
   <a class="logo" href="/"><img class="mark" src="/assets/logo.svg" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a class="on" href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
-  <div class="top-right"><a class="ghost" href="#plan">学习路线</a><a class="ghost" href="/progress/">我的进度</a></div>
+  <div class="top-right"><a class="ghost" href="#plan">学习路线</a><a class="ghost" href="/progress/">我的进度</a>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
 </header>
 <section class="home-hero">
   <div class="hh-in">
@@ -89,26 +115,6 @@
 <footer class="foot">
   <p>IC 后端学院 · 课表 9 阶段 113 学时 + 实战补充 · 共 24 课 91 章</p>
 </footer>
-<script src="/assets/app.js?v=1795433649"></script>
-
-<div id="userchip" class="userchip" hidden>
-  <span id="uc-name"></span>
-  <a id="uc-admin" href="/admin" hidden>审核管理</a>
-  <button id="uc-logout" type="button">退出</button>
-</div>
-<script>
-(function(){
-  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
-    var el=document.getElementById('userchip');
-    if(!el)return;
-    el.hidden=false;
-    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
-    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
-    document.getElementById('uc-logout').addEventListener('click',function(){
-      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
-    });
-  }).catch(function(){});
-})();
-</script>
+<script src="/assets/app.js?v=1795436871"></script>
 </body>
 </html>

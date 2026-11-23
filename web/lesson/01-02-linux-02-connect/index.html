@@ -6,13 +6,39 @@
 <title>Linux 第 2 课 · 连接服务器与目录结构 · 2 | IC 后端学院</title>
 <meta name="description" content="Xshell 连接服务器的完整 5 步流程（带截图）；Linux 系统级目录结构 / 工作级目录；通过颜色区分文件类型。">
 <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795433649">
+<link rel="stylesheet" href="/assets/app.css?v=1795436871">
 </head>
 <body data-page="lesson" data-lesson="01-02-linux-02-connect">
 <header class="top">
   <a class="logo" href="/"><img class="mark" src="/assets/logo.svg" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
-  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
 </header>
 <div class="layout">
   <aside class="toc" id="toc">
@@ -114,28 +140,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795433649"></script>
-<script src="/assets/tcl.js?v=1795433649"></script>
-<script src="/assets/app.js?v=1795433649"></script>
-
-<div id="userchip" class="userchip" hidden>
-  <span id="uc-name"></span>
-  <a id="uc-admin" href="/admin" hidden>审核管理</a>
-  <button id="uc-logout" type="button">退出</button>
-</div>
-<script>
-(function(){
-  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
-    var el=document.getElementById('userchip');
-    if(!el)return;
-    el.hidden=false;
-    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
-    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
-    document.getElementById('uc-logout').addEventListener('click',function(){
-      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
-    });
-  }).catch(function(){});
-})();
-</script>
+<script src="/assets/shell.js?v=1795436871"></script>
+<script src="/assets/tcl.js?v=1795436871"></script>
+<script src="/assets/app.js?v=1795436871"></script>
 </body>
 </html>
