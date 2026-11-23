@@ -192,7 +192,12 @@ def auth_register(r: RegisterIn):
 def auth_login(r: LoginIn, request: Request, response: Response):
     account = r.account.strip()
     with closing(db()) as c:
-        u = c.execute("SELECT * FROM users WHERE account=?", (account,)).fetchone()
+        # 账号或手机号均可登录（精确账号命中优先）
+        u = c.execute(
+            "SELECT * FROM users WHERE account=? OR phone=? "
+            "ORDER BY CASE WHEN account=? THEN 0 ELSE 1 END",
+            (account, account, account),
+        ).fetchone()
     if not u:
         raise HTTPException(401, "账号不存在（请使用注册的手机号登录）")
     if hash_password(r.password, u["salt"]) != u["pw_hash"]:

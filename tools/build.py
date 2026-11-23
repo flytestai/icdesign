@@ -69,7 +69,7 @@ def asset_ver():
 
 def bust(html):
     v = asset_ver()
-    for name in ("app.css", "app.js", "shell.js", "page.js", "tcl.js", "logo.svg"):
+    for name in ("app.css", "app.js", "shell.js", "page.js", "tcl.js", "playground.js", "logo.svg"):
         html = html.replace('/assets/' + name, '/assets/' + name + '?v=' + v)
     return html
 
@@ -534,6 +534,7 @@ SUB = HEAD + """
 <script src="/assets/shell.js"></script>
 <script src="/assets/tcl.js"></script>
 <script src="/assets/page.js"></script>
+<script src="/assets/playground.js"></script>
 </body>
 </html>"""
 
@@ -550,7 +551,7 @@ HOME = HEAD + """
 
 <section class="quick">
   <div class="qgrid">
-    <a class="qcard" href="/playground/"><b>Tcl 练习场</b><span>浏览器里直接写 Tcl · 在线运行 · 一键示例</span></a>
+    <a class="qcard" href="/playground/"><b>代码练习场</b><span>Linux 命令 + Tcl 代码 · 按课程顺序练 · 浏览器里直接跑</span></a>
     <a class="qcard" href="/quiz/"><b>题库</b><span>{nquiz} 道自测题 · 随机抽题 · 错题本</span></a>
     <a class="qcard" href="/glossary/"><b>术语表</b><span>{nterm} 条中英对照 · 按阶段筛选</span></a>
     <a class="qcard" href="/cheatsheet/"><b>命令速查</b><span>Tcl / Linux 常用命令一页查</span></a>
@@ -730,27 +731,24 @@ PROGRESS_BODY = """
 
 PLAYGROUND_BODY = """
 <div class="pg-wrap">
+  <div class="pg-modes">
+    <button class="pg-mode on" data-mode="linux" type="button">Linux 命令练习</button>
+    <button class="pg-mode" data-mode="tcl" type="button">Tcl 代码练习</button>
+    <span class="pg-modes-hint">练习顺序 = 课程顺序：Linux 第 2–6 课 → Tcl 第 1–10 讲</span>
+  </div>
   <div class="pg-toolbar">
-    <select id="pg-example"><option value="">—— 选一个示例练手 ——</option></select>
+    <select id="pg-example"><option value="">—— 按课程顺序选一组练习 ——</option></select>
     <button id="pg-run" class="pri" type="button">▶ 运行 (Ctrl+Enter)</button>
     <button id="pg-clear" class="ghost" type="button">清空输出</button>
-    <button id="pg-reset" class="ghost" type="button">重置全部</button>
+    <button id="pg-reset" class="ghost" type="button">重置</button>
   </div>
   <div class="pg-grid">
     <div class="pg-editor">
-      <div class="pg-eh">Tcl 代码（支持多行脚本；continue 会等下一行）</div>
-      <textarea id="pg-code" spellcheck="false" autocomplete="off">puts "Hello, Tcl!"
-set name "魏工"
-puts "你好，$name"
-
-set sum 0
-foreach i {1 2 3 4 5} {
-  set sum [expr {$sum + $i}]
-}
-puts "1+2+3+4+5 = $sum"</textarea>
+      <div class="pg-eh" id="pg-eh">Linux 命令（一行一条，按顺序执行；# 开头是注释）</div>
+      <textarea id="pg-code" spellcheck="false" autocomplete="off"></textarea>
     </div>
     <div class="pg-right">
-      <div class="pg-stdin">
+      <div class="pg-stdin" id="pg-stdin-box" style="display:none">
         <div class="pg-eh">stdin 预输入（每行一条，供 gets stdin 读取）</div>
         <textarea id="pg-stdin" spellcheck="false" placeholder="例如脚本里有 gets stdin score，就在这里先写好 85"></textarea>
       </div>
@@ -760,14 +758,14 @@ puts "1+2+3+4+5 = $sum"</textarea>
       </div>
     </div>
   </div>
-  <div class="pg-note">解释器覆盖课程全部命令：set·puts·expr·incr·append·unset·array(set/get/names/size)·dict get·list/lindex/llength/lappend/lreplace/lsearch/lsort/concat/split/join·if·while·foreach·for·break·continue·proc（含默认参数与 args）·global·return·gets stdin·rand()。报错信息与真实 tclsh 同款，例如 can't read "x": no such variable。</div>
+  <div class="pg-note" id="pg-note"></div>
 </div>
 """
 
 
 def build_playground():
-    subpage("playground", "Tcl 在线练习场",
-            "不用装任何软件：左边写 Tcl，右边看输出。内置解释器覆盖课程全部命令，报错行为与真实 tclsh 一致。",
+    subpage("playground", "代码练习场（Linux + Tcl）",
+            "按课程顺序练：Linux 命令跑在模拟终端里，Tcl 代码直接执行。左边写、右边看输出，报错行为与真实环境一致。",
             PLAYGROUND_BODY)
 
 

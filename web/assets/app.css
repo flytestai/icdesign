@@ -492,6 +492,17 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* ==================== 练习场 /playground/ ==================== */
 .pg-wrap{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+.pg-modes{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e2e8f0}
+.pg-mode{border:1px solid #d5dce6;background:#fff;color:#475569;border-radius:10px;padding:8px 18px;font-size:14px;font-weight:600;cursor:pointer}
+.pg-mode:hover{border-color:#b9c6d4;background:#f8fafc}
+.pg-mode.on{background:#2f7fd0;border-color:#2f7fd0;color:#fff}
+.pg-modes-hint{margin-left:auto;font-size:12.5px;color:#64748b}
+@media(max-width:760px){.pg-modes-hint{margin-left:0;width:100%;order:3}}
+.pg-out .sbx-l{font-family:ui-monospace,Consolas,monospace;font-size:12.6px;line-height:1.75;color:#dbeafe;white-space:pre-wrap;word-break:break-word}
+.pg-out .sbx-l.cmd{color:#7fd6a8}
+.pg-out .sbx-l.cmt{color:#7d95ad;font-style:italic}
+.pg-out .sbx-l.dim{color:#64798f}
+.pg-out .sbx-l.err{color:#fca5a5}
 .pg-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
 .pg-toolbar select{flex:1;min-width:220px;max-width:420px;border:1px solid #d5dce6;border-radius:9px;padding:8px 12px;font-size:14px;background:#fff}
 .pg-toolbar .pri{background:#4f46e5;color:#fff;border:none;border-radius:9px;padding:9px 20px;font-size:14px;font-weight:600;cursor:pointer}

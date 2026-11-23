@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tcl 在线练习场 | IC 后端学院</title>
-<meta name="description" content="不用装任何软件：左边写 Tcl，右边看输出。内置解释器覆盖课程全部命令，报错行为与真实 tclsh 一致。">
-<link rel="icon" href="/assets/logo.svg?v=1795438845" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795438845">
+<title>代码练习场（Linux + Tcl） | IC 后端学院</title>
+<meta name="description" content="按课程顺序练：Linux 命令跑在模拟终端里，Tcl 代码直接执行。左边写、右边看输出，报错行为与真实环境一致。">
+<link rel="icon" href="/assets/logo.svg?v=1795446317" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795446317">
 </head>
 <body data-page="playground" data-lesson="playground">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795438845" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795446317" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a class="on" href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><a class="ghost" href="/">← 课程</a>
 <div id="userchip" class="userchip" hidden>
@@ -41,29 +41,26 @@
 </script></div>
 </header>
 <main class="sub">
-<div class="sub-h"><h1>Tcl 在线练习场</h1><p>不用装任何软件：左边写 Tcl，右边看输出。内置解释器覆盖课程全部命令，报错行为与真实 tclsh 一致。</p></div>
+<div class="sub-h"><h1>代码练习场（Linux + Tcl）</h1><p>按课程顺序练：Linux 命令跑在模拟终端里，Tcl 代码直接执行。左边写、右边看输出，报错行为与真实环境一致。</p></div>
 <div class="pg-wrap">
+  <div class="pg-modes">
+    <button class="pg-mode on" data-mode="linux" type="button">Linux 命令练习</button>
+    <button class="pg-mode" data-mode="tcl" type="button">Tcl 代码练习</button>
+    <span class="pg-modes-hint">练习顺序 = 课程顺序：Linux 第 2–6 课 → Tcl 第 1–10 讲</span>
+  </div>
   <div class="pg-toolbar">
-    <select id="pg-example"><option value="">—— 选一个示例练手 ——</option></select>
+    <select id="pg-example"><option value="">—— 按课程顺序选一组练习 ——</option></select>
     <button id="pg-run" class="pri" type="button">▶ 运行 (Ctrl+Enter)</button>
     <button id="pg-clear" class="ghost" type="button">清空输出</button>
-    <button id="pg-reset" class="ghost" type="button">重置全部</button>
+    <button id="pg-reset" class="ghost" type="button">重置</button>
   </div>
   <div class="pg-grid">
     <div class="pg-editor">
-      <div class="pg-eh">Tcl 代码（支持多行脚本；continue 会等下一行）</div>
-      <textarea id="pg-code" spellcheck="false" autocomplete="off">puts "Hello, Tcl!"
-set name "魏工"
-puts "你好，$name"
-
-set sum 0
-foreach i {1 2 3 4 5} {
-  set sum [expr {$sum + $i}]
-}
-puts "1+2+3+4+5 = $sum"</textarea>
+      <div class="pg-eh" id="pg-eh">Linux 命令（一行一条，按顺序执行；# 开头是注释）</div>
+      <textarea id="pg-code" spellcheck="false" autocomplete="off"></textarea>
     </div>
     <div class="pg-right">
-      <div class="pg-stdin">
+      <div class="pg-stdin" id="pg-stdin-box" style="display:none">
         <div class="pg-eh">stdin 预输入（每行一条，供 gets stdin 读取）</div>
         <textarea id="pg-stdin" spellcheck="false" placeholder="例如脚本里有 gets stdin score，就在这里先写好 85"></textarea>
       </div>
@@ -73,12 +70,13 @@ puts "1+2+3+4+5 = $sum"</textarea>
       </div>
     </div>
   </div>
-  <div class="pg-note">解释器覆盖课程全部命令：set·puts·expr·incr·append·unset·array(set/get/names/size)·dict get·list/lindex/llength/lappend/lreplace/lsearch/lsort/concat/split/join·if·while·foreach·for·break·continue·proc（含默认参数与 args）·global·return·gets stdin·rand()。报错信息与真实 tclsh 同款，例如 can't read "x": no such variable。</div>
+  <div class="pg-note" id="pg-note"></div>
 </div>
 
 </main>
-<script src="/assets/shell.js?v=1795438845"></script>
-<script src="/assets/tcl.js?v=1795438845"></script>
-<script src="/assets/page.js?v=1795438845"></script>
+<script src="/assets/shell.js?v=1795446317"></script>
+<script src="/assets/tcl.js?v=1795446317"></script>
+<script src="/assets/page.js?v=1795446317"></script>
+<script src="/assets/playground.js?v=1795446317"></script>
 </body>
 </html>
