@@ -7,10 +7,29 @@ en: Linux 5 - grep, chmod, tar & Regex
 hours: 2
 minutes: 60
 tags: [Linux, grep, chmod, tar, 正则表达式, sed]
-summary: grep 全家用法；mv / cp / find / 软链接 / du；chmod / chown / chgrp 与用户组管理；md5sum / which；tar 打包压缩；:%! 在 vi 里调用命令；正则表达式与 vi 内替换删除；批量注释；课后练习三。
+summary: grep 全家用法（-n / -A / -B / -R / -E / zgrep）；mv / cp / find / 软链接 / du；chmod / chown / chgrp 与用户组管理；md5sum / which；tar 打包压缩；:%! 在 vi 里调用命令；正则表达式与 vi 内替换删除；批量注释；课后练习三。
 ---
 
-## 1. 文件处理：移动 / 复制 / 搜索 {#move}
+## 1. grep：搜索关键字 {#grep}
+
+**语法**：`grep 关键字 文件`。
+
+| 命令 | 作用 |
+|---|---|
+| `grep 关键字 文件` | 搜索关键字所在的行 |
+| `grep -n 关键字 文件名` | 搜索关键字并且**显示行号** |
+| `grep -10n 关键字 文件名` | 搜索关键字，**前后各显示 10 行** |
+| `grep -A10 关键字 文件名` | 显示关键字**后面** 10 行（After） |
+| `grep -B10 关键字 文件名` | 显示关键字**前面** 10 行（Before） |
+| `grep -R 关键字 目录/*` | **递归搜索**目录下所有文件（含子目录） |
+
+比如 `/var/logs/` 下有 `a1 a2 a3`、`D1/b1 D2/b2`、`D1/F1/c1` 多层结构，`grep -R error /var/logs/*` 会一层层搜下去，把每个文件里带 error 的行都揪出来。
+
+:::tip 工作使用场景
+搜索 log 里面的 error、搜索 rpt 里的内容，全靠 grep。配合下一节的 -A/-B 上下文选项，报错前后的线索一目了然。
+:::
+
+## 2. 文件处理：移动 / 复制 / 搜索 {#move}
 
 :::goal grep 常用选项全部掌握；权限数字含义会算会改；tar 打包解压一条龙；正则表达式入门并能在 vi 里实战。
 :::
@@ -57,7 +76,7 @@ ln  -s  a  b        # 将 a 创建为 link，取名为 b
 
 **磁盘空间查看**：`du -sh ~/`，查看自己家目录的空间占用情况。
 
-## 2. 权限的修改 {#chmod}
+## 3. 权限的修改 {#chmod}
 
 **数字控制权限**：`r=4　w=2　x=1　-=0`
 
@@ -99,7 +118,7 @@ gpasswd  -d  用户名  组名       # 从组里删除用户
 :::fig linux-16 | 用户与权限管理命令实操
 :::
 
-## 3. md5sum / which {#misc}
+## 4. md5sum / which {#misc}
 
 **md5sum**：检查文件是否发生改动。
 
@@ -113,7 +132,7 @@ md5sum  文件名      # 会返回一串 md5 的校验码
 which  命令/文件
 ```
 
-## 4. 打包压缩文件 {#tar}
+## 5. 打包压缩文件 {#tar}
 
 ```
 tar  -cvf  包名.tar      需要打包的内容    # 只打包
@@ -126,7 +145,7 @@ tar  -xvf  datas.tar.gz  -C  A1            # 解压到指定目录下
 :::fig linux-17 | tar 打包与解压实操
 :::
 
-## 5. 去重排序 / 扩展正则 {#sort}
+## 6. 去重排序 / 扩展正则 {#sort}
 
 ```
 sort  -u  文件名          # 去重并排序
@@ -148,7 +167,7 @@ grep  -E  正则  文件名     # 使用扩展正则表达式
 
 **注意**：grep 只能搜索普通文件中的内容；如果文件是压缩格式（如 Place.log.gz），不能使用 grep，要使用 **zgrep**。
 
-## 6. 正则表达式 {#regex}
+## 7. 正则表达式 {#regex}
 
 参考：https://blog.csdn.net/lbyNO_1/article/details/140626397
 
@@ -255,6 +274,7 @@ alias 的配置（用户自定义快捷指令）写在 `~/.bashrc` / `~/.alias` 
 :::
 
 :::quiz
+grep 搜关键字并显示它前后各 10 行用哪个选项？| grep -10n 关键字 文件名；-A10 只显示后面 10 行，-B10 只显示前面 10 行。
 r w x 的数字分别是什么？| r=4、w=2、x=1。757 = rwx r-x rwx。
 cp -r 和 cp -a 的区别？| -r 只递归复制；-a 递归复制且保留权限、时间戳、软链接等全部属性。
 tar 打包并压缩用什么参数？| -czvf（c 创建 z 压缩 v 显示过程 f 指定包名）；解压用 -xvf，解压到指定目录加 -C。

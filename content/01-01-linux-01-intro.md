@@ -61,6 +61,8 @@ EDA 工具（Innovus / ICC2 / PT）每天跑在 Linux 服务器上，所有交�
 
 下载地址：https://mobaxterm.mobatek.net/download.html
 
+**工作中用到的工具：ETX**——课件原文只列了名字。进组后按公司内网环境配置使用，学习阶段把 Xshell / MobaXterm 用熟即可。
+
 ## 3. 芯片的相关岗位 {#jobs}
 
 芯片行业的岗位链路：
