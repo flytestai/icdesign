@@ -492,6 +492,8 @@ Interp.prototype.evalExprText = function (text) {
   if (p.i < p.s.length && p.s.substr(p.i).trim() !== '')
     throw new TclError('invalid expression "' + text + '": extra tokens after expression');
   if (r.isInt) return String(Math.trunc(r.v));
+  // 浮点结果：整数值也要带 .0，和 tclsh 一致（85 * 1.0 → 85.0）
+  if (typeof r.v === 'number' && isFinite(r.v) && Math.floor(r.v) === r.v) return r.v.toFixed(1);
   return String(r.v);
 };
 
