@@ -1,6 +1,6 @@
 ---
 id: 04-01-icc2-plan
-no: 13
+no: 19
 stage: 4
 title: 32nm ICC2 项目（课表 16 学时）
 en: ICC2 32nm Project

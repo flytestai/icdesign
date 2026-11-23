@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linux 第 1 课 · 认识 Linux 与行业工具 · 1 | IC 后端学院</title>
+<meta name="description" content="什么是 Linux、优点、学习目标；工具三件套 VNC / Xshell / MobaXterm；芯片岗位分工与 PR 工具 Innovus / ICC2；后端工程师的工作技能地图。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795429914">
+</head>
+<body data-page="lesson" data-lesson="01-01-linux-01-intro">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcl 基础</a><span>/</span><b>Linux 第 1 课 · 认识 Linux 与行业工具</b></div>
+    <div class="hero">
+      <div class="hero-no">1</div>
+      <h1>Linux 第 1 课 · 认识 Linux 与行业工具</h1>
+      <p class="hero-en">Linux 1 - Intro & Industry Tools</p>
+      <p class="hero-sum">什么是 Linux、优点、学习目标；工具三件套 VNC / Xshell / MobaXterm；芯片岗位分工与 PR 工具 Innovus / ICC2；后端工程师的工作技能地图。</p>
+      <div class="hero-meta">
+        <span class="pill">约 55 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">Linux</span><span class="pill tag">入门</span><span class="pill tag">VNC</span><span class="pill tag">Xshell</span><span class="pill tag">Innovus</span><span class="pill tag">ICC2</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="what" data-ch="what">
+  <div class="ch-h"><span class="ch-n">01</span><h2>1. 什么是 Linux</h2></div>
+  <div class="goal"><span>本章目标</span>知道 Linux 是什么、后端为什么离不开它；认识 VNC / Xshell / MobaXterm 三个工具；看懂芯片岗位分工和 PR 工具的两个流派。</div>
+<p>Linux 是<strong>操作系统的一种</strong>。它和我们熟悉的 Windows 有几个关键区别：</p>
+<div class="tbl"><table><thead><tr><th>对比项</th><th>Windows</th><th>Linux</th></tr></thead><tbody><tr><td>界面</td><td>一般都有图形界面</td><td>一般<strong>没有界面</strong>（纯命令行）</td></tr><tr><td>装软件</td><td>下载安装包，一路下一步</td><td>一般通过命令安装</td></tr><tr><td>更新</td><td>经常需要更新</td><td>一般不需要</td></tr><tr><td>用户</td><td>一般单个用户使用</td><td>支持<strong>多用户</strong>同时使用</td></tr></tbody></table></div>
+<p><strong>Linux 系统优点</strong>：</p>
+<ol><li>支持多用户、多线程；</li><li>占用资源少，系统稳定；</li><li>开源、免费；</li><li>全球的计算机爱好者共同维护。</li></ol>
+<p><strong>本阶段主要学习目标</strong>：</p>
+<ol><li>常用的 Linux 命令；</li><li>一些简单的 shell 脚本。</li></ol>
+<div class="tip"><div class="tip-h">小技巧</div><p>EDA 工具（Innovus / ICC2 / PT）每天跑在 Linux 服务器上，所有交互都靠命令行。Linux 不熟，后面每一步都会别扭。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="tools" data-ch="tools">
+  <div class="ch-h"><span class="ch-n">02</span><h2>2. 关于工具</h2></div>
+  <p><strong>VNC</strong>：远程连接云服务器的桌面（能看到图形界面）。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-01.png" data-fig="linux-01"><img src="/fig/linux-01.png" alt="VNC viewer 快捷方式" loading="lazy" decoding="async"></a><figcaption>VNC viewer 快捷方式</figcaption></figure>
+<p><strong>Xshell</strong>：练习 Linux 的工具（个人/学校免费版入口）。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-02.png" data-fig="linux-02"><img src="/fig/linux-02.png" alt="Xshell 官网下载页" loading="lazy" decoding="async"></a><figcaption>Xshell 官网下载页</figcaption></figure>
+<p>下载地址：https://www.xshell.com/zh/free-for-home-school/</p>
+<p><strong>MobaXterm</strong>：另一款 Linux 练习工具。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-03.png" data-fig="linux-03"><img src="/fig/linux-03.png" alt="MobaXterm 官网下载页" loading="lazy" decoding="async"></a><figcaption>MobaXterm 官网下载页</figcaption></figure>
+<p>下载地址：https://mobaxterm.mobatek.net/download.html</p>
+  <label class="ch-done"><input type="checkbox" data-mark="tools"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="jobs" data-ch="jobs">
+  <div class="ch-h"><span class="ch-n">03</span><h2>3. 芯片的相关岗位</h2></div>
+  <p>芯片行业的岗位链路：</p>
+<p><strong>芯片的架构师 → 数字前端 → 数字后端 → 数字验证</strong></p>
+<ul><li><strong>前端</strong>：主要负责产生 netlist（网表）；</li><li><strong>后端</strong>：拿到 netlist，开始 <strong>PR</strong>；</li><li><strong>PnR / PR</strong>：Place and Route，布局和布线。</li></ul>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-04.png" data-fig="linux-04"><img src="/fig/linux-04.png" alt="芯片设计到版图的流程示意" loading="lazy" decoding="async"></a><figcaption>芯片设计到版图的流程示意</figcaption></figure>
+  <label class="ch-done"><input type="checkbox" data-mark="jobs"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="eda" data-ch="eda">
+  <div class="ch-h"><span class="ch-n">04</span><h2>4. PR 的工具（EDA 工具）</h2></div>
+  <p>两大流派：</p>
+<div class="tbl"><table><thead><tr><th>工具</th><th>公司</th></tr></thead><tbody><tr><td>Innovus</td><td>Cadence 公司</td></tr><tr><td>ICC2</td><td>Synopsys 公司</td></tr></tbody></table></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-05.png" data-fig="linux-05"><img src="/fig/linux-05.png" alt="Innovus（Cadence）" loading="lazy" decoding="async"></a><figcaption>Innovus（Cadence）</figcaption></figure>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-06.png" data-fig="linux-06"><img src="/fig/linux-06.png" alt="ICC2（Synopsys）" loading="lazy" decoding="async"></a><figcaption>ICC2（Synopsys）</figcaption></figure>
+<p>PR 要同时实现<strong>两个方向</strong>的目标：</p>
+<ul><li><strong>physical（物理方向）</strong>：短路、断路——foundary 对工艺有约束；</li><li><strong>timing（时序方向）</strong>：延迟要满足要求。</li></ul>
+  <label class="ch-done"><input type="checkbox" data-mark="eda"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="skills" data-ch="skills">
+  <div class="ch-h"><span class="ch-n">05</span><h2>5. 工作技能地图</h2></div>
+  <ol><li><strong>Linux 命令一定要熟练！熟练！熟练！</strong></li><li><strong>PR 工具</strong>：页面操作、命令操作、简单的 tcl 脚本编写；</li><li><strong>PT 工具</strong>：时序的修复。</li></ol>
+<div class="note"><div class="note-h">学习顺序</div><p>先把 Linux 命令练熟（本阶段第 2-6 课），后面阶段的 Innovus / ICC2 课全都在这个基础上展开。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="skills"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
+  <div class="sbx" data-preset="basic">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>模拟终端</b><span class="sbx-tip">本课先用模拟终端热热身：敲 ls 看看输出，输入 help 看全部可用命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">[autumn@eda ~]$</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入命令，按回车运行" aria-label="模拟终端输入"></div>
+  </div>
+  <div class="sbx-f">这里跑的是浏览器里的模拟环境：命令、输出、报错都按真实 Linux 的行为写，练手够用；真机上的路径与权限另有差异。</div>
+</div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Linux 和 Windows 最显著的差别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">Linux 一般没有图形界面、靠命令行交互，且支持多用户、占用资源少、开源免费。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>后端岗位拿到的输入是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">前端产生的 netlist（网表），后端据此开始 PR（Place and Route 布局布线）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>PR 的两大 EDA 工具分别来自哪家公司？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">Innovus 来自 Cadence，ICC2 来自 Synopsys。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>PR 要同时满足哪两个方向的目标？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">physical（物理：短路/断路，受 foundary 工艺约束）和 timing（时序：延迟满足要求）。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 Linux 与 Windows 的核心区别</li><li>知道 VNC / Xshell / MobaXterm 各自的用途</li><li>能画出 前端→后端 的岗位链路与 PR 的两个目标方向</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-02-linux-02-connect/">Linux 第 2 课 · 连接服务器与目录结构 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795429914"></script>
+<script src="/assets/tcl.js?v=1795429914"></script>
+<script src="/assets/app.js?v=1795429914"></script>
+
+<div id="userchip" class="userchip" hidden>
+  <span id="uc-name"></span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
+    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>

@@ -29,3 +29,9 @@ web/_*.html
 
 # mkfig 生成图片时 headless Chrome 的临时 profile 缓存
 tools/figs/.cache/
+
+# 文档提取临时目录
+/_extract/
+
+# 文档提取临时目录
+/_extract/

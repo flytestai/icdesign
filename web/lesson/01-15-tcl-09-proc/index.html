@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TCL 第 9 讲 · 定义 / 使用函数（proc） · 15 | IC 后端学院</title>
+<meta name="description" content="proc 函数全套：无参、带参数（return 语义与 [ ] 接收返回值）、默认参数、args 可变参数（必须放最后）、global 全局变量声明、max 综合示例、proc 核心语法总结（文档原文）。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795429914">
+</head>
+<body data-page="lesson" data-lesson="01-15-tcl-09-proc">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcl 基础</a><span>/</span><b>TCL 第 9 讲 · 定义 / 使用函数（proc）</b></div>
+    <div class="hero">
+      <div class="hero-no">15</div>
+      <h1>TCL 第 9 讲 · 定义 / 使用函数（proc）</h1>
+      <p class="hero-en">Tcl 9 - proc Functions</p>
+      <p class="hero-sum">proc 函数全套：无参、带参数（return 语义与 [ ] 接收返回值）、默认参数、args 可变参数（必须放最后）、global 全局变量声明、max 综合示例、proc 核心语法总结（文档原文）。</p>
+      <div class="hero-meta">
+        <span class="pill">约 55 分钟</span>
+        <span class="pill">课表学时 1</span>
+        <span class="pill tag">Tcl</span><span class="pill tag">proc</span><span class="pill tag">return</span><span class="pill tag">args</span><span class="pill tag">global</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="noparam" data-ch="noparam">
+  <div class="ch-h"><span class="ch-n">01</span><h2>1. 最简单的无参函数</h2></div>
+  <div class="goal"><span>本章目标</span>会写 proc 的四种形态（无参/带参/默认参数/args）；会用 [ ] 接收返回值；会用 global 声明全局变量；背下 proc 核心语法总结。</div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 定义一个函数：输出 hello</span><span class="ln ">proc sayHello {} {</span><span class="ln ">    puts &quot;Hello, Tcl!&quot;</span><span class="ln ">}</span><span class="ln "> </span><span class="ln cmt"># 使用（调用）函数</span><span class="ln ">sayHello   # 调用时无 {}</span></code></pre></div>
+<div class="tsbx has-code" data-code="proc sayHello {} {
+    puts &quot;Hello, Tcl!&quot;
+}
+sayHello
+;# 输出：Hello, Tcl!">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>proc sayHello {} {
+    puts &quot;Hello, Tcl!&quot;
+}
+sayHello
+;# 输出：Hello, Tcl!</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="noparam"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="param" data-ch="param">
+  <div class="ch-h"><span class="ch-n">02</span><h2>2. 带参数的函数（最常用）</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 定义：接收两个数字，相加并返回结果</span><span class="ln ">proc add {a b} {</span><span class="ln ">    set sum [expr {$a + $b}]</span><span class="ln ">    return $sum</span><span class="ln ">}</span><span class="ln "> </span><span class="ln cmt"># `return`：退出当前 proc，并且把指定值作为这个 proc 的返回结果。</span><span class="ln "> </span><span class="ln cmt"># 调用</span><span class="ln ">set result [add 10 20]</span><span class="ln ">puts &quot;10 + 20 = $result&quot;</span></code></pre></div>
+<div class="tsbx has-code" data-code="proc add {a b} {
+    set sum [expr {$a + $b}]
+    return $sum
+}
+set result [add 10 20]
+puts &quot;10 + 20 = $result&quot;
+;# 输出：10 + 20 = 30">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>proc add {a b} {
+    set sum [expr {$a + $b}]
+    return $sum
+}
+set result [add 10 20]
+puts &quot;10 + 20 = $result&quot;
+;# 输出：10 + 20 = 30</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<p><strong>调用规则</strong>：</p>
+<ul><li>普通调用：<code>函数名 参数1 参数2</code>（直接写名字，不需要括号）。</li><li><strong>获取返回值</strong>：<code>[函数名 参数]</code>——用命令替换 <code>[ ]</code> 接住返回值。</li></ul>
+<div class="tip"><div class="tip-h">小技巧</div><p><code>def add(a, b): return a + b</code>；<code>result = add(10, 20)</code>。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="param"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="default" data-ch="default">
+  <div class="ch-h"><span class="ch-n">03</span><h2>3. 带默认参数的函数</h2></div>
+  <p>TCL 用 args 或直接给参数默认值：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 定义：b 默认是 5</span><span class="ln ">proc addDefault {a {b 5}} {</span><span class="ln ">    return [expr {$a + $b}]</span><span class="ln ">}</span><span class="ln cmt"># 只传一个参数（使用默认值）</span><span class="ln ">puts [addDefault 3]   ;# 3+5=8</span><span class="ln cmt"># 传两个参数（覆盖默认值）</span><span class="ln ">puts [addDefault 3 7] ;# 3+7=10</span></code></pre></div>
+<div class="tsbx has-code" data-code="proc addDefault {a {b 5}} {
+    return [expr {$a + $b}]
+}
+puts [addDefault 3]     ;# 8
+puts [addDefault 3 7]   ;# 10">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>proc addDefault {a {b 5}} {
+    return [expr {$a + $b}]
+}
+puts [addDefault 3]     ;# 8
+puts [addDefault 3 7]   ;# 10</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="tip"><div class="tip-h">小技巧</div><p><code>def addDefault(a, b=5):</code>——默认参数写成 <code>{参数名 默认值}</code> 放在参数列表里。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="default"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="args" data-ch="args">
+  <div class="ch-h"><span class="ch-n">04</span><h2>4. 可变参数函数（任意个数参数）</h2></div>
+  <p>args 是 TCL 特殊参数：接收调用时传入的所有参数，打包成一个列表。调用 <code>sumAll 1 2 3 4 5</code> → args = {1 2 3 4 5}；调用 <code>sumAll 10 20</code> → args = {10 20}。</p>
+<p><strong>规则</strong>：args 必须写在参数列表最后；如果只有 args，代表可以传 0、1、任意多个参数。</p>
+<div class="tsbx has-code" data-code=";# 定义：求任意多个数字之和
+proc sumAll {args} {
+    set total 0
+    foreach num $args {
+        set total [expr {$total + $num}]
+    }
+    return $total
+}
+;# 调用
+puts [sumAll 1 2 3 4 5]   ;# 15
+puts [sumAll 10 20]       ;# 30">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>;# 定义：求任意多个数字之和
+proc sumAll {args} {
+    set total 0
+    foreach num $args {
+        set total [expr {$total + $num}]
+    }
+    return $total
+}
+;# 调用
+puts [sumAll 1 2 3 4 5]   ;# 15
+puts [sumAll 10 20]       ;# 30</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<p><strong>混合写法</strong>（固定参数 + 可变参数）：</p>
+<div class="tsbx has-code" data-code="proc test {a args} {
+    puts &quot;a = $a&quot;
+    puts &quot;剩下所有参数args = $args&quot;
+}
+test 10 20 30 40
+;# 输出 a = 10，args = 20 30 40">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>proc test {a args} {
+    puts &quot;a = $a&quot;
+    puts &quot;剩下所有参数args = $args&quot;
+}
+test 10 20 30 40
+;# 输出 a = 10，args = 20 30 40</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="tip"><div class="tip-h">小技巧</div><p><code>args</code> ≈ <code>*args</code>。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="args"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="global" data-ch="global">
+  <div class="ch-h"><span class="ch-n">05</span><h2>5. 函数内使用局部变量 / 全局变量</h2></div>
+  <p>TCL 函数内部默认访问不到外面的变量（比 Python 严格：读也要声明）。要用全局变量，必须先 <code>global</code> 声明：</p>
+<div class="tsbx has-code" data-code="set globalVal 100 ;# 全局变量
+proc testGlobal {} {
+    global globalVal ;# 声明使用全局变量
+    set localVal 200 ;# 局部变量（函数外无法访问）
+    puts &quot;全局变量 globalVal = $globalVal&quot;
+    puts &quot;局部变量 localVal = $localVal&quot;
+}
+testGlobal">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set globalVal 100 ;# 全局变量
+proc testGlobal {} {
+    global globalVal ;# 声明使用全局变量
+    set localVal 200 ;# 局部变量（函数外无法访问）
+    puts &quot;全局变量 globalVal = $globalVal&quot;
+    puts &quot;局部变量 localVal = $localVal&quot;
+}
+testGlobal</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="tip"><div class="tip-h">小技巧</div><p>函数里改全局变量要先 <code>global x</code>——TCL 更严格，<strong>读</strong>也要声明。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="global"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="max" data-ch="max">
+  <div class="ch-h"><span class="ch-n">06</span><h2>6. 完整实用示例：计算两数最大值</h2></div>
+  <div class="tsbx has-code" data-code=";# 定义函数：返回两个数的最大值
+proc max {x y} {
+    if {$x &gt; $y} {
+        return $x
+    } else {
+        return $y
+    }
+}
+;# 调用
+puts &quot;max(5, 9) = [max 5 9]&quot;
+;# 输出：max(5, 9) = 9">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>;# 定义函数：返回两个数的最大值
+proc max {x y} {
+    if {$x &gt; $y} {
+        return $x
+    } else {
+        return $y
+    }
+}
+;# 调用
+puts &quot;max(5, 9) = [max 5 9]&quot;
+;# 输出：max(5, 9) = 9</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="max"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="summary" data-ch="summary">
+  <div class="ch-h"><span class="ch-n">07</span><h2>proc 核心语法总结（文档原文）</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proc 函数名 {参数1 参数2 ...} {</span><span class="ln cmt">    ;# 函数体</span><span class="ln ">    return 返回值</span><span class="ln ">}</span></code></pre></div>
+<p>关键点：</p>
+<ul><li>proc = 定义函数</li><li>{} 包裹参数列表</li><li>return 返回值（<strong>不写则返回最后一条命令结果</strong>）</li><li>调用：函数名 参数1 参数2</li><li>获取返回值：[函数名 参数]</li></ul>
+<p><strong>总结</strong>：Tcl 用 proc 定义函数；支持无参、有参、默认参数、可变参数；返回值用 return；调用方式：函数名 参数 或 [函数名 参数] 接收返回值。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="summary"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">08</span><h2>动手练</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（3 题）</div><div class="lab-b"><ol><li>写一个 proc <code>area {w h}</code> 返回长方形面积，调用并打印。</li><li>写一个 proc <code>greet {name {prefix &quot;Hello&quot;}}</code> 练默认参数。</li><li>写一个 proc <code>avg {args}</code> 求任意多个数的平均值（foreach + expr + llength，注意整数除法陷阱——用 <code>double()</code> 转浮点）。</li></ol></div></div>
+<div class="tsbx has-code" data-code=";# 参考答案（先自己写再对照）
+;# 1
+proc area {w h} { return [expr {$w * $h}] }
+puts &quot;面积 = [area 3 4]&quot;          ;# 12
+
+;# 2
+proc greet {name {prefix &quot;Hello&quot;}} { return &quot;$prefix, $name!&quot; }
+puts [greet &quot;TCL&quot;]                ;# Hello, TCL!
+puts [greet &quot;TCL&quot; &quot;Hi&quot;]           ;# Hi, TCL!
+
+;# 3
+proc avg {args} {
+    set total 0
+    foreach num $args { set total [expr {$total + $num}] }
+    return [expr {$total / double([llength $args])}]
+}
+puts [avg 1 2 3 4]                ;# 2.5">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>;# 参考答案（先自己写再对照）
+;# 1
+proc area {w h} { return [expr {$w * $h}] }
+puts &quot;面积 = [area 3 4]&quot;          ;# 12
+
+;# 2
+proc greet {name {prefix &quot;Hello&quot;}} { return &quot;$prefix, $name!&quot; }
+puts [greet &quot;TCL&quot;]                ;# Hello, TCL!
+puts [greet &quot;TCL&quot; &quot;Hi&quot;]           ;# Hi, TCL!
+
+;# 3
+proc avg {args} {
+    set total 0
+    foreach num $args { set total [expr {$total + $num}] }
+    return [expr {$total / double([llength $args])}]
+}
+puts [avg 1 2 3 4]                ;# 2.5</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>proc 不写 return，返回什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">最后一条命令的结果。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>默认参数怎么写？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>proc f {a {b 5}} { ... }</code>——{参数名 默认值}。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>args 必须写在参数列表什么位置？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">最后。只有 args 时可传 0、1、任意多个参数，args 把传入参数打包成列表。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>函数内要用外面的变量怎么办？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">先 <code>global x</code> 声明（读和写都要），否则访问不到。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>怎么接收函数返回值？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>[函数名 参数]</code>——命令替换接住返回值。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>proc 四种形态都会写</li><li>能说清 return 的语义与省略 return 的行为</li><li>global 声明的必要性说得清</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-14-tcl-08-loops/">← TCL 第 8 讲 · 流程控制（下）：三种循环 while / foreach / for</a><a class="nav-btn" href="/lesson/01-16-tcl-10-final/">TCL 第 10 讲 · 综合实战 + 结课自测 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795429914"></script>
+<script src="/assets/tcl.js?v=1795429914"></script>
+<script src="/assets/app.js?v=1795429914"></script>
+
+<div id="userchip" class="userchip" hidden>
+  <span id="uc-name"></span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
+    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>

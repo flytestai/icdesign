@@ -146,10 +146,10 @@ def main():
         time.sleep(2)
         rc, out, err = sh(c, (
             "for p in / /login /register /admin /playground/ /quiz/ /glossary/ /search/ /progress/ /cheatsheet/ "
-            "/lesson/01-02-tcl-01-start/ /lesson/01-06-tcl-05-list-a/ /lesson/01-07-tcl-06-list-b/ "
-            "/lesson/01-08-tcl-07-if/ /lesson/01-09-tcl-08-loops/ /lesson/01-10-tcl-09-proc/ "
-            "/lesson/01-11-tcl-10-final/ /data/quiz.json "
-            "/data/catalog.json /assets/tcl.js /assets/shell.js; do "
+            "/lesson/01-01-linux-01-intro/ /lesson/01-06-linux-06-sed-awk/ "
+            "/lesson/01-07-tcl-01-start/ /lesson/01-11-tcl-05-list-a/ /lesson/01-13-tcl-07-if/ "
+            "/lesson/01-14-tcl-08-loops/ /lesson/01-16-tcl-10-final/ /data/quiz.json "
+            "/data/catalog.json /assets/tcl.js /assets/shell.js /fig/linux-01.png /fig/tcl-02.png; do "
             "printf '%s -> ' $p; curl -s -o /dev/null -w '%{http_code}\\n' -m 8 http://127.0.0.1:8710$p; done; "
             "echo '--- 带管理员会话 ---'; "
             "TOKEN=$(curl -s -i -X POST http://127.0.0.1:8710/api/auth/login -H 'Content-Type: application/json' "

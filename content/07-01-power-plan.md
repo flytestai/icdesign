@@ -1,6 +1,6 @@
 ---
 id: 07-01-power-plan
-no: 16
+no: 22
 stage: 7
 title: 功耗分析理论及 redhawk 实战（课表 2 学时）
 en: Power Analysis & RedHawk

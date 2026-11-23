@@ -898,7 +898,8 @@ Interp.prototype.callProc = function (name, argWords) {
 /* 整段脚本求值：返回最后一条命令的结果 */
 Interp.prototype.evalScript = function (src) {
   var result;
-  var cmds = splitCommands(String(src));
+  src = String(src).replace(/\r\n?/g, '\n');   // 兼容 Windows CRLF（粘代码/课件代码常见）
+  var cmds = splitCommands(src);
   for (var i = 0; i < cmds.length; i++) {
     var words = parseWords(cmds[i]);
     if (!words.length) continue;

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linux 第 6 课 · 文本三剑客：sed / awk / gvim · 6 | IC 后端学院</title>
+<meta name="description" content="sed 打印/新增/删除/替换（含 -i 注意事项）；awk 完整语法框架、内置变量、常用函数与 10 条实操；gvim 配置与 gvimdiff；课后 awk 练习。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795429914">
+</head>
+<body data-page="lesson" data-lesson="01-06-linux-06-sed-awk">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcl 基础</a><span>/</span><b>Linux 第 6 课 · 文本三剑客：sed / awk / gvim</b></div>
+    <div class="hero">
+      <div class="hero-no">6</div>
+      <h1>Linux 第 6 课 · 文本三剑客：sed / awk / gvim</h1>
+      <p class="hero-en">Linux 6 - sed, awk & gvim</p>
+      <p class="hero-sum">sed 打印/新增/删除/替换（含 -i 注意事项）；awk 完整语法框架、内置变量、常用函数与 10 条实操；gvim 配置与 gvimdiff；课后 awk 练习。</p>
+      <div class="hero-meta">
+        <span class="pill">约 60 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">Linux</span><span class="pill tag">sed</span><span class="pill tag">awk</span><span class="pill tag">gvim</span><span class="pill tag">文本处理</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="sed" data-ch="sed">
+  <div class="ch-h"><span class="ch-n">01</span><h2>1. sed</h2></div>
+  <div class="goal"><span>本章目标</span>sed 的打印/新增/删除/替换四种操作全部上手；awk 三段式框架和内置变量记牢，能独立完成列提取练习；会用 gvimdiff 对比文件。</div>
+<div class="pit"><div class="pit-h">常见坑 · 所有操作不加 -i 都不会修改原文件</div><div class="pit-b"><p>sed 默认只把处理结果打印到屏幕，原文件不动；要真正写回文件需要加 -i。先用打印模式确认效果，再决定是否加 -i。</p></div></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-22.png" data-fig="linux-22"><img src="/fig/linux-22.png" alt="sed 常用操作速查" loading="lazy" decoding="async"></a><figcaption>sed 常用操作速查</figcaption></figure>
+<h3>1、打印指定的行</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">sed -n '2p'   文件     # 打印第 2 行内容</span><span class="ln ">sed -n '3,5p' 文件     # 打印第 3 行到第 5 行内容</span></code></pre></div>
+<h3>2、在指定行新增内容</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">sed '2a 内容' 文件     # 在第 2 行后面追加内容</span><span class="ln ">sed '3i 内容' 文件     # 在第 3 行前面插入内容</span></code></pre></div>
+<h3>3、删除指定行内容</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">sed '3d'    文件      # 删除第 3 行</span><span class="ln ">sed '2,5d'  文件      # 删除第 2 行到第 5 行内容</span></code></pre></div>
+<h3>4、替换指定的内容</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">sed 's/old/new/g'   文件   # 替换所有行的某些关键字</span><span class="ln ">sed '3s/old/new/g'  文件   # 只替换第 3 行的某些关键字</span><span class="ln ">sed '2c 内容'       文件   # 替换第 2 行整行</span><span class="ln ">sed '2,5c 内容'     文件   # 替换第 2 行到第 5 行</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="sed"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="awk" data-ch="awk">
+  <div class="ch-h"><span class="ch-n">02</span><h2>2. awk</h2></div>
+  <p><strong>awk 实操热身</strong>：</p>
+<p>1、进入家目录；2、创建文件 test_awk.txt，写入以下内容：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">aaaa bbbb cccc</span><span class="ln ">1111;2222;3333</span><span class="ln ">qqqq:wwww:eeee</span></code></pre></div>
+<p>热身问题：3、取出 cccc；4、取出 wwww；5、打印第 2 行整行内容；6、打印第三行的第 1 列和第 3 列；7、打印第 2 列大于 1200 且第三列小于 4000 的行。</p>
+<h3>核心语法结构</h3>
+<p>awk 三部分核心框架，可单独/组合使用：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">awk 'BEGIN{初始化操作} 条件{处理动作} END{收尾操作}' 文件名</span></code></pre></div>
+<ul><li><strong>BEGIN</strong>：执行处理前运行（仅 1 次，比如定义变量）；</li><li><strong>中间块</strong>：逐行处理文件，满足条件才执行动作（最常用）；</li><li><strong>END</strong>：所有行处理完后运行（仅 1 次，比如统计结果）。</li></ul>
+<h3>必记内置变量</h3>
+<div class="tbl"><table><thead><tr><th>变量</th><th>含义</th></tr></thead><tbody><tr><td><code>NR</code></td><td>当前处理的行号</td></tr><tr><td><code>NF</code></td><td>当前行的字段总数（一行 3 列则 NF=3）</td></tr><tr><td><code>$NF</code></td><td>直接取最后一列</td></tr><tr><td><code>$0</code></td><td>当前整行内容</td></tr><tr><td><code>$n</code></td><td>第 n 个字段（$1 第 1 列，$NF 最后 1 列）</td></tr><tr><td><code>FS</code></td><td>字段分隔符（等价于 -F 参数）</td></tr></tbody></table></div>
+<h3>常用操作符</h3>
+<ul><li>比较：<code>&gt;</code> <code>&lt;</code> <code>&gt;=</code> <code>&lt;=</code> <code>==</code> <code>!=</code>（字符串用双引号包起来，如 <code>$1==&quot;root&quot;</code>）</li><li>逻辑：<code>&amp;&amp;</code>（且）　<code>||</code>（或）　<code>!</code>（非）</li><li>匹配：<code>/字符串/</code>（包含该字符串），<code>!/字符串/</code>（不包含）</li></ul>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-23.png" data-fig="linux-23"><img src="/fig/linux-23.png" alt="awk 实操热身" loading="lazy" decoding="async"></a><figcaption>awk 实操热身</figcaption></figure>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-24.png" data-fig="linux-24"><img src="/fig/linux-24.png" alt="awk 操作符与匹配" loading="lazy" decoding="async"></a><figcaption>awk 操作符与匹配</figcaption></figure>
+<h3>常用函数</h3>
+<p><strong>gsub(&quot;旧&quot;,&quot;新&quot;)</strong>：全行替换指定内容。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">awk  -F ':'  'NR==2{print, gsub(old, new)}'  文件</span></code></pre></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-25.png" data-fig="linux-25"><img src="/fig/linux-25.png" alt="gsub 替换实操" loading="lazy" decoding="async"></a><figcaption>gsub 替换实操</figcaption></figure>
+<p><strong>substr($1,1,3)</strong>：截取 $1 的第 1 个字符起共 3 位。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">awk -F ':'  '{print substr($1, 1, 3)}'  文件</span></code></pre></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-26.png" data-fig="linux-26"><img src="/fig/linux-26.png" alt="substr 截取实操" loading="lazy" decoding="async"></a><figcaption>substr 截取实操</figcaption></figure>
+<p><strong>length()</strong>：取字符长度。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">awk -F ':'  '{print length()}'           文件    # 打印每一行的长度</span><span class="ln ">awk -F ':'  '{print length($1), $2}'     文件    # 打印第一列、第二列的长度</span></code></pre></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-27.png" data-fig="linux-27"><img src="/fig/linux-27.png" alt="length 函数实操" loading="lazy" decoding="async"></a><figcaption>length 函数实操</figcaption></figure>
+<h3>实用实例</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">awk '{print $1}'  file.txt                    # 打印文件第 1 列</span><span class="ln ">awk '{print $1, $3}'  file.txt                # 打印第 1、3 列（空格分隔）</span><span class="ln ">awk '{print $2}'  file.txt | sort -u          # 打印第 2 列且去重</span><span class="ln ">awk '$3&gt;100 {print $0}'  file.txt             # 按条件筛选（第 3 列 &gt; 100 才打印）</span><span class="ln ">awk '$1==&quot;root&quot; &amp;&amp; $2&gt;50 {print $0}'  file.txt    # 多条件筛选</span><span class="ln ">awk 'END{print NR}'  file.txt                 # 统计文件行数</span><span class="ln ">awk '/test/ {count++} END{print count}'  file.txt # 统计符合条件的行数（第 4 列包含 test）</span><span class="ln ">awk -F ',' '{print $2}'  file.csv             # 自定义分隔符（逗号，取第 2 列）</span><span class="ln ">awk 'NR==2{print $3}'  file                   # 输出指定行指定列</span><span class="ln ">awk 'NR==3{print $0}'  file                   # 输出指定行</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="awk"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="gvim" data-ch="gvim">
+  <div class="ch-h"><span class="ch-n">03</span><h2>3. gvim</h2></div>
+  <p><strong>常用快捷指令</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">:set nu    显示行号</span><span class="ln ">:set wrap  分行显示</span><span class="ln ">:set ic    区分大小写</span><span class="ln ">:set noic  不区分大小写</span></code></pre></div>
+<p><strong>用户家目录下的配置文件</strong>：</p>
+<ul><li><code>.alias</code>——设置快捷指令</li><li><code>.bashrc</code></li><li><code>.vimrc</code></li></ul>
+<p><strong>比较两个文件的不同</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">gvimdiff  file1  file2</span></code></pre></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-28.png" data-fig="linux-28"><img src="/fig/linux-28.png" alt="gvimdiff 对比文件与文件内跳转" loading="lazy" decoding="async"></a><figcaption>gvimdiff 对比文件与文件内跳转</figcaption></figure>
+<p><strong>文件内跳转练习</strong>：在家目录下创建 t1 和 t2：</p>
+<ul><li>t1 文件内容：<code>this is t1 file</code>，以及 <code>t2 file path is ''</code>（用 realpath t2 填入 t2 的绝对路径）；</li><li>t2 文件内容：<code>this is t2 file</code>。</li></ul>
+<p>用 <code>g + f</code> 从 t1 里跳到 t2，<code>ctrl+o</code> 返回原文件。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="gvim"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">04</span><h2>动手练：awk 练习</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>awk 练习（10 题）</div><div class="lab-b"><p>1、回到家目录 2、创建文件 demo_awk.txt 3、在 demo_awk.txt 中输入以下内容： demo  111  222  333 clock 444  555  666 test:777:888:999 run;1;2;3 icc/4/5/6 4、取出第五行的 6 5、取出 222 6、取出 999 7、根据冒号分割，取出第 2 列大于 400 且第 4 列小于 1000 的行的第 2 列 8、根据空格分割，取出第 2 列大于 100 小于 200 的行的第 3 列 9、根据冒号分割，取出第 2 列等于 777 的第 3 列 10、根据空格分割，取出第 3 列不等于 222 的整行</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>sed 怎么才真正修改文件？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">加 -i 选项；不加 -i 只打印结果，原文件不变。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>awk 里 $2 和 $NF 的区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">$2 是第 2 列；$NF 是最后一列（NF 是该行总列数）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>awk 按 : 分割取第 3 列怎么写？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">awk -F ':' '{print $3}' 文件。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>统计文件行数的 awk 命令？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">awk 'END{print NR}' 文件。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>sed 打印/新增/删除/替换 8 条命令全部验证过</li><li>awk 三段式框架 + 6 个内置变量 + 3 个常用函数都记得住</li><li>awk 练习 10 题全部独立完成</li><li>会用 gvimdiff 和 g+f/ctrl+o 在文件间跳转</li></ul></div>
+<div class="note"><div class="note-h">阶段一 Linux 部分到此结课</div><p>命令已经覆盖后端日常工作所需。接下来进入 TCL 编程 10 讲——EDA 工具的命令语言，把你会的 Linux 命令用脚本串起来。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-05-linux-05-search-perm/">← Linux 第 5 课 · 搜索、权限、打包与正则表达式</a><a class="nav-btn" href="/lesson/01-07-tcl-01-start/">TCL 第 1 讲 · 开工准备：环境与第一个命令 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795429914"></script>
+<script src="/assets/tcl.js?v=1795429914"></script>
+<script src="/assets/app.js?v=1795429914"></script>
+
+<div id="userchip" class="userchip" hidden>
+  <span id="uc-name"></span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
+    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>

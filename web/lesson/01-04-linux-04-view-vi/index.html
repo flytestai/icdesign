@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linux 第 4 课 · 查看与编辑文件（vi 全套） · 4 | IC 后端学院</title>
+<meta name="description" content="cat / more / less / head / tail / vi 五种查看方式；vi/vim/gvim 编辑模式与命令行模式全套用法；diff 对比文件；alias 快捷指令；重定向 > 与管道 |；Linux 快捷键；课后练习二。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795429914">
+</head>
+<body data-page="lesson" data-lesson="01-04-linux-04-view-vi">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcl 基础</a><span>/</span><b>Linux 第 4 课 · 查看与编辑文件（vi 全套）</b></div>
+    <div class="hero">
+      <div class="hero-no">4</div>
+      <h1>Linux 第 4 课 · 查看与编辑文件（vi 全套）</h1>
+      <p class="hero-en">Linux 4 - View Files & vi/vim</p>
+      <p class="hero-sum">cat / more / less / head / tail / vi 五种查看方式；vi/vim/gvim 编辑模式与命令行模式全套用法；diff 对比文件；alias 快捷指令；重定向 &gt; 与管道 |；Linux 快捷键；课后练习二。</p>
+      <div class="hero-meta">
+        <span class="pill">约 60 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">Linux</span><span class="pill tag">cat</span><span class="pill tag">less</span><span class="pill tag">vi</span><span class="pill tag">diff</span><span class="pill tag">重定向</span><span class="pill tag">管道</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="view" data-ch="view">
+  <div class="ch-h"><span class="ch-n">01</span><h2>1. 查看文件</h2></div>
+  <div class="goal"><span>本章目标</span>七种方式查看文件；vi 的编辑模式和命令行模式全部记熟；会 diff 对比文件；会配 alias；会用重定向和管道。</div>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cat   文件名              # 直接全部输出</span><span class="ln ">cat  -n  文件名           # 查看文件，同时显示行号</span><span class="ln ">zcat  文件               # 查看压缩文本文件</span><span class="ln ">tac   文件名              # 倒着查看文件内容</span></code></pre></div>
+<p><strong>查看大型文件</strong>：</p>
+<ul><li><code>more 文件名</code>：字母 <code>b</code> 往上翻页，字母 <code>z</code> 往下翻页，翻到底自动退出，或按 <code>q</code> 退出；</li><li><code>less 文件名</code>：和 more 用法一样，但必须按 <code>q</code> 才能退出。</li></ul>
+<p><strong>查看文件开头 / 结尾</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">head  文件名        # 默认查看前 10 行</span><span class="ln ">head  -20  文件名   # 查看文件前 20 行</span><span class="ln ">tail  文件名        # 默认查看后 10 行</span><span class="ln ">tail  -20  文件名   # 查看文件的后 20 行</span></code></pre></div>
+<div class="tip"><div class="tip-h">小技巧</div><p><code>tail -100 xxx.log</code> 看最新 100 行——跑完仿真/PR 第一件事就是它。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="view"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="vi" data-ch="vi">
+  <div class="ch-h"><span class="ch-n">02</span><h2>2. vi / vim / gvim 编辑文件</h2></div>
+  <ul><li><strong>vi</strong>：查看文件并且可以编辑；</li><li><strong>vim</strong>：相比 vi 可以做一些高效的配置；</li><li><strong>gvim</strong>：相比较 vim，多了 gui 界面，功能和 vim 一致（还支持打开压缩文件）。</li></ul>
+<p><strong>vi 的基本用法</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">vi  文件名</span></code></pre></div>
+<ul><li>文件不存在，会创建——但<strong>不保存就不会真的创建</strong>；</li><li>如果有这个文件，就会打开显示内容。</li></ul>
+<h3>进入编辑模式（左下角会显示 insert）</h3>
+<div class="tbl"><table><thead><tr><th>按键</th><th>作用</th></tr></thead><tbody><tr><td>字母 <code>a</code></td><td>在光标<strong>后面</strong>追加（append 模式）</td></tr><tr><td>字母 <code>i</code></td><td>在光标<strong>所在位置</strong>插入（insert）</td></tr><tr><td>字母 <code>o</code></td><td><strong>换行</strong>再插入内容</td></tr></tbody></table></div>
+<p>按 <code>esc</code> 可以退出编辑模式（insert 消失）。</p>
+<h3>命令行模式（按 <code>:</code> 进入）</h3>
+<div class="tbl"><table><thead><tr><th>命令</th><th>作用</th></tr></thead><tbody><tr><td><code>:10</code></td><td>快速跳转到第 10 行</td></tr><tr><td><code>:set nu</code></td><td>将文件带上行号显示</td></tr><tr><td><code>:set wrap</code></td><td>会换行显示</td></tr><tr><td><code>:wq</code></td><td>保存并退出</td></tr><tr><td><code>:wq!</code></td><td>强制保存</td></tr><tr><td><code>:q</code></td><td>不保存退出</td></tr><tr><td><code>:q!</code></td><td>强制不保存退出</td></tr><tr><td><code>:set ic</code></td><td>搜索的时候忽略大小写</td></tr><tr><td><code>/关键字</code></td><td>向下搜索关键字，<code>n</code> 下一个，<code>shift+n</code> 上一个</td></tr><tr><td><code>?关键字</code></td><td>向上搜索关键字</td></tr></tbody></table></div>
+<h3>对比两个文件的差异</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">diff       文件1 文件2    # 直接打印不同的内容</span><span class="ln ">zdiff      压缩文件对比    # 支持 zcat 类压缩格式</span><span class="ln ">gvimdiff   文件1 文件2    # 打开两个文件，高亮显示不同的部分</span></code></pre></div>
+<h3>alias 快捷指令</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">alias          # 查看已经设置了哪些快捷指令</span><span class="ln ">alias  l       # 查看是否设置了 l 这个快捷指令</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="vi"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="symbols" data-ch="symbols">
+  <div class="ch-h"><span class="ch-n">03</span><h2>3. 特殊符号</h2></div>
+  <p><strong>1）重定向符号 <code>&gt;</code></strong>：把输出写入指定的文件。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">history  &gt;  1.t                    # 把历史命令写进 1.t</span><span class="ln ">echo 123 &gt; 2.t                     # 把 123 写进 2.t</span><span class="ln ">cat  -n  .bash_history  &gt;  1.t     # 带行号写进 1.t</span></code></pre></div>
+<p><strong>2）管道符 <code>|</code></strong>：连接两个命令，把<strong>前一个命令的输出</strong>作为<strong>后一个命令的输入</strong>。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cmd1  |  cmd2</span><span class="ln ">ll | grep '.txt'      # 列出内容后过滤出含 .txt 的行</span></code></pre></div>
+  <label class="ch-done"><input type="checkbox" data-mark="symbols"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="hotkeys" data-ch="hotkeys">
+  <div class="ch-h"><span class="ch-n">04</span><h2>4. Linux 的快捷键</h2></div>
+  <div class="tbl"><table><thead><tr><th>快捷键</th><th>作用</th></tr></thead><tbody><tr><td><code>ctrl + L</code></td><td>清屏（clear 也可以）</td></tr><tr><td>方向键 ⬆️⬇️</td><td>翻之前/之后的命令</td></tr><tr><td><code>ctrl + a</code></td><td>光标移动到<strong>开头</strong></td></tr><tr><td><code>ctrl + e</code></td><td>光标移动到<strong>结尾</strong></td></tr><tr><td>命令前加 <code>#</code></td><td>不想执行某个命令时，ctrl+a 回到开头加个 # 就变成注释</td></tr></tbody></table></div>
+<p><strong>打开文件后</strong>：</p>
+<div class="tbl"><table><thead><tr><th>按键</th><th>作用</th></tr></thead><tbody><tr><td><code>G</code></td><td>跳转到文件<strong>最后一行</strong></td></tr><tr><td><code>gg</code></td><td>跳转到文件<strong>第一行</strong></td></tr><tr><td><code>g + f</code></td><td>直接在文件内跳转另一个文件</td></tr><tr><td><code>ctrl + o</code></td><td>返回原文件</td></tr><tr><td><code>!100</code></td><td>history 之后，直接执行第 100 行执行过的命令</td></tr></tbody></table></div>
+<p><strong>tips</strong>：帮助学习 cmd 的使用——<code>cmd --help</code>，展示命令的语法格式以及用法。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="hotkeys"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">05</span><h2>动手练：练习二</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>练习二（17 题）</div><div class="lab-b"><p>1、进入家目录 2、创建目录 D1（如果有了，先删除） 3、在 D1 目录下创建文件 test01.txt，输入以下内容并保存退出： aaa bbb ccc 4、在 D1 目录下创建目录 D2 5、在 D2 目录下创建文件 test02.txt，输入以下内容并保存退出： aaa ddd ccc 6、对比 test01 和 test02 文件的不同 7、使用 7 种方式查看 test01 文件 8、回到家目录，执行下面的命令，作用是查看 history 执行过的命令然后写入到 1.t： cat .bash_history &gt; 1.t 9、查看 1.t 最后一行 10、在文件中设置行号 11、跳转到文件开头 12、跳转到第 15 行 13、跳转到第 20 行 14、搜索关键字 cd 15、搜索关键字 mkdir 16、编辑 1.t，在最后一行输入： this is test input++++++++++ 17、不保存退出 1.t</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>more 和 less 退出方式的区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">more 翻到底自动退出、也可按 q；less 必须按 q 才能退出。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>vi 里 :q! 和 :wq! 的区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">:q! 强制不保存退出；:wq! 强制保存并退出。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>&gt; 和</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">分别是什么作用？| &gt; 是重定向，把输出写入文件；| 是管道，把前一个命令的输出交给后一个命令继续处理。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>vi 怎么搜索关键字？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">/关键字 向下搜（n 下一个，shift+n 上一个）；?关键字 向上搜；:set ic 可忽略大小写。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>七种查看文件的方式都说得出、用得上</li><li>vi 编辑模式三个入口键 + 命令行模式十条命令全记熟</li><li>重定向和管道能各举一个工作场景</li><li>练习二 17 题全部完成</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-03-linux-03-files/">← Linux 第 3 课 · 目录与文件操作</a><a class="nav-btn" href="/lesson/01-05-linux-05-search-perm/">Linux 第 5 课 · 搜索、权限、打包与正则表达式 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795429914"></script>
+<script src="/assets/tcl.js?v=1795429914"></script>
+<script src="/assets/app.js?v=1795429914"></script>
+
+<div id="userchip" class="userchip" hidden>
+  <span id="uc-name"></span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
+    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>

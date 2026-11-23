@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linux 第 3 课 · 目录与文件操作 · 3 | IC 后端学院</title>
+<meta name="description" content="ls / ll 全部常用选项与输出解析；cd / realpath / pwd / history；mkdir / rmdir / rm；touch 创建文件与通配符；课后练习一（19 题）。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795429914">
+</head>
+<body data-page="lesson" data-lesson="01-03-linux-03-files">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcl 基础</a><span>/</span><b>Linux 第 3 课 · 目录与文件操作</b></div>
+    <div class="hero">
+      <div class="hero-no">3</div>
+      <h1>Linux 第 3 课 · 目录与文件操作</h1>
+      <p class="hero-en">Linux 3 - Files & Directories</p>
+      <p class="hero-sum">ls / ll 全部常用选项与输出解析；cd / realpath / pwd / history；mkdir / rmdir / rm；touch 创建文件与通配符；课后练习一（19 题）。</p>
+      <div class="hero-meta">
+        <span class="pill">约 60 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">Linux</span><span class="pill tag">ls</span><span class="pill tag">cd</span><span class="pill tag">mkdir</span><span class="pill tag">rm</span><span class="pill tag">touch</span><span class="pill tag">通配符</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="ls" data-ch="ls">
+  <div class="ch-h"><span class="ch-n">01</span><h2>1. 查看目录：ls</h2></div>
+  <div class="goal"><span>本章目标</span>ls 全部常用选项信手拈来；看懂 ll 的 12 列输出；会建/删目录和文件；通配符用熟。</div>
+<p><strong>ls</strong>（list）：</p>
+<ul><li>用法 1：<code>ls</code> 展示<strong>当前所在目录</strong>的内容；</li><li>用法 2：<code>ls 路径</code> 展示<strong>指定路径</strong>下的内容。</li></ul>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-12.png" data-fig="linux-12"><img src="/fig/linux-12.png" alt="ls / 与 ls /home 实际效果" loading="lazy" decoding="async"></a><figcaption>ls / 与 ls /home 实际效果</figcaption></figure>
+<h3>2）常用 option</h3>
+<div class="tbl"><table><thead><tr><th>选项</th><th>作用</th></tr></thead><tbody><tr><td><code>ls -l</code></td><td>展示目录下的<strong>详细信息</strong>（简写 <code>ll</code>）</td></tr><tr><td><code>-a</code></td><td>展示所有的内容，<strong>包含隐藏文件</strong></td></tr><tr><td><code>-h</code></td><td>人类可读大小，字节换算成 K/M/G</td></tr><tr><td><code>-t</code></td><td>按<strong>修改时间</strong>排序，新文件放前面</td></tr><tr><td><code>-r</code></td><td>反转排序（从小到大 / 旧到新）</td></tr><tr><td><code>-S</code></td><td>按<strong>文件大小</strong>排序，大的在前</td></tr><tr><td><code>-R</code></td><td>递归列出目录下所有子目录内容</td></tr></tbody></table></div>
+<p><strong>tree 目录</strong>：查看目录层级。</p>
+<h3>组合用法</h3>
+<ul><li>根据时间排序：<code>ls -lt</code>；</li><li>根据时间、文件大小排序：<code>ls -lrth</code>（最常用），或 <code>ll -rth</code>。</li></ul>
+<div class="tip"><div class="tip-h">小技巧</div><p><code>ll -rth</code>：按时间从旧到新排列，最新的文件永远在最底下——查 log、找最新 run 必备。</p></div>
+<h3>3）解析 ll 查看详细内容</h3>
+<p>以 <code>lrwxrwxrwx. 1 root root 7 Dec 18 2018</code> 为例：</p>
+<ul><li><strong>第一列：内容的类型</strong></li><li><code>-</code> 普通的文本文件、log 文件、脚本文件、包</li><li><code>d</code> 目录</li><li><code>l</code> 链接 Link</li><li><strong>第二列到第十列：权限</strong>（下一节细讲，先记住结构）</li><li><code>r</code> read　<code>w</code> write　<code>x</code> excute　<code>-</code> 无权限</li><li><code>rw-</code> 所属用户权限；<code>r--</code> 所属组的权限；<code>r--</code> 其他人的权限</li><li><strong>第 11 列</strong>：所属用户的用户名</li><li><strong>第 12 列</strong>：所属组的组名</li></ul>
+  <label class="ch-done"><input type="checkbox" data-mark="ls"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="cd" data-ch="cd">
+  <div class="ch-h"><span class="ch-n">02</span><h2>2. 切换目录：cd</h2></div>
+  <div class="tbl"><table><thead><tr><th>写法</th><th>作用</th></tr></thead><tbody><tr><td><code>cd 路径</code></td><td>进入指定目录</td></tr><tr><td><code>cd</code> 或 <code>cd ~</code></td><td>回到当前用户的<strong>家目录</strong></td></tr><tr><td><code>cd ..</code></td><td>切换到<strong>上一级</strong>目录</td></tr><tr><td><code>cd .</code></td><td>当前位置（原地不动）</td></tr><tr><td><code>cd -</code></td><td>回到<strong>上一次</strong>打开的目录</td></tr></tbody></table></div>
+<p><strong>相对路径 vs 绝对路径</strong>：</p>
+<ul><li>相对路径：不以 <code>/</code> 开头的路径（从当前位置出发）；</li><li>绝对路径：以 <code>/</code> 开头就是绝对路径（从根出发）。</li></ul>
+  <label class="ch-done"><input type="checkbox" data-mark="cd"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="locate" data-ch="locate">
+  <div class="ch-h"><span class="ch-n">03</span><h2>3. 三个查位置的命令</h2></div>
+  <p><strong>realpath</strong>：获取某个文件的绝对路径。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">realpath 文件名</span><span class="ln ">/root/A1/A4/abc</span></code></pre></div>
+<p><strong>pwd</strong>：显示当前目录的绝对路径。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-13.png" data-fig="linux-13"><img src="/fig/linux-13.png" alt="pwd 与 realpath 实际效果" loading="lazy" decoding="async"></a><figcaption>pwd 与 realpath 实际效果</figcaption></figure>
+<p><strong>history</strong>：查看命令的历史记录。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="locate"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="mkdir" data-ch="mkdir">
+  <div class="ch-h"><span class="ch-n">04</span><h2>4. 目录管理</h2></div>
+  <p><strong>mkdir 创建目录</strong>，语法：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">mkdir  目录名字</span><span class="ln ">mkdir  目录1  目录2       # 创建多个目录</span><span class="ln ">mkdir  A1/{a,b}          # 同时在 A1 目录下创建 a 和 b 目录</span><span class="ln ">mkdir  -p  a/b/c/d/e     # -p 按照层级创建目录</span></code></pre></div>
+<p><strong>rmdir 删除空目录</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">rmdir  目录名</span><span class="ln ">rmdir  目录1  目录2      # 删除多个空目录</span></code></pre></div>
+<p><strong>rm -rf 删除非空目录 / 强制删除 / 删除文件</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">rm  -rf  目录名</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · rm -rf 是不可逆操作</div><div class="pit-b"><p>删错目录没有回收站可找。敲 rm -rf 之前先停一秒确认路径，尤其是带通配符的时候。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="mkdir"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="touch" data-ch="touch">
+  <div class="ch-h"><span class="ch-n">05</span><h2>5. 文件管理</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">touch  文件名            # 创建文件</span><span class="ln ">touch  文件1  文件2  文件3   # 创建多个文件</span><span class="ln ">rm    文件名             # 删除文件</span><span class="ln ">rm  -rf  文件名          # 强制删除</span></code></pre></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-14.png" data-fig="linux-14"><img src="/fig/linux-14.png" alt="touch 创建文件与 rm 删除实际效果" loading="lazy" decoding="async"></a><figcaption>touch 创建文件与 rm 删除实际效果</figcaption></figure>
+<h3>通配符</h3>
+<p><code>*</code> 表示 <strong>0 个或任意多个字符</strong>：</p>
+<div class="tbl"><table><thead><tr><th>通配符</th><th>匹配</th></tr></thead><tbody><tr><td><code>a1*</code></td><td>以 a1 开头的文件或目录</td></tr><tr><td><code>*b</code></td><td>以 b 结尾的文件或目录</td></tr><tr><td><code>*a*</code></td><td>包含 a 的文件或目录</td></tr><tr><td><code>a*b</code></td><td>以 a 开头 b 结尾的文件或目录</td></tr><tr><td><code>a*y*b</code></td><td>a 开头、中间有 y、b 结尾</td></tr></tbody></table></div>
+<p>比如目录里有 <code>a12nn3b</code>、<code>b123kkb</code>、<code>a234yyb</code>：<code>a*y*b</code> 只匹配 <code>a234yyb</code>。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/linux-15.png" data-fig="linux-15"><img src="/fig/linux-15.png" alt="通配符配合 ls / rm 实际效果" loading="lazy" decoding="async"></a><figcaption>通配符配合 ls / rm 实际效果</figcaption></figure>
+  <label class="ch-done"><input type="checkbox" data-mark="touch"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">06</span><h2>动手练：练习一</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>练习一（19 题，全部在终端完成）</div><div class="lab-b"><p>1、进入到家目录 2、查看家目录下的内容 3、查看家目录下的详细信息 4、进入到根目录下的 etc 目录 5、回到上一级目录 6、回到家目录 7、回到刚才打开的目录 8、在家目录下创建目录 PT 9、在 PT 目录下创建多个目录 P1、D2、K3 10、在 P1 目录下创建文件 txt1、在 D2 目录下创建文件 txt2 11、在 K3 目录下创建目录 P4 12、在 PT 目录下创建文件 asd111、qwe222、zxc333、asd444、asd555 13、在 PT 目录下创建目录 poi111、lkjs222、mnb333、psaik61 14、ls 查看 PT 目录下所有 P 开头的目录内容 15、删除 PT 目录下以 m 开头的目录或文件 16、删除 PT 目录下以 2 结尾的目录或文件 17、删除 PT 目录下包含 asd 的目录或文件 18、删除 PT 目录下 p 开头 1 结尾、且中间包含 i 的目录或文件 19、删除 K3 目录下所有内容</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>ll -rth 是什么组合？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">详细信息 + 反转 + 时间 + 人类可读大小：按修改时间从旧到新列出，最常用的组合。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>mkdir -p a/b/c/d/e 的作用？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">按层级一次性创建整条目录链（父目录不存在也能建）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>cd - 和 cd .. 的区别？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">cd - 回到上一次打开的目录（来回切换），cd .. 是上一级目录。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>通配符 a*y*b 能匹配 a234yyb 吗？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">能：a 开头、中间含 y、b 结尾。a12nn3b 就不匹配（没有 y）。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>ls 七个常用选项全部记熟，会读 ll 的 12 列输出</li><li>cd 五种写法都练过一遍</li><li>练习一 19 题全部独立完成</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-02-linux-02-connect/">← Linux 第 2 课 · 连接服务器与目录结构</a><a class="nav-btn" href="/lesson/01-04-linux-04-view-vi/">Linux 第 4 课 · 查看与编辑文件（vi 全套） →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795429914"></script>
+<script src="/assets/tcl.js?v=1795429914"></script>
+<script src="/assets/app.js?v=1795429914"></script>
+
+<div id="userchip" class="userchip" hidden>
+  <span id="uc-name"></span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
+    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script>
+</body>
+</html>
