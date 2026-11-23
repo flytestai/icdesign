@@ -316,59 +316,159 @@ var TCL_PLAN = [
 ];
 
 /* ================================================================
- * 二、UI 与运行
+ * 二、UI：交互终端 / 解释器 + 练习代码编辑器
+ *   右边是能自己敲的终端（Linux）/ 解释器（Tcl）
+ *   「跑整段」= 把左边逐条敲进去；「下一行」= 一条一条来
  * ================================================================ */
-var state = { mode: 'linux' };
+var state = { mode: 'linux', cursor: 0 };
 
 function el(id) { return document.getElementById(id); }
-
-function escHtml(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-function clearOut() { var o = el('pg-out'); if (o) o.innerHTML = ''; }
-
-function line(text, cls) {
-  var out = el('pg-out');
-  var d = document.createElement('div');
-  d.className = 'sbx-l' + (cls ? ' ' + cls : '');
-  d.innerHTML = escHtml(text) || '&nbsp;';
-  out.appendChild(d);
-  out.scrollTop = out.scrollHeight;
-}
-
-/** 把一行命令拆成「命令 + 行尾注释」，注释单独上色，输出区更好读 */
-function splitNote(s) {
-  var q = null;
-  for (var i = 0; i < s.length; i++) {
-    var c = s.charAt(i);
-    if (q) { if (c === q) q = null; continue; }
-    if (c === '"' || c === "'") { q = c; continue; }
-    if (c === '#' && (i === 0 || /\s/.test(s.charAt(i - 1)))) {
-      return { cmd: s.slice(0, i).replace(/\s+$/, ''), note: s.slice(i).replace(/^#\s?/, '') };
-    }
-  }
-  return { cmd: s, note: '' };
-}
-
-/** 输出区的一行：命令绿色、注释灰色斜体 */
-function lineCmd(cmd, note) {
-  var out = el('pg-out');
-  var d = document.createElement('div');
-  d.className = 'sbx-l cmd';
-  d.textContent = cmd;
-  if (note) {
-    var sp = document.createElement('span');
-    sp.className = 'cmt';
-    sp.textContent = '   # ' + note;
-    d.appendChild(sp);
-  }
-  out.appendChild(d);
-  out.scrollTop = out.scrollHeight;
-}
-
+function termSh() { var n = el('pg-term'); return n ? n.__sh : null; }
+function tclRepl() { var n = el('pg-tcl'); return n ? n.__tsbx : null; }
+function codeEl() { return el('pg-code'); }
 function planOf(mode) { return mode === 'linux' ? LINUX_PLAN : TCL_PLAN; }
 
+/** 编辑器里的非空行（注释行也算一步，方便照着课一行一行过） */
+function codeLines() {
+  return codeEl().value.split('\n')
+    .map(function (s) { return s.replace(/\s+$/, ''); })
+    .filter(function (s) { return s.trim() !== ''; });
+}
+
+/** Tcl：把代码按"逻辑块"切开——花括号/中括号没闭合就并到下一行 */
+function tclBlocks() {
+  var out = [], buf = '';
+  var kit = (typeof TclKit !== 'undefined') ? TclKit : null;
+  codeLines().forEach(function (line) {
+    buf = buf ? buf + '\n' + line : line;
+    var done = true;
+    if (kit && kit.isComplete) { try { done = kit.isComplete(buf); } catch (e) { done = true; } }
+    if (done) { out.push(buf); buf = ''; }
+  });
+  if (buf.trim()) out.push(buf);
+  return out;
+}
+
+/* ---------------- Linux：往终端里喂 ----------------- */
+function feedLinux(line) {
+  var sh = termSh();
+  if (!sh) return;
+  var t = line.trim();
+  if (!t) return;
+  if (t.charAt(0) === '#') { sh.print(t, 'cmt'); return; }   // 整行注释：灰字回显，不执行
+  if (t === 'clear') { sh.clear(); return; }
+  sh.feed(t);
+}
+
+function runLinuxAll() {
+  var sh = termSh();
+  if (!sh) { showTip('% 终端组件未加载，请刷新页面'); return; }
+  var lines = codeLines();
+  if (!lines.length) { sh.print('（左边的练习代码是空的）', 'dim'); return; }
+  sh.print('—— 开始执行左边这 ' + lines.length + ' 行（跑完可以继续在下面自己敲）——', 'dim');
+  for (var i = 0; i < lines.length; i++) feedLinux(lines[i]);
+  state.cursor = lines.length;
+  syncStep();
+  focusTerm();
+}
+
+/* ---------------- Tcl：往解释器里喂 ----------------- */
+function tclSetupStdin(repl) {
+  var sd = el('pg-stdin');
+  var arr = (sd && sd.value.trim()) ? sd.value.split('\n').filter(function (x) { return x !== ''; }) : [];
+  repl.setStdin(arr);
+  return arr.length;
+}
+
+function feedTclBlock(repl, block) {
+  var echo = block.split('\n').map(function (l, i) { return (i === 0 ? 'tclsh> ' : '   ...> ') + l; }).join('\n');
+  repl.echo(echo);
+  repl.run(block);
+}
+
+function runTclAll() {
+  var repl = tclRepl();
+  if (!repl) { showTip('% Tcl 解释器未加载，请刷新页面'); return; }
+  var blocks = tclBlocks();
+  if (!blocks.length) { repl.print('（左边的练习代码是空的）', 'dim'); return; }
+  var n = tclSetupStdin(repl);
+  repl.print('—— 开始执行左边这片代码（' + blocks.length + ' 段' + (n ? '，stdin 预输入 ' + n + ' 行' : '') + '）——', 'dim');
+  for (var i = 0; i < blocks.length; i++) feedTclBlock(repl, blocks[i]);
+  var left = repl.stdinLeft();
+  if (left) repl.print('% stdin 还剩 ' + left + ' 行没被 gets 读走', 'dim');
+  state.cursor = blocks.length;
+  syncStep();
+  repl.focus();
+}
+
+/* ---------------- 公共：整段 / 下一行 / 清空 / 重置 ----------------- */
+function totalSteps() {
+  return state.mode === 'linux' ? codeLines().length : tclBlocks().length;
+}
+
+function syncStep() {
+  var btn = el('pg-step');
+  if (!btn) return;
+  var total = totalSteps();
+  var done = Math.min(state.cursor, total);
+  btn.textContent = '⏭ 下一条 (' + done + '/' + total + ')';
+  btn.disabled = done >= total;
+}
+
+function stepOnce() {
+  if (state.mode === 'linux') {
+    var lines = codeLines();
+    if (state.cursor >= lines.length) return;
+    feedLinux(lines[state.cursor]);
+  } else {
+    var repl = tclRepl();
+    var blocks = tclBlocks();
+    if (!repl || state.cursor >= blocks.length) return;
+    if (state.cursor === 0) tclSetupStdin(repl);
+    feedTclBlock(repl, blocks[state.cursor]);
+  }
+  state.cursor++;
+  syncStep();
+}
+
+function runAll() {
+  saveCode();
+  if (state.mode === 'linux') runLinuxAll(); else runTclAll();
+}
+
+function clearTerm() {
+  if (state.mode === 'linux') { var sh = termSh(); if (sh) sh.clear(); }
+  else { var repl = tclRepl(); if (repl) repl.clear(); }
+}
+
+function resetEnv() {
+  if (state.mode === 'linux') {
+    var sh = termSh();
+    if (sh) sh.reset(true);
+  } else {
+    var repl = tclRepl();
+    if (repl) {
+      repl.fresh();
+      repl.print('—— Tcl 解释器已重置（变量、数组、proc 全清）——', 'dim');
+      repl.focus();
+    }
+  }
+  state.cursor = 0;
+  syncStep();
+}
+
+function focusTerm() {
+  var box = state.mode === 'linux' ? el('pg-term') : el('pg-tcl');
+  var inp = box && box.querySelector('.sbx-in');
+  if (inp) inp.focus();
+}
+
+function showTip(text) {
+  if (state.mode === 'linux') { var sh = termSh(); if (sh) sh.print(text, 'err'); }
+  else { var r = tclRepl(); if (r) r.print(text, 'err'); }
+}
+
+/* ---------------- 下拉选择 / 存档 ---------------- */
 function buildSelect() {
   var sel = el('pg-example');
   sel.innerHTML = '';
@@ -388,119 +488,99 @@ function buildSelect() {
   });
 }
 
-function storeKey() { return 'pg_code_v2_' + state.mode; }
+function storeKey() { return 'pg_code_v3_' + state.mode; }
 
 function saveCode() {
-  try { localStorage.setItem(storeKey(), el('pg-code').value); } catch (e) {}
+  try { localStorage.setItem(storeKey(), codeEl().value); } catch (e) {}
 }
 
 function loadCode() {
   var def = planOf(state.mode)[0].items[0].code;
   try {
     var s = localStorage.getItem(storeKey());
-    el('pg-code').value = s || def;
-  } catch (e) { el('pg-code').value = def; }
+    codeEl().value = s || def;
+  } catch (e) { codeEl().value = def; }
+  state.cursor = 0;
+  syncStep();
 }
 
-function runLinux(code) {
-  if (typeof MiniShell === 'undefined') { line('% 终端组件未加载，请刷新页面', 'err'); return; }
-  var sh = new MiniShell.Shell(null, 'basic');   // 每次运行都是全新终端
-  var lines = code.split('\n');
-  line('% 新终端 · 从 ~ 开始（每次运行都重置环境，放心 rm -rf）', 'dim');
-  for (var i = 0; i < lines.length; i++) {
-    var raw = lines[i];
-    var t = raw.trim();
-    if (!t) continue;
-    if (t.charAt(0) === '#') { line(t, 'cmt'); continue; }
-    if (t === 'clear') { continue; }
-    var sp = splitNote(t);
-    lineCmd(sh.ps1() + ' ' + sp.cmd, sp.note);
-    var out = sh.run(t);
-    if (out) line(out.replace(/\n$/, ''));
-  }
-  line('% 运行结束（提示符里的 ~ 是家目录 /home/autumn）', 'dim');
-}
-
-function runTcl(code) {
-  if (typeof TclKit === 'undefined') { line('% Tcl 解释器未加载，请刷新页面', 'err'); return; }
-  var ip = new TclKit.Interp();
-  var stdinEl = el('pg-stdin');
-  ip.stdin = (stdinEl.value || '').split('\n').filter(function (x) { return x !== ''; });
-  var con = new TclKit.Console(el('pg-out'), ip);
-  con.print('% tclsh 运行开始', 'dim');
-  con.runScript(code);
-  if (ip.stdin && ip.stdin.length) con.print('% stdin 还有 ' + ip.stdin.length + ' 行没被读走（gets stdin 没用到？）', 'dim');
-  con.print('% 运行结束', 'dim');
-}
-
-function run() {
-  clearOut();
-  var code = el('pg-code').value;
-  if (state.mode === 'linux') runLinux(code);
-  else runTcl(code);
-  saveCode();
-}
-
-function setMode(mode) {
+/* ---------------- 模式切换 ---------------- */
+function setMode(mode, focus) {
   state.mode = mode;
+  state.cursor = 0;
   var btns = document.querySelectorAll('.pg-mode');
   for (var i = 0; i < btns.length; i++) {
     btns[i].className = 'pg-mode' + (btns[i].getAttribute('data-mode') === mode ? ' on' : '');
   }
-  el('pg-eh').textContent = mode === 'linux'
-    ? 'Linux 命令（一行一条，按顺序执行；# 开头是注释）'
-    : 'Tcl 代码（可多行；;# 或 # 开头都是注释）';
+  el('pg-term').style.display = mode === 'linux' ? '' : 'none';
+  el('pg-tcl').style.display = mode === 'tcl' ? '' : 'none';
   el('pg-stdin-box').style.display = mode === 'tcl' ? '' : 'none';
+  el('pg-eh').textContent = mode === 'linux'
+    ? 'Linux 命令（一行一条；# 开头是注释。右边可以自己敲，也可以点「下一行」一条条来）'
+    : 'Tcl 代码（;# 或 # 开头都是注释。右边解释器可以一行一敲，变量会一直留着）';
   el('pg-note').innerHTML = mode === 'linux'
-    ? 'Linux 练习跑在浏览器内置的模拟终端里：<b>每次点运行都是一个全新环境</b>（家目录 /home/autumn，里面有 backend_lab、pdk、logs、PT 等真实项目结构），所以可以放心练 rm -rf。支持的命令：ls（含 -l -a -h -t -d）·cd（含 cd -）·pwd·mkdir·touch·rm·cp·mv·cat·head·tail·wc·nl·grep·sed·awk·sort（含 -u）·uniq·cut·find·du·chmod·tree·which·history·echo·通配符 <code>*</code>·管道与重定向。注意：awk / sed 的程序要写单引号，写双引号的话 <code>$1</code> 会先被 shell 吃掉。tar / ln / md5sum 这类需要真实文件系统的命令，请在课程页的练习终端或真机上练。'
-    : 'Tcl 解释器覆盖课程全部命令：set·puts·expr·incr·append·unset·array(set/get/names/size)·dict get·list/lindex/llength/lappend/lreplace/lsearch/lsort/concat/split/join·if·while·foreach·for·break·continue·proc（含默认参数与 args）·global·return·gets stdin·rand()。需要用户输入时，先在右侧 stdin 框里预写好，一行一个值。';
+    ? '两边的环境是同一个：右边终端里自己敲的命令，和「跑整段」执行的是同一套文件系统，所以 <b>rm 掉的文件真的会没</b>；想恢复初始状态点「重置环境」或终端右上角的「重置」。支持的命令：ls（-l -a -h -t -d）·cd（含 cd -）·pwd·mkdir·touch·rm·cp·mv·cat·head·tail·wc·nl·grep（含 -R）·sed·awk·sort（含 -u）·uniq·cut·find·du·chmod·tree·which·history·echo·通配符 <code>*</code>·管道与重定向。注意：awk / sed 的程序要写单引号，双引号里 <code>$1</code> 会先被 shell 吃掉。tar / ln / md5sum 这类需要真实文件系统的命令，请在课程页的练习终端或真机上练。'
+    : '右边的解释器是有状态的：<b>set 过的变量、proc 定义都留着</b>，敲一行看一行结果，最适合试 `expr`、`lindex`、`string` 这类小命令。需要 <code>gets stdin</code> 的练习，先在下面 stdin 框里预写好每行一个值。支持：set·puts·expr·incr·append·unset·array·dict get·list/lindex/llength/lappend/lreplace/lsearch/lsort/concat/split/join·if·while·foreach·for·break·continue·proc（默认参数与 args）·global·return·gets stdin·rand()。';
   buildSelect();
   loadCode();
-  clearOut();
+  if (focus !== false) focusTerm();
 }
 
+/* ---------------- 初始化 ---------------- */
 function mount() {
-  var codeEl = el('pg-code');
-  if (!codeEl) return;
+  var ta = codeEl();
+  if (!ta) return;
 
   var btns = document.querySelectorAll('.pg-mode');
   for (var i = 0; i < btns.length; i++) {
-    btns[i].addEventListener('click', function () {
-      setMode(this.getAttribute('data-mode'));
-    });
+    btns[i].addEventListener('click', function () { setMode(this.getAttribute('data-mode')); });
   }
+
   el('pg-example').addEventListener('change', function () {
     if (this.value === '') return;
     var p = this.value.split('-');
     var item = planOf(state.mode)[+p[0]].items[+p[1]];
-    if (item) {
-      codeEl.value = item.code;
-      // 这组练习要读 stdin 就顺手把示例输入填好，不用手动抄
-      var sd = el('pg-stdin');
-      if (sd) sd.value = item.stdin || '';
-      clearOut(); saveCode();
-    }
+    if (!item) return;
+    ta.value = item.code;
+    var sd = el('pg-stdin');
+    if (sd) sd.value = item.stdin || '';
+    state.cursor = 0;
+    saveCode(); syncStep(); clearTerm(); focusTerm();
   });
-  el('pg-run').addEventListener('click', run);
-  el('pg-clear').addEventListener('click', clearOut);
-  el('pg-reset').addEventListener('click', function () {
-    codeEl.value = planOf(state.mode)[0].items[0].code;
-    var sd = el('pg-stdin'); if (sd) sd.value = '';
-    try { localStorage.removeItem(storeKey()); } catch (e) {}
-    clearOut();
+
+  el('pg-run').addEventListener('click', runAll);
+  el('pg-step').addEventListener('click', stepOnce);
+  el('pg-clear').addEventListener('click', clearTerm);
+  el('pg-reset').addEventListener('click', resetEnv);
+
+  // 终端/解释器自带的「重置」按钮：换成练习场的重置语义（连文件系统一起重置）
+  [['pg-term', resetEnv], ['pg-tcl', resetEnv]].forEach(function (pair) {
+    var box = el(pair[0]);
+    if (!box) return;
+    var old = box.querySelector('.sbx-rst');
+    if (!old) return;
+    var fresh = old.cloneNode(true);
+    old.parentNode.replaceChild(fresh, old);
+    fresh.addEventListener('click', pair[1]);
   });
-  codeEl.addEventListener('keydown', function (e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); }
+
+  ta.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runAll(); }
     if (e.key === 'Tab') {
       e.preventDefault();
-      var s = codeEl.selectionStart;
-      codeEl.value = codeEl.value.slice(0, s) + '    ' + codeEl.value.slice(codeEl.selectionEnd);
-      codeEl.selectionStart = codeEl.selectionEnd = s + 4;
+      var s = ta.selectionStart;
+      ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(ta.selectionEnd);
+      ta.selectionStart = ta.selectionEnd = s + 4;
     }
   });
-  codeEl.addEventListener('input', saveCode);
+  ta.addEventListener('input', function () { saveCode(); state.cursor = 0; syncStep(); });
 
-  setMode('linux');
+  var sd = el('pg-stdin');
+  if (sd) sd.addEventListener('input', function () { state.cursor = 0; syncStep(); });
+
+  setMode('linux', false);
+  var repl = tclRepl();
+  if (repl) repl.print('—— 这里可以直接敲 Tcl 命令，一行一执行 ——', 'dim');
 }
 
 if (typeof document !== 'undefined') {

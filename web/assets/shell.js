@@ -279,6 +279,12 @@
   var ROOT = build(FS_SRC);
   ROOT.c.home.c.autumn.c['run.sh'].mode = '755';
 
+  /** 把文件系统恢复到初始状态（练习场「重置环境」用） */
+  function resetFs() {
+    ROOT = build(FS_SRC);
+    ROOT.c.home.c.autumn.c['run.sh'].mode = '755';
+  }
+
   var NOW = 'Nov 22 20:14';
 
   /* ============================================================ 词法/路径 */
@@ -411,6 +417,20 @@
     if (!s) return [];
     var a = s.replace(/\n$/, '').split('\n');
     return a;
+  }
+
+  /** 把一行命令拆成「命令 + 行尾注释」，注释单独上色（练习场回显用） */
+  function splitLineNote(s) {
+    var q = null;
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charAt(i);
+      if (q) { if (c === q) q = null; continue; }
+      if (c === '"' || c === "'") { q = c; continue; }
+      if (c === '#' && (i === 0 || /\s/.test(s.charAt(i - 1)))) {
+        return { cmd: s.slice(0, i).replace(/\s+$/, ''), note: s.slice(i).replace(/^#\s?/, '') };
+      }
+    }
+    return { cmd: s, note: '' };
   }
 
   function rx(pat, flags) {
@@ -1154,6 +1174,52 @@
     box.scrollTop = box.scrollHeight;
   };
 
+  /**
+   * 往终端里"喂"一行命令：先回显 提示符+命令（注释灰色），再执行。
+   * 练习场的「跑整段 / 执行下一行」就是逐行调它，跟人手敲完全等价。
+   */
+  Shell.prototype.feed = function (line) {
+    var t = (line || '').replace(/\s+$/, '');
+    if (!t.trim()) return;
+    if (!this.el) { this.exec(t); return; }
+    var box = this.el.querySelector('.sbx-out');
+    var parts = splitLineNote(t.trim());
+    var d = document.createElement('div');
+    d.className = 'sbx-l cmd';
+    d.appendChild(document.createTextNode(this.ps1() + ' ' + parts.cmd));
+    if (parts.note) {
+      var sp = document.createElement('span');
+      sp.className = 'cmt';
+      sp.textContent = '   # ' + parts.note;
+      d.appendChild(sp);
+    }
+    box.appendChild(d);
+    this.exec(t);
+    var ps1 = this.el.querySelector('.sbx-ps1');
+    if (ps1) ps1.textContent = this.ps1();
+    box.scrollTop = box.scrollHeight;
+  };
+
+  /** 只清屏幕，不动文件系统 */
+  Shell.prototype.clear = function () {
+    this.buf = [];
+    if (!this.el) return;
+    var box = this.el.querySelector('.sbx-out');
+    if (box) box.innerHTML = '';
+    var ps1 = this.el.querySelector('.sbx-ps1');
+    if (ps1) ps1.textContent = this.ps1();
+  };
+
+  /** 重置：freshFs 为真时文件系统也回到初始状态 */
+  Shell.prototype.reset = function (freshFs) {
+    if (freshFs) resetFs();
+    this.cwd = ['home', 'autumn'];
+    this.hist = [];
+    this.hi = -1;
+    this.clear();
+    this.print('—— 环境已重置' + (freshFs ? '（文件系统回到初始状态）' : '') + ' ——', 'dim');
+  };
+
   Shell.prototype.exec = function (line, silent) {
     line = (line || '').trim();
     if (!line) return '';
@@ -1329,12 +1395,15 @@
 
   /* ============================================================ 挂载 */
   function mountAll() {
-    var nodes = document.querySelectorAll('.sbx[data-preset]');
+    var nodes = document.querySelectorAll('.sbx[data-preset]'), list = [];
     for (var i = 0; i < nodes.length; i++) {
-      if (nodes[i].getAttribute('data-ready')) continue;
+      if (nodes[i].getAttribute('data-ready')) { list.push(nodes[i].__sh || null); continue; }
       nodes[i].setAttribute('data-ready', '1');
-      new Shell(nodes[i], nodes[i].getAttribute('data-preset'));
+      // 实例挂到节点上，页面脚本可以接着往里喂命令（练习场用）
+      nodes[i].__sh = new Shell(nodes[i], nodes[i].getAttribute('data-preset'));
+      list.push(nodes[i].__sh);
     }
+    return list;
   }
 
   if (typeof document !== 'undefined') {
@@ -1345,7 +1414,7 @@
     }
   }
 
-  var api = { Shell: Shell, mountAll: mountAll };
+  var api = { Shell: Shell, mountAll: mountAll, resetFs: resetFs, splitLineNote: splitLineNote };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   global.MiniShell = api;
 })(typeof window !== 'undefined' ? window : globalThis);

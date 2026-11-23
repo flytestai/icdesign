@@ -738,9 +738,10 @@ PLAYGROUND_BODY = """
   </div>
   <div class="pg-toolbar">
     <select id="pg-example"><option value="">—— 按课程顺序选一组练习 ——</option></select>
-    <button id="pg-run" class="pri" type="button">▶ 运行 (Ctrl+Enter)</button>
-    <button id="pg-clear" class="ghost" type="button">清空输出</button>
-    <button id="pg-reset" class="ghost" type="button">重置</button>
+    <button id="pg-run" class="pri" type="button">▶ 跑整段</button>
+    <button id="pg-step" class="ghost" type="button">⏭ 下一条 (0/0)</button>
+    <button id="pg-clear" class="ghost" type="button">清空终端</button>
+    <button id="pg-reset" class="ghost" type="button">重置环境</button>
   </div>
   <div class="pg-grid">
     <div class="pg-editor">
@@ -748,13 +749,23 @@ PLAYGROUND_BODY = """
       <textarea id="pg-code" spellcheck="false" autocomplete="off" wrap="off"></textarea>
     </div>
     <div class="pg-right">
+      <div class="sbx pg-sbx" id="pg-term" data-preset="basic">
+        <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>交互终端</b><span class="sbx-tip">自己敲命令、回车就执行；↑↓ 历史、Tab 补全</span><button class="sbx-rst" type="button">重置</button></div>
+        <div class="sbx-body"><div class="sbx-out"></div>
+          <div class="sbx-line"><span class="sbx-ps1">[autumn@eda ~]$</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="敲命令，回车执行（先敲 help 看支持哪些）" aria-label="模拟终端输入"></div>
+        </div>
+        <div class="sbx-f">和左边共用同一个环境：点「跑整段」等于把左边逐条敲进来，之后你可以接着改、接着试。想从头来就点「重置环境」。</div>
+      </div>
+      <div class="tsbx pg-tsbx" id="pg-tcl" style="display:none">
+        <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 交互解释器</b><span class="sbx-tip">一行一执行；括号没闭合会自动等续行</span><button class="sbx-rst" type="button">重置</button></div>
+        <div class="sbx-body"><div class="sbx-out"></div>
+          <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="敲 Tcl 命令，回车执行" aria-label="Tcl 解释器输入"></div>
+        </div>
+        <div class="sbx-f">变量和 proc 都留在环境里：先 set 一个变量，下一行直接用它；多行结构（if / while / proc）写到一半回车会显示 ...&gt; 等续行。</div>
+      </div>
       <div class="pg-stdin" id="pg-stdin-box" style="display:none">
         <div class="pg-eh">stdin 预输入（每行一条，供 gets stdin 读取）</div>
         <textarea id="pg-stdin" spellcheck="false" placeholder="例如脚本里有 gets stdin score，就在这里先写好 85"></textarea>
-      </div>
-      <div class="pg-outbox">
-        <div class="pg-eh">输出</div>
-        <pre id="pg-out" class="pg-out"></pre>
       </div>
     </div>
   </div>

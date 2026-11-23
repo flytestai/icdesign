@@ -484,6 +484,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .tsbx .sbx-out{max-height:340px;overflow-y:auto;font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.7;color:#dbeafe;min-height:52px;padding:6px 8px}
 .tsbx .sbx-out .err{color:#fca5a5}
 .tsbx .sbx-out .in{color:#86efac}
+.tsbx .sbx-out .res{color:#93c5fd}
 .tsbx .sbx-out .dim{color:#64748b}
 .tsbx .sbx-line{display:flex;align-items:center;gap:8px;padding:8px;border-top:1px solid #27334d}
 .tsbx .sbx-ps1{color:#34d399;font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:nowrap}
@@ -491,33 +492,35 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .tsbx .sbx-f{padding:6px 14px 10px;color:#64748b;font-size:11.5px;line-height:1.6}
 
 /* ==================== 练习场 /playground/ ==================== */
-.pg-wrap{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+.pg-wrap{max-width:1240px;margin:0 auto;padding:24px 20px 60px}
 .pg-modes{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e2e8f0}
 .pg-mode{border:1px solid #d5dce6;background:#fff;color:#475569;border-radius:10px;padding:8px 18px;font-size:14px;font-weight:600;cursor:pointer}
 .pg-mode:hover{border-color:#b9c6d4;background:#f8fafc}
 .pg-mode.on{background:#2f7fd0;border-color:#2f7fd0;color:#fff}
 .pg-modes-hint{margin-left:auto;font-size:12.5px;color:#64748b}
 @media(max-width:760px){.pg-modes-hint{margin-left:0;width:100%;order:3}}
-.pg-out .sbx-l{font-family:ui-monospace,Consolas,monospace;font-size:12.6px;line-height:1.75;color:#dbeafe;white-space:pre-wrap;word-break:break-word}
-.pg-out .sbx-l.cmd{color:#7fd6a8}
-.pg-out .sbx-l.cmt{color:#7d95ad;font-style:italic}
-.pg-out .sbx-l.dim{color:#64798f}
-.pg-out .sbx-l.err{color:#fca5a5}
-.pg-out .sbx-l .cmt{color:#7d95ad;font-style:italic}
+/* 右侧交互终端 / 解释器 */
+.pg-right{display:flex;flex-direction:column;gap:12px;min-width:0}
+.pg-sbx,.pg-tsbx{margin:0}
+.pg-sbx .sbx-body{max-height:430px;min-height:300px}
+.pg-tsbx .sbx-out{max-height:430px}
+.pg-sbx .sbx-l .cmt,.pg-tsbx .sbx-out .cmt{color:#7d95ad;font-style:italic}
+@media(max-width:860px){
+  .pg-sbx .sbx-body{min-height:220px;max-height:320px}
+  .pg-tsbx .sbx-out{max-height:320px}
+}
 .pg-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
 .pg-toolbar select{flex:1;min-width:220px;max-width:420px;border:1px solid #d5dce6;border-radius:9px;padding:8px 12px;font-size:14px;background:#fff}
 .pg-toolbar .pri{background:#4f46e5;color:#fff;border:none;border-radius:9px;padding:9px 20px;font-size:14px;font-weight:600;cursor:pointer}
 .pg-toolbar .pri:hover{filter:brightness(1.08)}
 .pg-toolbar .ghost{background:#fff;border:1px solid #d5dce6;color:#475569;border-radius:9px;padding:9px 16px;font-size:13.5px;cursor:pointer}
-.pg-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+.pg-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px}
 @media(max-width:860px){.pg-grid{grid-template-columns:1fr}}
 .pg-eh{font-size:12px;font-weight:700;color:#64748b;letter-spacing:.5px;padding:8px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-bottom:none;border-radius:10px 10px 0 0}
-.pg-editor textarea,.pg-stdin textarea{width:100%;height:380px;resize:vertical;border:1px solid #e2e8f0;border-radius:0 0 10px 10px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13.5px;line-height:1.7;color:#0f172a;background:#fffdf5;outline:none;box-sizing:border-box;white-space:pre;overflow:auto;tab-size:4}
+.pg-editor textarea,.pg-stdin textarea{width:100%;height:430px;resize:vertical;border:1px solid #e2e8f0;border-radius:0 0 10px 10px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13.5px;line-height:1.7;color:#0f172a;background:#fffdf5;outline:none;box-sizing:border-box;white-space:pre;overflow:auto;tab-size:4}
 .pg-stdin textarea{height:110px;background:#fff}
 .pg-stdin textarea{height:96px;border-radius:0 0 10px 10px}
 .pg-editor textarea:focus,.pg-stdin textarea:focus{border-color:#4f46e5}
-.pg-outbox{margin-top:14px}
-.pg-out{height:260px;overflow-y:auto;margin:0;border:1px solid #e2e8f0;border-radius:0 0 10px 10px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.7;background:#0f172a;color:#dbeafe;white-space:pre-wrap;word-break:break-all}
 .pg-note{margin-top:18px;font-size:12.5px;color:#64748b;line-height:1.8;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:10px 16px}
 
 /* ============ 登录用户角标 ============ */

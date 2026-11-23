@@ -291,7 +291,15 @@ function indexNorm(idx, len) {
 }
 
 /* ---------- expr 表达式求值 ---------- */
-function preSubst(ip, text) {
+/** expr 里替换出来的值：数字/布尔原样，其余包成字符串字面量，免得变成"裸字"报错 */
+function exprLit(v) {
+  var s = v === undefined || v === null ? '' : String(v);
+  if (/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(s)) return s;
+  if (s === 'true' || s === 'false') return s;
+  return '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+}
+
+function preSubst(ip, text, forExpr) {
   var out = '', i = 0, n = text.length;
   while (i < n) {
     var c = text[i];
@@ -300,7 +308,7 @@ function preSubst(ip, text) {
       var d = 0, k = i;
       while (k < n) { if (text[k] === '[') d++; else if (text[k] === ']') { d--; if (d === 0) break; } k++; }
       var val = ip.evalScript(text.slice(i + 1, k));
-      out += (val === undefined ? '' : String(val));
+      out += (forExpr ? exprLit(val) : (val === undefined ? '' : String(val)));
       i = k + 1; continue;
     }
     if (c === '$') {
@@ -309,7 +317,8 @@ function preSubst(ip, text) {
         var v = r.arrKey !== null
           ? ip.getArrayElem(r.text, preSubst(ip, r.arrKey))
           : ip.getVar(r.text);
-        out += v; i = r.next; continue;
+        out += forExpr ? exprLit(v) : v;
+        i = r.next; continue;
       }
     }
     out += c; i++;
@@ -395,7 +404,10 @@ ExprParser.prototype.cmp = function (ip) {
   this.ws();
   var two = this.s.substr(this.i, 2);
   var op = null;
-  if (['==', '!=', '<=', '>='].indexOf(two) >= 0) { op = two; this.i += 2; }
+  // 字符串比较（Tcl 8.4+）：$a eq $b / ne / in / ni
+  var wm = /^(eq|ne|in|ni)(?![A-Za-z0-9_])/.exec(this.s.slice(this.i));
+  if (wm) { op = wm[1]; this.i += op.length; }
+  else if (['==', '!=', '<=', '>='].indexOf(two) >= 0) { op = two; this.i += 2; }
   else if ('<>='.indexOf(this.s[this.i]) >= 0 && this.s[this.i] !== undefined &&
            '=+'.indexOf(this.s[this.i + 1] || '') < 0) { op = this.s[this.i]; this.i++; }
   if (!op) return l;
@@ -410,6 +422,10 @@ ExprParser.prototype.cmp = function (ip) {
     case '>': res = numOp ? ln > rn : String(l.v) > String(r.v); break;
     case '<=': res = numOp ? ln <= rn : String(l.v) <= String(r.v); break;
     case '>=': res = numOp ? ln >= rn : String(l.v) >= String(r.v); break;
+    case 'eq': res = String(l.v) === String(r.v); break;
+    case 'ne': res = String(l.v) !== String(r.v); break;
+    case 'in': res = splitList(String(r.v)).indexOf(String(l.v)) >= 0; break;
+    case 'ni': res = splitList(String(r.v)).indexOf(String(l.v)) < 0; break;
   }
   return { v: res ? 1 : 0, isInt: true };
 };
@@ -471,7 +487,7 @@ function isIntRet(fn, args) {
 }
 
 Interp.prototype.evalExprText = function (text) {
-  var p = new ExprParser(preSubst(this, text));
+  var p = new ExprParser(preSubst(this, text, true));
   var r = p.expr(this);
   if (p.i < p.s.length && p.s.substr(p.i).trim() !== '')
     throw new TclError('invalid expression "' + text + '": extra tokens after expression');
@@ -950,11 +966,13 @@ Console.prototype.print = function (text, cls) {
   this.el.appendChild(div);
   this.el.scrollTop = this.el.scrollHeight;
 };
-Console.prototype.runScript = function (code) {
-  var ip = this.ip;
+Console.prototype.runScript = function (code, echoResult) {
+  var ip = this.ip, res;
   try {
-    ip.evalScript(code);
+    res = ip.evalScript(code);
     if (ip.out) { this.print(ip.out); ip.out = ''; }
+    // 交互模式（tclsh 那样）：命令的返回值也打出来，否则 expr 之类看不到结果
+    if (echoResult && res !== undefined && res !== null && String(res) !== '') this.print(String(res), 'res');
   } catch (e) {
     if (ip.out) { this.print(ip.out); ip.out = ''; }
     if (e instanceof BreakSig) this.print('% break 出现在循环外', 'err');
@@ -991,7 +1009,7 @@ function mountTsbx(root) {
     if (!isComplete(combined)) { buf = combined; input.value = ''; if (ps1) ps1.textContent = '...>'; return; }
     buf = '';
     if (ps1) ps1.textContent = 'tclsh>%';
-    con.runScript(combined);
+    con.runScript(combined, true);
     input.value = '';
   }
   input.addEventListener('keydown', function (e) {
@@ -1000,11 +1018,25 @@ function mountTsbx(root) {
   root.addEventListener('click', function (e) {
     if (e.target === outEl) input.focus();
   });
+
+  // 给外部（练习场的「跑整段 / 执行下一行」）用的接口：和手动敲共用同一个解释器
+  root.__tsbx = {
+    run: function (code, echoResult) { con.runScript(code, !!echoResult); },
+    echo: function (text) { con.print(text, 'in'); },
+    print: function (text, cls) { con.print(text, cls || ''); },
+    clear: function () { outEl.innerHTML = ''; },
+    fresh: fresh,
+    setStdin: function (arr) { ip.stdin = (arr || []).slice(); },
+    stdinLeft: function () { return (ip.stdin || []).length; },
+    focus: function () { if (input) input.focus(); }
+  };
+  return root.__tsbx;
 }
 
 function mountAll() {
-  var nodes = document.querySelectorAll('.tsbx');
-  for (var i = 0; i < nodes.length; i++) mountTsbx(nodes[i]);
+  var nodes = document.querySelectorAll('.tsbx'), list = [];
+  for (var i = 0; i < nodes.length; i++) list.push(mountTsbx(nodes[i]));
+  return list;
 }
 
 if (typeof document !== 'undefined') {
@@ -1018,5 +1050,5 @@ if (typeof document !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { Interp: Interp, TclError: TclError, Console: Console, splitList: splitList, isComplete: isComplete, splitListKeep: splitListKeep };
 }
-if (typeof window !== 'undefined') window.TclKit = { Interp: Interp, TclError: TclError, Console: Console };
+if (typeof window !== 'undefined') window.TclKit = { Interp: Interp, TclError: TclError, Console: Console, isComplete: isComplete, mountAll: mountAll };
 })();
