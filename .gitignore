@@ -37,3 +37,9 @@ tools/figs/.cache/
 /_extract/
 
 .playwright-cli/
+
+# 临时截图
+/logo-*.png
+/m2-*.png
+/m3-*.png
+/pg*.png
