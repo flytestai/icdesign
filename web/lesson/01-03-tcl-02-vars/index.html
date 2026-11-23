@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TCL 第 2 课 · 变量与替换规则（TCL 的灵魂） · 3 | IC 后端学院</title>
+<meta name="description" content="set 定义变量、$ 取变量、[ ] 执行命令、{} 和 "" 分组——这一课的"三种替换"是全课程最重要的一讲，掌握它后面所有语法都豁然开朗。还有特殊变量名的 ${} 包裹写法和 set 的多变量陷阱。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795425358">
+</head>
+<body data-page="lesson" data-lesson="01-03-tcl-02-vars">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcl 基础</a><span>/</span><b>TCL 第 2 课 · 变量与替换规则（TCL 的灵魂）</b></div>
+    <div class="hero">
+      <div class="hero-no">3</div>
+      <h1>TCL 第 2 课 · 变量与替换规则（TCL 的灵魂）</h1>
+      <p class="hero-en">Tcl Basics 2 - Variables & Substitution</p>
+      <p class="hero-sum">set 定义变量、$ 取变量、[ ] 执行命令、{} 和 &quot;&quot; 分组——这一课的&quot;三种替换&quot;是全课程最重要的一讲，掌握它后面所有语法都豁然开朗。还有特殊变量名的 ${} 包裹写法和 set 的多变量陷阱。</p>
+      <div class="hero-meta">
+        <span class="pill">约 50 分钟</span>
+        <span class="pill">课表学时 1</span>
+        <span class="pill tag">Tcl</span><span class="pill tag">set</span><span class="pill tag">替换</span><span class="pill tag">变量</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="set" data-ch="set">
+  <div class="ch-h"><span class="ch-n">01</span><h2>定义变量：set 命令</h2></div>
+  <div class="goal"><span>本章目标</span>能用 set 定义三种类型的变量；说清&quot;名字绑一个值&quot;的心智模型；理解 {} &quot;&quot; [] 三种符号各自做什么——这是 TCL 的灵魂。</div>
+<p><strong>语法：<code>set 变量名 变量值</code></strong></p>
+<div class="note"><div class="note-h">心智模型（一句话记住）</div><p>变量就是一个名字绑一个值——<strong>名字给你看，值给机器用</strong>。比如定义一个人 person，名字叫张三：<code>person</code> 是我们（人）用的名字，&quot;张三&quot;是机器存的值。</p></div>
+<div class="tsbx has-code" data-code="set name &quot;Zhang San&quot;   ;# 字符串变量（双引号可保留空格）
+set age 25             ;# 数值变量
+set score 98.5         ;# 浮点型变量
+puts &quot;姓名：$name，年龄：$age，成绩：$score&quot;
+puts &quot;$name $age&quot;       ;# 打印多个变量
+puts &quot;age=$age , name=$name&quot;">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set name &quot;Zhang San&quot;   ;# 字符串变量（双引号可保留空格）
+set age 25             ;# 数值变量
+set score 98.5         ;# 浮点型变量
+puts &quot;姓名：$name，年龄：$age，成绩：$score&quot;
+puts &quot;$name $age&quot;       ;# 打印多个变量
+puts &quot;age=$age , name=$name&quot;</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<p><strong>命名规则</strong>：变量名由字母、数字、下划线组成，建议见名知意（如 <code>age</code>、<code>user_name</code>），避免特殊字符（下划线除外）。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="set"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="substitution" data-ch="substitution">
+  <div class="ch-h"><span class="ch-n">02</span><h2>三种替换——一句话原理</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">替换</span><span class="term-zh">TCL 解析一行命令时&quot;先算再执行&quot;的机制</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p></p></div>
+</div>
+<div class="note"><div class="note-h">一句话原理（文档原文）</div><p><code>{}</code>（不读变量）和 <code>&quot;&quot;</code>（读变量）是同一类——<strong>分组</strong>（把空格/换行粘成一个词），区别只在于&quot;里面做不做替换&quot;；<code>[]</code> 完全是另一类——<strong>替换</strong>（先跑命令，用结果把自己顶掉）。</p></div>
+<div class="tbl"><table><thead><tr><th>符号</th><th>叫什么</th><th>干什么</th><th>Python 类比</th></tr></thead><tbody><tr><td><code>$变量名</code></td><td>变量替换</td><td>把变量的值取出来放进去</td><td>直接写变量名</td></tr><tr><td><code>[命令]</code></td><td>命令替换</td><td>先执行命令，用结果替换整个 <code>[...]</code></td><td>表达式的返回值</td></tr><tr><td><code>{...}</code></td><td>分组</td><td>把一段内容&quot;原样打包&quot;，不读变量</td><td>原始字符串 r&quot;...&quot;</td></tr><tr><td><code>&quot;...&quot;</code></td><td>分组</td><td>打包，但<strong>会</strong>做变量替换</td><td>f-string</td></tr></tbody></table></div>
+<div class="tsbx has-code" data-code="set name &quot;Tom&quot;
+puts &quot;hello $name&quot;    ;# &quot;&quot; 里读了变量
+puts {hello $name}    ;# {} 里原样输出
+set x [expr {1 + 2}]  ;# [] 先算出 3，再赋给 x
+puts $x">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set name &quot;Tom&quot;
+puts &quot;hello $name&quot;    ;# &quot;&quot; 里读了变量
+puts {hello $name}    ;# {} 里原样输出
+set x [expr {1 + 2}]  ;# [] 先算出 3，再赋给 x
+puts $x</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<p>读一遍上面的输出，确认你能解释每一行为什么长这样——这一课就算学通了。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="substitution"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="special" data-ch="special">
+  <div class="ch-h"><span class="ch-n">03</span><h2>特殊变量名：用 ${} 包裹</h2></div>
+  <p>当变量名里含特殊字符（如 <code>.</code>、<code>-</code>）时，定义照常，<strong>调用必须用 <code>${变量名}</code> 包裹</strong>，否则 TCL 解析失败：</p>
+<div class="tsbx has-code" data-code="set a.1 100      ;# 变量名含小数点，特殊定义
+set b-2 &quot;test&quot;   ;# 变量名含减号，特殊定义
+puts ${a.1}      ;# 正确调用，输出：100
+puts ${b-2}      ;# 正确调用，输出：test">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set a.1 100      ;# 变量名含小数点，特殊定义
+set b-2 &quot;test&quot;   ;# 变量名含减号，特殊定义
+puts ${a.1}      ;# 正确调用，输出：100
+puts ${b-2}      ;# 正确调用，输出：test</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<p>看一眼错误示范（练习台里跑跑看，报错也是真实的）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">puts $a.1</span><span class="ln cmt">;# 错误！TCL 会解析为变量 a + 字符串 &quot;.1&quot;</span><span class="ln cmt">;# 报错：can't read &quot;a&quot;: no such variable</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · $a.1 这种写法不报语法错，但读的是另一个变量</div><div class="pit-b"><p><code>$a.1</code> 不读 <code>a.1</code>，而是读变量 <code>a</code> 再拼上字符串 <code>.1</code>。因为变量 <code>a</code> 不存在，所以报 <code>can't read &quot;a&quot;: no such variable</code>。看到这个报错，先想想是不是变量名里有特殊字符没用 <code>${}</code>。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="special"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="multi" data-ch="multi">
+  <div class="ch-h"><span class="ch-n">04</span><h2>set 一次只能定义一个变量</h2></div>
+  <p>TCL 的 <code>set</code> <strong>不支持一次定义多个变量</strong>。如果想要&quot;一个名字装多份信息&quot;，可以借助字典写法：</p>
+<div class="tsbx has-code" data-code="set info {age 20 name zhangsan}
+puts [dict get $info age]     ;# 取出 20
+puts [dict get $info name]    ;# 取出 zhangsan">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set info {age 20 name zhangsan}
+puts [dict get $info age]     ;# 取出 20
+puts [dict get $info name]    ;# 取出 zhangsan</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<p>原理：<code>{age 20 name zhangsan}</code> 是一个&quot;键 值 键 值&quot;交替排列的列表，<code>dict get</code> 按键取值。（字典的完整讲法在第 4 课数组之后。）</p>
+  <label class="ch-done"><input type="checkbox" data-mark="multi"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">05</span><h2>动手练</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>三道题当场敲一遍</div><div class="lab-b"><ol><li>定义变量 <code>user_name</code>、<code>age</code>，用一条 puts 同时打印它们。</li><li>跑 <code>puts {age=$age}</code>，解释为什么没有输出变量值。</li><li>定义一个名字含减号的变量并正确调用。</li></ol></div></div>
+<div class="tsbx" data-code="">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">自由练习：把三道题依次敲进来，报错了就改</span><button class="sbx-rst" type="button">重置</button></div>
+  
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>set x 5</code> 之后，<code>puts &quot;x=$x&quot;</code> 和 <code>puts {x=$x}</code> 分别输出什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">前者输出 <code>x=5</code>（&quot;&quot;里做了变量替换）；后者输出 <code>x=$x</code>（{} 原样输出）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>变量名含 <code>.</code> 或 <code>-</code> 时调用要注意什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">必须用 <code>${变量名}</code> 包裹，否则 <code>$a.1</code> 会被解析成变量 a 加字符串 &quot;.1&quot;。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>set 能一次定义多个变量吗？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">不能。想装多份信息用列表 + 字典写法：<code>set info {age 20 name zhangsan}</code> 配 <code>dict get</code>。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>[expr {1 + 2}]</code> 里的方括号是什么机制？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">命令替换：先执行里面的命令，用结果替换整个 [...]。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能不看示例写出 set + puts 的变量定义与打印</li><li>能解释 {} &quot;&quot; [] 三种符号的区别</li><li>变量名含特殊字符时知道用 ${} 调用</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-02-tcl-01-start/">← TCL 第 1 课 · 环境准备与第一个命令</a><a class="nav-btn" href="/lesson/01-04-tcl-03-tools/">TCL 第 3 课 · 变量三剑客：append / incr / expr →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795425358"></script>
+<script src="/assets/tcl.js?v=1795425358"></script>
+<script src="/assets/app.js?v=1795425358"></script>
+</body>
+</html>

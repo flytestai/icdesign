@@ -43,16 +43,15 @@ LESSONS = os.path.join(WEB, "lesson")
 DATA = os.path.join(WEB, "data")
 
 STAGES = [
-    (0, "阶段零 · 导学", "先把路看清，再开始走", "#6b7f99"),
-    (1, "阶段一 · Linux 与 Tcsh", "后端工程师 90% 的时间在终端里", "#2f7fd0"),
+    (1, "阶段一 · Linux 与 Tcl 基础", "Linux 基础命令与文本处理进阶 12 学时 + Tcl 基础和编程 6 学时", "#2f7fd0"),
     (2, "阶段二 · 后端基本概念", "先懂芯片怎么造出来，再谈工具", "#18a07a"),
-    (3, "阶段三 · Innovus 40nm 项目", "从一个空目录到能跑通的布局布线", "#c98a1e"),
+    (3, "阶段三 · Innovus 40nm 项目实操", "从一个空目录到能跑通的布局布线", "#c98a1e"),
     (4, "阶段四 · ICC2 32nm 项目", "换一套工具，把同一套方法论再走一遍", "#7a5cd6"),
-    (5, "阶段五 · 28nm 全流程", "PR → PT → PV，像项目一样串起来", "#c05a7a"),
+    (5, "阶段五 · 28nm 全流程实战", "PR → PT → PV，像项目一样串起来", "#c05a7a"),
     (6, "阶段六 · STA 静态时序分析", "时序是后端的命，必须自己能算", "#b8860b"),
-    (7, "阶段七 · 功耗与 RedHawk", "芯片为什么会烧、会烫", "#a34a3a"),
-    (8, "阶段八 · 工程经验", "别人踩过的坑，你别再踩", "#4a7a8c"),
-    (9, "阶段九 · 求职", "把会的东西讲清楚、卖出去", "#5a6b7a"),
+    (7, "阶段七 · 功耗分析与 RedHawk 实战", "芯片为什么会烧、会烫", "#a34a3a"),
+    (8, "阶段八 · 实际工作经验分享", "别人踩过的坑，你别再踩", "#4a7a8c"),
+    (9, "阶段九 · 求职与面试", "把会的东西讲清楚、卖出去", "#5a6b7a"),
 ]
 STAGE_NAME = {s[0]: s[1] for s in STAGES}
 STAGE_COLOR = {s[0]: s[3] for s in STAGES}
@@ -70,12 +69,12 @@ def asset_ver():
 
 def bust(html):
     v = asset_ver()
-    for name in ("app.css", "app.js", "shell.js", "page.js"):
+    for name in ("app.css", "app.js", "shell.js", "page.js", "tcl.js"):
         html = html.replace('/assets/' + name, '/assets/' + name + '?v=' + v)
     return html
 
 
-NAV = [("/", "课程"), ("/quiz/", "题库"), ("/exam/", "验收"), ("/glossary/", "术语"),
+NAV = [("/", "课程"), ("/playground/", "练习场"), ("/quiz/", "题库"), ("/exam/", "验收"), ("/glossary/", "术语"),
        ("/cheatsheet/", "速查"), ("/search/", "搜索"), ("/progress/", "进度")]
 
 BLOCK_RE = re.compile(r"^:::([a-z]+)(?:[ \t]+(.*?))?[ \t]*\n(.*?)^:::[ \t]*$", re.S | re.M)
@@ -83,7 +82,7 @@ BLOCK_RE = re.compile(r"^:::([a-z]+)(?:[ \t]+(.*?))?[ \t]*\n(.*?)^:::[ \t]*$", r
 
 # ---------------------------------------------------------------- 基础工具
 def esc(t):
-    return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
 def inline(t):
@@ -205,11 +204,32 @@ def render_block(name, arg, body):
         return f'<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul>{items}</ul></div>'
     if name == "sandbox":
         return render_sandbox(arg)
+    if name == "tclsh":
+        return render_tclsh(arg, "")
+    if name == "tclrun":
+        return render_tclsh("", "\n".join(body).strip())
     if name == "fig":
         return render_fig(arg)
     if name == "svg":
         return '<div class="fig">' + "\n".join(body).strip() + "</div>"
     return md(chr(10).join(body))
+
+
+def render_tclsh(arg, code):
+    """Tcl 练习终端：browser 内置解释器。
+       :::tclsh 提示语        —— 空终端自由练
+       :::tclrun + 代码块体   —— 预置代码，一键运行"""
+    hint = esc(arg or "在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令")
+    codeattr = esc(code)
+    hascode = " has-code" if code else ""
+    return f"""<div class="tsbx{hascode}" data-code="{codeattr}">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">{hint}</span><button class="sbx-rst" type="button">重置</button></div>
+  {('<div class="tcl-code"><pre>' + esc(code) + '</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>') if code else ''}
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>"""
 
 
 def render_fig(arg):
@@ -470,6 +490,7 @@ PAGE = HEAD + """
   </main>
 </div>
 <script src="/assets/shell.js"></script>
+<script src="/assets/tcl.js"></script>
 <script src="/assets/app.js"></script>
 </body>
 </html>"""
@@ -479,6 +500,7 @@ SUB = HEAD + """
 {body}
 </main>
 <script src="/assets/shell.js"></script>
+<script src="/assets/tcl.js"></script>
 <script src="/assets/page.js"></script>
 </body>
 </html>"""
@@ -496,9 +518,10 @@ HOME = HEAD + """
 
 <section class="quick">
   <div class="qgrid">
+    <a class="qcard" href="/playground/"><b>Tcl 练习场</b><span>浏览器里直接写 Tcl · 在线运行 · 一键示例</span></a>
     <a class="qcard" href="/quiz/"><b>题库</b><span>{nquiz} 道自测题 · 随机抽题 · 错题本</span></a>
     <a class="qcard" href="/glossary/"><b>术语表</b><span>{nterm} 条中英对照 · 按阶段筛选</span></a>
-    <a class="qcard" href="/cheatsheet/"><b>命令速查</b><span>Linux / Innovus / ICC2 / PT 一页查</span></a>
+    <a class="qcard" href="/cheatsheet/"><b>命令速查</b><span>Tcl / Linux 常用命令一页查</span></a>
     <a class="qcard" href="/progress/"><b>进度看板</b><span>哪一阶段欠多少、下一步学什么</span></a>
   </div>
 </section>
@@ -673,12 +696,56 @@ PROGRESS_BODY = """
 """
 
 
+PLAYGROUND_BODY = """
+<div class="pg-wrap">
+  <div class="pg-toolbar">
+    <select id="pg-example"><option value="">—— 选一个示例练手 ——</option></select>
+    <button id="pg-run" class="pri" type="button">▶ 运行 (Ctrl+Enter)</button>
+    <button id="pg-clear" class="ghost" type="button">清空输出</button>
+    <button id="pg-reset" class="ghost" type="button">重置全部</button>
+  </div>
+  <div class="pg-grid">
+    <div class="pg-editor">
+      <div class="pg-eh">Tcl 代码（支持多行脚本；continue 会等下一行）</div>
+      <textarea id="pg-code" spellcheck="false" autocomplete="off">puts "Hello, Tcl!"
+set name "魏工"
+puts "你好，$name"
+
+set sum 0
+foreach i {1 2 3 4 5} {
+  set sum [expr {$sum + $i}]
+}
+puts "1+2+3+4+5 = $sum"</textarea>
+    </div>
+    <div class="pg-right">
+      <div class="pg-stdin">
+        <div class="pg-eh">stdin 预输入（每行一条，供 gets stdin 读取）</div>
+        <textarea id="pg-stdin" spellcheck="false" placeholder="例如脚本里有 gets stdin score，就在这里先写好 85"></textarea>
+      </div>
+      <div class="pg-outbox">
+        <div class="pg-eh">输出</div>
+        <pre id="pg-out" class="pg-out"></pre>
+      </div>
+    </div>
+  </div>
+  <div class="pg-note">解释器覆盖课程全部命令：set·puts·expr·incr·append·unset·array(set/get/names/size)·dict get·list/lindex/llength/lappend/lreplace/lsearch/lsort/concat/split/join·if·while·foreach·for·break·continue·proc（含默认参数与 args）·global·return·gets stdin·rand()。报错信息与真实 tclsh 同款，例如 can't read "x": no such variable。</div>
+</div>
+"""
+
+
+def build_playground():
+    subpage("playground", "Tcl 在线练习场",
+            "不用装任何软件：左边写 Tcl，右边看输出。内置解释器覆盖课程全部命令，报错行为与真实 tclsh 一致。",
+            PLAYGROUND_BODY)
+
+
 def build_subpages(lessons, nquiz, nterm):
     subpage("quiz", "题库", f"{nquiz} 道自测题，按阶段筛选、随机抽题、自动记错题。", QUIZ_BODY)
     subpage("exam", "阶段验收", "学完一个阶段来验一验：随机抽题、80 分过关、进度看板留痕。", EXAM_BODY)
     subpage("glossary", "术语表", f"全站 {nterm} 条术语，英文原名 + 中文 + 白话解释 + 出处。", GLOSS_BODY)
     subpage("search", "搜索", "全站章节级搜索，命中后直接跳到对应小节。", SEARCH_BODY)
     subpage("progress", "学习进度", "按阶段看完成度，知道下一步该学哪一章。", PROGRESS_BODY)
+    build_playground()
     build_cheatsheet()
 
 

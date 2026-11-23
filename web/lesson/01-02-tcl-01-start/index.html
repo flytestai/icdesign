@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TCL 第 1 课 · 环境准备与第一个命令 · 2 | IC 后端学院</title>
+<meta name="description" content="TCL 是 EDA 工具的标准脚本语言，Innovus、DC、PT 全用它。这一课先搞定 EDA 环境加载，写出第一个 puts，弄懂注释怎么写。学完你就能在网页里的 Tcl 练习台上跑出第一行输出。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795425358">
+</head>
+<body data-page="lesson" data-lesson="01-02-tcl-01-start">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcl 基础</a><span>/</span><b>TCL 第 1 课 · 环境准备与第一个命令</b></div>
+    <div class="hero">
+      <div class="hero-no">2</div>
+      <h1>TCL 第 1 课 · 环境准备与第一个命令</h1>
+      <p class="hero-en">Tcl Basics 1 - Environment & First Command</p>
+      <p class="hero-sum">TCL 是 EDA 工具的标准脚本语言，Innovus、DC、PT 全用它。这一课先搞定 EDA 环境加载，写出第一个 puts，弄懂注释怎么写。学完你就能在网页里的 Tcl 练习台上跑出第一行输出。</p>
+      <div class="hero-meta">
+        <span class="pill">约 45 分钟</span>
+        <span class="pill">课表学时 1</span>
+        <span class="pill tag">Tcl</span><span class="pill tag">入门</span><span class="pill tag">puts</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="what" data-ch="what">
+  <div class="ch-h"><span class="ch-n">01</span><h2>先认识 TCL：为什么后端工程师必须会它</h2></div>
+  <div class="goal"><span>本章目标</span>知道 TCL 是什么、为什么 IC 后端离不开它；配好 EDA 环境；能用 puts 输出一句话，并用两种写法加注释。</div>
+<p>TCL 是一门非常简单的脚本语言，核心哲学只有一句话：<strong>一切都是命令 + 参数</strong>。</p>
+<p>它是 EDA 工具的标准脚本语言——Cadence Innovus、Synopsys DC、PrimeTime 的命令行全是 TCL。你在工具里敲的每一条命令、写的每一个自动化脚本，都是 TCL。所以学 TCL 不是&quot;多学一门语言&quot;，而是<strong>打开后端工具的钥匙</strong>。</p>
+<p>好消息：你会 Python（甚至不会也行），学 TCL 就是&quot;换一种说话方式&quot;。对照着学，一周就能上手。</p>
+<div class="tbl"><table><thead><tr><th>你在 Python 里写的</th><th>在 TCL 里要这样写</th></tr></thead><tbody><tr><td><code>print(&quot;hello&quot;)</code></td><td><code>puts &quot;hello&quot;</code></td></tr><tr><td><code>name = &quot;Tom&quot;</code></td><td><code>set name &quot;Tom&quot;</code></td></tr><tr><td>注释 <code>#</code></td><td><code>;#</code>（行中）或 <code>#</code>（行首）</td></tr></tbody></table></div>
+  <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="env" data-ch="env">
+  <div class="ch-h"><span class="ch-n">02</span><h2>环境准备：EDA 工具怎么加载</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">EDA 环境</span><span class="term-zh">让工具命令能被找到的一堆配置</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>TCL 平时不是独立运行的，而是&quot;寄生&quot;在 EDA 工具里。工具装在 Linux 服务器上，环境脚本把它们的位置、许可、路径写进终端会话。</p></div>
+</div>
+<p><strong>问题场景</strong>：运行 <code>innovus -cpus 2</code> 打不开——终端说找不到命令。</p>
+<p><strong>解决办法</strong>：打开 <code>~/.bashrc</code> 文件，在末尾增加以下几行（把各家工具的环境脚本加载进来）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">source /opt/cadence/cds.sh</span><span class="ln ">source /opt/mentor/mentor.sh</span><span class="ln ">source /opt/synopsys/snop.sh</span><span class="ln ">source /opt/ansys/rh.sh</span></code></pre></div>
+<p>然后重新加载配置：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">source .bashrc</span></code></pre></div>
+<p><strong>打开 Innovus 图形界面</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">win</span></code></pre></div>
+<p><strong>关闭</strong>：<code>exit</code> 或 <code>close</code>。</p>
+<div class="tip"><div class="tip-h">小技巧</div><p><code>source</code> 就是&quot;把一个脚本文件的内容当场执行一遍&quot;。配置改完忘了 source，等于没改。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="env"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="puts" data-ch="puts">
+  <div class="ch-h"><span class="ch-n">03</span><h2>第一个命令：puts</h2></div>
+  <p><code>puts</code> = put string，作用和 Python 的 <code>print()</code> 一样：输出内容并换行。字符串用双引号 <code>&quot;...&quot;</code> 包起来。</p>
+<div class="tsbx has-code" data-code="puts &quot;Hello, TCL!&quot;
+puts &quot;我是后端工程师&quot;">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>puts &quot;Hello, TCL!&quot;
+puts &quot;我是后端工程师&quot;</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<p>点&quot;运行这段代码&quot;——这就是你的第一行 TCL。下面的输入行可以直接继续敲命令，敲 <code>set name &quot;张工&quot;</code> 回车，再敲 <code>puts &quot;你好，$name&quot;</code> 回车试试（<code>$name</code> 是取变量的值，下一课细讲）。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="puts"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="comment" data-ch="comment">
+  <div class="ch-h"><span class="ch-n">04</span><h2>注释：两种写法</h2></div>
+  <ul><li><strong>行首注释</strong>：用 <code>#</code>，和 Python 一样。</li><li><strong>行中注释</strong>：命令后面接 <code>;#</code>——分号表示&quot;这一行命令到此结束&quot;，然后 <code>#</code> 开始注释。</li></ul>
+<div class="tsbx has-code" data-code="set age 25   ;# 这是行中注释
+# 这是整行注释
+puts $age">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set age 25   ;# 这是行中注释
+# 这是整行注释
+puts $age</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="pit"><div class="pit-h">常见坑 · 忘了分号直接写 # 注释，命令被吞掉</div><div class="pit-b"><p><code>set age 25 # 注释</code> 是错的：TCL 会把 <code>#</code> 也当成 set 的参数，报参数错误。行中注释必须写成 <code>;#</code>——先分号结束命令，再井号注释。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="comment"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">05</span><h2>动手练</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>在练习台上跑通三句话</div><div class="lab-b"><p>用下面的练习台完成：1）输出&quot;我要学 TCL 了&quot;；2）定义变量 <code>age</code> 并打印；3）给其中一句加行中注释。敲错了看报错，报错也是学习的一部分。</p></div></div>
+<div class="tsbx" data-code="">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">提示：先用 puts 输出一句话试试；命令敲错会看到和真实 tclsh 一样的报错</span><button class="sbx-rst" type="button">重置</button></div>
+  
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>TCL 的核心哲学是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">一切都是命令 + 参数。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>innovus 命令找不到，第一步检查什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">检查 <code>~/.bashrc</code> 里有没有 source 各家工具的环境脚本，改完记得 <code>source .bashrc</code> 重新加载。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>puts 的作用相当于 Python 里的什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">print()，输出内容并换行。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>行中注释怎么写？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">用 <code>;#</code>：分号结束当前命令，# 开始注释。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 TCL 和 EDA 工具的关系</li><li>能在网页练习台里用 puts 输出任意一句话</li><li>能区分 <code>#</code> 和 <code>;#</code> 两种注释的用法</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-01-linux-plan/">← Linux 基础命令和文本处理进阶（课表 12 学时）</a><a class="nav-btn" href="/lesson/01-03-tcl-02-vars/">TCL 第 2 课 · 变量与替换规则（TCL 的灵魂） →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795425358"></script>
+<script src="/assets/tcl.js?v=1795425358"></script>
+<script src="/assets/app.js?v=1795425358"></script>
+</body>
+</html>

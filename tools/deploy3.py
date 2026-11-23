@@ -102,8 +102,9 @@ def main():
 
         time.sleep(2)
         rc, out, err = sh(c, (
-            "for p in / /quiz/ /glossary/ /search/ /progress/ /cheatsheet/ "
-            "/lesson/03-10-optcts/ /lesson/05-04-eco/ /data/quiz.json /assets/shell.js; do "
+            "for p in / /playground/ /quiz/ /glossary/ /search/ /progress/ /cheatsheet/ "
+            "/lesson/01-02-tcl-01-start/ /lesson/01-07-tcl-06-flow-proc/ /data/quiz.json "
+            "/data/catalog.json /assets/tcl.js /assets/shell.js; do "
             "printf '%s -> ' $p; curl -s -o /dev/null -w '%{http_code}\\n' -m 8 http://127.0.0.1:8710$p; done"), timeout=180)
         print(out.strip())
         return 0

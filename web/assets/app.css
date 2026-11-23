@@ -465,3 +465,42 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .pnnav .pn.next{text-align:left;align-items:flex-start}
   .xcard .xcr{width:100%;justify-content:space-between}
 }
+
+/* ==================== Tcl 练习台 .tsbx（复用 sbx 外观） ==================== */
+.tsbx{border:1px solid var(--line,#e3e8ef);border-radius:12px;margin:18px 0;overflow:hidden;background:#0f172a}
+.tsbx .sbx-h{display:flex;align-items:center;gap:10px;padding:9px 14px;background:#1e293b}
+.tsbx .sbx-dots i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#334155;margin-right:5px}
+.tsbx .sbx-h b{color:#e2e8f0;font-size:13px}
+.tsbx .sbx-tip{color:#94a3b8;font-size:12px;flex:1}
+.tsbx .sbx-rst{background:#334155;color:#cbd5e1;border:none;border-radius:7px;padding:4px 12px;font-size:12px;cursor:pointer}
+.tsbx .sbx-rst:hover{background:#475569}
+.tcl-code{padding:10px 14px;background:#16203a;border-bottom:1px solid #27334d}
+.tcl-code pre{margin:0;color:#a5f3fc;font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.65;white-space:pre-wrap;word-break:break-all}
+.tcl-go{margin-top:8px;background:#10b981;color:#04211a;border:none;border-radius:8px;padding:6px 18px;font-size:13px;font-weight:700;cursor:pointer}
+.tcl-go:hover{filter:brightness(1.1)}
+.tsbx .sbx-body{padding:10px 12px 4px}
+.tsbx .sbx-out{max-height:340px;overflow-y:auto;font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.7;color:#dbeafe;min-height:52px;padding:6px 8px}
+.tsbx .sbx-out .err{color:#fca5a5}
+.tsbx .sbx-out .in{color:#86efac}
+.tsbx .sbx-out .dim{color:#64748b}
+.tsbx .sbx-line{display:flex;align-items:center;gap:8px;padding:8px;border-top:1px solid #27334d}
+.tsbx .sbx-ps1{color:#34d399;font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:nowrap}
+.tsbx .sbx-in{flex:1;background:transparent;border:none;outline:none;color:#f1f5f9;font-family:ui-monospace,Consolas,monospace;font-size:13.5px}
+.tsbx .sbx-f{padding:6px 14px 10px;color:#64748b;font-size:11.5px;line-height:1.6}
+
+/* ==================== 练习场 /playground/ ==================== */
+.pg-wrap{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+.pg-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.pg-toolbar select{flex:1;min-width:220px;max-width:420px;border:1px solid #d5dce6;border-radius:9px;padding:8px 12px;font-size:14px;background:#fff}
+.pg-toolbar .pri{background:#4f46e5;color:#fff;border:none;border-radius:9px;padding:9px 20px;font-size:14px;font-weight:600;cursor:pointer}
+.pg-toolbar .pri:hover{filter:brightness(1.08)}
+.pg-toolbar .ghost{background:#fff;border:1px solid #d5dce6;color:#475569;border-radius:9px;padding:9px 16px;font-size:13.5px;cursor:pointer}
+.pg-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+@media(max-width:860px){.pg-grid{grid-template-columns:1fr}}
+.pg-eh{font-size:12px;font-weight:700;color:#64748b;letter-spacing:.5px;padding:8px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-bottom:none;border-radius:10px 10px 0 0}
+.pg-editor textarea,.pg-stdin textarea{width:100%;height:380px;resize:vertical;border:1px solid #e2e8f0;border-radius:0 0 10px 10px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13.5px;line-height:1.7;color:#0f172a;background:#fffdf5;outline:none;box-sizing:border-box}
+.pg-stdin textarea{height:110px;background:#fff}
+.pg-editor textarea:focus,.pg-stdin textarea:focus{border-color:#4f46e5}
+.pg-outbox{margin-top:14px}
+.pg-out{height:260px;overflow-y:auto;margin:0;border:1px solid #e2e8f0;border-radius:0 0 10px 10px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.7;background:#0f172a;color:#dbeafe;white-space:pre-wrap;word-break:break-all}
+.pg-note{margin-top:18px;font-size:12.5px;color:#64748b;line-height:1.8;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:10px 16px}
