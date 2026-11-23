@@ -1,17 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- 引脚：每边 2 根，圆头短线 -->
-  <g stroke="#2f7fd0" stroke-width="2.6" stroke-linecap="round">
-    <path d="M11.5 6.8v-4.3"/>
-    <path d="M20.5 6.8v-4.3"/>
-    <path d="M11.5 25.2v4.3"/>
-    <path d="M20.5 25.2v4.3"/>
-    <path d="M6.8 11.5h-4.3"/>
-    <path d="M6.8 20.5h-4.3"/>
-    <path d="M25.2 11.5h4.3"/>
-    <path d="M25.2 20.5h4.3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <!-- CPU 芯片俯视图标（按参考图重绘）：方形圆角芯片体 + 中心方形镂空 die + 四边各两根引脚 -->
+  <g fill="#2f7fd0">
+    <!-- 上引脚 -->
+    <rect x="10" y="0" width="5" height="10" rx="2"/>
+    <rect x="21" y="0" width="5" height="10" rx="2"/>
+    <!-- 下引脚 -->
+    <rect x="10" y="26" width="5" height="10" rx="2"/>
+    <rect x="21" y="26" width="5" height="10" rx="2"/>
+    <!-- 左引脚 -->
+    <rect x="0" y="10" width="10" height="5" rx="2"/>
+    <rect x="0" y="21" width="10" height="5" rx="2"/>
+    <!-- 右引脚 -->
+    <rect x="26" y="10" width="10" height="5" rx="2"/>
+    <rect x="26" y="21" width="10" height="5" rx="2"/>
+    <!-- 芯片体 -->
+    <rect x="7" y="7" width="22" height="22" rx="4.5"/>
   </g>
-  <!-- 芯片体 -->
-  <rect x="6.8" y="6.8" width="18.4" height="18.4" rx="4.5" fill="#2f7fd0"/>
-  <!-- 中心 die（镂空） -->
-  <rect x="12.4" y="12.4" width="7.2" height="7.2" rx="2" fill="#fff"/>
+  <!-- 中心 die 镂空 -->
+  <rect x="14.5" y="14.5" width="7" height="7" rx="1" fill="#ffffff"/>
 </svg>

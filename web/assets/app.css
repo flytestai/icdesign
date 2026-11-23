@@ -370,7 +370,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .logo b{font-size:14px}
   .top-nav{flex:1 1 auto;min-width:0;overflow-x:auto;white-space:nowrap}
   .top-right{flex:0 0 auto;margin-left:0;gap:6px}
-  .top-right .ghost{padding:4px 9px;font-size:12px}
+  .top-right .ghost{display:none}
   .top-right .lp{display:none}
   .userchip{gap:6px;padding-left:8px;margin-left:0}
   .userchip .uc-name,.userchip .uc-role,.userchip a{display:none}

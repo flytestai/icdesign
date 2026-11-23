@@ -69,7 +69,7 @@ def asset_ver():
 
 def bust(html):
     v = asset_ver()
-    for name in ("app.css", "app.js", "shell.js", "page.js", "tcl.js"):
+    for name in ("app.css", "app.js", "shell.js", "page.js", "tcl.js", "logo.svg"):
         html = html.replace('/assets/' + name, '/assets/' + name + '?v=' + v)
     return html
 
