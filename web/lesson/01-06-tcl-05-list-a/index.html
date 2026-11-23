@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TCL 第 5 讲 · 列表（上）：定义与读取 · 6 | IC 后端学院</title>
+<meta name="description" content="列表是 TCL 最常用的数据结构。两种定义方法（大括号 {} 适合多行 / list 命令适合单行嵌套）、lindex 取元素、llength 求长度、嵌套列表的两种访问写法（双层 lindex 与多级连写）。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795425358">
+</head>
+<body data-page="lesson" data-lesson="01-06-tcl-05-list-a">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcl 基础</a><span>/</span><b>TCL 第 5 讲 · 列表（上）：定义与读取</b></div>
+    <div class="hero">
+      <div class="hero-no">6</div>
+      <h1>TCL 第 5 讲 · 列表（上）：定义与读取</h1>
+      <p class="hero-en">Tcl 5 - Lists I</p>
+      <p class="hero-sum">列表是 TCL 最常用的数据结构。两种定义方法（大括号 {} 适合多行 / list 命令适合单行嵌套）、lindex 取元素、llength 求长度、嵌套列表的两种访问写法（双层 lindex 与多级连写）。</p>
+      <div class="hero-meta">
+        <span class="pill">约 45 分钟</span>
+        <span class="pill">课表学时 1</span>
+        <span class="pill tag">Tcl</span><span class="pill tag">列表</span><span class="pill tag">lindex</span><span class="pill tag">llength</span><span class="pill tag">嵌套列表</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="define" data-ch="define">
+  <div class="ch-h"><span class="ch-n">01</span><h2>列表是什么、两种核心定义方法</h2></div>
+  <div class="goal"><span>本章目标</span>会用 {} 和 list 两种方法定义列表；会用 lindex / llength 读取；会取嵌套列表里的值（两种写法都熟）。</div>
+<p>列表是 TCL 中<strong>最常用</strong>的数据结构，用于存储<strong>有序</strong>的多个元素（元素可以是字符串、数字、甚至另一个列表），支持增删改查、排序、拼接等操作。对应 Python 的 list。</p>
+<h3>方法 1：大括号 {} 定义（适合多行元素） {#brace}</h3>
+<p>大括号会保留元素的原始格式（如换行、空格），无需转义，<strong>空格和换行都是元素分隔符</strong>：</p>
+<div class="tsbx has-code" data-code="set fruit_list {apple banana orange}
+puts $fruit_list
+puts [llength $fruit_list]   ;# 3 个元素
+
+;# 元素含空格时需用双引号
+set with_space {one &quot;two words&quot; three}
+puts $with_space
+puts [lindex $with_space 1]  ;# two words">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set fruit_list {apple banana orange}
+puts $fruit_list
+puts [llength $fruit_list]   ;# 3 个元素
+
+;# 元素含空格时需用双引号
+set with_space {one &quot;two words&quot; three}
+puts $with_space
+puts [lindex $with_space 1]  ;# two words</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<p>多行写完全没问题，<code>{}</code> 把换行当分隔符（第 2 讲的分组原理）：</p>
+<div class="tsbx has-code" data-code="set cell_list {
+    RAM_0_4
+    RAM_0_3
+    RAM_0_2
+}
+puts $cell_list
+puts &quot;共 [llength $cell_list] 个元素&quot;">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set cell_list {
+    RAM_0_4
+    RAM_0_3
+    RAM_0_2
+}
+puts $cell_list
+puts &quot;共 [llength $cell_list] 个元素&quot;</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<h3>方法 2：list 命令定义（适合单行 / 嵌套列表） {#listcmd}</h3>
+<p>list 命令会自动处理元素的分隔，嵌套列表时更清晰：</p>
+<div class="tsbx has-code" data-code=";# 普通列表
+set num_list [list 1 2 3 4 5]
+puts $num_list   ;# 输出：1 2 3 4 5
+
+;# 嵌套列表（列表中包含列表）
+set nested_list [list 10 {20 30} {40 50 60}]
+puts $nested_list   ;# 输出：10 {20 30} {40 50 60}">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>;# 普通列表
+set num_list [list 1 2 3 4 5]
+puts $num_list   ;# 输出：1 2 3 4 5
+
+;# 嵌套列表（列表中包含列表）
+set nested_list [list 10 {20 30} {40 50 60}]
+puts $nested_list   ;# 输出：10 {20 30} {40 50 60}</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="define"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="read" data-ch="read">
+  <div class="ch-h"><span class="ch-n">02</span><h2>读取：lindex（索引从 0 开始）与 llength</h2></div>
+  <p><strong>索引从 0 开始</strong>（和 Python 一样）：</p>
+<div class="tsbx has-code" data-code="set num_list [list 1 2 3 4 5]
+puts [lindex $num_list 2]    ;# 根据索引取元素：取第 3 个元素 → 3
+puts [llength $num_list]     ;# 获取列表长度（元素个数）→ 5">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set num_list [list 1 2 3 4 5]
+puts [lindex $num_list 2]    ;# 根据索引取元素：取第 3 个元素 → 3
+puts [llength $num_list]     ;# 获取列表长度（元素个数）→ 5</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="tip"><div class="tip-h">小技巧</div><p><code>lindex $l 2</code> ≈ <code>l[2]</code>；<code>llength $l</code> ≈ <code>len(l)</code>。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="read"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="nested" data-ch="nested">
+  <div class="ch-h"><span class="ch-n">03</span><h2>列表实操示例：嵌套列表访问</h2></div>
+  <p>一个班级名单：每个学生是&quot;编号 姓名 成绩&quot;的子列表：</p>
+<div class="tsbx has-code" data-code="set class_list {
+    {001 &quot;Xiao Ming&quot; 95}
+    {002 &quot;Xiao Fang&quot; 92}
+    {003 &quot;Xiao Zhang&quot; 88}
+}
+;# 取第2个学生的姓名（索引1的子列表，索引1的元素）
+set name [lindex [lindex $class_list 1] 1]
+puts &quot;第2个学生姓名：$name&quot;    ;# 输出：第2个学生姓名：Xiao Fang
+
+;# 取第3个学生的成绩（索引2的子列表，索引2的元素）
+set score [lindex [lindex $class_list 2] 2]
+puts &quot;第3个学生成绩：$score&quot;   ;# 输出：第3个学生成绩：88">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set class_list {
+    {001 &quot;Xiao Ming&quot; 95}
+    {002 &quot;Xiao Fang&quot; 92}
+    {003 &quot;Xiao Zhang&quot; 88}
+}
+;# 取第2个学生的姓名（索引1的子列表，索引1的元素）
+set name [lindex [lindex $class_list 1] 1]
+puts &quot;第2个学生姓名：$name&quot;    ;# 输出：第2个学生姓名：Xiao Fang
+
+;# 取第3个学生的成绩（索引2的子列表，索引2的元素）
+set score [lindex [lindex $class_list 2] 2]
+puts &quot;第3个学生成绩：$score&quot;   ;# 输出：第3个学生成绩：88</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<p>读法拆解：<code>set name [lindex ...]</code> 中，<code>[]</code> 是命令替换——先算里面的；<code>[lindex [lindex $class_list 外层索引] 内层索引]</code> 由内向外先取子列表、再取子列表里的元素。</p>
+<p><strong>简写形式</strong>：多级索引可以直接连写（由外向内）：</p>
+<div class="tsbx has-code" data-code="set class_list {
+    {001 &quot;Xiao Ming&quot; 95}
+    {002 &quot;Xiao Fang&quot; 92}
+}
+set name [lindex $class_list 1 1]   ;# 等价于 lindex [lindex $class_list 1] 1
+puts $name">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set class_list {
+    {001 &quot;Xiao Ming&quot; 95}
+    {002 &quot;Xiao Fang&quot; 92}
+}
+set name [lindex $class_list 1 1]   ;# 等价于 lindex [lindex $class_list 1] 1
+puts $name</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="tip"><div class="tip-h">小技巧</div><p><code>lindex $L 1 1</code> ≈ <code>L[1][1]</code>。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="nested"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习</div><div class="lab-b"><p>用 <code>{}</code> 定义一个多行列表，装 4 个城市名，其中一个城市名带空格；用 lindex 取第 2 个、用 llength 求长度；再用多级连写法取一个嵌套子列表的值。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>列表的索引从几开始？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">0，和 Python 一样。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>两种定义方法怎么选？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">多行、保留原始格式用大括号 {}（空格换行都是分隔符，含空格元素套双引号）；单行、嵌套列表用 list 命令（自动处理分隔）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>取嵌套列表第 2 行第 2 列的两种写法？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>lindex [lindex $L 1] 1</code> 或 <code>lindex $L 1 1</code>（由外向内）。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用两种方法定义列表并说清适用场景</li><li>lindex / llength 不看资料能写</li><li>嵌套列表两种取值写法都能写对</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-05-tcl-04-array/">← TCL 第 4 讲 · 数组：键-值对（相当于 Python 的字典）</a><a class="nav-btn" href="/lesson/01-07-tcl-06-list-b/">TCL 第 6 讲 · 列表（下）：增删改查、排序与转换 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795425358"></script>
+<script src="/assets/tcl.js?v=1795425358"></script>
+<script src="/assets/app.js?v=1795425358"></script>
+</body>
+</html>

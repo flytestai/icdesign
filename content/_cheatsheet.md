@@ -86,3 +86,14 @@ summary: Tcl 常用命令一页查：变量、运算、数组、列表、流程�
 | 打开/关闭 Innovus 界面 | `win` / `exit`、`close` |
 | 找文件 | `grep -r "pattern" .` |
 | 看进程 | `ps -ef | grep innovus` |
+
+## 常见报错速查 {#errors}
+
+| 报错信息 | 原因 | 解决办法 |
+|---|---|---|
+| `can't read "a": no such variable` | 用 `$a.1` 调用含 `.` 的变量名，被解析成变量 a | 用 `${a.1}` 包裹调用 |
+| `can't read "student(002)": no such element in array` | 数组元素已被 unset 删除 | 重新 `set` 赋值后再用 |
+| `can't read "student(001)": no such array` | 整个数组已被 unset 删除 | 重新定义数组 |
+| 死循环（程序卡住不动） | while 缺了"更新"要素 | 检查循环体内有没有 `incr i` 等更新语句 |
+| if 语法错误 / 命令提前结束 | `}` 和 elseif 不同行、条件没用 {}、用了中文符号 | 检查四大铁律（第 7 讲） |
+| `array set` 报参数错误 | 第一个参数带了括号（如 `person(001)`） | 只写数组名，键放 `{}` 里 |

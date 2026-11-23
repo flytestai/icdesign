@@ -2,17 +2,17 @@
 id: 01-05-tcl-04-array
 no: 5
 stage: 1
-title: TCL 第 4 课 · 数组：键-值对（相当于 Python 的字典）
-en: Tcl Basics 4 - Arrays (Key-Value)
+title: TCL 第 4 讲 · 数组：键-值对（相当于 Python 的字典）
+en: Tcl 4 - Arrays (Key-Value)
 hours: 1
 minutes: 50
-tags: [Tcl, 数组, array, dict, foreach]
-summary: 数组是"键-值对"的集合，对应 Python 的字典。定义、批量赋值 array set、array get/names、删除 unset、两种遍历写法，全在这一课。还有文档反复强调的易错点：array set 第一个参数不能带括号。
+tags: [Tcl, 数组, array, dict, unset]
+summary: 数组是"键-值对"集合，对应 Python 的字典。定义与访问、array set 批量赋值与两个易错点、嵌套列表写法与 dict get、增改、unset 删除与两种报错、foreach 两种遍历、{} "" [] 原理复用、文档原题 fruit 练习。
 ---
 
 ## 数组是什么、怎么定义 {#define}
 
-:::goal 能用 set arr(key) 定义数组并用键取值；会用 array set 批量赋值；会用两种 foreach 写法遍历数组；会用 unset 删除单个元素或整个数组，并认识对应的两种报错。
+:::goal 会用 set arr(key) 定义并访问数组；会用 array set 批量赋值并避开两个易错点；会用嵌套列表写法 + dict get 取嵌套字段；会用 unset 删元素/删数组并认识两种报错；会两种 foreach 遍历。
 :::
 
 数组是"键 - 值对"的集合，键（索引）可以是字符串或数字，值可以是任意数据类型，适合存储关联数据（如学生姓名-学号、产品编号-价格）。**它对应 Python 的 dict**。
@@ -26,72 +26,74 @@ set student(002) "Xiao Fang"
 set student(003) "Xiao Zhang"
 set student(class) "三年级2班"    ;# 键也可以是字符串
 
-puts "学号001：$student(001)"     ;# 访问数组元素
+;# 访问数组元素
+puts "学号001：$student(001)"     ;# 输出：学号001：Xiao Ming
 puts "班级：$student(class)"      ;# 输出：班级：三年级2班
 :::
 
 ## 批量赋值：array set（标准写法） {#arrayset}
 
 :::tclrun
-array set 数组名 {key1 val1 key2 val2}    ;# 一次性批量赋值（这是写法说明，别直接跑）
-:::
-
-真跑的版本：
-
-:::tclrun
-array set person  {name zhangsan age 20}  ;# person 是数组名，{}里是键值 key/val 交替
-puts [array get person]   ;# 返回 name zhangsan age 20（键值对拍平成列表）
+;# 标准写法：array set 数组名 {key1 val1 key2 val2}  批量一次性赋值
+array set person  {name zhangsan age 20}  ;# person 是数组名称 {}里为键值key/val
+puts [array get person]   ;# 返回 name zhangsan age 20
 puts [array names person] ;# 只拿所有键名
 puts [array size person]  ;# 键值对个数
 :::
 
-:::pitfall 两个易错点（文档反复强调）
+:::pitfall 两个易错点（文档强调）
 1. **不可以**写 `array set person(001) {...}` ——`array set` 的第一个参数必须是**数组名字**（单纯名字，不带括号和 key），否则直接报错。
-2. 想"每个键又是一个小信息包"，用嵌套列表：`array set person {001 {name zhangsan age 20} 002 {name lisi age 25}}`，然后 `set val $person(001)` 拿到整包，取字段用 `dict get $person(001) name`。
+2. 想"每个键又是一个小信息包"，用嵌套列表写法（见下一章）。
 :::
 
-嵌套写法真跑：
+**嵌套写法**：`{}` 里为列表，取值后用 dict get 拿字段：
 
 :::tclrun
+;# 不可以：array set person(001) {name zhangsan age 20}
+;# 可以写成：
 array set person {001 {name zhangsan age 20}  002 {name lisi age 25}}
-set val $person(001)      ;# 定义 val 接收列表值
-puts $val                 ;# 打印出：name zhangsan age 20
+set val $person(001)   ;# 定义 val 接收列表值
+puts $val              ;# 打印列表：name zhangsan age 20
 puts [dict get $person(002) name]   ;# 取嵌套字段：lisi
 :::
 
-## 增加 / 修改 / 删除 {#change}
+## 数组增加 / 修改 {#change}
 
-**增加与修改是同一句**：`set 数组名(键) 值`——已存在的键就是**修改**，不存在的键就是**新增**。（和 Python 的 dict 赋值一模一样。）
+**增加：`set 数组名(键) 值`**——存在已有的键就是**修改**，不存在就是**新增**。（和 Python 的 dict 赋值一模一样。）
 
-删除用 `unset`：删单个元素 `unset 数组名(键名)`，删整个数组 `unset 数组名`。
+## 数组删除（unset） {#unset}
+
+使用 `unset` 删除数组中的某个元素或整个数组：
+
+**语法**：`unset 数组名(键名)`（删除单个元素）/ `unset 数组名`（删除整个数组）
 
 :::tclrun
 array set person  {name zhangsan age 20}
-unset person(name)   ;# 删除键：name
-puts [array get person]   ;# 只剩 age 20
+unset person(name)   ;# 删除 键：name
+puts [array get person]   ;# 返回 age 20 无 name
 
-unset person         ;# 删除整个 person 数组
-puts [array get person]   ;# 输出空
+unset person          ;# 删除整个数组
+puts [array get person]   ;# 返回空值
 :::
 
 删除后再访问会报错（两种报错信息要认识）：
 
 ```tcl
 ;# 承接上面的 student 数组
-unset student(002)
-puts $student(002)   ;# 错误！can't read "student(002)": no such element in array
+unset student(002) ;# 删除学号002的元素
+puts $student(002) ;# 错误！can't read "student(002)": no such element in array
 
-unset student
-puts $student(001)   ;# 错误！can't read "student(001)": no such array
+unset student ;# 删除整个student数组
+puts $student(001) ;# 错误！can't read "student(001)": no such array
 ```
 
 :::note 两种报错的区别
 `no such element in array` = 数组还在、键没了；`no such array` = 整个数组没了。看到报错能立刻分清删的是键还是整个数组，调试就快一半。
 :::
 
-## 数组遍历：foreach + array names / array get {#iterate}
+## 数组遍历（foreach + array names / array get） {#iterate}
 
-`array names 数组名` 获取**所有键名**（Tcl 内置数组专用命令，固定语法）；`array get 数组名` 获取**键和值**。
+通过 `array names 数组名` 获取所有键名，再用 foreach 遍历；`array names` 是 Tcl 内置数组专用命令，属于固定语法。
 
 **方法 1：foreach + array names（拿到 key，再用 key 取值）**
 
@@ -101,41 +103,55 @@ set product(id001) "手机"
 set product(id002) "电脑"
 set product(id003) "平板"
 
+;# foreach 循环变量 获取数组 {循环代码块}
 foreach key [array names product] {
     puts "产品$key：$product($key)"
 }
+;# 输出：
+;# 产品id001：手机
+;# 产品id002：电脑
+;# 产品id003：平板
 :::
 
 **方法 2：foreach {k v} + array get（一轮循环同时拿一个键值对）**
 
 :::tclrun
 array set product {001 shouji 002 diannao 003 pingban}
+;# 循环获取键值对
 foreach {k v} [array get product] {
     puts "key=$k val=$v"
 }
 :::
 
-原理：`{k v}` 是变量列表，告诉 foreach——每一轮从数据源取出 2 个元素，依次赋给 k、v。（foreach 的完整讲法在第 8 课。）
+原理：`{k v}` 是变量列表，告诉 foreach：每一轮循环，从数据源取出 2 个元素，依次赋值给 k、v；循环体 `puts "key=$k val=$v"` 打印每一轮的值。（{}（不读变量）和 ""（读变量）是同一类——分组；[] 完全是另一类——替换，第 2 讲的原理在这里再次用到。）
 
-**只遍历值 / 只遍历键**：
+**只遍历 val / 只遍历 key**：
 
 :::tclrun
-array set product {001 shouji 002 diannao}
-foreach key [array names product] { puts $product($key) }   ;# 循环获取 val
-foreach key [array names product] { puts $key }             ;# 循环获取 key
+array set product {001 shouji 002 diannao 003 pingban}
+foreach key [array names product] { puts $product($key) }   ;# 循环获取val
+foreach key [array names product] { puts $key }             ;# 循环获取key
 :::
 
-:::note 小结速查
+:::note 小结速查（文档原文）
 `array names 数组` 获取 key；`array get 数组` 获取 key 和 val。
 :::
 
 ## 动手练 {#lab}
 
 :::lab 文档原题：fruit 数组
-定义一个数组 `fruit`，编号 001、002、003 分别是 apple、banana、orange。分别遍历它的键、遍历它的值。
+定义一个数组 `fruit`，里面编号为 001、002、003，分别是 apple、banana、orange。遍历它的键、遍历它的值。
 :::
 
-:::tclsh 把 fruit 练习敲进来，跑通两种遍历再试 unset
+:::tclsh 参考写法在下面，先自己写，再对照（练习台里改改玩）
+:::
+
+:::tclrun
+set fruit(001) apple
+set fruit(002) banana
+set fruit(003) orange
+foreach key [array names fruit] { puts $key }           ;# 遍历它的键
+foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值
 :::
 
 :::quiz

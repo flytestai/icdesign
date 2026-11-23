@@ -1,6 +1,6 @@
 ---
 id: 03-01-innovus-plan
-no: 9
+no: 13
 stage: 3
 title: 40nm INNOVUS 项目实操（课表 41 学时）
 en: Innovus 40nm Project Lab
@@ -30,7 +30,7 @@ summary: 阶段三：40nm INNOVUS 项目实操，课表 41 学时，是全课程
 | ChipFinish | 2 学时 |
 
 :::note 建设进度说明
-本站按课表逐阶段上线推进：**阶段一（Linux + TCL 基础和编程 6 课时）已上线**，TCL 全部课程带浏览器内可运行的练习台；本阶段正文随后更新。
+本站按课表逐阶段上线推进：**阶段一（Linux + TCL 基础和编程 6 课时，TCL 已上线全部 10 讲）已上线**，TCL 全部课程带浏览器内可运行的练习台；本阶段正文随后更新。
 :::
 
 :::quiz

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TCL 第 7 讲 · 流程控制（上）：if 条件判断与用户输入 · 8 | IC 后端学院</title>
+<meta name="description" content="if-elseif-else 语法与四大语法铁律（文档强调的初学者大坑）、比较与逻辑运算符、gets stdin 用户输入、rand() 随机数、成绩等级判断与猜数字游戏（文档原题）。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/app.css?v=1795425358">
+</head>
+<body data-page="lesson" data-lesson="01-08-tcl-07-if">
+<header class="top">
+  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-1">阶段一 · Linux 与 Tcl 基础</a><span>/</span><b>TCL 第 7 讲 · 流程控制（上）：if 条件判断与用户输入</b></div>
+    <div class="hero">
+      <div class="hero-no">8</div>
+      <h1>TCL 第 7 讲 · 流程控制（上）：if 条件判断与用户输入</h1>
+      <p class="hero-en">Tcl 7 - if & User Input</p>
+      <p class="hero-sum">if-elseif-else 语法与四大语法铁律（文档强调的初学者大坑）、比较与逻辑运算符、gets stdin 用户输入、rand() 随机数、成绩等级判断与猜数字游戏（文档原题）。</p>
+      <div class="hero-meta">
+        <span class="pill">约 50 分钟</span>
+        <span class="pill">课表学时 1</span>
+        <span class="pill tag">Tcl</span><span class="pill tag">if</span><span class="pill tag">elseif</span><span class="pill tag">gets</span><span class="pill tag">rand</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="if" data-ch="if">
+  <div class="ch-h"><span class="ch-n">01</span><h2>if-elseif-else 语法</h2></div>
+  <div class="goal"><span>本章目标</span>会写 if/elseif/else 并背下四大铁律；会用 gets stdin 读输入；会用 rand() 造随机数；能做出成绩等级判断和猜数字游戏。</div>
+<p>根据条件执行不同代码块，条件表达式需用 <code>{}</code> 包裹，支持比较运算符（<code>==</code> 等于、<code>!=</code> 不等于、<code>&gt;</code> 大于、<code>&lt;</code> 小于、<code>&lt;=</code> 小于等于、<code>&gt;=</code> 大于等于）；逻辑运算：与 <code>&amp;&amp;</code>、或 <code>||</code>。</p>
+<p><strong>语法骨架</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">if {条件1} {代码块1} elseif {条件2} {代码块2} else {代码块3}</span></code></pre></div>
+<p><strong>完整示例</strong>：</p>
+<div class="tsbx has-code" data-code="set score 85
+if {$score &gt;= 90} {
+    puts &quot;成绩等级：A（优秀）&quot;
+} elseif {$score &gt;= 80} {
+    puts &quot;成绩等级：B（良好）&quot;
+} elseif {$score &gt;= 60} {
+    puts &quot;成绩等级：C（及格）&quot;
+} else {
+    puts &quot;成绩等级：D（不及格）&quot;
+}
+;# 输出：成绩等级：B（良好）">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>set score 85
+if {$score &gt;= 90} {
+    puts &quot;成绩等级：A（优秀）&quot;
+} elseif {$score &gt;= 80} {
+    puts &quot;成绩等级：B（良好）&quot;
+} elseif {$score &gt;= 60} {
+    puts &quot;成绩等级：C（及格）&quot;
+} else {
+    puts &quot;成绩等级：D（不及格）&quot;
+}
+;# 输出：成绩等级：B（良好）</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="if"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="rules" data-ch="rules">
+  <div class="ch-h"><span class="ch-n">02</span><h2>四大语法铁律（文档强调，初学者最常踩坑）</h2></div>
+  <ol><li><strong>铁律 1</strong>：<code>}</code> 和 <code>elseif</code> / <code>else</code> 必须<strong>同一行</strong>，中间必须<strong>有空格</strong>。</li><li><strong>铁律 2</strong>：<code>if</code> 后面的条件必须包在 <code>{}</code> 里，而且 <code>{</code> 必须跟在条件后面，<strong>不能换行</strong>。</li><li><strong>铁律 3</strong>：所有大括号、运算符，必须是<strong>英文半角符号</strong>，禁止中文括号 / 空格。</li><li><strong>铁律 4</strong>：TCL 是严格一行一条命令：<code>if</code> 是单条完整命令，不能用换行把 <code>}</code> 和 <code>elseif</code> 切开。</li></ol>
+<div class="note"><div class="note-h">为什么有这些规定？</div><p>因为 <code>{...}</code> 是&quot;分组&quot;——<code>}</code> 换行会让 TCL 以为命令提前结束了。（第 2 讲的分组原理在这里兑现。）</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="rules"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="gets" data-ch="gets">
+  <div class="ch-h"><span class="ch-n">03</span><h2>输入（gets stdin）</h2></div>
+  <p><code>gets stdin 变量</code> 相当于 Python 的 <code>input()</code>——从标准输入读一行存进变量：</p>
+<div class="tsbx has-code" data-code="puts &quot;Please enter the score：&quot;
+gets stdin score
+
+if {$score &gt;= 90} {
+    puts &quot;youxiu&quot;
+} elseif {$score &gt;= 80} {
+    puts &quot;lianghao&quot;
+} else {
+    puts &quot;jiayou&quot;
+}">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>puts &quot;Please enter the score：&quot;
+gets stdin score
+
+if {$score &gt;= 90} {
+    puts &quot;youxiu&quot;
+} elseif {$score &gt;= 80} {
+    puts &quot;lianghao&quot;
+} else {
+    puts &quot;jiayou&quot;
+}</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<p>练习台里的玩法：直接在下面输入行敲 <code>gets stdin score</code> 回车，再敲 <code>85</code> 回车，最后敲 <code>puts $score</code> 回车。有了输入，就能做出完整的交互程序。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="gets"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="rand" data-ch="rand">
+  <div class="ch-h"><span class="ch-n">04</span><h2>rand()：获取随机数</h2></div>
+  <p><code>rand()</code> 获取 0-1 的随机数（<strong>不可以等于 1</strong>）。可以输入 <code>expr {rand()}</code> 进行查看获取的随机数：</p>
+<div class="tsbx has-code" data-code="puts [expr {rand()}]
+puts [expr {int(rand()*100)}]   ;# 0-99 的整数随机数（多跑几次看变化）">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>puts [expr {rand()}]
+puts [expr {int(rand()*100)}]   ;# 0-99 的整数随机数（多跑几次看变化）</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+  <label class="ch-done"><input type="checkbox" data-mark="rand"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">05</span><h2>动手练</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>文档原题：猜数字游戏</div><div class="lab-b"><p>思路：用 <code>expr {int(rand()*100)}</code> 生成一个 0-99 的随机数，<code>gets stdin</code> 循环读用户猜的数，<code>if</code> 判断大了/小了/对了。（第 8 讲学了 while 再回来做，参考答案见下。）</p></div></div>
+<div class="tsbx has-code" data-code=";# 猜数字参考实现：练习台里把每次猜测依次敲进输入行（如 50 回车 75 回车……）
+set answer [expr {int(rand()*100)}]
+set times 0
+while {1} {
+    incr times
+    puts &quot;第 $times 次猜：请输入 0-99 的数字&quot;
+    gets stdin guess
+    if {$guess == $answer} {
+        puts &quot;猜对了！答案是 $answer&quot;
+        break
+    } elseif {$guess &gt; $answer} {
+        puts &quot;大了&quot;
+    } else {
+        puts &quot;小了&quot;
+    }
+}">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre>;# 猜数字参考实现：练习台里把每次猜测依次敲进输入行（如 50 回车 75 回车……）
+set answer [expr {int(rand()*100)}]
+set times 0
+while {1} {
+    incr times
+    puts &quot;第 $times 次猜：请输入 0-99 的数字&quot;
+    gets stdin guess
+    if {$guess == $answer} {
+        puts &quot;猜对了！答案是 $answer&quot;
+        break
+    } elseif {$guess &gt; $answer} {
+        puts &quot;大了&quot;
+    } else {
+        puts &quot;小了&quot;
+    }
+}</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>if 的四大铁律？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">① } 和 elseif/else 同行且中间有空格；② 条件用 {} 包裹且 { 不能换行；③ 全部英文半角符号；④ 一行一条完整命令，不能用换行切开 if。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>gets stdin 相当于 Python 的什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">input()，从标准输入读一行存进变量。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>rand() 的取值范围？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">0 到 1 之间、不等于 1。配 int() 用：<code>expr {int(rand()*100)}</code> 生成 0-99 整数。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>条件表达式必须用什么包裹？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a"><code>{}</code>，且 <code>{</code> 必须紧跟条件不能换行。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能写 if/elseif/else 并背出四大铁律</li><li>会用 gets stdin 读输入并完成交互判断</li><li>会用 rand() 造随机数</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/01-07-tcl-06-list-b/">← TCL 第 6 讲 · 列表（下）：增删改查、排序与转换</a><a class="nav-btn" href="/lesson/01-09-tcl-08-loops/">TCL 第 8 讲 · 流程控制（下）：三种循环 while / foreach / for →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795425358"></script>
+<script src="/assets/tcl.js?v=1795425358"></script>
+<script src="/assets/app.js?v=1795425358"></script>
+</body>
+</html>
