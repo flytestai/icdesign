@@ -1,6 +1,6 @@
 ---
 id: 01-09-tcl-08-loops
-no: 9
+no: 8
 stage: 1
 title: TCL 第 8 讲 · 流程控制（下）：三种循环 while / foreach / for
 en: Tcl 8 - Loops

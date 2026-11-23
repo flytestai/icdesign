@@ -1,6 +1,6 @@
 ---
 id: 01-04-tcl-03-tools
-no: 4
+no: 3
 stage: 1
 title: TCL 第 3 讲 · 变量操作三剑客：append / incr / expr
 en: Tcl 3 - append, incr & expr

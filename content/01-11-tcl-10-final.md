@@ -1,6 +1,6 @@
 ---
 id: 01-11-tcl-10-final
-no: 11
+no: 10
 stage: 1
 title: TCL 第 10 讲 · 综合实战 + 结课自测
 en: Tcl 10 - Final Project & Self Test

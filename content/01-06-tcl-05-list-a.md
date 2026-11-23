@@ -1,6 +1,6 @@
 ---
 id: 01-06-tcl-05-list-a
-no: 6
+no: 5
 stage: 1
 title: TCL 第 5 讲 · 列表（上）：定义与读取
 en: Tcl 5 - Lists I

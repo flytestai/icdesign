@@ -1,1 +1,1 @@
-[{"en":"TCL","zh":"Tool Command Language，EDA 工具的脚本语言","def":"核心哲学只有一句话： 一切都是命令 + 参数 。Innovus、DC、PT 的命令行全是 TCL。","lesson":"01-02-tcl-01-start","lessonTitle":"TCL 第 1 讲 · 开工准备：环境与第一个命令","no":"2","stage":1,"stageName":"Linux 与 Tcl 基础","ch":"puts","chTitle":"第一个命令：puts"}]
+[{"en":"TCL","zh":"Tool Command Language，EDA 工具的脚本语言","def":"核心哲学只有一句话： 一切都是命令 + 参数 。Innovus、DC、PT 的命令行全是 TCL。","lesson":"01-02-tcl-01-start","lessonTitle":"TCL 第 1 讲 · 开工准备：环境与第一个命令","no":"1","stage":1,"stageName":"Linux 与 Tcl 基础","ch":"puts","chTitle":"第一个命令：puts"}]

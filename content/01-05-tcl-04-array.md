@@ -1,6 +1,6 @@
 ---
 id: 01-05-tcl-04-array
-no: 5
+no: 4
 stage: 1
 title: TCL 第 4 讲 · 数组：键-值对（相当于 Python 的字典）
 en: Tcl 4 - Arrays (Key-Value)

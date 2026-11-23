@@ -1,6 +1,6 @@
 ---
 id: 01-03-tcl-02-vars
-no: 3
+no: 2
 stage: 1
 title: TCL 第 2 讲 · 变量与替换规则（TCL 的灵魂）
 en: Tcl 2 - Variables & Substitution

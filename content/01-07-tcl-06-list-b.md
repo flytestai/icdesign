@@ -1,6 +1,6 @@
 ---
 id: 01-07-tcl-06-list-b
-no: 7
+no: 6
 stage: 1
 title: TCL 第 6 讲 · 列表（下）：增删改查、排序与转换
 en: Tcl 6 - List Operations

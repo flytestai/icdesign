@@ -1,6 +1,6 @@
 ---
 id: 01-10-tcl-09-proc
-no: 10
+no: 9
 stage: 1
 title: TCL 第 9 讲 · 定义 / 使用函数（proc）
 en: Tcl 9 - proc Functions

@@ -1,6 +1,6 @@
 ---
 id: 05-01-flow28-plan
-no: 15
+no: 14
 stage: 5
 title: 28nm 全流程实战（课表 22 学时）
 en: 28nm Full Flow

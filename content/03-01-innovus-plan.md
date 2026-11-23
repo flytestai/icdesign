@@ -1,6 +1,6 @@
 ---
 id: 03-01-innovus-plan
-no: 13
+no: 12
 stage: 3
 title: 40nm INNOVUS 项目实操（课表 41 学时）
 en: Innovus 40nm Project Lab
