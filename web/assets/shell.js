@@ -259,7 +259,16 @@
             lef: { 'NangateOpenCellLibrary.lef': 'VERSION 5.8 ;\nMACRO INV_X1\n  CLASS CORE ;\n  SIZE 0.76 BY 1.4 ;\nEND INV_X1' }
           }
         },
-        logs: { 'route.log': ROUTELOG }
+        logs: { 'route.log': ROUTELOG },
+        // 第 3 课练习一用的 PT 目录：预置一份，任何一组练习单独跑都能直接用
+        PT: {
+          P1: { txt1: '' },
+          D2: { txt2: '' },
+          K3: {},
+          poi111: {}, lkjs222: {}, mnb333: {}, psaik61: {},
+          asd111: '', asd444: '', asd555: '',
+          qwe222: '', zxc333: ''
+        }
       }
     },
     etc: { hosts: '127.0.0.1   localhost\n10.20.30.40 eda-server' },
@@ -276,8 +285,12 @@
   var SPECIAL = { '|': 1, '>': 1, '<': 1, ';': 1, '&': 1 };
 
   function lex(line) {
-    var out = [], cur = '', q = null, i = 0, ch;
-    function push() { if (cur !== '') { out.push(cur); cur = ''; } }
+    var out = [], cur = '', q = null, quoted = false, i = 0, ch;
+    // \u0002 前缀 = 这个参数被引号包过，后面不要再做通配符展开（和真 bash 一致）
+    function push() {
+      if (cur !== '') { out.push((quoted ? '\u0002' : '') + cur); cur = ''; }
+      quoted = false;
+    }
     while (i < line.length) {
       ch = line.charAt(i);
       if (q) {
@@ -285,7 +298,10 @@
         i++;
         continue;
       }
+      // 行内注释：不在引号内、且位于词首（行首/空白/命令分隔符之后）的 # 之后全部忽略
+      if (ch === '#' && cur === '' && (i === 0 || /[\s|;&]/.test(line.charAt(i - 1)))) break;
       if (ch === '"' || ch === "'") {
+        quoted = true;
         if (ch === "'" && cur === '') cur = '\u0001';   // 标记：单引号内不展开 $变量
         q = ch; i++; continue;
       }
@@ -304,8 +320,10 @@
   }
 
   function expand(tok, sh) {
-    if (tok.charAt(0) === '\u0001') return tok.slice(1);
-    return tok.replace(/\$\{(\w+)\}|\$(\w+)/g, function (m, a, b) {
+    var mark = '';
+    if (tok.charAt(0) === '\u0002') { mark = '\u0002'; tok = tok.slice(1); }
+    if (tok.charAt(0) === '\u0001') return mark + tok.slice(1);
+    return mark + tok.replace(/\$\{(\w+)\}|\$(\w+)/g, function (m, a, b) {
       var k = a || b;
       if (k === 'PWD') return sh.pwd();
       if (k === 'HOME') return '/home/autumn';
@@ -313,6 +331,38 @@
       if (k === '?') return '0';
       return Object.prototype.hasOwnProperty.call(sh.env, k) ? sh.env[k] : '';
     });
+  }
+
+  /**
+   * 通配符展开：ls asd*  /  rm -f *.txt  /  find backend_lab/*.tcl
+   * 规则和真 bash 一致：* 不跨目录、不匹配隐藏文件；一个都没匹配上就把原样交还给命令。
+   * 返回字符串数组（可能多个），没有通配符时返回原字符串。
+   */
+  function globOne(tok, sh) {
+    var noGlob = false;
+    while (tok.charAt(0) === '\u0002' || tok.charAt(0) === '\u0001') {
+      if (tok.charAt(0) === '\u0002') noGlob = true;
+      tok = tok.slice(1);
+    }
+    if (noGlob) return tok;
+    if (tok.indexOf('*') < 0 && tok.indexOf('?') < 0) return tok;
+    var slash = tok.lastIndexOf('/');
+    var dirPart = slash >= 0 ? tok.slice(0, slash) : '';
+    var namePart = slash >= 0 ? tok.slice(slash + 1) : tok;
+    if (!namePart) return tok;
+    var dnode = nodeAt(sh, dirPart ? segsOf(sh.cwd, dirPart) : sh.cwd.slice());
+    if (!dnode || dnode.t !== 'd') return tok;
+    var re = new RegExp('^' + namePart.replace(/[.+^${}()|[\]\\]/g, '\\$&')
+      .replace(/\*/g, '[^/]*').replace(/\?/g, '[^/]') + '$');
+    var hits = [];
+    for (var k in dnode.c) {
+      if (!Object.prototype.hasOwnProperty.call(dnode.c, k)) continue;
+      if (k.charAt(0) === '.') continue;
+      if (re.test(k)) hits.push(k);
+    }
+    if (!hits.length) return tok;
+    hits.sort();
+    return hits.map(function (h) { return dirPart ? dirPart + '/' + h : h; });
   }
 
   function segsOf(cwd, p) {
@@ -374,11 +424,20 @@
 
   CMDS.cd = function (sh, a) {
     var target = a[0] || '/home/autumn';
+    // cd - ：回到上一次的目录（真 bash 里会顺手把路径打出来）
+    if (target === '-') {
+      if (!sh.oldpwd) return { e: 'cd: OLDPWD not set', c: 1 };
+      target = sh.oldpwd;
+      sh.cwd = segsOf([], target);
+      sh.oldpwd = sh.pwd();
+      return { o: target };
+    }
     var segs = segsOf(sh.cwd, target);
     var n = nodeAt(sh, segs);
     if (!n) return { e: 'cd: ' + target + ': No such file or directory', c: 1 };
     if (n.t !== 'd') return { e: 'cd: ' + target + ': Not a directory', c: 1 };
     if (!(parseInt(n.mode || '755', 10) & 1)) return { e: 'cd: ' + target + ': Permission denied', c: 1 };
+    sh.oldpwd = sh.pwd();
     sh.cwd = segs;
     return {};
   };
@@ -396,7 +455,10 @@
       var segs = segsOf(sh.cwd, paths[i]);
       var n = nodeAt(sh, segs);
       if (!n) return { e: "ls: cannot access '" + paths[i] + "': No such file or directory", c: 2 };
-      if (multi) { if (out.length) out.push(''); out.push(paths[i] + ':'); }
+      // -d：目录本身当成一个条目显示，不进去列内容（ls -d p* 就是这么用的）
+      if (fl.d) { out.push(fl.l ? fmtLs(n, paths[i]) : paths[i]); continue; }
+      // 真 ls 的规矩：只有目录参数才打 "名字:" 抬头，文件是直接排出来的
+      if (multi && n.t === 'd') { if (out.length) out.push(''); out.push(paths[i] + ':'); }
       if (n.t === 'f') { out.push(fl.l ? fmtLs(n, paths[i]) : paths[i]); continue; }
       var names = [];
       for (var k in n.c) if (Object.prototype.hasOwnProperty.call(n.c, k)) {
@@ -495,19 +557,46 @@
     var pat = rest.shift();
     var re = rx(pat, fl.i ? 'i' : '');
     if (!re) return { e: 'grep: Invalid regular expression', c: 2 };
-    var src = '', label = '';
-    if (!rest.length) src = stdin || '';
-    else {
-      var r = CMDS.cat(sh, rest);
-      if (r.e) return r;
-      src = r.o; label = rest.length > 1 ? '' : '';
+    var files = rest.slice();
+    // -R / -r：目录参数展开成它下面所有文件，和真 grep -R 一致
+    if (fl.R || fl.r) {
+      var expanded = [];
+      for (i = 0; i < files.length; i++) {
+        var dn = nodeAt(sh, segsOf(sh.cwd, files[i]));
+        if (dn && dn.t === 'd') {
+          (function walk(node, path) {
+            for (var k in node.c) if (Object.prototype.hasOwnProperty.call(node.c, k)) {
+              var p = (path === '/' ? '' : path) + '/' + k;
+              if (node.c[k].t === 'f') expanded.push(p);
+              else walk(node.c[k], p);
+            }
+          })(dn, files[i].replace(/\/+$/, ''));
+        } else expanded.push(files[i]);
+      }
+      files = expanded;
     }
-    var lines = splitLines(src), hits = [], n = 0;
-    for (i = 0; i < lines.length; i++) {
-      var m = re.test(lines[i]);
-      if (fl.v ? !m : m) {
-        n++;
-        if (!fl.c) hits.push((fl.n ? (i + 1) + ':' : '') + lines[i]);
+    var multi = files.length > 1, hits = [], n = 0;
+    // 没有文件参数就读管道/stdin；有文件就逐个处理（多个文件时前缀文件名，行号按文件重数）
+    var targets = files.length ? files : [null];
+    for (var fi = 0; fi < targets.length; fi++) {
+      var srcTxt;
+      if (targets[fi] === null) srcTxt = stdin || '';
+      else {
+        var dnode = nodeAt(sh, segsOf(sh.cwd, targets[fi]));
+        if (dnode && dnode.t === 'd') return { e: 'grep: ' + targets[fi] + ': Is a directory', c: 2 };
+        var fr = CMDS.cat(sh, [targets[fi]]);
+        if (fr.e) return fr;
+        srcTxt = fr.o;
+      }
+      var ls = splitLines(srcTxt);
+      for (i = 0; i < ls.length; i++) {
+        var hit = re.test(ls[i]);
+        if (fl.v ? !hit : hit) {
+          n++;
+          if (!fl.c) {
+            hits.push((multi ? targets[fi] + ':' : '') + (fl.n ? (i + 1) + ':' : '') + ls[i]);
+          }
+        }
       }
     }
     if (fl.c) return { o: String(n) };
@@ -596,6 +685,7 @@
             x = x.trim();
             var fm = x.match(/^\$(\d+)$/);
             if (fm) { var k = parseInt(fm[1], 10); return k === 0 ? lines[i] : (f[k - 1] || ''); }
+            if (x === '$NF') return f[f.length - 1] || '';
             if (x === 'NR') return String(NR);
             if (x === 'NF') return String(f.length);
             if (/^".*"$/.test(x)) return x.slice(1, -1);
@@ -638,14 +728,19 @@
   }
 
   CMDS.sort = function (sh, a, stdin) {
-    var num = false, rev = false, key = 0, files = [], i;
+    var num = false, rev = false, uniq = false, key = 0, files = [], i;
     for (i = 0; i < a.length; i++) {
       var x = a[i];
       if (x === '-n') num = true;
       else if (x === '-r') rev = true;
+      else if (x === '-u') uniq = true;
       else if (x === '-k') key = (parseInt(a[++i], 10) || 1) - 1;
       else if (/^-k\d+$/.test(x)) key = parseInt(x.slice(2), 10) - 1;
-      else if (/^-[nrk]+$/.test(x)) { if (x.indexOf('n') > 0) num = true; if (x.indexOf('r') > 0) rev = true; }
+      else if (/^-[nrku]+$/.test(x)) {
+        if (x.indexOf('n') > 0) num = true;
+        if (x.indexOf('r') > 0) rev = true;
+        if (x.indexOf('u') > 0) uniq = true;
+      }
       else files.push(x);
     }
     var r = srcOf(sh, files, stdin);
@@ -656,6 +751,14 @@
       var d = num ? (parseFloat(xa) || 0) - (parseFloat(ya) || 0) : (xa > ya ? 1 : xa < ya ? -1 : 0);
       return rev ? -d : d;
     });
+    if (uniq) {
+      var seen = {}, keep = [];
+      for (i = 0; i < lines.length; i++) {
+        if (seen[lines[i]]) continue;
+        seen[lines[i]] = 1; keep.push(lines[i]);
+      }
+      lines = keep;
+    }
     return { o: lines.join('\n') };
   };
 
@@ -820,27 +923,41 @@
   };
 
   CMDS.find = function (sh, a) {
-    var start = '.', name = null, i;
+    var start = '.', name = null, type = null, i;
     for (i = 0; i < a.length; i++) {
       if (a[i] === '-name') name = a[++i];
+      else if (a[i] === '-type') type = a[++i];
       else if (a[i].charAt(0) !== '-') start = a[i];
     }
     var segs = segsOf(sh.cwd, start), n = nodeAt(sh, segs);
     if (!n) return { e: "find: '" + start + "': No such file or directory", c: 1 };
     var out = [], re = name ? rx(name.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')) : null;
+    function typeOk(node) {
+      if (!type) return true;
+      return type === 'd' ? node.t === 'd' : (type === 'f' ? node.t === 'f' : true);
+    }
+    // 真 find 会把起点自己也列出来（find backend_lab -type d → 第一行就是 backend_lab）
+    if (!name && type && typeOk(n)) out.push(start);
     (function walk(node, path) {
       for (var k in node.c) if (Object.prototype.hasOwnProperty.call(node.c, k)) {
         var p = (path === '/' ? '' : path) + '/' + k;
-        if (!re || re.test(k)) out.push(p);
+        if ((!re || re.test(k)) && typeOk(node.c[k])) out.push(p);
         if (node.c[k].t === 'd') walk(node.c[k], p);
       }
-    })(n, '/' + segs.join('/'));
+    })(n, start.replace(/\/+$/, ''));
     return { o: out.join('\n') };
   };
 
   CMDS.du = function (sh, a) {
-    var segs = segsOf(sh.cwd, a[0] || '.'), n = nodeAt(sh, segs);
-    if (!n) return { e: "du: cannot access '" + (a[0] || '.') + "': No such file or directory", c: 1 };
+    var target = null, human = false, i;
+    for (i = 0; i < a.length; i++) {
+      if (a[i] === '--') continue;
+      if (a[i].charAt(0) === '-' && a[i].length > 1) { if (a[i].indexOf('h') > 0) human = true; continue; }
+      if (target === null) target = a[i];
+    }
+    if (target === null) target = '.';
+    var segs = segsOf(sh.cwd, target), n = nodeAt(sh, segs);
+    if (!n) return { e: "du: cannot access '" + target + "': No such file or directory", c: 1 };
     var total = 0;
     (function walk(node) {
       for (var k in node.c) if (Object.prototype.hasOwnProperty.call(node.c, k)) {
@@ -849,7 +966,10 @@
         else total += Math.ceil(node.c[k].s.length / 1024);
       }
     })(n);
-    return { o: total + '\t' + (a[0] || '.') };
+    // 内部单位是 KB；-h 换算成 K/M，和真 du -sh 的观感一致
+    var sz = String(total);
+    if (human) sz = total >= 1024 ? (total / 1024).toFixed(1) + 'M' : total + 'K';
+    return { o: sz + '\t' + target };
   };
 
   CMDS.df = function () {
@@ -938,9 +1058,10 @@
   CMDS.help = function () {
     return {
       o: ['可用命令（模拟环境，够练阶段一）:',
-        '  目录   pwd  ls [-la]  cd  mkdir [-p]  find . -name "*.v"  tree',
+        '  目录   pwd  ls [-la]  cd  mkdir [-p]  find . -name "*.v"  find . -type d  tree',
         '  文件   cat  head -n 5  tail -n 5  cp  mv  rm [-rf]  touch  chmod 755',
-        '  文本   grep [-invc]  sed "s/a/b/g"  sed -n "2,4p"  awk "{print $2}"  wc -l  sort -nr  uniq -c  cut -d: -f1  tr a-z A-Z',
+        '  文本   grep [-invc]  sed "s/a/b/g"  sed -n "2,4p"  awk "{print $2}"  wc -l  sort [-nr] [-u]  uniq -c  cut -d: -f1  tr a-z A-Z',
+        '  通配   ls *.txt   rm -f asd*   cp pdk/*.lef .    （* 不跨目录，也不匹配隐藏文件）',
         '  管道   cat x | grep y | wc -l      重定向  echo hi > f   echo hi >> f',
         '  环境   env  export A=1  setenv A 1  echo $A  which ls  alias ll="ls -l"',
         '  进程   ps  kill 9999  df  du -sh',
@@ -1050,7 +1171,13 @@
 
     var stdin = '', whole = [];
     for (var p = 0; p < pipes.length; p++) {
-      var seg = pipes[p].map(function (t) { return expand(t, this); }, this);
+      var seg = [], argi, one, gl;
+      for (argi = 0; argi < pipes[p].length; argi++) {
+        one = expand(pipes[p][argi], this);
+        gl = globOne(one, this);
+        if (Object.prototype.toString.call(gl) === '[object Array]') seg = seg.concat(gl);
+        else seg.push(gl);
+      }
       var redirect = null, append = false, toks = [];
       for (i = 0; i < seg.length; i++) {
         if (seg[i] === '>') { redirect = seg[i + 1]; i++; continue; }

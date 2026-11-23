@@ -745,7 +745,7 @@ PLAYGROUND_BODY = """
   <div class="pg-grid">
     <div class="pg-editor">
       <div class="pg-eh" id="pg-eh">Linux 命令（一行一条，按顺序执行；# 开头是注释）</div>
-      <textarea id="pg-code" spellcheck="false" autocomplete="off"></textarea>
+      <textarea id="pg-code" spellcheck="false" autocomplete="off" wrap="off"></textarea>
     </div>
     <div class="pg-right">
       <div class="pg-stdin" id="pg-stdin-box" style="display:none">
