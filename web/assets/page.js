@@ -314,6 +314,7 @@
         return '<div class="pstage" style="--c:' + esc(s.color) + '"><div class="psh"><h3>' + esc(s.name) + '</h3>' +
           '<span class="pct">' + g.doneCh + '/' + g.allCh + ' 章 · ' + sp + '%</span></div>' +
           '<div class="pmini"><i style="width:' + sp + '%"></i></div>' +
+          exBadge(s.no) +
           '<div class="plist">' + rows + '</div></div>';
       }).join('');
       q('#p-stages').innerHTML = html;
@@ -344,7 +345,149 @@
     });
   }
 
+  /* ==================================================== 阶段验收 */
+  var LS_EXAM = 'icl.exam.';
+  function examKey(s) { return LS_EXAM + s; }
+  function examResult(s) { return load(examKey(s), 'null'); }
+  function exBadge(s) {
+    var r = examResult(s);
+    if (!r) return '<a class="pex" href="/exam/#stage-' + s + '">未验收 · 去做验收卷</a>';
+    return '<a class="pex pass" href="/exam/#stage-' + s + '">已验收 ' + r.score + ' 分</a>';
+  }
+
+  function initExam() {
+    var list = q('#x-stages'), panel = q('#x-panel');
+    var PASS = 0.8;
+    var cat = null, quiz = null, run = null;   // run = {stage, items, right, graded}
+
+    function stageMeta() {
+      var m = {};
+      (cat.lessons || []).forEach(function (L) {
+        m[L.stage] = m[L.stage] || { stage: L.stage, name: '', lessons: 0, qs: 0 };
+        m[L.stage].lessons++;
+      });
+      (cat.stages || []).forEach(function (s) {
+        if (m[s.no]) m[s.no].name = s.name;
+      });
+      (quiz || []).forEach(function (x) { if (m[x.stage]) m[x.stage].qs++; });
+      return (cat.stages || []).map(function (s) { return m[s.no]; }).filter(Boolean);
+    }
+
+    function cardList(items) {
+      return items.map(function (item, i) {
+        return '<div class="qcard2" data-i="' + i + '">' +
+          '<div class="qmeta"><span>' + esc(item.no) + '</span>' +
+          '<a href="/lesson/' + esc(item.lesson) + '/#' + esc(item.ch) + '">' + esc(item.lessonTitle) + '</a>' +
+          '<span>' + esc(item.stageName) + '</span></div>' +
+          '<div class="qq">' + (i + 1) + '. ' + esc(item.q) + '</div>' +
+          '<div class="qacts"><button class="qshow" type="button">看答案</button>' +
+          '<button class="qok" type="button">我答对了</button><button class="qno" type="button">我答错了</button></div>' +
+          '<div class="qa">' + esc(item.a) + '</div></div>';
+      }).join('');
+    }
+
+    function bindGrades(root, onAll) {
+      var graded = 0;
+      qa('.qcard2', root).forEach(function (c) {
+        var show = q('.qshow', c), ok = q('.qok', c), no = q('.qno', c);
+        function pick(cls) {
+          return function () {
+            if (c.getAttribute('data-done')) return;
+            c.setAttribute('data-done', '1');
+            c.classList.add('open');
+            c.classList.add(cls);
+            ok.disabled = no.disabled = true;
+            if (cls === 'g-ok') run.right++;
+            graded++;
+            if (graded === run.items.length && onAll) onAll();
+          };
+        }
+        show.addEventListener('click', function () { c.classList.add('open'); });
+        ok.addEventListener('click', pick('g-ok'));
+        no.addEventListener('click', pick('g-no'));
+      });
+    }
+
+    function finish() {
+      var t = run.items.length, n = run.right, score = Math.round(n / t * 100);
+      var pass = score >= 80;
+      if (pass) {
+        var prev = examResult(run.stage);
+        if (!prev || score > prev.score) {
+          save(examKey(run.stage), { score: score, right: n, total: t, date: Date.now() });
+        }
+      }
+      panel.innerHTML =
+        '<div class="xres' + (pass ? ' pass' : ' fail') + '">' +
+        '<b>' + score + ' 分 · ' + (pass ? '过关！' : '还差一点') + '</b>' +
+        '<span>答对 ' + n + ' / ' + t + '，过关线 80 分' +
+        (pass ? '' : '。标红的题对应课程都列在下面，回去把那一节再看一遍，明天再验一次。') + '</span></div>' +
+        '<div class="xacts"><button class="pri" id="x-again" type="button">再抽一套</button>' +
+        '<button class="ghost" id="x-back" type="button">返回阶段列表</button></div>' +
+        '<div class="xnote">本次抽到的题：答错的课建议优先复习。</div>' +
+        cardList(run.items);
+      bindGrades(panel, null);   // 已评过的题不会再计分，只保留展开
+      q('#x-back').addEventListener('click', back);
+      q('#x-again').addEventListener('click', function () { start(run.stage); });
+      window.scrollTo(0, 0);
+    }
+
+    function start(stage) {
+      var items = shuffle((quiz || []).filter(function (x) { return x.stage === stage; }));
+      items = items.slice(0, Math.min(20, Math.max(items.length, 8)));
+      if (!items.length) { panel.innerHTML = '<p class="qempty">这个阶段还没有题目。</p>'; return; }
+      run = { stage: stage, items: items, right: 0, graded: 0 };
+      list.hidden = true;
+      panel.hidden = false;
+      var meta = stageMeta().filter(function (m) { return m.stage === stage; })[0];
+      panel.innerHTML = '<div class="xhead"><h2>' + esc(meta ? meta.name : '') + ' · 验收卷</h2>' +
+        '<span>' + items.length + ' 题 · 自评计分 · 80 分过关</span>' +
+        '<button class="ghost" id="x-quit" type="button">放弃</button></div>' +
+        cardList(items);
+      bindGrades(panel, finish);
+      q('#x-quit').addEventListener('click', back);
+      window.scrollTo(0, 0);
+    }
+
+    function back() {
+      panel.hidden = true; panel.innerHTML = '';
+      list.hidden = false;
+      drawList();
+    }
+
+    function drawList() {
+      var ms = stageMeta();
+      list.innerHTML = ms.map(function (m) {
+        var r = examResult(m.stage);
+        var n = Math.min(20, Math.max(m.qs, 8));
+        return '<div class="xcard" id="stage-' + m.stage + '">' +
+          '<div class="xcl"><h3>' + esc(m.name) + '</h3>' +
+          '<span>' + m.lessons + ' 门课 · ' + m.qs + ' 题可选</span></div>' +
+          '<div class="xcr">' + (r
+            ? '<span class="xtag pass">已验收 ' + r.score + ' 分</span>'
+            : '<span class="xtag">未验收</span>') +
+          '<button class="pri" data-stage="' + m.stage + '" type="button">开始验收（' + n + ' 题）</button></div></div>';
+      }).join('');
+      qa('button[data-stage]', list).forEach(function (b) {
+        b.addEventListener('click', function () { start(Number(b.getAttribute('data-stage'))); });
+      });
+    }
+
+    Promise.all([getJSON('/data/catalog.json'), getJSON('/data/quiz.json')]).then(function (r) {
+      cat = r[0]; quiz = r[1];
+      drawList();
+      var m = location.hash.match(/^#stage-(\d+)/);
+      if (m) {
+        var st = Number(m[1]);
+        if ((quiz || []).some(function (x) { return x.stage === st; })) start(st);
+      }
+    }).catch(function () {
+      list.innerHTML = '<p class="qempty">数据没加载出来，刷新试试。</p>';
+    });
+  }
+
   if (page === 'quiz') initQuiz();
+  if (page === 'exam') initExam();
   if (page === 'glossary') initGloss();
   if (page === 'search') initSearch();
   if (page === 'progress') initProgress();

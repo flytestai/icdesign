@@ -75,7 +75,7 @@ def bust(html):
     return html
 
 
-NAV = [("/", "课程"), ("/quiz/", "题库"), ("/glossary/", "术语"),
+NAV = [("/", "课程"), ("/quiz/", "题库"), ("/exam/", "验收"), ("/glossary/", "术语"),
        ("/cheatsheet/", "速查"), ("/search/", "搜索"), ("/progress/", "进度")]
 
 BLOCK_RE = re.compile(r"^:::([a-z]+)(?:[ \t]+(.*?))?[ \t]*\n(.*?)^:::[ \t]*$", re.S | re.M)
@@ -653,6 +653,12 @@ SEARCH_BODY = """
 <div id="s-list" class="slist"></div>
 """
 
+EXAM_BODY = """
+<div class="xnote">每个阶段一套<b>验收卷</b>：从该阶段全部课程的自测题里随机抽题（题多的阶段抽 20 道，题少的全出）。逐题自评计分，<b>80 分过关</b>。过关记录保存在本机浏览器，进度看板上会标"已验收"。建议：学完一个阶段立刻验收——不过关的题会告诉你该回哪一课复习。</div>
+<div id="x-stages" class="xlist"></div>
+<div id="x-panel" class="xpanel" hidden></div>
+"""
+
 PROGRESS_BODY = """
 <div class="pwrap">
   <div class="pstats">
@@ -669,6 +675,7 @@ PROGRESS_BODY = """
 
 def build_subpages(lessons, nquiz, nterm):
     subpage("quiz", "题库", f"{nquiz} 道自测题，按阶段筛选、随机抽题、自动记错题。", QUIZ_BODY)
+    subpage("exam", "阶段验收", "学完一个阶段来验一验：随机抽题、80 分过关、进度看板留痕。", EXAM_BODY)
     subpage("glossary", "术语表", f"全站 {nterm} 条术语，英文原名 + 中文 + 白话解释 + 出处。", GLOSS_BODY)
     subpage("search", "搜索", "全站章节级搜索，命中后直接跳到对应小节。", SEARCH_BODY)
     subpage("progress", "学习进度", "按阶段看完成度，知道下一步该学哪一章。", PROGRESS_BODY)

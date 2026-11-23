@@ -258,3 +258,98 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
+
+/* ---------- 学习导航：阅读进度条 / 上一课·下一课 / 首页续学 ---------- */
+(function () {
+  if (typeof document === 'undefined') return;
+  var body = document.body;
+  var page = body.getAttribute('data-page') || '';
+
+  /* 1) 课程页：顶部阅读进度条（万字长课读到哪，一眼可见） */
+  if (page === 'lesson') {
+    var bar = document.createElement('div');
+    bar.id = 'rbar';
+    document.body.appendChild(bar);
+    var paint = function () {
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.width = (h > 0 ? Math.min(100, Math.round(window.scrollY / h * 100)) : 0) + '%';
+    };
+    window.addEventListener('scroll', paint, { passive: true });
+    window.addEventListener('resize', paint);
+    paint();
+  }
+
+  /* 2) 与 3) 都依赖课程目录 */
+  var LS_DONE = 'icl.done';
+  function loadJSON(k, def) {
+    try { return JSON.parse(localStorage.getItem(k) || def); } catch (e) { return JSON.parse(def); }
+  }
+  fetch('/data/catalog.json', { credentials: 'same-origin' }).then(function (r) {
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }).then(function (cat) {
+    var lessons = (cat.lessons || []).slice().sort(function (a, b) { return a.no - b.no; });
+
+    /* 2) 课程页：上一课 / 下一课 */
+    if (page === 'lesson') {
+      var id = body.getAttribute('data-lesson') || '';
+      var i = -1;
+      for (var k = 0; k < lessons.length; k++) if (lessons[k].id === id) { i = k; break; }
+      if (i >= 0) {
+        var main = document.querySelector('.main');
+        if (main) {
+          var prev = lessons[i - 1], next = lessons[i + 1];
+          var nav = document.createElement('div');
+          nav.className = 'pnnav';
+          nav.innerHTML =
+            '<a class="pn' + (prev ? '' : ' empty') + '" href="' + (prev ? '/lesson/' + prev.id + '/' : '#') + '">' +
+            '<span>← 上一课</span><b>' + (prev ? '第 ' + prev.no + ' 课 · ' + prev.title : '已经是第一课') + '</b></a>' +
+            '<a class="pn next' + (next ? '' : ' empty') + '" href="' + (next ? '/lesson/' + next.id + '/' : '/progress/') + '">' +
+            '<span>' + (next ? '下一课 →' : '全部学完 →') + '</span><b>' +
+            (next ? '第 ' + next.no + ' 课 · ' + next.title : '去进度看板回顾') + '</b></a>';
+          main.appendChild(nav);
+        }
+      }
+    }
+
+    /* 3) 首页：续学卡（老学员接着学，新学员直接开始） */
+    if (page === 'home') {
+      var done = loadJSON(LS_DONE, '{}');
+      var nDone = 0, nAll = 0, target = null;
+      lessons.forEach(function (L) {
+        (L.chapters || []).forEach(function (c) {
+          nAll++;
+          if (done[L.id + '/' + c.id]) nDone++;
+        });
+      });
+      for (var j = 0; j < lessons.length && !target; j++) {
+        var chs = lessons[j].chapters || [];
+        for (var c2 = 0; c2 < chs.length; c2++) {
+          if (!done[lessons[j].id + '/' + chs[c2].id]) { target = { L: lessons[j], c: chs[c2] }; break; }
+        }
+      }
+      var anchor = document.querySelector('.stages');
+      if (anchor) {
+        var card = document.createElement('div');
+        card.className = 'resumecard';
+        if (nDone === 0) {
+          card.innerHTML = '<span class="rc-t">第一次来？</span><b>从第 1 课开始，按顺序学，每课都有实战和自测</b>' +
+            '<a class="pri" href="/lesson/' + lessons[0].id + '/">开始学习 →</a>' +
+            '<a class="ghost" href="/lesson/00-02-howto/">先看使用说明</a>';
+        } else if (target) {
+          card.innerHTML = '<span class="rc-t">继续学习</span><b>上次学到：第 ' + target.L.no + ' 课 · ' +
+            esc2(target.L.title) + '</b><span class="rc-p">' + nDone + '/' + nAll + ' 章已完成</span>' +
+            '<a class="pri" href="/lesson/' + target.L.id + '/#' + target.c.id + '">接着学 →</a>';
+        } else {
+          card.innerHTML = '<span class="rc-t">全部学完 🎉</span><b>' + nAll + ' 章全部完成，去做各阶段验收卷</b>' +
+            '<a class="pri" href="/exam/">去验收</a><a class="ghost" href="/progress/">看进度</a>';
+        }
+        anchor.parentNode.insertBefore(card, anchor);
+      }
+    }
+  }).catch(function () { /* 目录加载失败时静默：页面其余功能不受影响 */ });
+
+  function esc2(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+})();
