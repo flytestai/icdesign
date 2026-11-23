@@ -6,7 +6,7 @@
 <title>TCL 第 8 讲 · 流程控制（下）：三种循环 while / foreach / for · 8 | IC 后端学院</title>
 <meta name="description" content="while 三要素与死循环、while{1}+break、列表倒序复制与倒序遍历单元格（EDA）、foreach 遍历首选与 EDA 移动对象、for 计数循环、三种循环怎么选、source 加载脚本、文档原题偶数减奇数。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795425358">
+<link rel="stylesheet" href="/assets/app.css?v=1795428116">
 </head>
 <body data-page="lesson" data-lesson="01-09-tcl-08-loops">
 <header class="top">
@@ -241,8 +241,28 @@ puts &quot;1-100偶数减奇数的值：$result&quot;</pre><button class="tcl-go
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795425358"></script>
-<script src="/assets/tcl.js?v=1795425358"></script>
-<script src="/assets/app.js?v=1795425358"></script>
+<script src="/assets/shell.js?v=1795428116"></script>
+<script src="/assets/tcl.js?v=1795428116"></script>
+<script src="/assets/app.js?v=1795428116"></script>
+
+<div id="userchip" class="userchip" hidden>
+  <span id="uc-name"></span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
+    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script>
 </body>
 </html>

@@ -504,3 +504,10 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .pg-outbox{margin-top:14px}
 .pg-out{height:260px;overflow-y:auto;margin:0;border:1px solid #e2e8f0;border-radius:0 0 10px 10px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13px;line-height:1.7;background:#0f172a;color:#dbeafe;white-space:pre-wrap;word-break:break-all}
 .pg-note{margin-top:18px;font-size:12.5px;color:#64748b;line-height:1.8;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;padding:10px 16px}
+
+/* ============ 登录用户角标 ============ */
+.userchip{position:fixed;top:12px;right:14px;z-index:90;display:flex;align-items:center;gap:8px;background:rgba(29,39,51,.92);color:#fff;border-radius:99px;padding:7px 14px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.userchip #uc-name{font-weight:600}
+.userchip a{color:#9cc4ee;text-decoration:none;font-size:12px}
+.userchip button{border:0;background:rgba(255,255,255,.14);color:#fff;font-size:12px;padding:3px 10px;border-radius:99px;cursor:pointer}
+.userchip button:hover{background:rgba(255,255,255,.26)}

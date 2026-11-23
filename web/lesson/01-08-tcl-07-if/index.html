@@ -6,7 +6,7 @@
 <title>TCL 第 7 讲 · 流程控制（上）：if 条件判断与用户输入 · 7 | IC 后端学院</title>
 <meta name="description" content="if-elseif-else 语法与四大语法铁律（文档强调的初学者大坑）、比较与逻辑运算符、gets stdin 用户输入、rand() 随机数、成绩等级判断与猜数字游戏（文档原题）。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795425358">
+<link rel="stylesheet" href="/assets/app.css?v=1795428116">
 </head>
 <body data-page="lesson" data-lesson="01-08-tcl-07-if">
 <header class="top">
@@ -204,8 +204,28 @@ while {1} {
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795425358"></script>
-<script src="/assets/tcl.js?v=1795425358"></script>
-<script src="/assets/app.js?v=1795425358"></script>
+<script src="/assets/shell.js?v=1795428116"></script>
+<script src="/assets/tcl.js?v=1795428116"></script>
+<script src="/assets/app.js?v=1795428116"></script>
+
+<div id="userchip" class="userchip" hidden>
+  <span id="uc-name"></span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
+    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script>
 </body>
 </html>

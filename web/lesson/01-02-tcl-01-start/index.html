@@ -6,7 +6,7 @@
 <title>TCL 第 1 讲 · 开工准备：环境与第一个命令 · 1 | IC 后端学院</title>
 <meta name="description" content="TCL 平时不是独立运行的，而是"寄生"在 EDA 工具里。这一课搞定 innovus 打不开的排查、写出第一个 puts、弄清两种注释写法，并在网页练习台上跑出第一行输出。全程 Python 对照。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/assets/app.css?v=1795425358">
+<link rel="stylesheet" href="/assets/app.css?v=1795428116">
 </head>
 <body data-page="lesson" data-lesson="01-02-tcl-01-start">
 <header class="top">
@@ -125,8 +125,28 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795425358"></script>
-<script src="/assets/tcl.js?v=1795425358"></script>
-<script src="/assets/app.js?v=1795425358"></script>
+<script src="/assets/shell.js?v=1795428116"></script>
+<script src="/assets/tcl.js?v=1795428116"></script>
+<script src="/assets/app.js?v=1795428116"></script>
+
+<div id="userchip" class="userchip" hidden>
+  <span id="uc-name"></span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
+    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script>
 </body>
 </html>

@@ -451,6 +451,28 @@ HEAD = """<!DOCTYPE html>
   <div class="top-right">{right}</div>
 </header>"""
 
+# 登录用户角标（右上角显示姓名 + 退出；管理员多一个审核入口）
+AUTH_CHIP = """
+<div id="userchip" class="userchip" hidden>
+  <span id="uc-name"></span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    document.getElementById('uc-name').textContent=u.name+(u.role==='admin'?'（管理员）':'');
+    if(u.role==='admin')document.getElementById('uc-admin').hidden=false;
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script>"""
+
 PAGE = HEAD + """
 <div class="layout">
   <aside class="toc" id="toc">
@@ -495,6 +517,7 @@ PAGE = HEAD + """
 <script src="/assets/shell.js"></script>
 <script src="/assets/tcl.js"></script>
 <script src="/assets/app.js"></script>
+%%AUTHCHIP%%
 </body>
 </html>"""
 
@@ -505,6 +528,7 @@ SUB = HEAD + """
 <script src="/assets/shell.js"></script>
 <script src="/assets/tcl.js"></script>
 <script src="/assets/page.js"></script>
+%%AUTHCHIP%%
 </body>
 </html>"""
 
@@ -549,6 +573,7 @@ HOME = HEAD + """
   <p>IC 后端学院 · 课表 9 阶段 113 学时 + 实战补充 · 共 {nlesson} 课 {nchapter} 章</p>
 </footer>
 <script src="/assets/app.js"></script>
+%%AUTHCHIP%%
 </body>
 </html>"""
 
@@ -585,7 +610,7 @@ def build_lesson(L, idx, all_lessons):
         summary=inline(L.get("summary", "")), minutes=L.get("minutes", 40),
         hours=L.get("hours", "—"), tagPills=tagPills, article="\n".join(art),
         prevNext=prev_next,
-    )
+    ).replace("%%AUTHCHIP%%", AUTH_CHIP)
     out = os.path.join(LESSONS, L["id"])
     os.makedirs(out, exist_ok=True)
     open(os.path.join(out, "index.html"), "w", encoding="utf-8").write(bust(html))
@@ -629,7 +654,7 @@ def build_home(lessons, nquiz, nterm):
         right='<a class="ghost" href="#plan">学习路线</a><a class="ghost" href="/progress/">我的进度</a>',
         first=lessons[0]["id"], stages="".join(stages_html), stats=stats,
         nquiz=nquiz, nterm=nterm, nlesson=len(lessons), nchapter=nch, nhours=nhours,
-    )
+    ).replace("%%AUTHCHIP%%", AUTH_CHIP)
     open(os.path.join(WEB, "index.html"), "w", encoding="utf-8").write(bust(html))
 
 
@@ -640,7 +665,7 @@ def subpage(slug, title, lead, body, active=""):
         lesson=slug, nav=nav_html(active or f"/{slug}/"),
         right='<a class="ghost" href="/">← 课程</a>',
         body=f'<div class="sub-h"><h1>{title}</h1><p>{lead}</p></div>' + body,
-    )
+    ).replace("%%AUTHCHIP%%", AUTH_CHIP)
     d = os.path.join(WEB, slug)
     os.makedirs(d, exist_ok=True)
     open(os.path.join(d, "index.html"), "w", encoding="utf-8").write(bust(html))

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>账号审核中 · IC 后端学院</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<style>
+:root{--accent:#2f7fd0;--ink:#1d2733;--ink2:#5a6b7d;--line:#dfe7ef;--soft:#f2f6fa;--ok:#18a07a;--warn:#c98a1e;--bad:#c04a4a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#f2f6fa 0%,#e8f0f8 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.card{width:min(460px,92vw);background:#fff;border:1px solid var(--line);border-radius:16px;padding:38px 34px;box-shadow:0 10px 40px rgba(47,127,208,.10);text-align:center}
+.badge{width:64px;height:64px;border-radius:50%;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:30px}
+.badge.wait{background:#fff7e8}
+.badge.no{background:#fdf0f0}
+h1{font-size:22px;margin-bottom:8px}
+.info{color:var(--ink2);font-size:14px;line-height:1.9;margin-bottom:20px}
+.info b{color:var(--ink)}
+.state{display:inline-block;padding:6px 16px;border-radius:99px;font-size:14px;font-weight:600}
+.state.pending{background:#fff7e8;color:var(--warn)}
+.state.rejected{background:#fdf0f0;color:var(--bad)}
+.acts{margin-top:8px;display:flex;gap:12px;justify-content:center}
+button{padding:10px 22px;border:0;border-radius:9px;font-size:14px;cursor:pointer;background:var(--soft);color:var(--ink)}
+button.pri{background:var(--accent);color:#fff;font-weight:600}
+button.pri:hover{background:#276ab0}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="badge wait" id="badge">⏳</div>
+  <h1 id="title">账号审核中</h1>
+  <div class="info" id="info">正在加载…</div>
+  <div class="state pending" id="state">待管理员审核</div>
+  <div class="acts">
+    <button class="pri" onclick="location.reload()">刷新状态</button>
+    <button id="logout">退出登录</button>
+  </div>
+</div>
+<script>
+fetch('/api/auth/me').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(u){
+  document.getElementById('info').innerHTML='学员：<b>'+(u.name||'')+'</b>　手机号：<b>'+(u.phone||u.account||'')+'</b><br>审核通过后即可观看全部课程内容。';
+  if(u.status==='rejected'){
+    document.getElementById('badge').className='badge no';
+    document.getElementById('badge').textContent='✖';
+    document.getElementById('title').textContent='账号未通过审核';
+    var s=document.getElementById('state');s.className='state rejected';s.textContent='已拒绝';
+    document.getElementById('info').innerHTML='学员：<b>'+(u.name||'')+'</b>　手机号：<b>'+(u.phone||u.account||'')+'</b><br>如有疑问，请联系管理员。';
+  }
+}).catch(function(){location.replace('/login');});
+document.getElementById('logout').addEventListener('click',function(){
+  fetch('/api/auth/logout',{method:'POST'}).then(function(){location.replace('/login');});
+});
+</script>
+</body>
+</html>

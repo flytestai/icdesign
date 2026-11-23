@@ -52,6 +52,46 @@ def bundle():
     return buf.getvalue(), n
 
 
+def upload_app(c):
+    """上传 server/app.py 到远端根目录（分块追加，与站点同一通道）。"""
+    src = os.path.join(ROOT, "server", "app.py")
+    data = open(src, "rb").read()
+    md5 = hashlib.md5(data).hexdigest()
+    remote = "/home/weizhen/icacademy/app.py"
+    sh(c, "rm -f /home/weizhen/icl_app.py.new")
+    for k in range((len(data) + CHUNK - 1) // CHUNK):
+        part = data[k * CHUNK:(k + 1) * CHUNK]
+        i, o, e = c.exec_command("cat >> /home/weizhen/icl_app.py.new", timeout=60)
+        i.write(part)
+        i.flush()
+        i.channel.shutdown_write()
+        if o.channel.recv_exit_status() != 0:
+            print("app.py chunk %d failed" % k)
+            return False
+    rc, out, _ = sh(c, "md5sum /home/weizhen/icl_app.py.new | cut -d' ' -f1")
+    if out.strip() != md5:
+        print("!! app.py 校验不一致: %s vs %s" % (out.strip(), md5))
+        return False
+    sh(c, "mv /home/weizhen/icl_app.py.new " + remote)
+    print("app.py uploaded, md5=%s" % md5)
+    return True
+
+
+def restart_service(c):
+    """用 sudo -S 重启服务（密码从 stdin 传入，不写进命令行）。"""
+    i, o, e = c.exec_command(
+        "sudo -S -p '' systemctl restart icacademy && sleep 3 && systemctl is-active icacademy",
+        timeout=120)
+    i.write(PWD + "\n")
+    i.flush()
+    i.channel.shutdown_write()
+    rc = o.channel.recv_exit_status()
+    out = o.read().decode(errors="ignore").strip()
+    err = e.read().decode(errors="ignore").strip()
+    print("restart rc=%d %s %s" % (rc, out[:120], err[:200]))
+    return rc == 0 and "active" in out
+
+
 def main():
     if "--no-build" not in sys.argv:
         rc = subprocess.call([sys.executable, os.path.join(ROOT, "tools", "build.py")])
@@ -96,18 +136,26 @@ def main():
         rc, out, err = sh(c, (
             "set -e; cd %s; ts=$(date +%%s); "
             "if [ -d web ]; then mv web web_old_$ts; fi; mv site_new web; "
-            "ls -d web; (systemctl restart icacademy || sudo -n systemctl restart icacademy); sleep 3; "
-            "systemctl is-active icacademy" % REMOTE), timeout=180)
+            "ls -d web" % REMOTE), timeout=180)
         print(out.strip(), err.strip()[:300])
+
+        if not upload_app(c):
+            return 1
+        restart_service(c)
 
         time.sleep(2)
         rc, out, err = sh(c, (
-            "for p in / /playground/ /quiz/ /glossary/ /search/ /progress/ /cheatsheet/ "
+            "for p in / /login /register /admin /playground/ /quiz/ /glossary/ /search/ /progress/ /cheatsheet/ "
             "/lesson/01-02-tcl-01-start/ /lesson/01-06-tcl-05-list-a/ /lesson/01-07-tcl-06-list-b/ "
             "/lesson/01-08-tcl-07-if/ /lesson/01-09-tcl-08-loops/ /lesson/01-10-tcl-09-proc/ "
             "/lesson/01-11-tcl-10-final/ /data/quiz.json "
             "/data/catalog.json /assets/tcl.js /assets/shell.js; do "
-            "printf '%s -> ' $p; curl -s -o /dev/null -w '%{http_code}\\n' -m 8 http://127.0.0.1:8710$p; done"), timeout=180)
+            "printf '%s -> ' $p; curl -s -o /dev/null -w '%{http_code}\\n' -m 8 http://127.0.0.1:8710$p; done; "
+            "echo '--- 带管理员会话 ---'; "
+            "TOKEN=$(curl -s -i -X POST http://127.0.0.1:8710/api/auth/login -H 'Content-Type: application/json' "
+            "-d '{\"account\":\"weizhen\",\"password\":\"wz729729\"}' | grep -oP 'ic_session=\\K[a-f0-9]{64}'); "
+            "for p in / /lesson/01-02-tcl-01-start/ /api/admin/users; do "
+            "printf '%s -> ' $p; curl -s -o /dev/null -w '%{http_code}\\n' -m 8 -H \"Cookie: ic_session=$TOKEN\" http://127.0.0.1:8710$p; done"), timeout=180)
         print(out.strip())
         return 0
     finally:

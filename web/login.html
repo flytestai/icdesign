@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>登录 · IC 后端学院</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<style>
+:root{--accent:#2f7fd0;--ink:#1d2733;--ink2:#5a6b7d;--line:#dfe7ef;--soft:#f2f6fa;--ok:#18a07a;--warn:#c98a1e;--bad:#c04a4a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#f2f6fa 0%,#e8f0f8 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.card{width:min(420px,92vw);background:#fff;border:1px solid var(--line);border-radius:16px;padding:34px 32px;box-shadow:0 10px 40px rgba(47,127,208,.10)}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.mark{width:34px;height:34px;border-radius:8px;background:var(--accent);position:relative}
+.mark::after{content:"";position:absolute;left:11px;top:9px;width:12px;height:16px;border-left:3px solid #fff;border-bottom:3px solid #fff}
+.brand b{font-size:18px}
+.brand i{font-size:12px;color:var(--ink2);font-style:normal;margin-left:2px}
+h1{font-size:22px;margin:14px 0 4px}
+.sub{color:var(--ink2);font-size:13px;margin-bottom:22px}
+label{display:block;font-size:13px;color:var(--ink2);margin:14px 0 6px}
+input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;font-size:15px;outline:none;transition:border .15s}
+input:focus{border-color:var(--accent)}
+button.pri{width:100%;margin-top:22px;padding:12px;border:0;border-radius:9px;background:var(--accent);color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+button.pri:hover{background:#276ab0}
+button.pri:disabled{opacity:.6;cursor:not-allowed}
+.msg{margin-top:14px;font-size:14px;border-radius:8px;padding:10px 12px;display:none}
+.msg.err{display:block;background:#fdf0f0;color:var(--bad)}
+.msg.ok{display:block;background:#eef8f4;color:var(--ok)}
+.foot{margin-top:18px;font-size:14px;color:var(--ink2);display:flex;justify-content:space-between}
+.foot a{color:var(--accent);text-decoration:none}
+.tip{margin-top:16px;font-size:12px;color:var(--ink2);background:var(--soft);border-radius:8px;padding:10px 12px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></div>
+  <h1>登录</h1>
+  <p class="sub">课程内容仅对审核通过的学员开放，请先登录。</p>
+  <form id="f">
+    <label>账号（注册时的手机号）</label>
+    <input id="account" autocomplete="username" placeholder="请输入手机号" required>
+    <label>密码</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="请输入密码" required>
+    <button class="pri" id="btn" type="submit">登 录</button>
+    <div class="msg" id="msg"></div>
+  </form>
+  <div class="foot">
+    <a href="/register">没有账号？去注册 →</a>
+    <a href="/login">刷新</a>
+  </div>
+  <div class="tip">说明：注册后需等待管理员审核，审核通过才能看到课程内容。遇到问题请联系管理员。</div>
+</div>
+<script>
+var msg=document.getElementById('msg');
+function showErr(t){msg.className='msg err';msg.textContent=t;}
+var params=new URLSearchParams(location.search);
+var next=params.get('next')||'/';
+if(next.indexOf('//')===0||!next.startsWith('/'))next='/';
+document.getElementById('f').addEventListener('submit',function(e){
+  e.preventDefault();
+  var btn=document.getElementById('btn');
+  btn.disabled=true;btn.textContent='登录中…';
+  fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({account:document.getElementById('account').value.trim(),password:document.getElementById('password').value})})
+  .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j};});})
+  .then(function(res){
+    if(!res.ok){showErr(res.j.detail||'登录失败');btn.disabled=false;btn.textContent='登 录';return;}
+    var j=res.j;
+    if(j.role==='admin'||j.status==='approved'){location.replace(next);}
+    else{location.replace('/pending');}
+  })
+  .catch(function(){showErr('网络异常，请稍后重试');btn.disabled=false;btn.textContent='登 录';});
+});
+</script>
+</body>
+</html>
