@@ -9,28 +9,37 @@
 :root{--accent:#2f7fd0;--ink:#1d2733;--ink2:#5a6b7d;--line:#dfe7ef;--soft:#f2f6fa;--ok:#18a07a;--warn:#c98a1e;--bad:#c04a4a}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f6fa;min-height:100vh;color:var(--ink)}
-.wrap{max-width:900px;margin:0 auto;padding:36px 20px}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.wrap{max-width:960px;margin:0 auto;padding:32px 20px 48px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.brand img{width:34px;height:34px;border-radius:8px;display:block}
+.brand b{font-size:18px}
+.brand i{font-size:12px;color:var(--ink2);font-style:normal;margin-left:2px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
 h1{font-size:22px}
 h1 span{font-size:13px;color:var(--ink2);font-weight:400;margin-left:10px}
-button{padding:8px 16px;border:0;border-radius:8px;font-size:13px;cursor:pointer;background:var(--soft);color:var(--ink)}
+.btns{display:flex;gap:8px}
+button{padding:8px 16px;border:0;border-radius:8px;font-size:13px;cursor:pointer;background:var(--soft);color:var(--ink);white-space:nowrap}
+button:hover{filter:brightness(.96)}
 button.pri{background:var(--accent);color:#fff;font-weight:600}
-.tbl{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tbl{background:#fff;border:1px solid var(--line);border-radius:12px;overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:14px}
-th{background:var(--soft);text-align:left;padding:12px 14px;color:var(--ink2);font-weight:600;font-size:13px}
-td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
-.pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
+th{background:var(--soft);text-align:left;padding:12px 16px;color:var(--ink2);font-weight:600;font-size:13px;white-space:nowrap}
+td{padding:13px 16px;border-top:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+tbody tr:first-child td{border-top:0}
+tbody tr:hover td{background:#fafcfe}
+.pill{display:inline-block;padding:3px 12px;border-radius:99px;font-size:12px;font-weight:600;line-height:1.6}
 .pill.pending{background:#fff7e8;color:var(--warn)}
 .pill.approved{background:#eef8f4;color:var(--ok)}
 .pill.rejected{background:#fdf0f0;color:var(--bad)}
 .pill.admin{background:#eef0fb;color:#5a5fd0}
-.ops{display:flex;gap:6px;flex-wrap:wrap}
-.ops button{padding:5px 10px;font-size:12px}
+.ops{display:flex;gap:6px;flex-wrap:nowrap}
+.ops button{padding:5px 11px;font-size:12px}
 .ops .ap{background:#eef8f4;color:var(--ok);font-weight:600}
 .ops .rj{background:#fdf0f0;color:var(--bad);font-weight:600}
 .ops .rs{color:var(--ink2)}
 .ops .dl{color:var(--bad)}
 .muted{color:var(--ink2);font-size:12px}
+td.muted{font-variant-numeric:tabular-nums}
 .empty{padding:40px;text-align:center;color:var(--ink2)}
 #msg{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1d2733;color:#fff;padding:10px 18px;border-radius:9px;font-size:14px;display:none;z-index:9}
 </style>
@@ -38,10 +47,14 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
 <body>
 <div id="msg"></div>
 <div class="wrap">
-  <div style="display:flex;align-items:center;gap:9px;margin-bottom:16px"><div class="brand" style="margin-bottom:14px"><img class="mark" src="/assets/logo.svg" alt=""><b style="font-size:17px">IC 后端学院</b><i style="font-style:normal;font-size:12px;color:var(--ink2)">审核管理</i></div>
+  <div class="brand"><img src="/assets/logo.svg" alt=""><b>IC 后端学院</b><i>审核管理</i></div>
   <div class="top">
     <h1>学员审核管理 <span id="count"></span></h1>
-    <div><button onclick="location.reload()">刷新</button> <button id="logout">退出登录</button> <button onclick="location.href='/'">回课程站</button></div>
+    <div class="btns">
+      <button onclick="location.reload()">刷新</button>
+      <button id="logout">退出登录</button>
+      <button onclick="location.href='/'">回课程站</button>
+    </div>
   </div>
   <div class="tbl" id="tbl"><div class="empty">加载中…</div></div>
   <p class="muted" style="margin-top:14px">待审核的学员排在最上面。点「通过」后，该学员即可观看全部课程内容；「拒绝」则保持锁定状态。</p>
@@ -60,7 +73,7 @@ function load(){
     var rows=d.users||[];
     document.getElementById('count').textContent='共 '+rows.length+' 个账号';
     if(!rows.length){document.getElementById('tbl').innerHTML='<div class="empty">还没有注册学员</div>';return;}
-    var h='<table><tr><th>姓名</th><th>手机号</th><th>身份</th><th>状态</th><th>注册时间</th><th>操作</th></tr>';
+    var h='<table><thead><tr><th>姓名</th><th>手机号</th><th>身份</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead><tbody>';
     rows.forEach(function(u){
       var ops='';
       if(u.role!=='admin'){
@@ -69,12 +82,12 @@ function load(){
         if(u.status!=='pending')ops+='<button class="rs" onclick="review('+u.id+',\'reset\')">改回待审</button>';
         ops+='<button class="dl" onclick="review('+u.id+',\'delete\')">删除</button>';
       }else{ops='<span class="muted">内置管理员</span>';}
-      h+='<tr><td><b>'+u.name+'</b></td><td>'+(u.phone||u.account)+'</td>'
+      h+='<tr><td><b>'+u.name+'</b></td><td class="muted">'+(u.phone||u.account)+'</td>'
         +'<td>'+(u.role==='admin'?'<span class="pill admin">管理员</span>':'学员')+'</td>'
         +'<td><span class="pill '+u.status+'">'+STATUS_NAME[u.status]+'</span></td>'
         +'<td class="muted">'+fmtTs(u.created_at)+'</td><td><div class="ops">'+ops+'</div></td></tr>';
     });
-    document.getElementById('tbl').innerHTML=h+'</table>';
+    document.getElementById('tbl').innerHTML=h+'</tbody></table>';
   }).catch(function(){location.replace('/login');});
 }
 fetch('/api/auth/me').then(function(r){return r.json();}).then(function(u){
