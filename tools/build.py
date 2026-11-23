@@ -441,12 +441,12 @@ HEAD = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{doctitle}</title>
 <meta name="description" content="{desc}">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body data-page="{page}" data-lesson="{lesson}">
 <header class="top">
-  <a class="logo" href="/"><span class="mark"></span><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav">{nav}</nav>
   <div class="top-right">{right}</div>
 </header>"""

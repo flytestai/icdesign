@@ -20,7 +20,7 @@ strong{color:var(--ink);font-weight:650}
   background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .logo{display:flex;align-items:center;gap:8px;color:var(--ink);font-size:15px;white-space:nowrap}
 .logo:hover{text-decoration:none}
-.logo .mark{width:22px;height:22px;border-radius:6px;background:linear-gradient(140deg,#2f7fd0,#18a07a);box-shadow:0 3px 10px rgba(47,127,208,.28)}
+.logo .mark{width:24px;height:24px;border-radius:6px;display:block}
 .logo i{font-style:normal;font-size:11px;color:var(--dim);letter-spacing:.4px}
 .top-mid{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);overflow:hidden;white-space:nowrap}
 .top-mid .ttl{color:var(--ink2);font-weight:600}

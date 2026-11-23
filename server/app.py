@@ -46,6 +46,7 @@ SESSION_TTL = 7 * 24 * 3600  # 7 天
 # 管理员内置账号
 ADMIN_ACCOUNT = "weizhen"
 ADMIN_PASSWORD = "wz729729"
+ADMIN_PHONE = "19919930729"
 
 
 def db():
@@ -96,8 +97,12 @@ def init_db():
             c.execute(
                 "INSERT INTO users(name,account,phone,pw_hash,salt,role,status,created_at,updated_at) "
                 "VALUES(?,?,?,?,?,?,?,?,?)",
-                ("管理员", ADMIN_ACCOUNT, "", hash_password(ADMIN_PASSWORD, salt), salt,
+                ("管理员", ADMIN_ACCOUNT, ADMIN_PHONE, hash_password(ADMIN_PASSWORD, salt), salt,
                  "admin", "approved", now, now))
+        else:
+            # 已有管理员但手机号为空时补录
+            c.execute("UPDATE users SET phone=?, updated_at=? WHERE account=? AND (phone='' OR phone IS NULL)",
+                      (ADMIN_PHONE, now, ADMIN_ACCOUNT))
         # 清理过期会话
         c.execute("DELETE FROM sessions WHERE expires < ?", (now,))
         c.commit()

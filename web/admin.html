@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>学员审核管理 · IC 后端学院</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f7fd0'/%3E%3Cpath d='M9 21V11h3v7h7v3z' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
 <style>
 :root{--accent:#2f7fd0;--ink:#1d2733;--ink2:#5a6b7d;--line:#dfe7ef;--soft:#f2f6fa;--ok:#18a07a;--warn:#c98a1e;--bad:#c04a4a}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -38,6 +38,7 @@ td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
 <body>
 <div id="msg"></div>
 <div class="wrap">
+  <div style="display:flex;align-items:center;gap:9px;margin-bottom:16px"><div class="brand" style="margin-bottom:14px"><img class="mark" src="/assets/logo.svg" alt=""><b style="font-size:17px">IC 后端学院</b><i style="font-style:normal;font-size:12px;color:var(--ink2)">审核管理</i></div>
   <div class="top">
     <h1>学员审核管理 <span id="count"></span></h1>
     <div><button onclick="location.reload()">刷新</button> <button id="logout">退出登录</button> <button onclick="location.href='/'">回课程站</button></div>
