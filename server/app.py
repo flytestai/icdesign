@@ -7,6 +7,7 @@ IC 后端学院 · 后端服务
 - 课后笔记
 - 用户注册 / 登录 / 管理员审核（未通过审核不能看课程内容）
 """
+import base64
 import hashlib
 import json
 import os
@@ -14,10 +15,12 @@ import re
 import secrets
 import sqlite3
 import time
+import urllib.parse
+import urllib.request
+from urllib.parse import quote
 from contextlib import closing
 from pathlib import Path
 from typing import List, Optional
-from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.gzip import GZipMiddleware
@@ -314,10 +317,15 @@ def admin_set_section(lesson: str, chapter: str, r: SectionIn, request: Request)
         raise HTTPException(400, "invalid lesson/chapter")
     if not (WEB / "lesson" / lesson / "index.html").exists():
         raise HTTPException(404, "lesson not found")
-    if r.body is not None and len(r.body) > MAX_SECTION_HTML:
+    body = r.body
+    n_conv = 0
+    if body is not None:
+        # 兜底：正文里任何外链/base64 图片一律转存到服务器本机，杜绝超链接引用
+        body, n_conv = _localize_images(lesson, chapter, body)
+    if body is not None and len(body) > MAX_SECTION_HTML:
         raise HTTPException(400, "小节内容过大（上限 30 万字符）")
     title = (r.title or "").strip() or None
-    body = r.body if (r.body is not None and r.body.strip()) else None
+    body = body if (body is not None and body.strip()) else None
     with closing(db()) as c:
         c.execute(
             """INSERT INTO section_overrides(lesson,chapter,title,body,updated_at) VALUES(?,?,?,?,?)
@@ -325,7 +333,7 @@ def admin_set_section(lesson: str, chapter: str, r: SectionIn, request: Request)
                SET title=excluded.title, body=excluded.body, updated_at=excluded.updated_at""",
             (lesson, chapter, title, body, int(time.time())))
         c.commit()
-    return {"ok": True, "lesson": lesson, "chapter": chapter}
+    return {"ok": True, "lesson": lesson, "chapter": chapter, "images_localized": n_conv}
 
 
 @app.delete("/api/admin/section/{lesson}/{chapter}")
@@ -363,6 +371,101 @@ async def admin_fig(request: Request):
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(data)
     return {"ok": True, "path": rel, "size": len(data)}
+
+
+# ---- 粘贴图片一律转存到服务器本机（杜绝外链/base64 引用） ----
+PRIV_HOST_RE = re.compile(
+    r"^(localhost|127\.|0\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|::1|\[::1)\S*$", re.I)
+IMG_SRC_ATTR_RE = re.compile(r'(<img\b[^>]*?\bsrc=")([^"]+)(")', re.I)
+CT_EXT = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/svg+xml": "svg"}
+
+
+def _store_fig(data: bytes, ext: str, prefix: str = "paste") -> str:
+    """按内容哈希落盘到 fig/custom/，重复图片自动复用同一文件。返回相对路径 fig/xxx。"""
+    h = hashlib.sha1(data).hexdigest()[:12]
+    rel = "fig/custom/%s-%s.%s" % (prefix, h, ext)
+    target = WEB / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not target.exists():
+        target.write_bytes(data)
+    return rel
+
+
+def _fetch_ext_image(url: str) -> tuple:
+    """下载外链图片，返回 (bytes, ext)。失败抛异常。"""
+    host = urllib.parse.urlparse(url).hostname or ""
+    if not host or PRIV_HOST_RE.match(host):
+        raise ValueError("不允许的地址")
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (icacademy-admin)"})
+    with urllib.request.urlopen(req, timeout=12) as r:
+        data = r.read(MAX_FIG_BYTES + 1)
+        ct = (r.headers.get("Content-Type") or "").split(";")[0].strip().lower()
+    if not data or len(data) > MAX_FIG_BYTES:
+        raise ValueError("图片为空或超过 12MB")
+    if ct and ct in CT_EXT:
+        ext = CT_EXT[ct]
+    else:
+        ext = os.path.splitext(urllib.parse.urlparse(url).path)[1].lower().lstrip(".")
+        if ext not in FIG_EXT_OK:
+            raise ValueError("不是可识别的图片格式")
+    return data, ext
+
+
+def _localize_images(lesson: str, chapter: str, body: str) -> tuple:
+    """把 body 里 <img src="http外链/data:base64"> 转存本机并替换。返回 (新body, 转换张数)。"""
+    prefix = "%s-%s" % (lesson, chapter)
+    cache = {}
+    converted = 0
+
+    def repl(m):
+        nonlocal converted
+        src = m.group(2)
+        if src.startswith("/") or src.startswith("fig/"):
+            return m.group(0)                      # 已是站内引用
+        if src in cache:
+            return m.group(1) + cache[src] + m.group(3)
+        new_src = None
+        try:
+            if src.startswith("data:image/"):
+                head, b64 = src.split(",", 1)
+                mm = re.search(r"data:image/([a-z0-9+]+)", head, re.I)
+                ext = {"jpeg": "jpg", "svg+xml": "svg"}.get(
+                    (mm.group(1).lower() if mm else "png"),
+                    (mm.group(1).lower() if mm else "png"))
+                data = base64.b64decode(b64, validate=False)
+                if data and len(data) <= MAX_FIG_BYTES:
+                    new_src = _store_fig(data, ext, prefix)
+            elif re.match(r"^https?://", src, re.I):
+                data, ext = _fetch_ext_image(src)
+                new_src = _store_fig(data, ext, prefix)
+        except Exception:
+            new_src = None
+        if new_src:
+            cache[src] = new_src
+            converted += 1
+            return m.group(1) + new_src + m.group(3)
+        return m.group(0)                          # 转存失败保留原样
+
+    return IMG_SRC_ATTR_RE.sub(repl, body), converted
+
+
+class FigFetchIn(BaseModel):
+    url: str = Field(..., max_length=2000)
+
+
+@app.post("/api/admin/fig-fetch")
+def admin_fig_fetch(r: FigFetchIn, request: Request):
+    """按 URL 抓取外链图片并存到服务器 fig/custom/，返回本地路径（编辑器粘贴外链图时用）。"""
+    require_admin(request)
+    url = r.url.strip()
+    try:
+        data, ext = _fetch_ext_image(url)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    except Exception as e:
+        raise HTTPException(400, "下载失败：%s" % str(e)[:80])
+    rel = _store_fig(data, ext, "paste")
+    return {"ok": True, "path": rel}
 
 
 # ================================================================ 原有 API

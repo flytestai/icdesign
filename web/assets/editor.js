@@ -133,18 +133,18 @@
       }
       return null;
     }
-    function dataUrlToFile(dataUrl) {
-      return fetch(dataUrl).then(function (r) { return r.blob(); }).then(function (b) {
-        var ext = (dataUrl.match(/^data:image\/([a-z0-9+]+)/i) || [])[1] || "png";
-        try { return new File([b], "paste." + ext.replace("jpeg", "jpg"), { type: b.type }); }
-        catch (e) { b.name = "paste." + ext.replace("jpeg", "jpg"); return b; }
-      });
-    }
     function caretRangeInBody() {
       var sel = window.getSelection();
       if (!sel || !sel.rangeCount) return null;
       var r = sel.getRangeAt(0);
       return bodyEl.contains(r.startContainer) ? r : null;
+    }
+    function insertLocalImage(rel, ph) {
+      var img = document.createElement("img");
+      img.src = "/" + rel + "?t=" + Date.now();
+      img.alt = "";
+      ph.parentNode.insertBefore(img, ph);
+      ph.remove();
     }
     function insertPastedImage(file) {
       var ext = (file.name || "").split(".").pop().toLowerCase();
@@ -165,34 +165,57 @@
           if (!r.ok) return r.json().then(function (j) { throw new Error(j.detail || r.status); });
           return r.json();
         })
-        .then(function () {
-          var img = document.createElement("img");
-          img.src = "/" + rel + "?t=" + Date.now();
-          img.alt = "";
-          ph.parentNode.insertBefore(img, ph);
-          ph.remove();
-        })
+        .then(function () { insertLocalImage(rel, ph); })
         .catch(function (ex) {
           ph.className = "icl-up err";
           ph.textContent = "✗ 图片上传失败：" + String(ex.message || ex).slice(0, 40);
         });
     }
+    /* 网页上复制的图片：剪贴板里只有外链 HTML，交给服务器抓取转存 */
+    function insertFetchedImage(url) {
+      var ph = document.createElement("span");
+      ph.className = "icl-up";
+      ph.textContent = "⏳ 图片转存中…";
+      var range = caretRangeInBody();
+      if (range) { range.deleteContents(); range.insertNode(ph); }
+      else { bodyEl.insertBefore(ph, bodyEl.firstChild); }
+      fetch("/api/admin/fig-fetch", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url }),
+      })
+        .then(function (r) {
+          if (!r.ok) return r.json().then(function (j) { throw new Error(j.detail || r.status); });
+          return r.json();
+        })
+        .then(function (j) { insertLocalImage(j.path, ph); })
+        .catch(function (ex) {
+          ph.className = "icl-up err";
+          ph.textContent = "✗ 图片转存失败：" + String(ex.message || ex).slice(0, 40);
+        });
+    }
+    function pickHtmlImgUrls(dt) {
+      var html = (dt && dt.getData && dt.getData("text/html")) || "";
+      if (!html) return [];
+      var out = [], re = /<img\b[^>]*\ssrc="(https?:\/\/[^"]+)"/ig, m;
+      while ((m = re.exec(html))) out.push(m[1]);
+      return out;
+    }
     bodyEl.addEventListener("paste", function (e) {
       var dt = e.clipboardData;
       var file = pickImageFile(dt);
-      if (!file && dt && dt.getData) {
-        var html = dt.getData("text/html") || "";
-        var m = html.match(/<img[^>]*src="(data:image\/[a-z0-9+.;=]+\/[^"]+)"/i);
-        if (m) {
-          try { file = dataUrlToFile(m[1]); } catch (err) { file = null; }
-        }
-      }
       if (file) {
         e.preventDefault();
         say("检测到粘贴图片，上传中…");
-        Promise.resolve(file).then(insertPastedImage).catch(function (ex) {
-          say("粘贴图片失败：" + String(ex.message || ex).slice(0, 60), true);
-        });
+        insertPastedImage(file);
+        return;
+      }
+      var urls = pickHtmlImgUrls(dt);
+      if (urls.length) {
+        e.preventDefault();
+        say("检测到 " + urls.length + " 张网页图片，转存中…");
+        urls.forEach(insertFetchedImage);
       }
     });
 
