@@ -232,12 +232,21 @@ def render_tclsh(arg, code):
 </div>"""
 
 
+FIG_EXT = (".png", ".jpg", ".jpeg", ".webp", ".svg")
+
+
 def render_fig(arg):
-    """:::fig <id> | 图注   —— 引用 web/fig/<id>.png"""
+    """:::fig <id> | 图注   —— 引用 web/fig/<id>，不写扩展名默认 .png
+
+    早期配图全是截图，统一转成 .png；后来有插画类素材保留了 .jpg（转 png 只会更大），
+    所以这里允许显式写扩展名：:::fig chip-finfet.jpg | 图注"""
     parts = [x.strip() for x in (arg or "").split("|")]
     fid = parts[0]
     cap = parts[1] if len(parts) > 1 else ""
-    src = "/fig/" + fid + ".png"
+    name = fid if fid.lower().endswith(FIG_EXT) else fid + ".png"
+    if not os.path.exists(os.path.join(WEB, "fig", name)):
+        print("WARN 配图不存在: web/fig/%s （:::fig %s）" % (name, fid))
+    src = "/fig/" + name
     return (f'<figure class="fig-img"><a class="fig-a" href="{src}" data-fig="{esc(fid)}">'
             f'<img src="{src}" alt="{esc(cap)}" loading="lazy" decoding="async"></a>'
             f'<figcaption>{esc(cap)}</figcaption></figure>')

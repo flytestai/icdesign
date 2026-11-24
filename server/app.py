@@ -479,6 +479,10 @@ async def cache_control(request: Request, call_next):
         ctype = resp.headers.get("content-type", "")
         if path.startswith("/assets/"):
             resp.headers["Cache-Control"] = "public, max-age=604800"
+        elif path.startswith("/fig/"):
+            # 配图路径里没有版本号，同名换图必须立刻能看到；no-cache 只是"每次校验"，
+            # 文件没变走 304，不重复传字节。
+            resp.headers["Cache-Control"] = "no-cache"
         elif ctype.startswith("text/html"):
             resp.headers["Cache-Control"] = "no-cache"
     return resp

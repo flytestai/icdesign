@@ -76,8 +76,8 @@
   <div class="term-b"><p>半导体芯片里最基础的单元，一个<strong>用栅极电压控制电流通断</strong>的器件。芯片里几百万、几十亿个这样的开关，组合出全部功能。</p></div>
 </div>
 <p>以 <strong>NMOS</strong> 为例，它有三个极：</p>
-<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">        栅极 Gate（控制端：加电压）</span><span class="ln ">             │</span><span class="ln ">      ┌──────┴──────┐</span><span class="ln ">      │   ~~~~~~~   │  ← 沟道：栅极下方、连接源漏的通道</span><span class="ln ">  ────┤             ├────</span><span class="ln ">  源极 Source    漏极 Drain</span><span class="ln "> （电流入口）    （电流出口）</span></code></pre></div>
 <ul><li><strong>源极（Source）</strong>：电流入口；</li><li><strong>漏极（Drain）</strong>：电流出口；</li><li><strong>栅极（Gate）</strong>：控制端。<strong>不加电压时沟道是断的，电流过不去；加上电压后电子被吸附到沟道里，形成导电通道，电流就能通过</strong>。</li></ul>
+<figure class="fig-img"><a class="fig-a" href="/fig/chip-nmos-switch.jpg" data-fig="chip-nmos-switch.jpg"><img src="/fig/chip-nmos-switch.jpg" alt="晶体管就是一个能被电压控制的电子开关：不加电压门关着、电流过不去；加上电压门打开、电流通过。源极是电流入口，漏极是出口，栅极负责发号施令。右边那句是本课要记住的一句话——晶体管 = 能被电压控制的开关。" loading="lazy" decoding="async"></a><figcaption>晶体管就是一个能被电压控制的电子开关：不加电压门关着、电流过不去；加上电压门打开、电流通过。源极是电流入口，漏极是出口，栅极负责发号施令。右边那句是本课要记住的一句话——晶体管 = 能被电压控制的开关。</figcaption></figure>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">沟道</span><span class="term-zh">channel</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>栅极下方连接源极与漏极的那条通道。它的<strong>长度</strong>决定了器件有多快、多小——这就是&quot;工艺节点&quot;的来源。</p></div>
@@ -94,6 +94,7 @@
   <div class="term-b"><p>沟道太短时，<strong>源极和漏极离得太近</strong>。即使栅极不加电压，电子也会从源极直接&quot;溜&quot;到漏极（电子逃逸），形成关不断的漏电流。</p></div>
 </div>
 <p>后果很严重：器件关不掉 → 静态功耗暴涨 → 芯片发烫、待机功耗超标。<strong>这是工艺走到 28nm 以下时最头疼的物理问题。</strong></p>
+<figure class="fig-img"><a class="fig-a" href="/fig/chip-28nm-channel.jpg" data-fig="chip-28nm-channel.jpg"><img src="/fig/chip-28nm-channel.jpg" alt="&quot;28nm&quot; 说的是栅极下方沟道的长度，不是芯片大小。沟道越短 → 晶体管越小 → 同样大的芯片能放更多开关；但不能一直变短：太短了门关不严、电子偷偷跑过去，芯片就更耗电、更容易发热。" loading="lazy" decoding="async"></a><figcaption>&quot;28nm&quot; 说的是栅极下方沟道的长度，不是芯片大小。沟道越短 → 晶体管越小 → 同样大的芯片能放更多开关；但不能一直变短：太短了门关不严、电子偷偷跑过去，芯片就更耗电、更容易发热。</figcaption></figure>
   <label class="ch-done"><input type="checkbox" data-mark="node"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="finfet" data-ch="finfet">
@@ -102,7 +103,7 @@
   <div class="term-h"><span class="term-en">FinFET</span><span class="term-zh">鳍式场效应晶体管</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>把硅的沟道<strong>竖起来做成鱼鳍状</strong>，让栅极从<strong>顶部、左侧、右侧三面</strong>包住沟道的器件结构。</p></div>
 </div>
-<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">   平面 MOS（一面控制）          FinFET（三面控制）</span><span class="ln ">      ┌─────────┐                  ┌───┐</span><span class="ln ">      │  栅极   │                  │栅 │  ← 顶</span><span class="ln ">  ────┴─────────┴────          ┌───┤   ├───┐</span><span class="ln ">     ▔▔▔▔▔▔▔▔▔▔▔               │栅 │鳍 │栅 │ ← 左右</span><span class="ln ">      沟道（平躺）              └───┴───┴───┘</span></code></pre></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/chip-finfet.jpg" data-fig="chip-finfet.jpg"><img src="/fig/chip-finfet.jpg" alt="平面 MOS 只有顶面被栅极控制，像从上面一只手按住小路；FinFET 把沟道立起来，栅极从顶部、左侧、右侧三面抱住，接触更多、控制更强，电子更不容易乱跑。图左下角那个「常见分界」小框，就是下面这张工艺分界表。" loading="lazy" decoding="async"></a><figcaption>平面 MOS 只有顶面被栅极控制，像从上面一只手按住小路；FinFET 把沟道立起来，栅极从顶部、左侧、右侧三面抱住，接触更多、控制更强，电子更不容易乱跑。图左下角那个「常见分界」小框，就是下面这张工艺分界表。</figcaption></figure>
 <p>关键差别就一句话：<strong>接触面积变大，栅极对沟道的控制力变强，电子逃逸被抑制住</strong>。</p>
 <p>工程上的分界（文档给的）：</p>
 <div class="tbl"><table><thead><tr><th>工艺</th><th>器件类型</th></tr></thead><tbody><tr><td>28nm 及以上</td><td>平面 MOS 管</td></tr><tr><td>16nm / 12nm / 7nm 及以下</td><td><strong>FinFET 鳍式晶体管</strong></td></tr></tbody></table></div>
