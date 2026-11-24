@@ -258,3 +258,7 @@ init_design 内部的 link 是在做什么？link 失败的本质原因是什么
 - 遇到 `Cannot find cell` / `0 clocks defined` / `Unconnected power pin` 能立刻说出原因与修法
 - 知道用 saveDesign / loadDesign 保存与续跑
 :::
+
+:::note 接下来
+init 之后再往下就是 floorplan（课表 10 学时）——决定芯片面积、摆 macro、打物理约束。在那之前，建议先把这一课的五条检查在实际数据上跑通一遍：**init 阶段埋的每个坑，都会在 floorplan 阶段以"面积不够""通道被堵"的形式再出现一次。**
+:::

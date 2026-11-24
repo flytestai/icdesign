@@ -231,6 +231,7 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
   <div class="q-a">它代表 jitter 与建模误差的安全余量，设 0 等于假设时钟沿完美无抖动，流片后必然因抖动挂掉一批芯片。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能画出 DFF → 组合逻辑 → DFF 的模型，并指出起始点、结束点</li><li>能由周期算出频率、由 waveform 算出占空比，反过来也会</li><li>能写出 create_clock / create_generated_clock / create_clock 虚拟时钟三条命令并解释参数</li><li>能说清 set_input_delay / set_output_delay 的 -max 与 -min 各管什么</li><li>能举出两类该写 false path 的场景，并说出乱写的后果</li><li>能说出 fanout / capacitance / transition 三个电气约束各自限制什么</li><li>能说出&quot;约束力度 = 优化力度&quot;的含义，以及为什么 sdc 由 FCT 部门负责</li></ul></div>
+<div class="note"><div class="note-h">接下来</div><p>阶段二到这里结束。这七讲给的是&quot;数据与目标&quot;，下一步就是动工具：<a href="/lesson/03-01-innovus-plan/">阶段三导读</a> 里有 41 学时的工序清单，前两讲 <a href="/lesson/03-02-innovus-start/">启动 Innovus</a> 和 <a href="/lesson/03-03-innovus-init/">init_design</a> 已经上线——把这一课写的 sdc 真正读进工具、用 <code>report_clocks</code> 验证它生效，是阶段三第一个动作。</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="fct"><span>这一章我学完了</span></label>
 </section></article>
 

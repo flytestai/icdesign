@@ -152,6 +152,13 @@ create_library_set -name fhh \
 
 三个字母分别是 速度 / 电压 / 温度。**这套缩写看着土，但它是行业通用口语**——同事说"跑一下 slh"，指的就是这一组库。
 
+:::tip 在 vim 里顺着路径看 lib 文件
+viewDefinition.tcl 里的 lib 路径很长，手抄容易错。把光标停在路径上，按 **`gf`**（go to file）直接跳进那个 lib 文件；看完按 **`Ctrl+O`** 跳回来。
+
+（文档写作"命令模式 g+f"，指的是先按 `g` 再按 `f`；`Ctrl+O` 是 vim 的"回到上一个位置"，可以连按。）
+:::
+
+
 ### ② rc corner：系数 + 温度 {#rccorner}
 
 ```tcl

@@ -168,6 +168,7 @@
   <div class="q-a">统一时间/电容单位（如 ns、pF），或去掉 setLibraryUnit 让工具从 lib 自动获取。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出脚本方式相对 GUI 的三个优势，并解释为什么 GUI 会漏项</li><li>能背出 init 需要的数据清单（netlist / tech lef / cell lef / lib / rc tech / sdc / mmmc / def / pwr-gnd 名）</li><li>能默写一份 init 脚本的骨架（mmmc → lef → verilog+top → pwr/gnd → init_design）</li><li>能解释 init_design 五个内部动作，尤其是 link</li><li>能列出五条验证检查及各自的异常信号</li><li>遇到 <code>Cannot find cell</code> / <code>0 clocks defined</code> / <code>Unconnected power pin</code> 能立刻说出原因与修法</li><li>知道用 saveDesign / loadDesign 保存与续跑</li></ul></div>
+<div class="note"><div class="note-h">接下来</div><p>init 之后再往下就是 floorplan（课表 10 学时）——决定芯片面积、摆 macro、打物理约束。在那之前，建议先把这一课的五条检查在实际数据上跑通一遍：<strong>init 阶段埋的每个坑，都会在 floorplan 阶段以&quot;面积不够&quot;&quot;通道被堵&quot;的形式再出现一次。</strong></p></div>
   <label class="ch-done"><input type="checkbox" data-mark="errors"><span>这一章我学完了</span></label>
 </section></article>
 
