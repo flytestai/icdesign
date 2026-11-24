@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>阶段三导读：40nm Innovus 项目实操路线 · 25 | IC 后端学院</title>
+<title>阶段三导读：40nm Innovus 项目实操路线 · 31 | IC 后端学院</title>
 <meta name="description" content="阶段三是全课程的重头戏（课表 41 学时）。本页给出完整的工序清单与学时分配，标出已上线与在建的部分，并说明每一道工序在动手前必须先想清楚什么——避免"照抄步骤跑完一遍，却不知道自己在干什么"。">
-<link rel="icon" href="/assets/logo.svg?v=1795449784" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795449784">
+<link rel="icon" href="/assets/logo.svg?v=1795485456" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795485456">
 </head>
 <body data-page="lesson" data-lesson="03-01-innovus-plan">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795449784" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795485456" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -52,7 +52,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>阶段三导读：40nm Innovus 项目实操路线</b></div>
     <div class="hero">
-      <div class="hero-no">25</div>
+      <div class="hero-no">31</div>
       <h1>阶段三导读：40nm Innovus 项目实操路线</h1>
       <p class="hero-en">Stage 3 Guide: Innovus 40nm Project Lab</p>
       <p class="hero-sum">阶段三是全课程的重头戏（课表 41 学时）。本页给出完整的工序清单与学时分配，标出已上线与在建的部分，并说明每一道工序在动手前必须先想清楚什么——避免&quot;照抄步骤跑完一遍，却不知道自己在干什么&quot;。</p>
@@ -66,8 +66,10 @@
   <div class="ch-h"><span class="ch-n">01</span><h2>这一阶段要干什么</h2></div>
   <div class="goal"><span>本章目标</span>知道 41 学时怎么分到九道工序上；知道每一道工序的产出物是什么、判断好坏的指标是什么；明白为什么&quot;先上机跑一遍&quot;不如&quot;先想清楚这一步要解决什么问题&quot;。</div>
 <p>阶段二讲的是&quot;文件和数据是什么&quot;，阶段三开始动工具。课表给的 <strong>41 学时</strong>分配如下：</p>
-<div class="tbl"><table><thead><tr><th>工序</th><th>课表学时</th><th>本站进度</th><th>这一关的核心问题</th></tr></thead><tbody><tr><td>innovus 的使用</td><td>2</td><td><a href="/lesson/03-02-innovus-start/">已上线 2 讲</a></td><td>怎么启动、怎么自动化、怎么查帮助</td></tr><tr><td>floorplan</td><td>10</td><td>在建</td><td>芯片多大、macro 摆哪、约束怎么打</td></tr><tr><td>powerplan</td><td>2</td><td>在建</td><td>电源怎么送到每个单元</td></tr><tr><td>Placement / setup 与 hold</td><td>4</td><td>在建</td><td>stdcell 怎么摆、时序违例怎么读</td></tr><tr><td>CTS</td><td>14</td><td>在建</td><td>时钟树怎么建、skew 与 insertion delay</td></tr><tr><td>OptCTS</td><td>2</td><td>在建</td><td>时钟树建完怎么收敛</td></tr><tr><td>Route</td><td>4</td><td>在建</td><td>信号线怎么绕通、DRC 怎么清</td></tr><tr><td>OptRoute</td><td>1</td><td>在建</td><td>绕完怎么把时序修回来</td></tr><tr><td>ChipFinish</td><td>2</td><td>在建</td><td>最后要吐哪些文件给签核</td></tr></tbody></table></div>
-<div class="note"><div class="note-h">学时说明</div><p>本页只作路线导读，不占教学学时。阶段三已上线 <strong>4 学时</strong>（Innovus 启动与 init 导入两讲），其余工序随课程建设陆续补齐；全部上线后本阶段合计 41 学时。</p></div>
+<div class="tbl"><table><thead><tr><th>工序</th><th>课表学时</th><th>本站进度</th><th>这一关的核心问题</th></tr></thead><tbody><tr><td>innovus 的使用</td><td>2</td><td><a href="/lesson/03-02-innovus-start/">已上线</a></td><td>怎么启动、怎么自动化、怎么查帮助</td></tr><tr><td>项目环境</td><td>—</td><td><a href="/lesson/03-04-project-env/">已上线</a></td><td>目录怎么建、Run 怎么命名、Queue 怎么用</td></tr><tr><td>floorplan</td><td>10</td><td>在建</td><td>芯片多大、macro 摆哪、约束怎么打</td></tr><tr><td>powerplan</td><td>2</td><td>在建</td><td>电源怎么送到每个单元</td></tr><tr><td>Placement / setup 与 hold</td><td>4</td><td>在建</td><td>stdcell 怎么摆、时序违例怎么读</td></tr><tr><td>CTS</td><td>14</td><td>在建</td><td>时钟树怎么建、skew 与 insertion delay</td></tr><tr><td>OptCTS</td><td>2</td><td>在建</td><td>时钟树建完怎么收敛</td></tr><tr><td>Route</td><td>4</td><td>在建</td><td>信号线怎么绕通、DRC 怎么清</td></tr><tr><td>OptRoute</td><td>1</td><td>在建</td><td>绕完怎么把时序修回来</td></tr><tr><td>ChipFinish</td><td>2</td><td>在建</td><td>最后要吐哪些文件给签核</td></tr></tbody></table></div>
+<div class="note"><div class="note-h">学时说明</div><p>本页只作路线导读，不占教学学时。阶段三已上线 <strong>6 学时</strong>三讲：</p>
+<ol><li><a href="/lesson/03-02-innovus-start/">启动 Innovus：版本、常用选项与帮助系统</a>（2 学时）</li><li><a href="/lesson/03-03-innovus-init/">init_design：把数据导进 Innovus</a>（2 学时）</li><li><a href="/lesson/03-04-project-env/">项目环境：目录规范、Run 与 Queue</a>（2 学时）</li></ol>
+<p>其余工序随课程建设陆续补齐；全部上线后本阶段合计 41 学时。</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="plan"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="output" data-ch="output">
@@ -112,8 +114,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795449784"></script>
-<script src="/assets/tcl.js?v=1795449784"></script>
-<script src="/assets/app.js?v=1795449784"></script>
+<script src="/assets/shell.js?v=1795485456"></script>
+<script src="/assets/tcl.js?v=1795485456"></script>
+<script src="/assets/app.js?v=1795485456"></script>
 </body>
 </html>

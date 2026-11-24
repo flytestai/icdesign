@@ -1,6 +1,6 @@
 ---
 id: 02-07-pr-mmmc
-no: 23
+no: 29
 stage: 2
 title: MMMC：多模式多端角，工具到底在几种世界里跑时序
 en: MMMC: Multi-Mode Multi-Corner Analysis
@@ -74,6 +74,15 @@ MMMC 的全部配置信息集中在一个文件里——文档说的 **`viewDefi
 
 对 PR 的意义：这些模式选择脚是**真实的物理端口**，floorplan 时要给它们留位置，而且它们的输入延迟/驱动要按最严的模式约束。
 
+:::tip Scan 模式的两版网表：S1 与 S2
+DFT 不是一开始就把扫描链塞进网表的，通常分两步交：
+
+- **S1 = 纯功能网表**（没插 scan）：用来评估 RTL 迭代带来的逻辑增长、面积够不够；
+- **S2 = 插好 scan chain 的最终版**：**所有分析和签核都基于 S2**。
+
+所以你会同时有 `func` 和 `scan` 两套 sdc、两个 constraint mode——**这就是"多模式"最实在的来源**。（这两版网表的差别与协作细节在 [网表版本与迭代协作](/lesson/02-04a-netlist-release/) 那一课。）
+:::
+
 ## 多端角 Corner：芯片在什么条件下工作 {#corner}
 
 :::term corner | 端角
@@ -130,6 +139,12 @@ MMMC 的全部配置信息集中在一个文件里——文档说的 **`viewDefi
 ```
 
 对应文档说的"由图上几部分组成"，我们逐个看代码。
+
+:::note 先补一课：corner 的物理含义
+这份文件只是"配置"，它背后的物理是另一套知识——**为什么 SS 慢、FF 快，RCmax 与 RCmin 分别由线宽 W、厚度 T、介质厚 H、间距 S 怎么组合出来，WCS 与 BCF 各是什么，setup 为什么查慢、hold 为什么查快**。
+
+这些在 [Setup 与 Hold：两条红线与四种 Corner](/lesson/02-06a-setup-hold/) 里讲透了，**建议先读那一课再读本课的代码**，否则你只是在抄别人的配置。
+:::
 
 ### ① library set：慢组 / 快组 {#libset}
 
@@ -248,6 +263,20 @@ report_analysis_view
 ```
 
 **setup 用慢的 view、hold 用快的 view** —— 这是 MMMC 唯一必须背下来的一句话。搞反了，报告全绿但芯片是废的。
+
+:::note OCV / POCV 不在这份文件里
+片上偏差（同一颗芯片内部也有快慢）不是靠"多加几个 view"解决的，而是用 **timing derate** 单独设：
+
+```tcl
+# 传统 OCV：给所有单元/线加 ±x% 的悲观余量
+set_timing_derate -early 0.95 -late 1.05
+
+# POCV：读入统计偏差模型，让工具按统计规律累加
+set_timing_derate -pocv -early -late ...
+```
+
+**一句话**：viewDefinition 管"用哪套库/RC/约束"，derate 管"同一套里再留多少悲观余量"。两者配合，才是一次完整的签核配置。概念在 [Setup 与 Hold](/lesson/02-06a-setup-hold/) 那一课的 OCV/POCV 小节。
+:::
 
 ## 配错 MMMC 会长什么样 {#pitfall}
 

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Setup 与 Hold：两条红线与四种 Corner · 28 | IC 后端学院</title>
+<meta name="description" content="时序检查只有两件事：数据不能太晚（setup），也不能太早（hold）。这一课把这两条红线的判据写清楚，然后讲清它们各自该在什么条件下检查——corner 为什么分 FF/SS/TT、RC corner 的 Cmax/Cmin/RCmax/RCmin 由线宽 W、厚度 T、介质厚 H、间距 S 怎么决定、为什么 setup 看 SS+RCmax 而 hold 看 FF+RCmin，最后讲 OCV 与 POCV 这两种片上偏差建模。">
+<link rel="icon" href="/assets/logo.svg?v=1795485456" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795485456">
+</head>
+<body data-page="lesson" data-lesson="02-06a-setup-hold">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795485456" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>Setup 与 Hold：两条红线与四种 Corner</b></div>
+    <div class="hero">
+      <div class="hero-no">28</div>
+      <h1>Setup 与 Hold：两条红线与四种 Corner</h1>
+      <p class="hero-en">Setup, Hold and Corners</p>
+      <p class="hero-sum">时序检查只有两件事：数据不能太晚（setup），也不能太早（hold）。这一课把这两条红线的判据写清楚，然后讲清它们各自该在什么条件下检查——corner 为什么分 FF/SS/TT、RC corner 的 Cmax/Cmin/RCmax/RCmin 由线宽 W、厚度 T、介质厚 H、间距 S 怎么决定、为什么 setup 看 SS+RCmax 而 hold 看 FF+RCmin，最后讲 OCV 与 POCV 这两种片上偏差建模。</p>
+      <div class="hero-meta">
+        <span class="pill">约 30 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">setup</span><span class="pill tag">hold</span><span class="pill tag">corner</span><span class="pill tag">FF</span><span class="pill tag">SS</span><span class="pill tag">TT</span><span class="pill tag">RC corner</span><span class="pill tag">PVT</span><span class="pill tag">WCS</span><span class="pill tag">BCF</span><span class="pill tag">OCV</span><span class="pill tag">POCV</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>时序检查只有两件事</h2></div>
+  <div class="goal"><span>本章目标</span>能写出 setup 与 hold 的 slack 判据；能说出 setup 查最慢、hold 查最快的理由；能解释 FF/SS/TT 与 PVT 的对应关系；能说出 Cmax/Cmin/RCmax/RCmin 分别由 W/T/H/S 怎么组合出来；能说清 WCS 与 BCF 各是什么组合；知道 OCV 与 POCV 的区别。</div>
+<p>上一课（SDC）给的是&quot;要求&quot;：周期多长、外部给多少延迟。这一课讲的是<strong>怎么判合格</strong>——工具算出到达时间（arrival）和需求时间（required），两者一比，就是 slack。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">setup:  slack = required(下一个时钟沿) - arrival(数据最晚到)     必须 ≥ 0</span><span class="ln ">hold:   slack = arrival(数据最早到)   - required(当前时钟沿之后)  必须 ≥ 0</span></code></pre></div>
+<p>一句话记：<strong>数据必须在 T1 到 T2 这个窗口里到，早了晚了都是错。</strong></p>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="setup" data-ch="setup">
+  <div class="ch-h"><span class="ch-n">02</span><h2>Setup：不能太晚</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">setup</span><span class="term-zh">建立时间</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>数据必须在<strong>下一个时钟沿到来之前</strong>稳定一段时间，这段提前量要求就是 setup 检查。<strong>不满足 = 数据来不及被采到。</strong></p></div>
+</div>
+<ul><li>物理含义：这一拍的数据，要在下一拍的时钟沿&quot;抓&quot;之前就位；</li><li>检查的是<strong>最慢</strong>的情况——所以用<strong>延迟最大</strong>的库与 RC（慢 corner）；</li><li>表现：频率提不上去、WNS 为负、报告里一堆 <code>setup violation</code>；</li><li>修法（后端手段）：插 buffer 打拍不行（那是前端），能做的是换大驱动单元、缩短走线、调整位置、降密度。</li></ul>
+  <label class="ch-done"><input type="checkbox" data-mark="setup"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="hold" data-ch="hold">
+  <div class="ch-h"><span class="ch-n">03</span><h2>Hold：不能太早</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">hold</span><span class="term-zh">保持时间</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>数据在<strong>当前时钟沿之后</strong>还必须保持一段时间不变，否则会把该采的旧值冲掉。<strong>不满足 = 数据跑太快，把上一拍冲了。</strong></p></div>
+</div>
+<ul><li>检查的是<strong>最快</strong>的情况——所以用<strong>延迟最小</strong>的库与 RC（快 corner）；</li><li><strong>hold 是硬伤</strong>：它和频率无关，你把时钟降到 1Hz 也修不好；一旦流片回来有 hold 问题，芯片基本就是废片；</li><li>修法：<strong>插 delay（buffer）</strong>把太快的数据拖慢——这是唯一常规手段。</li></ul>
+<div class="pit"><div class="pit-h">常见坑 · 只看 setup，把 hold 留到最后</div><div class="pit-b"><p><strong>现象</strong>：setup 全收敛，报告一片绿，流片回来部分芯片上电即死。</p>
+<p><strong>原因</strong>：hold 违例不会因为降频而消失，而且 hold 的修法（插 delay）会<strong>反过来让 setup 变差</strong>。所以 hold 必须和 setup 一起收敛，通常做法是先修 hold（在 route 后），再回头确认 setup 没被破坏。</p>
+<p><strong>记住</strong>：<strong>setup 决定&quot;能跑多快&quot;，hold 决定&quot;能不能活&quot;。</strong></p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="hold"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="corner" data-ch="corner">
+  <div class="ch-h"><span class="ch-n">04</span><h2>Corner：为什么要分 FF / SS / TT</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">corner</span><span class="term-zh">工艺角</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>制造偏差导致晶体管有快有慢。<strong>FF / SS / TT</strong> 是三种典型组合：取决于 NMOS 和 PMOS 各自偏快还是偏慢。</p></div>
+</div>
+<figure class="fig-img"><a class="fig-a" href="/fig/pr-ff-ss-tt.png" data-fig="pr-ff-ss-tt"><img src="/fig/pr-ff-ss-tt.png" alt="FF / SS / TT 三种 process corner 的含义" loading="lazy" decoding="async"></a><figcaption>FF / SS / TT 三种 process corner 的含义</figcaption></figure>
+<div class="tbl"><table><thead><tr><th>Corner</th><th>含义</th><th>cell delay</th></tr></thead><tbody><tr><td><strong>FF</strong></td><td>Fast-Fast：NMOS 快、PMOS 也快（fast process）</td><td><strong>最小</strong></td></tr><tr><td><strong>SS</strong></td><td>Slow-Slow：两个都慢（slow process）</td><td><strong>最大</strong></td></tr><tr><td><strong>TT</strong></td><td>Typical-Typical：都典型（standard process）</td><td>中间</td></tr></tbody></table></div>
+<p><strong>为什么要两端都查？</strong> 因为芯片造出来不可能是&quot;恰好典型&quot;：</p>
+<ul><li>偏快的那批（FF）→ 数据跑太早 → <strong>hold 风险</strong>；</li><li>偏慢的那批（SS）→ 数据跑太晚 → <strong>setup 风险</strong>。</li></ul>
+<p>只查 TT 等于假设&quot;每颗芯片都完美&quot;，这在量产里不成立。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="corner"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="rc" data-ch="rc">
+  <div class="ch-h"><span class="ch-n">05</span><h2>RC corner：线也有四种极端</h2></div>
+  <p>线延迟不只看工艺，还要看<strong>金属的几何偏差</strong>。四个几何量决定一切：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">        ← W（线宽）→  ← S（线间距）→</span><span class="ln ">    ┌────────────────┐  ┌──────────┐</span><span class="ln ">    │   metal  ▔▔▔▔  │  │  metal   │   ↕ T（金属厚度）</span><span class="ln ">    └────────────────┘  └──────────┘</span><span class="ln ">    ─────────────────────────────────  ↕ H（层间介质厚度）</span></code></pre></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/pr-rc-corner.png" data-fig="pr-rc-corner"><img src="/fig/pr-rc-corner.png" alt="各种不同的 RC 环境：Cmax / Cmin / RCmax / RCmin 由 W、T、H、S 决定" loading="lazy" decoding="async"></a><figcaption>各种不同的 RC 环境：Cmax / Cmin / RCmax / RCmin 由 W、T、H、S 决定</figcaption></figure>
+<div class="tbl"><table><thead><tr><th>RC corner</th><th>几何条件</th><th>结果</th><th>通常影响</th></tr></thead><tbody><tr><td><strong>Cmax（Cworst）</strong></td><td>W、T 大，H、S 小</td><td><strong>电容最大</strong></td><td>setup 较差</td></tr><tr><td><strong>Cmin（Cbest）</strong></td><td>W、T 小，H、S 大</td><td><strong>电容最小</strong></td><td>hold 较差</td></tr><tr><td><strong>RCmax（RCworst）</strong></td><td>W、T、H 小，S 大</td><td><strong>电阻电容都最大</strong></td><td>setup 较差</td></tr><tr><td><strong>RCmin（RCbest）</strong></td><td>W、T、H 大，S 小</td><td><strong>电阻电容都最小</strong></td><td>hold 较差</td></tr><tr><td><strong>typical（normal）</strong></td><td>标准状态</td><td>中间值</td><td>参考</td></tr></tbody></table></div>
+<p>直观理解（不用背公式，记方向即可）：</p>
+<ul><li><strong>电容</strong>主要由&quot;两块金属面对面&quot;决定：<strong>W、T 大（金属截面大）+ H、S 小（离得近）→ C 大</strong>；</li><li><strong>电阻</strong>由&quot;细、薄、长&quot;决定：<strong>W、T、H 小（截面小）→ R 大</strong>。</li></ul>
+  <label class="ch-done"><input type="checkbox" data-mark="rc"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="pvt" data-ch="pvt">
+  <div class="ch-h"><span class="ch-n">06</span><h2>PVT：三个字母锁死一个 corner</h2></div>
+  <div class="tbl"><table><thead><tr><th>字母</th><th>含义</th><th>极端取值</th></tr></thead><tbody><tr><td><strong>P</strong></td><td>Process 工艺</td><td>FF（快）/ SS（慢）/ TT（典型）</td></tr><tr><td><strong>V</strong></td><td>Voltage 电压</td><td>高压（快）/ 低压（慢）</td></tr><tr><td><strong>T</strong></td><td>Temperature 温度</td><td>低温（快）/ 高温（慢，先进工艺可能反转）</td></tr></tbody></table></div>
+<p>组合出来的两条&quot;最坏线&quot;：</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">WCS</span><span class="term-zh">Worst Case Slow</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p><strong>SS + 低压 + 高温 + RCmax</strong> —— 器件最慢、线也最慢的组合，用来查 <strong>setup</strong>。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">BCF</span><span class="term-zh">Best Case Fast</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p><strong>FF + 高压 + 低温 + RCmin</strong> —— 器件最快、线也最快的组合，用来查 <strong>hold</strong>。</p></div>
+</div>
+<p>对照文档的描述：</p>
+<ul><li><strong>FF corner 通常出现在高压 + 低温（如 -40℃）</strong> → 器件延时最小、信号传输最快；</li><li><strong>SS corner 通常出现在低压 + 高温（如 125℃）</strong> → 器件延时最大、信号最慢。</li></ul>
+<div class="tip"><div class="tip-h">小技巧</div><p><strong>setup 查最慢（SS + 低压 + 高温 + RCmax = WCS）</strong> <strong>hold 查最快（FF + 高压 + 低温 + RCmin = BCF）</strong></p>
+<p>（先进工艺的低温反转会让&quot;低温 setup&quot;也变坏，所以低温 corner 也要单独跑——lib 课讲过。）</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="pvt"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="mmc" data-ch="mmc">
+  <div class="ch-h"><span class="ch-n">07</span><h2>MMC：为什么还要乘上&quot;模式&quot;</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">MMC / MMMC</span><span class="term-zh">Multi-Mode Multi-Corner</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>多模式多角。<strong>光有工艺角还不够</strong>——同一颗芯片在不同工作模式下（功能 / 扫描测试 / 超频），时钟结构与频率都不一样，所以 corner 还要再乘上 mode，得到一组 analysis view。</p></div>
+</div>
+<ul><li><strong>Function 模式</strong>：正常工作，主优化对象；</li><li><strong>Scan 模式</strong>：DFT 插入扫描链后的测试模式。<strong>综合阶段先给纯功能网表，之后再合并 DFT 逻辑生成带 scan 的网表</strong>——这就是上一课讲的 S1 / S2；</li><li>有的项目还有超频（performance）模式。</li></ul>
+<p><strong>MMC 的要求是：所有 corner × mode 的组合都收敛</strong>，而不只是主 corner 好看。具体怎么配（library set / rc corner / view），下一课 MMMC 专讲。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="mmc"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="ocv" data-ch="ocv">
+  <div class="ch-h"><span class="ch-n">08</span><h2>OCV 与 POCV：同一颗芯片内部也有快慢</h2></div>
+  <p>前面讲的 corner 是&quot;<strong>芯片之间</strong>的偏差&quot;（这颗快那颗慢）。但<strong>同一颗芯片内部</strong>，不同位置的器件也会有快慢差——比如靠近时钟源的和角落里的。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">OCV</span><span class="term-zh">On-Chip Variation 片上偏差</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>同一个芯片内部器件/连线的偏差。传统做法是给延迟加一个<strong>固定百分比</strong>（如 ±20%）作为悲观余量，保证&quot;即使最坏也能工作&quot;。</p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">POCV</span><span class="term-zh">Parametric OCV</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>用<strong>统计分布（正态分布）</strong>代替固定百分比来建模偏差：按每个单元的实际敏感度累加偏差，而不是统一乘 1.2 或 0.8。</p></div>
+</div>
+<p>两者差别一句话：<strong>OCV 是&quot;一刀切加余量&quot;（简单但过悲观，白烧面积）；POCV 是&quot;按统计规律累加&quot;（更准，先进工艺基本都用它）。</strong></p>
+<div class="pit"><div class="pit-h">常见坑 · 把 corner 与 mode 弄混</div><div class="pit-b"><p><strong>现象</strong>：报告里明明按 SS 跑了，还是漏掉了问题；或者&quot;我查了最快 corner 怎么还有 setup 违例&quot;。</p>
+<p><strong>原因</strong>：corner（快慢）和 mode（功能/扫描/超频）是两个维度。<strong>扫描模式下的时钟结构和功能模式完全不同</strong>，只在 func 模式下查 SS，等于没查 scan 的时序。</p>
+<p><strong>做法</strong>：先确认&quot;这个 view 是哪个 mode × 哪个 corner&quot;，再看数字（下一课有专门讲 view 的命名与配置）。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="ocv"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">09</span><h2>动手：算一次 slack</h2></div>
+  <p>把下面几个数改掉，体会&quot;晚一点 / 早一点&quot;对两条红线的影响。<strong>注意这里全部用 ps 的整数</strong>——真实签核数据也常以 ps 为单位，避免浮点误差（0.35 + 1.2 在浮点里会变成 1.5499999…）：</p>
+<div class="tsbx has-code" data-code="# ---- setup 检查：数据最晚到达 vs 下一个时钟沿（单位：ps）----
+set period 2000                               ;# 时钟周期 2000ps = 2ns
+set t_launch 350                              ;# 起始触发器 clk→Q 的延迟
+set t_logic 1200                              ;# 组合逻辑 + 线延迟（最慢）
+set t_setup 100                               ;# 结束触发器的 setup 要求
+set arrival [expr {$t_launch + $t_logic}]     ;# 数据实际最晚到达时刻
+set required [expr {$period - $t_setup}]      ;# 必须在此时刻之前稳定
+puts &quot;setup: arrival=$arrival ps  required=$required ps  slack=[expr {$required - $arrival}] ps&quot;
+
+# ---- hold 检查：数据最早到达 vs 当前时钟沿之后 ----
+set t_launch_fast 120                         ;# 起始触发器（最快 corner）
+set t_logic_fast 50                           ;# 组合逻辑 + 线延迟（最快）
+set t_hold 80                                 ;# 结束触发器的 hold 要求
+set arrival_fast [expr {$t_launch_fast + $t_logic_fast}]
+puts &quot;hold : arrival=$arrival_fast ps       required=$t_hold ps   slack=[expr {$arrival_fast - $t_hold}] ps&quot;
+
+# ---- 把逻辑延迟调大 300ps，看 setup 怎么变 ----
+set arrival2 [expr {$t_launch + $t_logic + 300}]
+puts &quot;逻辑慢 300ps 后 setup slack=[expr {$required - $arrival2}] ps&quot;">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre># ---- setup 检查：数据最晚到达 vs 下一个时钟沿（单位：ps）----
+set period 2000                               ;# 时钟周期 2000ps = 2ns
+set t_launch 350                              ;# 起始触发器 clk→Q 的延迟
+set t_logic 1200                              ;# 组合逻辑 + 线延迟（最慢）
+set t_setup 100                               ;# 结束触发器的 setup 要求
+set arrival [expr {$t_launch + $t_logic}]     ;# 数据实际最晚到达时刻
+set required [expr {$period - $t_setup}]      ;# 必须在此时刻之前稳定
+puts &quot;setup: arrival=$arrival ps  required=$required ps  slack=[expr {$required - $arrival}] ps&quot;
+
+# ---- hold 检查：数据最早到达 vs 当前时钟沿之后 ----
+set t_launch_fast 120                         ;# 起始触发器（最快 corner）
+set t_logic_fast 50                           ;# 组合逻辑 + 线延迟（最快）
+set t_hold 80                                 ;# 结束触发器的 hold 要求
+set arrival_fast [expr {$t_launch_fast + $t_logic_fast}]
+puts &quot;hold : arrival=$arrival_fast ps       required=$t_hold ps   slack=[expr {$arrival_fast - $t_hold}] ps&quot;
+
+# ---- 把逻辑延迟调大 300ps，看 setup 怎么变 ----
+set arrival2 [expr {$t_launch + $t_logic + 300}]
+puts &quot;逻辑慢 300ps 后 setup slack=[expr {$required - $arrival2}] ps&quot;</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>三问</div><div class="lab-b"><ol><li>把 <code>t_logic</code> 从 1200 加到 1500，setup slack 变多少？hold slack 变了吗？为什么？</li><li>把 <code>period</code> 从 2000 降到 1000，setup slack 变成多少？（这就是提频的代价）</li><li>若 hold slack 是负的，工程上怎么修？为什么&quot;插 delay&quot;会让 setup 变差？</li></ol>
+<p>验收标准：三问都能答，并能说出&quot;setup 看最慢路径、hold 看最快路径&quot;在这个算例里怎么体现。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>setup 与 hold 的 slack 公式分别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">setup: required(下一时钟沿 - setup) − arrival(最晚到)；hold: arrival(最早到) − required(当前沿 + hold)。两者都必须 ≥ 0。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 setup 查最慢、hold 查最快？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">setup 是&quot;来不及&quot;，最坏发生在器件/线都最慢时；hold 是&quot;太早&quot;，最坏发生在器件/线都最快时。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>FF / SS / TT 分别是什么意思？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">Fast-Fast（NMOS、PMOS 都快，delay 最小）、Slow-Slow（都慢，delay 最大）、Typical-Typical（典型，中间）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Cmax 与 Cmin 分别由什么几何条件造成？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">Cmax：W、T 大且 H、S 小（金属截面大、离得近）→ 电容最大；Cmin：W、T 小且 H、S 大 → 电容最小。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>WCS 和 BCF 各是什么组合？用来查什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">WCS = SS + 低压 + 高温 + RCmax，查 setup；BCF = FF + 高压 + 低温 + RCmin，查 hold。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>FF corner 一般在什么电压温度下出现？SS 呢？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">FF 通常高压 + 低温（如 -40℃）延时最小；SS 通常低压 + 高温（如 125℃）延时最大。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么只查 TT 不够？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">制造有偏差，芯片会落在 FF~SS 之间；只查典型等于假设每颗都完美，量产必挂。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>OCV 与 POCV 的区别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">OCV 用固定百分比（如 20%）给延迟加悲观余量；POCV 用统计分布按单元敏感度累加，更精确、过悲观更少。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么 hold 违例比 setup 更致命？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">hold 与频率无关，降频也修不好；一旦流片有 hold 问题基本是废片，只能在流片前靠插 delay 修掉。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能写出 setup / hold 的 slack 判据，并说出&quot;早了晚了都是错&quot;</li><li>能解释 setup 查慢、hold 查快的物理原因</li><li>能说出 FF/SS/TT 与 delay 大小、PVT 极端条件的对应</li><li>能说出 Cmax/Cmin/RCmax/RCmin 由 W/T/H/S 的组合决定</li><li>能背出 WCS 与 BCF 的完整组合及各自用途</li><li>能说清 corner 与 mode 是两个维度，MMC 要求全组合收敛</li><li>能说出 OCV（固定百分比）与 POCV（统计分布）的区别</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-06-pr-lib-rctech/">← lib 与 rc tech：延迟到底是怎么算出来的</a><a class="nav-btn" href="/lesson/02-07-pr-mmmc/">MMMC：多模式多端角，工具到底在几种世界里跑时序 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795485456"></script>
+<script src="/assets/tcl.js?v=1795485456"></script>
+<script src="/assets/app.js?v=1795485456"></script>
+</body>
+</html>

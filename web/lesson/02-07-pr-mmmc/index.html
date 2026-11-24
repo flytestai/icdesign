@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MMMC：多模式多端角，工具到底在几种世界里跑时序 · 23 | IC 后端学院</title>
+<title>MMMC：多模式多端角，工具到底在几种世界里跑时序 · 29 | IC 后端学院</title>
 <meta name="description" content="一颗芯片不能只按"正常工作、典型电压、室温"来验。这一课讲清多模式（func / 超频 / DFT）与多端角（工艺、电压、温度、RC）为什么要组合，把 viewDefinition.tcl 里的 library set、rc corner、delay corner、constraint mode、analysis view 五层结构拆开，最后说清 setup 和 hold 各看哪个 view、配错了会出什么事故。">
-<link rel="icon" href="/assets/logo.svg?v=1795449784" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795449784">
+<link rel="icon" href="/assets/logo.svg?v=1795485456" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795485456">
 </head>
 <body data-page="lesson" data-lesson="02-07-pr-mmmc">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795449784" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795485456" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -52,7 +52,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>MMMC：多模式多端角，工具到底在几种世界里跑时序</b></div>
     <div class="hero">
-      <div class="hero-no">23</div>
+      <div class="hero-no">29</div>
       <h1>MMMC：多模式多端角，工具到底在几种世界里跑时序</h1>
       <p class="hero-en">MMMC: Multi-Mode Multi-Corner Analysis</p>
       <p class="hero-sum">一颗芯片不能只按&quot;正常工作、典型电压、室温&quot;来验。这一课讲清多模式（func / 超频 / DFT）与多端角（工艺、电压、温度、RC）为什么要组合，把 viewDefinition.tcl 里的 library set、rc corner、delay corner、constraint mode、analysis view 五层结构拆开，最后说清 setup 和 hold 各看哪个 view、配错了会出什么事故。</p>
@@ -102,6 +102,9 @@
 <p>文档提到&quot;<strong>一般预留引脚来触发不同的模式</strong>&quot;。这在工程上非常常见：</p>
 <ul><li>芯片留几个<strong>测试模式选择脚</strong>（test mode pin），上电时拉高就进 DFT 模式；</li><li>有的用 efuse / 寄存器配置位来切模式；</li><li>超频模式可能靠一个&quot;性能使能&quot;脚配合外部供电。</li></ul>
 <p>对 PR 的意义：这些模式选择脚是<strong>真实的物理端口</strong>，floorplan 时要给它们留位置，而且它们的输入延迟/驱动要按最严的模式约束。</p>
+<div class="tip"><div class="tip-h">小技巧</div><p>DFT 不是一开始就把扫描链塞进网表的，通常分两步交：</p>
+<ul><li><strong>S1 = 纯功能网表</strong>（没插 scan）：用来评估 RTL 迭代带来的逻辑增长、面积够不够；</li><li><strong>S2 = 插好 scan chain 的最终版</strong>：<strong>所有分析和签核都基于 S2</strong>。</li></ul>
+<p>所以你会同时有 <code>func</code> 和 <code>scan</code> 两套 sdc、两个 constraint mode——<strong>这就是&quot;多模式&quot;最实在的来源</strong>。（这两版网表的差别与协作细节在 <a href="/lesson/02-04a-netlist-release/">网表版本与迭代协作</a> 那一课。）</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="mode"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="corner" data-ch="corner">
@@ -129,6 +132,8 @@
   <p>这份文件不是随便写的配置，它有严格的<strong>层层引用</strong>关系。看清这个结构，你就再也不会写错：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">[1] create_library_set        ──┐  用哪些 lib（决定 cell 快慢）</span><span class="ln ">     (名字, lib 文件列表)        │</span><span class="ln ">                                ↓</span><span class="ln ">[2] create_rc_corner          ──┐  用哪些 RC 系数（决定线快慢）</span><span class="ln ">     (名字, QX 技术文件, 温度)   │</span><span class="ln ">                                ↓</span><span class="ln ">[3] create_delay_corner       ──┐  把 [1] + [2] 绑在一起 = 一个物理条件</span><span class="ln ">     (名字, library_set, rc_corner) │</span><span class="ln ">                                ↓</span><span class="ln ">[4] create_constraint_mode    ──┐  用哪套 sdc（决定&quot;要求&quot;）</span><span class="ln ">     (名字, sdc 文件列表)        │</span><span class="ln ">                                ↓</span><span class="ln ">[5] create_analysis_view      ──┐  [3] + [4] 组合 = 一个 view</span><span class="ln ">     (名字, delay_corner, constraint_mode) │</span><span class="ln ">                                ↓</span><span class="ln ">[6] set_analysis_view         ──┘  指定哪些 view 做 setup、哪些做 hold</span></code></pre></div>
 <p>对应文档说的&quot;由图上几部分组成&quot;，我们逐个看代码。</p>
+<div class="note"><div class="note-h">先补一课：corner 的物理含义</div><p>这份文件只是&quot;配置&quot;，它背后的物理是另一套知识——<strong>为什么 SS 慢、FF 快，RCmax 与 RCmin 分别由线宽 W、厚度 T、介质厚 H、间距 S 怎么组合出来，WCS 与 BCF 各是什么，setup 为什么查慢、hold 为什么查快</strong>。</p>
+<p>这些在 <a href="/lesson/02-06a-setup-hold/">Setup 与 Hold：两条红线与四种 Corner</a> 里讲透了，<strong>建议先读那一课再读本课的代码</strong>，否则你只是在抄别人的配置。</p></div>
 <h3 id="libset">① library set：慢组 / 快组</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 慢速低压高温组：setup 分析用这一套（延迟最大）</span><span class="ln ">create_library_set -name slh \</span><span class="ln ">    -timing { /libs/tsc28_lvtssg0p74v125c.lib \</span><span class="ln ">              /libs/tsc28_lvtssg0p74vm40c.lib }</span><span class="ln "> </span><span class="ln cmt"># 慢速低压低温组：先进工艺温度反转，&quot;慢 + 冷&quot;可能是最坏，单独成组</span><span class="ln ">create_library_set -name sll \</span><span class="ln ">    -timing { /libs/tsc28_lvtssg0p74vm40c.lib }</span><span class="ln "> </span><span class="ln cmt"># 快速高压高温组：hold 分析用这一套（延迟最小）</span><span class="ln ">create_library_set -name fhh \</span><span class="ln ">    -timing { /libs/tsc28_lvtffg0p88v125c.lib }</span></code></pre></div>
 <p>命名规律（文档给的写法）：<strong><code>slh</code> = slow-low-hot（慢速低压高温）、<code>sll</code> = slow-low-low（慢速低压低温）、<code>fhh</code> = fast-high-hot（高速高压高温）</strong>。</p>
@@ -151,6 +156,9 @@
 <h3 id="setview">⑥ set_analysis_view：谁查 setup，谁查 hold</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># setup 分析：慢条件的所有模式都要查（来不及到就是错）</span><span class="ln ">set_analysis_view \</span><span class="ln ">    -setup { func_slow turbo_slow } \</span><span class="ln ">    -hold  { func_fast dft_fast }</span><span class="ln "> </span><span class="ln cmt"># 查看当前配置了哪些 view、哪个是激活的</span><span class="ln ">report_analysis_view</span></code></pre></div>
 <p><strong>setup 用慢的 view、hold 用快的 view</strong> —— 这是 MMMC 唯一必须背下来的一句话。搞反了，报告全绿但芯片是废的。</p>
+<div class="note"><div class="note-h">OCV / POCV 不在这份文件里</div><p>片上偏差（同一颗芯片内部也有快慢）不是靠&quot;多加几个 view&quot;解决的，而是用 <strong>timing derate</strong> 单独设：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 传统 OCV：给所有单元/线加 ±x% 的悲观余量</span><span class="ln ">set_timing_derate -early 0.95 -late 1.05</span><span class="ln "> </span><span class="ln cmt"># POCV：读入统计偏差模型，让工具按统计规律累加</span><span class="ln ">set_timing_derate -pocv -early -late ...</span></code></pre></div>
+<p><strong>一句话</strong>：viewDefinition 管&quot;用哪套库/RC/约束&quot;，derate 管&quot;同一套里再留多少悲观余量&quot;。两者配合，才是一次完整的签核配置。概念在 <a href="/lesson/02-06a-setup-hold/">Setup 与 Hold</a> 那一课的 OCV/POCV 小节。</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="viewdef"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="pitfall" data-ch="pitfall">
@@ -209,13 +217,13 @@
         <h3>这一课学完了吗？</h3>
         <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <button id="btn-done" class="pri">标记本课完成</button>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/02-06-pr-lib-rctech/">← lib 与 rc tech：延迟到底是怎么算出来的</a><a class="nav-btn" href="/lesson/02-08-pr-sdc/">SDC 时序约束：告诉工具&quot;做到什么程度算合格&quot; →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-06a-setup-hold/">← Setup 与 Hold：两条红线与四种 Corner</a><a class="nav-btn" href="/lesson/02-08-pr-sdc/">SDC 时序约束：告诉工具&quot;做到什么程度算合格&quot; →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795449784"></script>
-<script src="/assets/tcl.js?v=1795449784"></script>
-<script src="/assets/app.js?v=1795449784"></script>
+<script src="/assets/shell.js?v=1795485456"></script>
+<script src="/assets/tcl.js?v=1795485456"></script>
+<script src="/assets/app.js?v=1795485456"></script>
 </body>
 </html>

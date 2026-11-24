@@ -1,6 +1,6 @@
 ---
 id: 02-06-pr-lib-rctech
-no: 22
+no: 27
 stage: 2
 title: lib 与 rc tech：延迟到底是怎么算出来的
 en: lib and RC Tech: How Delay Is Computed
@@ -161,11 +161,19 @@ tsc28_lvtssg0p81v125c.lib
 - **电压越大，delay 越小**（电压高压差大、驱动电流强）；
 - **同工艺下 ss 组（慢速低压）延迟最大，ff 组（快速高压）延迟最小**。
 
+:::fig pr-delay-voltage | Delay vs Voltage：电压从 Min 升到 Max，延迟从 Worst 单调降到 Best
+:::
+
+这张图是**单调下降**的曲线，没有反转——所以"低压 = 最慢"这条永远成立，低压 corner 必须查。
+
 ## 温度：常规规律与温度反转 {#temp}
 
 正常情况下，**温度越高，delay 越大**。原因是高温下晶格振动加剧，载流子迁移率下降，电流变小。
 
-但文档特别点出了先进工艺的一个反直觉现象：
+:::fig pr-delay-temp | Delay vs Temperature：实线是常规（温度越高越慢），虚线是先进工艺的温度反转
+:::
+
+注意图里那条虚线和 `Temperature inversion` 的标注——它反过来向上走：**温度越低，延迟越大**。这就是文档特别点出的反直觉现象：
 
 :::pitfall 温度反转效应（temperature inversion）
 在先进工艺（大致 28nm 往下越来越明显）里，**温度越低，delay 反而越大**。
@@ -181,6 +189,14 @@ tsc28_lvtssg0p81v125c.lib
 
 :::term rc tech file | 寄生参数工艺文件
 描述金属层与通孔的**单位长度电阻、单位长度电容**等寄生参数模型，工具用它把版图上的几何形状（多长、多宽、周围有什么）换算成实际的寄生 R 和 C，进而算出线延迟。
+:::
+
+:::tip 同一个东西的另一个名字：TLU+
+课程文档里把库分成两半：**Timing Lib**（时序信息）和 **TLU+ Lib**（电容电阻寄生参数）。
+
+**TLU+ 就是 rc tech file 在 Cadence 体系里的常见叫法**（TLU = Table Look-Up，按工艺层查表给 R/C）。所以听到"读一下 TLU+"，指的就是"把 RC 寄生模型读进来"，不是另一样东西。
+
+Synopsys 体系里对应的是 **ITF / StarRC 的 technology file**。名字不同，作用一样：**给线延迟提供 R、C 来源。**
 :::
 
 文档的定义很干脆：**"存储线上的寄生参数，用于抽取寄生电阻和电容，用于计算 net delay。"**

@@ -1,6 +1,6 @@
 ---
 id: 06-01-sta-plan
-no: 30
+no: 37
 stage: 6
 title: STA 静态时序分析（课表 6 学时）
 en: Static Timing Analysis

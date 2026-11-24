@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SDC 时序约束：告诉工具"做到什么程度算合格" · 24 | IC 后端学院</title>
+<title>SDC 时序约束：告诉工具"做到什么程度算合格" · 30 | IC 后端学院</title>
 <meta name="description" content="前面几课给的是"事实"，这一课给的是"要求"。从 DFF→组合逻辑→DFF 的基本模型讲起，一条条写出时钟、分频、虚拟时钟、抖动、时钟分组、输入输出延迟、假路径、负载三件套，说清周期与频率、占空比与 waveform 的换算，最后讲约束力度为什么直接决定优化力度，以及 SDC 由 FCT 部门负责这件事对 PR 工程师意味着什么。">
-<link rel="icon" href="/assets/logo.svg?v=1795449784" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795449784">
+<link rel="icon" href="/assets/logo.svg?v=1795485456" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795485456">
 </head>
 <body data-page="lesson" data-lesson="02-08-pr-sdc">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795449784" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795485456" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -52,7 +52,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>SDC 时序约束：告诉工具"做到什么程度算合格"</b></div>
     <div class="hero">
-      <div class="hero-no">24</div>
+      <div class="hero-no">30</div>
       <h1>SDC 时序约束：告诉工具"做到什么程度算合格"</h1>
       <p class="hero-en">SDC Timing Constraints</p>
       <p class="hero-sum">前面几课给的是&quot;事实&quot;，这一课给的是&quot;要求&quot;。从 DFF→组合逻辑→DFF 的基本模型讲起，一条条写出时钟、分频、虚拟时钟、抖动、时钟分组、输入输出延迟、假路径、负载三件套，说清周期与频率、占空比与 waveform 的换算，最后讲约束力度为什么直接决定优化力度，以及 SDC 由 FCT 部门负责这件事对 PR 工程师意味着什么。</p>
@@ -88,6 +88,10 @@
   <div class="term-b"><p>从起始触发器（launch）发出数据，经过组合逻辑，到结束触发器（capture）被采样。要求是：<br><strong>① 不能太晚</strong>——必须在下个时钟沿到来之前到达并稳定（setup，建立时间）；<br><strong>② 不能太早</strong>——不能在同一个时钟沿把上一拍的旧数据冲掉（hold，保持时间）。</p></div>
 </div>
 <p>setup 差了表现为&quot;跑不到这么高频率&quot;；hold 差了表现为&quot;芯片一上电就死，频率降到 1Hz 也没用&quot;。<strong>hold 是硬伤，必须修到零违规。</strong></p>
+<h3 id="paths">三种路径：Reg2Reg / In2Reg / Reg2Out</h3>
+<p>同样一条&quot;起点 → 终点&quot;，来源不同，约束方式也不同。工具报告里通常按这三类分组：</p>
+<div class="tbl"><table><thead><tr><th>路径类型</th><th>起点</th><th>终点</th><th>约束靠什么</th></tr></thead><tbody><tr><td><strong>Reg2Reg</strong></td><td>内部触发器</td><td>内部触发器</td><td>只靠 <code>create_clock</code>（周期）</td></tr><tr><td><strong>In2Reg</strong></td><td><strong>输入端口</strong></td><td>内部触发器</td><td>需要 <code>set_input_delay</code>（外部占用了多少时间）</td></tr><tr><td><strong>Reg2Out</strong></td><td>内部触发器</td><td><strong>输出端口</strong></td><td>需要 <code>set_output_delay</code>（外面要求多早到）</td></tr></tbody></table></div>
+<p><strong>为什么必须分三类</strong>：Reg2Reg 的边界完全由周期决定；而 In2Reg/Reg2Out 多了一段&quot;芯片外部&quot;的时间，工具不知道外部器件多快、板级走线多长——<strong>所以必须由人用 io delay 告诉它</strong>。这就是为什么 io delay 写错，只有这两类路径会出问题。</p>
   <label class="ch-done"><input type="checkbox" data-mark="model"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="write" data-ch="write">
@@ -97,7 +101,7 @@
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 定义一个叫 CLK 的时钟：周期 20ns，上升沿在 0ns、下降沿在 10ns</span><span class="ln ">create_clock -name CLK -period 20 -waveform {0 10} [get_ports clk]</span><span class="ln "> </span><span class="ln cmt"># 端口本身也要有驱动和负载的描述，否则第一级 delay 算不准</span><span class="ln ">set_driving_cell -lib_cell BUF_X4 [get_ports clk]</span></code></pre></div>
 <p>三个参数说清楚：</p>
 <div class="tbl"><table><thead><tr><th>参数</th><th>含义</th><th>本例</th></tr></thead><tbody><tr><td><code>-name</code></td><td>时钟名，后面所有命令都靠这个名字引用</td><td><code>CLK</code></td></tr><tr><td><code>-period</code></td><td><strong>周期</strong>，单位与 lib 的 time_unit 一致（通常 ns）</td><td><code>20</code> → 频率 = 1/20ns = <strong>50MHz</strong></td></tr><tr><td><code>-waveform {0 10}</code></td><td>上升沿时刻、下降沿时刻</td><td>0ns 起高、10ns 落低</td></tr></tbody></table></div>
-<div class="tip"><div class="tip-h">小技巧</div><ul><li><strong>频率 = 1 / 周期</strong>。周期 20ns → 50MHz；周期 1.25ns → 800MHz。</li><li><strong>占空比 = 高电平持续时间 / 周期</strong>。<code>-waveform {0 10}</code> 高电平持续 10ns，占空比 = 10/20 = <strong>50%</strong>。</li><li>文档里&quot;周期是 20、占空比是 10&quot;这句话，那个 <strong>10 指的是波形里的第二个数（高电平持续 10ns）</strong>，换算成占空比是 50%。写约束时永远写<strong>时刻</strong>，不写百分比——这是新人最容易搞混的一处。</li><li>想要 25% 占空比：<code>-waveform {0 5}</code>（高 5ns，低 15ns）。</li></ul></div>
+<div class="tip"><div class="tip-h">小技巧</div><ul><li><strong>频率 = 1 / 周期</strong>。周期 20ns → 50MHz；周期 1.25ns → 800MHz。</li><li><strong>占空比 = 高电平持续时间 / 周期</strong>。<code>-waveform {0 10}</code> 高电平持续 10ns，占空比 = 10/20 = <strong>50%</strong>。</li><li>文档里&quot;周期是 20、占空比是 10&quot;这句话，那个 <strong>10 指的是波形里的第二个数（高电平持续 10ns）</strong>，换算成占空比是 50%。写约束时永远写<strong>时刻</strong>，不写百分比——这是新人最容易搞混的一处。</li><li>想要 25% 占空比：<code>-waveform {0 5}</code>（高 5ns，低 15ns）。</li><li>再练一个：<strong>周期 500ps、高电平 300ps → 占空比 60%</strong>；高电平 400ps → 80%（此时低电平只剩 100ps，时钟会很不&quot;方&quot;）。</li></ul></div>
 <p>换算不熟就先在下面这台 Tcl 练习台上练两遍——<strong>改数字，按运行，看结果</strong>：</p>
 <div class="tsbx has-code" data-code="# 800MHz 对应的周期是多少 ns：1 / 0.8GHz = 1.25ns
 puts [expr {1.0 / 0.8}]
@@ -167,6 +171,10 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
 <p>这是新人最常写错的一类约束。它<strong>不是</strong>&quot;我这根线有多长&quot;，而是&quot;<strong>外部世界已经占用了多少时间</strong>&quot;。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 输入侧：外面那颗器件从时钟沿到数据稳定，用掉了 3.0ns</span><span class="ln cmt"># 意思是：内部只剩 周期 - 3.0 - 触发器建立时间 可用</span><span class="ln ">set_input_delay -clock VCLK -max 3.0 [get_ports din*]</span><span class="ln ">set_input_delay -clock VCLK -min 0.5 [get_ports din*]</span><span class="ln "> </span><span class="ln cmt"># 输出侧：芯片出去的数据，要在下个时钟沿前 2.5ns 就稳定，留给板级走线</span><span class="ln ">set_output_delay -clock VCLK -max 2.5 [get_ports dout*]</span><span class="ln ">set_output_delay -clock VCLK -min 0.3 [get_ports dout*]</span></code></pre></div>
 <p><code>-max</code> 管 setup（最晚什么时候到），<code>-min</code> 管 hold（最早什么时候到）。<strong>四个数一个都不能少</strong>，少写一半，另一方向的检查就等于没做。</p>
+<div class="tip"><div class="tip-h">小技巧</div><p>课上给了一个很实用的工程习惯：<strong>SDC 里常把端口的 delay 设成时钟周期的 60% 左右，剩下的 40% 留给模块内部</strong>。</p>
+<p>为什么这么给？因为模块最终要拼到顶层去，接口必须留<strong>余量（margin）</strong>：</p>
+<ul><li>给太小（比如 10%）：内部宽松，但拼到顶层一对接就违例；</li><li>给太大（比如 90%）：内部被压得极紧，面积和功耗白烧，还可能根本收不敛。</li></ul>
+<p><strong>60/40 是个折中起点</strong>，具体多少要看顶层和对接模块的约定——<strong>这类&quot;紧约束&quot;的目的，是防止接口问题被过大的余量掩盖掉。</strong></p></div>
 <h3 id="falsepath">7. false_path：这些路径别修</h3>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">false path</span><span class="term-zh">假路径</span><i class="term-ico">点击看解释</i></div>
@@ -175,6 +183,10 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 测试时钟到功能时钟：两者永不同时工作，跨域路径不分析</span><span class="ln ">set_false_path -from [get_clocks TEST_CLK] -to [get_clocks CLK]</span><span class="ln "> </span><span class="ln cmt"># 经过某个 MUX 选择端的配置路径：慢一点没关系，不占用时序预算</span><span class="ln ">set_false_path -through [get_pins u_cfg_mux/SEL]</span><span class="ln "> </span><span class="ln cmt"># 复位/配置寄存器这类静态信号，只需要约束&quot;别太慢&quot;，不需要按周期卡</span><span class="ln ">set_false_path -from [get_ports rst_n]</span></code></pre></div>
 <p><strong>不写 false path 的后果很实在</strong>：工具会拼尽全力去修一条根本不需要修的路径，插一堆 buffer、换超大驱动单元——<strong>白烧面积、白烧功耗，还拖慢运行时间</strong>，甚至把本来能收敛的地方挤到收敛不了。</p>
 <p>反过来，<strong>false path 写多了更危险</strong>：把真路径标成假路径，等于关掉了检查，问题会一路瞒到流片。</p>
+<div class="pit"><div class="pit-h">常见坑 · 假路径从哪来：前端删了代码，工具还在分析</div><div class="pit-b"><p>课上举了个很典型的情形：</p>
+<p><strong>前端优化代码时把 <code>Reg A → Reg B</code> 这条路径删掉了</strong>（比如那个功能不再需要），但时序分析里这条路径<strong>可能还在</strong>——因为网表里相关的单元还在（或者约束文件没跟着更新）。于是工具报一条永远修不好的&quot;违例&quot;，占着你的优化资源和注意力。</p>
+<p><strong>怎么判断</strong>：看这条路径上的单元是不是&quot;死逻辑&quot;（没人用它的输出），或者问前端这条路径还存在吗。确认不存在了，才写 <code>set_false_path</code>。</p>
+<p><strong>注意</strong>：假路径如果时序极差却不声明，它会<strong>掩盖真正的问题</strong>（报告里 WNS 一直是它，别的违例看不到）；反过来乱声明，真问题就被关掉了。<strong>两头都是坑，必须有依据。</strong></p></div></div>
 <h3 id="load">8. 负载三件套：fanout / capacitance / transition</h3>
 <p>文档把&quot;时序约束的分类&quot;归到这三个量，它们是端口的<strong>电气约束</strong>：</p>
 <div class="tbl"><table><thead><tr><th>约束对象</th><th>物理含义</th><th>命令</th></tr></thead><tbody><tr><td><strong>fanout</strong> 负载个数</td><td>一个输出最多能带几个输入（带太多驱动不动）</td><td><code>set_max_fanout 32 [current_design]</code></td></tr><tr><td><strong>capacitance</strong> 负载电容</td><td>一个输出最多能带多大电容</td><td><code>set_max_capacitance 0.15 [get_ports dout*]</code></td></tr><tr><td><strong>transition</strong> 翻转时间</td><td>信号从 0 到 1 最多允许多久（太&quot;软&quot;会被当成毛刺）</td><td><code>set_max_transition 0.2 [current_design]</code></td></tr></tbody></table></div>
@@ -188,6 +200,8 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
   <p>文档明确：<strong>SDC 由 FCT（Full Chip Timing，全芯片时序）部门负责编写。</strong></p>
 <p>这对 PR 工程师意味着什么，很值得说清楚：</p>
 <ol><li><strong>你不是 sdc 的作者，你是使用者和反馈者</strong>。sdc 是&quot;需求文档&quot;，PR 是&quot;施工方&quot;。</li><li><strong>发现约束不合理（比如某条路径根本不可能在两周期内收敛），要提给 FCT 改</strong>，不能自己偷偷在本地改一份跑——本地改完报告好看了，回到正式约束立刻崩，白干两周。</li><li><strong>debug 的第一件事往往是核对 sdc 版本</strong>。项目里 sdc 会不断更新（v1.0 → v1.3），跑出来的结果和同事对不上，八成是拿了不同版本的 sdc。</li><li><strong>要能读懂每一条约束在要求什么</strong>。哪怕不写，也要能判断&quot;这条路径为什么要求这么紧&quot;。</li></ol>
+<div class="tip"><div class="tip-h">小技巧</div><p>文档也说了另一半事实：<strong>小公司可能没有专门的时序部门</strong>，sdc 由<strong>中端（终端）工程师</strong>一并负责——既做综合出网表，也写 sdc。</p>
+<p>所以面试或入职时值得问一句：&quot;<strong>sdc 是谁写的？</strong>&quot; 答案决定了你的工作边界：有 FCT 就是&quot;提需求&quot;，没有就可能要你自己写。</p></div>
 <div class="pit"><div class="pit-h">常见坑 · 抄别人的 sdc，只改周期</div><div class="pit-b"><p><strong>现象</strong>：约束能读进去，工具也跑了，但时序怎么都收敛不了，或者收敛了但报告里有一堆奇怪的违例。</p>
 <p><strong>原因</strong>：sdc 和设计是<strong>一一对应</strong>的。时钟名、端口名、层次名、生成时钟的 pin 位置，全都跟具体设计绑定。抄过来只改周期，等于给另一个人的设计下命令——工具找不到 <code>[get_ports clk]</code> 就静默忽略，找不到 <code>[get_pins u_div/Q]</code> 就报 warning。</p>
 <p><strong>怎么查</strong>：</p>
@@ -251,8 +265,8 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795449784"></script>
-<script src="/assets/tcl.js?v=1795449784"></script>
-<script src="/assets/app.js?v=1795449784"></script>
+<script src="/assets/shell.js?v=1795485456"></script>
+<script src="/assets/tcl.js?v=1795485456"></script>
+<script src="/assets/app.js?v=1795485456"></script>
 </body>
 </html>

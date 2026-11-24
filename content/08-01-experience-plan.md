@@ -1,6 +1,6 @@
 ---
 id: 08-01-experience-plan
-no: 32
+no: 39
 stage: 8
 title: 实际工作经验分享（课表 4 学时）
 en: Industry Experience

@@ -343,9 +343,10 @@ ExprParser.prototype.primary = function (ip) {
   if (this.i >= this.s.length) throw new TclError('unexpected end of subexpression');
   var c = this.s[this.i];
   if (c === '(') { this.i++; var v = this.expr(ip); this.ws(); if (this.s[this.i] === ')') this.i++; return v; }
-  if (c === '-' || c === '+' || c === '!') {
+  if (c === '-' || c === '+' || c === '!' || c === '~') {
     this.i++; var v = this.primary(ip);
     if (c === '!') return { v: this.truthy(v) ? 0 : 1, isInt: true };
+    if (c === '~') return { v: (~(Math.trunc(parseFloat(v.v)) | 0)), isInt: true };
     var nv = c === '-' ? -v.v : v.v;
     return { v: nv, isInt: v.isInt };
   }
@@ -394,9 +395,43 @@ ExprParser.prototype.truthy = function (x) {
   return x.v !== 0;
 };
 ExprParser.prototype.and = function (ip) {
-  var l = this.cmp(ip);
-  while (this.peek() === '&&') { this.i += 2; var r = this.cmp(ip);
+  var l = this.bor(ip);
+  while (this.peek() === '&&') { this.i += 2; var r = this.bor(ip);
     l = { v: (this._t(l) && this._t(r)) ? 1 : 0, isInt: true }; }
+  return l;
+};
+ExprParser.prototype._bint = function (x) { return Math.trunc(parseFloat(x.v)) | 0; };
+ExprParser.prototype.bor = function (ip) {
+  var l = this.bxor(ip);
+  for (;;) {
+    this.ws();
+    if (this.s[this.i] === '|' && this.s[this.i + 1] !== '|') {
+      this.i += 1; var r = this.bxor(ip);
+      l = { v: (this._bint(l) | this._bint(r)), isInt: true };
+    } else break;
+  }
+  return l;
+};
+ExprParser.prototype.bxor = function (ip) {
+  var l = this.band(ip);
+  for (;;) {
+    this.ws();
+    if (this.s[this.i] === '^') {
+      this.i += 1; var r = this.band(ip);
+      l = { v: (this._bint(l) ^ this._bint(r)), isInt: true };
+    } else break;
+  }
+  return l;
+};
+ExprParser.prototype.band = function (ip) {
+  var l = this.cmp(ip);
+  for (;;) {
+    this.ws();
+    if (this.s[this.i] === '&' && this.s[this.i + 1] !== '&') {
+      this.i += 1; var r = this.cmp(ip);
+      l = { v: (this._bint(l) & this._bint(r)), isInt: true };
+    } else break;
+  }
   return l;
 };
 ExprParser.prototype.cmp = function (ip) {

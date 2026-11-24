@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pin 与 Port：单元接口和模块接口 · 26 | IC 后端学院</title>
+<meta name="description" content="版图界面上那些黄色的小点和小片，含义完全不同：单元上的叫 pin，模块边缘的叫 port。这一课把两者的层级、方向、物理形态讲清，再讲清 Input/Output 的相对性、模块 90 度翻转与镜像、以及"顶层给你的 port 位置与顺序必须一模一样"这条硬规定——它决定两个模块能不能拼上。">
+<link rel="icon" href="/assets/logo.svg?v=1795485456" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795485456">
+</head>
+<body data-page="lesson" data-lesson="02-05a-pin-port">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795485456" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>Pin 与 Port：单元接口和模块接口</b></div>
+    <div class="hero">
+      <div class="hero-no">26</div>
+      <h1>Pin 与 Port：单元接口和模块接口</h1>
+      <p class="hero-en">Pin vs Port: Cell Interface and Block Interface</p>
+      <p class="hero-sum">版图界面上那些黄色的小点和小片，含义完全不同：单元上的叫 pin，模块边缘的叫 port。这一课把两者的层级、方向、物理形态讲清，再讲清 Input/Output 的相对性、模块 90 度翻转与镜像、以及&quot;顶层给你的 port 位置与顺序必须一模一样&quot;这条硬规定——它决定两个模块能不能拼上。</p>
+      <div class="hero-meta">
+        <span class="pill">约 15 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">pin</span><span class="pill tag">port</span><span class="pill tag">block</span><span class="pill tag">IO</span><span class="pill tag">方向</span><span class="pill tag">翻转</span><span class="pill tag">floorplan</span><span class="pill tag">macro</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>两个词，两个层级</h2></div>
+  <div class="goal"><span>本章目标</span>能一句话说清 pin 与 port 的层级差别（Cell 层 vs Block 层）；能说出 Input/Output 方向的相对性；能解释模块翻转/镜像后端口怎么办；能说出顶层给的 port 位置与顺序为什么&quot;必须一模一样&quot;。</div>
+<p>新人在版图上最容易混的两个东西：</p>
+<ul><li>单元（NAND、DFF）身上那些<strong>引脚</strong>——叫 <strong>pin</strong>；</li><li>模块（你做的整个 block）边缘那些<strong>接口片</strong>——叫 <strong>port</strong>。</li></ul>
+<p>它们长得像（都是一小块金属 + 一个方向），但<strong>层级完全不同，改错一个的后果也不同</strong>。</p>
+<div class="tbl"><table><thead><tr><th></th><th><strong>Pin</strong></th><th><strong>Port</strong></th></tr></thead><tbody><tr><td>层级</td><td><strong>Cell 层</strong>：标准单元/宏单元自己的引脚</td><td><strong>Block 层</strong>：整个模块对外的接口</td></tr><tr><td>作用</td><td>Cell 与 Cell 之间连接</td><td>模块与模块之间、模块与顶层之间交互</td></tr><tr><td>谁定</td><td>库（lef）里写死，你改不了</td><td>floorplan 时<strong>由你摆</strong>（或由顶层指定）</td></tr><tr><td>版图外观</td><td>单元内部的小黄点/小矩形</td><td>模块边缘的黄色区域/箭头</td></tr><tr><td>例子</td><td>DFF 的 CK、D、Q、S 脚</td><td>你这一块对外的 <code>data_in[7:0]</code>、<code>clk</code>、<code>rst_n</code></td></tr></tbody></table></div>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="pin" data-ch="pin">
+  <div class="ch-h"><span class="ch-n">02</span><h2>Pin：单元的接口，库说了算</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">pin</span><span class="term-zh">引脚</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>标准单元或宏单元自己的输入/输出端点。名字、方向、形状都写在 cell lef 里（<code>PIN A { DIRECTION INPUT ; PORT LAYER M1 ; RECT ... }</code>）。</p></div>
+</div>
+<p>一个 DFF 的典型引脚（文档举的例子）：</p>
+<div class="tbl"><table><thead><tr><th>Pin</th><th>方向</th><th>作用</th></tr></thead><tbody><tr><td><strong>CK</strong></td><td>输入</td><td>时钟，沿到来时采样</td></tr><tr><td><strong>D</strong></td><td>输入</td><td>数据输入</td></tr><tr><td><strong>Q</strong></td><td>输出</td><td>数据输出</td></tr><tr><td><strong>S</strong>（或 SE/SI）</td><td>输入</td><td>测试扫描相关（scan enable / scan in）</td></tr></tbody></table></div>
+<p><strong>这些 pin 你一个都不能动</strong>。你能做的只有：把它摆在哪、朝哪个方向（翻转/镜像）、用什么线连它。这也是为什么 place 阶段&quot;某类单元摆反了&quot;会出问题——pin 的方向决定线从哪一侧接进来（LEF 那课讲过）。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="pin"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="port" data-ch="port">
+  <div class="ch-h"><span class="ch-n">03</span><h2>Port：模块的接口，你说了算</h2></div>
+  <div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">port</span><span class="term-zh">端口</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一个 block 对外的接口，位于模块边缘。<strong>它决定这个 block 怎么和外面（相邻模块、顶层）连起来。</strong></p></div>
+</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">IO</span><span class="term-zh">输入输出</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>Input/Output 的合称。说&quot;这个模块的 IO 在哪边&quot;，意思就是&quot;它的 port 集中分布在哪个方向&quot;。<strong>IO 是个统称，port 是具体的那个接口。</strong></p></div>
+</div>
+<p>port 的三个关键属性：</p>
+<ol><li><strong>位置</strong>：在模块边缘的哪一段（左边？上边？第几微米处）；</li><li><strong>顺序</strong>：一组总线里 <code>data[0]</code> 到 <code>data[7]</code> 是从下往上排还是从上往下排；</li><li><strong>方向</strong>：Input 还是 Output。</li></ol>
+<div class="tip"><div class="tip-h">小技巧</div><p>分两种情况（后面会反复遇到）：</p>
+<ul><li><strong>自己做主</strong>：独立模块（顶层没给你约束），floorplan 时你按数据流决定 port 摆哪边；</li><li><strong>顶层指定</strong>：顶层（top）已经和别的模块拼好了版图，它会给你一个 <strong>def 文件</strong>，里面写死了你这一块的<strong>面积和 port 位置</strong>——这时候<strong>位置不是你选的，是必须遵守的</strong>。</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="port"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="direction" data-ch="direction">
+  <div class="ch-h"><span class="ch-n">04</span><h2>方向是相对的：别人 Output 就是你的 Input</h2></div>
+  <p>这一点在文档里被专门强调，因为拼接时最容易搞反：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">   模块 A                              模块 B</span><span class="ln ">  ┌──────────┐   A 的 Output  ───→   B 的 Input   ┌──────────┐</span><span class="ln ">  │          ├───────────────────────────────────┤          │</span><span class="ln ">  └──────────┘                                    └──────────┘</span></code></pre></div>
+<ul><li>同一个信号，<strong>在 A 那边是 Output，在 B 那边就是 Input</strong>；</li><li>界面上箭头<strong>朝内 = Input，朝外 = Output</strong>；</li><li>所以&quot;这根线是输入还是输出&quot;这个问题，必须先问&quot;<strong>站在谁的角度</strong>&quot;。</li></ul>
+<div class="pit"><div class="pit-h">常见坑 · 把 Port 方向配反</div><div class="pit-b"><p><strong>现象</strong>：模块单独跑没问题，一拼到顶层就报&quot;驱动冲突&quot;或&quot;某根线没有驱动&quot;。</p>
+<p><strong>原因</strong>：你按自己的理解把某个 port 定义成了 Output，但对接模块也把它定义成 Output（或者两个都当 Input），两边顶上了。</p>
+<p><strong>怎么查</strong>：拿顶层的连接关系（或对方给的 def/接口文档）逐个 port 对方向；一个信号只能有一个驱动源。</p></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="direction"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="orient" data-ch="orient">
+  <div class="ch-h"><span class="ch-n">05</span><h2>翻转与镜像：模块能转，port 顺序会变</h2></div>
+  <p>模块在版图上可以摆放成 8 种朝向（<strong>N/S/E/W 四个方向 × 是否镜像</strong>），文档说的&quot;支持 XY 翻转、允许 90 度旋转&quot;就是这个意思。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">orientation</span><span class="term-zh">朝向</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>单元或模块在版图上的摆法，由&quot;方向（N/S/E/W）+ 是否镜像（MX/MY）&quot;组合而成。lef 里用 <code>SYMMETRY X Y</code> 声明这个单元允许沿哪个轴镜像；不允许的朝向工具不会去用。</p></div>
+</div>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">   原方向          旋转 90°         镜像（X 轴翻转）</span><span class="ln ">  ┌────┬──┐      ┌────────┐       ┌────────┐</span><span class="ln ">  │ P1 │P2│      │P3      │       │P2    P1│</span><span class="ln ">  │    │  │      │        │       │        │</span><span class="ln ">  └────┴──┘      │P1    P2│       └────────┘</span><span class="ln ">                 └────────┘</span></code></pre></div>
+<p><strong>关键后果</strong>：模块一翻转，<strong>port 的物理顺序就变了</strong>。如果顶层按&quot;没翻转&quot;的顺序连你，拼上去就是全错位——所以 floorplan 定完 port 之后，朝向也必须锁定并告知顶层。</p>
+<div class="note"><div class="note-h">为什么标准单元可以随便翻</div><p>标准单元是&quot;等高&quot;的（同一行内高度一致），翻转不会破坏行结构，而且 pin 一般在靠近行边界的位置，翻过来照样能接。但<strong>宏单元和 block 的 port 位置是语义相关的</strong>，翻转前必须确认对接方能不能接受。</p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="orient"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="wh" data-ch="wh">
+  <div class="ch-h"><span class="ch-n">06</span><h2>宽高、长宽：说法习惯要对齐</h2></div>
+  <p>文档顺带纠了一个用词习惯：</p>
+<ul><li>描述芯片/模块尺寸时，行业里习惯说<strong>宽（width）和高（height）</strong>，不是&quot;长和宽&quot;；</li><li>lef 里写的是 <code>SIZE 10.792 BY 1.672</code>，<strong>前面是宽（X 方向），后面是高（Y 方向）</strong>；</li><li>面积利用率 = 单元总面积 / 可用面积，用的是同一个&quot;宽×高&quot;口径。</li></ul>
+<p><strong>为什么提这个</strong>：跨部门沟通时&quot;长&quot;到底指哪一边，经常吵起来。<strong>统一用 width/height（X/Y）就没人会误</strong>。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="wh"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="macro" data-ch="macro">
+  <div class="ch-h"><span class="ch-n">07</span><h2>Memory：只有 port，没有你关心的引脚</h2></div>
+  <p>文档对 Memory 的描述很到位：<strong>第三方封装好的模块，内部逻辑连接不用管，你只需要处理它的输入输出。</strong></p>
+<p>对 PR 来说，macro 就是&quot;一个很大的、内部不能摆东西的盒子&quot;：</p>
+<ul><li>它的 pin 在 lef 里定义（通常分布在边缘若干位置）；</li><li>它的内部对布线是<strong>禁布区（OBS）</strong>；</li><li>你在 floorplan 里要做的只有：<strong>摆在哪、朝哪边、周围留多少通道</strong>。</li></ul>
+<p>所以看到 memory 时，你关注的是它的 <strong>size + pin 分布 + 通道</strong>，不是它的功能。</p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>在 lef 里数 pin，在 def 里找 port</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 找一个标准单元，看它有几个 pin、方向分别是什么</span><span class="ln ">grep -n -A3 &quot;^  PIN &quot; cells.lef | head -30</span><span class="ln "> </span><span class="ln cmt"># 2. 统计某个单元里 input / output 各有几个</span><span class="ln ">grep -c &quot;DIRECTION INPUT&quot; cells.lef</span><span class="ln ">grep -c &quot;DIRECTION OUTPUT&quot; cells.lef</span><span class="ln "> </span><span class="ln cmt"># 3. 在 def 里找模块的 port（PINS 段），看位置与方向</span><span class="ln ">grep -n -A6 &quot;^PINS&quot; design.def | head -30</span><span class="ln "> </span><span class="ln cmt"># 4. 看 port 的方向与层</span><span class="ln ">grep -n &quot;DIRECTION&quot; design.def | head -10</span></code></pre></div>
+<p>验收标准：能报出某个单元有几个 input pin、几个 output pin，并从 def 里读出至少两个 port 的名字、方向与所在层。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Pin 与 Port 的层级差别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">Pin 属于 Cell 层（标准单元/宏单元自己的引脚，写在 cell lef 里，改不了）；Port 属于 Block 层（整个模块对外的接口，floorplan 时摆放或被顶层指定）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>DFF 的 CK / D / Q / S 分别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">CK 时钟输入、D 数据输入、Q 数据输出、S 测试扫描相关输入。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Input / Output 为什么说是相对的？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">同一个信号在驱动方是 Output、在接收方是 Input；箭头朝内是 Input、朝外是 Output，必须先确定站在谁的角度。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>Port 的三个关键属性是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">位置（在边缘哪一段）、顺序（总线内如何排列）、方向（Input/Output）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>模块翻转或旋转 90 度后，port 会有什么问题？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">port 的物理顺序/位置随之改变；若顶层按原朝向连接，拼上去会错位，所以朝向要和顶层锁定一致。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>顶层给 def 文件的场景下，port 位置能自己改吗？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">不能。def 里写死了面积与 port 位置，必须遵守，否则拼不上顶层。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么说 Memory 只需要关心 port？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">它是第三方封装好的宏单元，内部逻辑无需处理，PR 只关心尺寸、pin 分布、朝向和周围通道（内部是禁布区）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>描述尺寸时应该用哪两个词？lef 的 SIZE 先后顺序是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">用 width（宽）和 height（高）；SIZE 前面是宽（X），后面是高（Y）。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能一句话区分 pin（Cell 层）与 port（Block 层）</li><li>能说出 DFF 四个常见 pin 的作用</li><li>能解释 Input/Output 的相对性，并说出箭头方向的约定</li><li>能说出 port 的三个属性，以及&quot;顶层指定&quot;时不能自改</li><li>能解释翻转/镜像为什么会让 port 顺序变化，为什么必须与顶层锁定</li><li>知道 lef 的 SIZE 是&quot;宽 BY 高&quot;，面积按宽×高算</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="macro"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-05-pr-lef/">← LEF 详解：tech lef 与 cell lef 里到底写了什么</a><a class="nav-btn" href="/lesson/02-06-pr-lib-rctech/">lib 与 rc tech：延迟到底是怎么算出来的 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795485456"></script>
+<script src="/assets/tcl.js?v=1795485456"></script>
+<script src="/assets/app.js?v=1795485456"></script>
+</body>
+</html>

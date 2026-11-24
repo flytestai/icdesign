@@ -1,6 +1,6 @@
 ---
 id: 03-02-innovus-start
-no: 26
+no: 32
 stage: 3
 title: 启动 Innovus：版本、常用选项与帮助系统
 en: Starting Innovus: Options and Help

@@ -1,6 +1,6 @@
 ---
 id: 02-04-pr-data
-no: 20
+no: 23
 stage: 2
 title: PR 的数据准备：一次 init 到底要喂几个文件
 en: PR Data Preparation
@@ -72,6 +72,50 @@ NAND2_X1 g13         (.A(cnt[1]),   .B(cnt[0]), .ZN(n_23));             // 与�
 **怎么确认**：打开文件搜一下，如果满屏 `module ... always @(...)` 就是 RTL；门级网表里全是 `XXX_X1 u123 (...)` 这种实例行。
 :::
 
+## 文件名不是随便起的：命名是防事故的第一道墙 {#naming}
+
+真实项目里，**你从目录里一堆文件里挑对那一份**的能力，比你想象的更重要。所以先认清命名规则。
+
+### 网表：模块名 + 后缀 {#naming-netlist}
+
+| 后缀 | 含义 | 备注 |
+|---|---|---|
+| `.v` | 明文 Verilog | 能直接 `grep`，但文件大 |
+| `.v.gz` | gzip 压缩 Verilog | **最常见** |
+| `.gz` | 压缩包 | 有时多个文件打一起 |
+
+规则只有一条：**文件名主体 = 模块名，全部小写**。模块叫 `ALU` 就是 `alu.v.gz`，叫 `IOU` 就是 `iou.v.gz`。因为脚本会拿模块名拼路径（`./data/${top}.v.gz`），大小写不一致就找不到。
+
+### sdc：把"模式 + 角落"写进名字 {#naming-sdc}
+
+:::fig pr-netlist-sdc | 典型交付文件：网表 leon.vnet.gz 与 sdc leon.func.slow_rcworst.sdc.gz
+:::
+
+看右边那个 sdc 文件名，它把三件事写全了：
+
+```
+leon . func . slow_rcworst . sdc.gz
+ │      │        │            └── 后缀：sdc 约束文件
+ │      │        └────────────── 端角：慢速 + 最坏 RC（slow / rcworst）
+ │      └─────────────────────── 模式：功能模式（func）
+ └────────────────────────────── 设计名：leon
+```
+
+**为什么 sdc 要按 mode × corner 分开？** 因为不同模式、不同角落的约束本来就不一样（上一章 MMMC 讲过）。如果一个项目里有 func/scan 两种模式、slow/fast 两个角落，那就会有 4 个 sdc——名字必须能区分，否则你一定会拿错。
+
+### 文件放在哪：Release 路径 {#naming-path}
+
+```
+/proj/<项目名>/ME/<模块名>/xxx.v.gz     ← 中端（综合后）release 的网表在这
+/proj/<项目名>/DE/<模块名>/xxx_rtl.v    ← 前端 release 的 RTL 在这
+```
+
+**Release 是个动作**：把本地做好的东西**上传到服务器约定路径**，让下游能取。所以接手一个模块，第一句该问的是"**release 路径在哪**"——有路径就有版本、有时间戳、有 owner。
+
+:::tip 这一节的详细版在单独一课
+网表版本怎么迭代（V1.0 → V9.0）、S1/S2 两版网表各干什么、instance 数为什么从 200 万跳到 400 万、模块从矩形变 L 型为什么白干两个月——这些都放进了 [网表版本、Release 与迭代协作](/lesson/02-04a-netlist-release/) 那一课。
+:::
+
 ## def：这一版设计的"实际位置" {#def}
 
 :::term DEF | 设计交换格式
@@ -97,6 +141,12 @@ read_def  floorplan.def     ;# 读入
 
 :::term harden | 硬化（模块定版）
 block 做到"形状、端口、时序都定下来，可以被顶层直接当黑盒使用"的状态。owner 就是负责这块的人。top 给他 def 定边界，他做完再交回 def/GDS。
+:::
+
+:::term Hard Block / harden | 硬块
+口语里的 **Hard**、**Hard Block**、**harden 过的模块**，说的是同一件事：**已经有真实物理信息（面积、pin 位置、布线结果）的模块**。
+
+与之相对的是"软"的 netlist——只有逻辑连接，没有面积和位置。**从软到硬，就是 PR 干的事。**
 :::
 
 :::note 为什么 def 比 GDS 更适合当"合同"

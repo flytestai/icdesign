@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>电学基础与单位换算：ps、um 与那些 1000 倍 · 20 | IC 后端学院</title>
+<meta name="description" content="后面所有课的每个数字都带单位，单位错了十倍，结论就全错。这一课把电压/电流/电阻/电容/功耗五个基本量讲清物理含义，再把两套必须形成肌肉记忆的换算练熟：时间 ps↔ns（时序报告用）、长度 um↔nm（lef 与工艺用），最后用真实的 lef 数字（pitch 0.2um、线宽 0.06um、面积 0.02um²）做一遍对号。">
+<link rel="icon" href="/assets/logo.svg?v=1795485456" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795485456">
+</head>
+<body data-page="lesson" data-lesson="02-01c-units">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795485456" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>电学基础与单位换算：ps、um 与那些 1000 倍</b></div>
+    <div class="hero">
+      <div class="hero-no">20</div>
+      <h1>电学基础与单位换算：ps、um 与那些 1000 倍</h1>
+      <p class="hero-en">Electrical Basics and Unit Conversion</p>
+      <p class="hero-sum">后面所有课的每个数字都带单位，单位错了十倍，结论就全错。这一课把电压/电流/电阻/电容/功耗五个基本量讲清物理含义，再把两套必须形成肌肉记忆的换算练熟：时间 ps↔ns（时序报告用）、长度 um↔nm（lef 与工艺用），最后用真实的 lef 数字（pitch 0.2um、线宽 0.06um、面积 0.02um²）做一遍对号。</p>
+      <div class="hero-meta">
+        <span class="pill">约 20 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">电压</span><span class="pill tag">电流</span><span class="pill tag">电阻</span><span class="pill tag">电容</span><span class="pill tag">功耗</span><span class="pill tag">单位换算</span><span class="pill tag">ps</span><span class="pill tag">ns</span><span class="pill tag">um</span><span class="pill tag">nm</span><span class="pill tag">RC</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么单位要先讲</h2></div>
+  <div class="goal"><span>本章目标</span>能说出电压/电流/电阻/电容/功耗各自的物理含义与单位；能秒换 ps↔ns、um↔nm（都是 1000 倍）；能说出为什么&quot;工艺说 nm、工具用 um&quot;；看到 lef 里的 <code>0.06</code>、<code>0.2</code>、<code>0.02</code> 能立刻判断它是什么量、多少 nm。</div>
+<p>时序报告里一个数字 <code>0.052</code>，是 52ps 还是 52ns？差 1000 倍。lef 里 <code>WIDTH 0.06</code>，是 0.06um 还是 60um？也差 1000 倍。</p>
+<p><strong>这类错误不会报错，只会让你得出完全相反的结论</strong>：以为时序余量很足，实际已经崩了。所以这一课必须先过关。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="why"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="basics" data-ch="basics">
+  <div class="ch-h"><span class="ch-n">02</span><h2>五个基本量：物理含义比公式重要</h2></div>
+  <h3 id="voltage">电压 V：推动电子的&quot;水位差&quot;</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">电压</span><span class="term-zh">voltage</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>两点之间的电势差，为电荷（电子）流动提供<strong>驱动力</strong>，单位<strong>伏特（V）</strong>。水位差越大，水流越急；电压越高，电流越大。</p></div>
+</div>
+<p>芯片里只有两个电压名字要记：</p>
+<div class="tbl"><table><thead><tr><th>名称</th><th>含义</th><th>逻辑电平</th></tr></thead><tbody><tr><td><strong>VDD</strong></td><td>供电电压</td><td><strong>高电平 = 逻辑 1</strong></td></tr><tr><td><strong>VSS</strong></td><td>接地（0V）</td><td><strong>低电平 = 逻辑 0</strong></td></tr></tbody></table></div>
+<p>所以&quot;信号是 1&quot;的物理含义就是&quot;这根线被拉到 VDD&quot;。而 PR 里 <strong>power plan</strong> 要做的，就是把 VDD/VSS 送到每一个单元的电源脚上。</p>
+<p>电压和延迟的关系（后面 lib 课要反复用）：<strong>电压越高，驱动力越强，延迟越小</strong>。</p>
+<h3 id="current">电流 I：单位时间流过多少电荷</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">电流</span><span class="term-zh">current</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>单位时间内流过导体横截面的电荷量，反映&quot;流动的快慢&quot;，常用单位<strong>毫安 mA / 微安 μA</strong>。</p></div>
+</div>
+<p>芯片里电流的两个关注点：</p>
+<ul><li><strong>峰值电流</strong>：太多会把电压拉低（IR drop），单元供电不足就变慢甚至失效；</li><li><strong>平均电流</strong>：决定功耗和散热。</li></ul>
+<h3 id="resistance">电阻 R：走线越细越长，越难走</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">电阻</span><span class="term-zh">resistance</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>导体对电流的阻碍，单位<strong>欧姆（Ω）</strong>。<strong>走线越细越长，电阻越大</strong>；温度越高，金属电阻也越大。</p></div>
+</div>
+<p>这条规律有一串直接后果：</p>
+<ul><li>长线电阻大 → 延迟大 → setup 变差（后面 rc tech / net delay 课的主线）；</li><li>细线（低层金属 M1）电阻大 → 关键信号优先走高层厚金属；</li><li>via 也有电阻 → 换层越多，串联电阻越大。</li></ul>
+<h3 id="capacitance">电容 C：两根导体之间的&quot;存储能力&quot;</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">电容</span><span class="term-zh">capacitance</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>两个导体之间隔一层绝缘介质，就能存储电荷，这个能力叫电容，单位<strong>法拉（F）</strong>，芯片里常用 pF / fF。</p></div>
+</div>
+<p>芯片里电容无处不在：<strong>相邻两根线之间</strong>（耦合电容）、<strong>线与地之间</strong>、<strong>晶体管的栅极</strong>。它带来的后果是&quot;要给电容充放电，信号才能翻转&quot;——<strong>电容越大，延迟越大</strong>。</p>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">RC 提取</span><span class="term-zh">RC extraction</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把版图上的几何形状换算成真实的寄生电阻 R 与寄生电容 C 的过程。<strong>Place 阶段只是估算（trial/estimate），CTS 之后跑 PT 时才会提取真实的线上 R、C。</strong></p></div>
+</div>
+<h3 id="power">功耗 P：动态 + 漏电</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">功耗</span><span class="term-zh">power</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>电路消耗的功率，芯片里分两块：<br>- <strong>动态功耗</strong>：电容充放电 + 信号翻转产生的功耗——<strong>翻转越频繁、电容越大、电压越高，动态功耗越大</strong>；<br>- <strong>漏功耗（leakage）</strong>：晶体管关断时电子逃逸造成的微弱漏电，<strong>不翻转也在漏</strong>，工艺越先进占比越高。</p></div>
+</div>
+<p>这就是为什么低功耗设计有三板斧：<strong>降电压、降频率/关时钟（clock gating）、换高阈值电压单元（hvt 漏电小）</strong>。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="basics"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="convert" data-ch="convert">
+  <div class="ch-h"><span class="ch-n">03</span><h2>两套必须背下来的换算</h2></div>
+  <h3 id="time">时间：ps ↔ ns（时序报告）</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">1 ns = 1000 ps        （10³）</span><span class="ln ">1 ps = 0.001 ns</span></code></pre></div>
+<p>时序工具默认单位通常是 <strong>ps 或 ns</strong>，而 lib 文件里会写 <code>time_unit : &quot;1ns&quot;</code>。所以看到报告里的 <code>52</code>，先确认这个报告的表头单位——<strong>这是新人第一个&quot;看错十倍&quot;重灾区</strong>。</p>
+<p>常用对照，建议直接记住：</p>
+<div class="tbl"><table><thead><tr><th>ns</th><th>ps</th></tr></thead><tbody><tr><td>0.001</td><td>1</td></tr><tr><td>0.01</td><td>10</td></tr><tr><td>0.05</td><td>50</td></tr><tr><td>0.1</td><td>100</td></tr><tr><td>1</td><td>1000</td></tr></tbody></table></div>
+<p>顺带记住频率与周期的关系：<strong>频率 = 1 / 周期</strong>。1GHz ↔ 1ns；500MHz ↔ 2ns；800MHz ↔ 1.25ns。</p>
+<h3 id="length">长度：um ↔ nm（lef 与工艺）</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">1 um = 1000 nm        （10³）</span><span class="ln ">0.06 um = 60 nm</span></code></pre></div>
+<div class="tip"><div class="tip-h">小技巧</div><ul><li><strong>工艺节点</strong>用人熟悉的 nm 说：28nm、16nm、7nm；</li><li><strong>工具与库文件</strong>内部一律用 <strong>um</strong>：lef 里 <code>WIDTH 0.06</code> 意思是 0.06um = 60nm，<code>SIZE 10.792 BY 1.672</code> 是 10.792um × 1.672um。</li></ul>
+<p><strong>所以看到一个裸数字，先问它是哪个文件里的、那个文件的单位是什么。</strong></p></div>
+<h3 id="real">一组真实数字，对号入座</h3>
+<p>文档里给的 28nm 级例子（tech lef 里能直接找到）：</p>
+<div class="tbl"><table><thead><tr><th>参数</th><th>数值</th><th>换算</th><th>含义</th></tr></thead><tbody><tr><td><strong>pitch</strong></td><td>0.2 um（或 0.19）</td><td>200 nm</td><td>同层相邻两条线的<strong>中心距</strong>，布线器的最小步进</td></tr><tr><td><strong>线宽 WIDTH</strong></td><td>0.06 um</td><td>60 nm</td><td>这一层最细能画多细</td></tr><tr><td><strong>面积 area</strong></td><td>0.02 um²</td><td>—</td><td>单元面积量级（不同单元差很多）</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 单位混用：把 ns 当 ps、把 nm 当 um</div><div class="pit-b"><p><strong>现象 A</strong>：时序报告 WNS = <code>-52</code>，你以为是 -52ns（灾难），实际是 -52ps（0.052ns，很常见的小违例）。 <strong>现象 B</strong>：lef 里看到 <code>0.06</code>，算面积时当成 0.06um 但按 60um 量级去估，结果差 1000 倍。 <strong>现象 C</strong>：SDC 里 <code>-period 2</code> 写了 2ns，但你以为是 2ps，于是以为频率只有 500MHz，实际是 500MHz…… 反之亦然。</p>
+<p><strong>防错三条</strong>：</p>
+<ol><li>看报告先找<strong>表头单位</strong>（<code>Units: 1ps</code> 这类）；</li><li>看 lef 先看 <strong>UNITS 段</strong>（<code>DATABASE MICRONS 1000</code>）；</li><li><strong>写完约束自己反算一遍频率与周期</strong>，对不上就是单位错了。</li></ol></div></div>
+  <label class="ch-done"><input type="checkbox" data-mark="convert"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">04</span><h2>动手：把换算练成条件反射</h2></div>
+  <p>下面这台 Tcl 练习台，改数字就能算——建议把 0.06、0.19 都换成你自己的项目数字试一遍：</p>
+<div class="tsbx has-code" data-code="# 时间：ns → ps（乘 1000）
+set ns 0.052                                  ;# 报告里的一个延迟值（ns）
+puts &quot;$ns ns = [expr {$ns * 1000}] ps&quot;        ;# 52 ps
+
+# 时间：ps → ns（除 1000）
+set ps 52                                     ;# 同一个值，用 ps 表示
+puts &quot;$ps ps = [expr {$ps / 1000.0}] ns&quot;      ;# 0.052 ns
+
+# 频率与周期：1 / 周期
+puts &quot;周期 1.25ns → 频率 [expr {1000.0 / 1.25}] MHz&quot;   ;# 800 MHz
+puts &quot;周期 2.5ns  → 频率 [expr {1000.0 / 2.5}] MHz&quot;    ;# 400 MHz
+
+# 长度：um → nm
+set w 0.06                                    ;# lef 里的线宽（um）
+puts &quot;线宽 $w um = [expr {$w * 1000}] nm&quot;      ;# 60 nm
+
+# 长度：pitch 0.19um，一层 100um 宽能排多少条线？
+set pitch 0.19                                ;# 栅格间距（um）
+puts &quot;100um 能排 [expr {int(100 / $pitch)}] 条线&quot;
+
+# 面积：0.06um × 0.33um 的引脚矩形
+puts &quot;引脚面积 [expr {0.06 * 0.33}] um2&quot;">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre># 时间：ns → ps（乘 1000）
+set ns 0.052                                  ;# 报告里的一个延迟值（ns）
+puts &quot;$ns ns = [expr {$ns * 1000}] ps&quot;        ;# 52 ps
+
+# 时间：ps → ns（除 1000）
+set ps 52                                     ;# 同一个值，用 ps 表示
+puts &quot;$ps ps = [expr {$ps / 1000.0}] ns&quot;      ;# 0.052 ns
+
+# 频率与周期：1 / 周期
+puts &quot;周期 1.25ns → 频率 [expr {1000.0 / 1.25}] MHz&quot;   ;# 800 MHz
+puts &quot;周期 2.5ns  → 频率 [expr {1000.0 / 2.5}] MHz&quot;    ;# 400 MHz
+
+# 长度：um → nm
+set w 0.06                                    ;# lef 里的线宽（um）
+puts &quot;线宽 $w um = [expr {$w * 1000}] nm&quot;      ;# 60 nm
+
+# 长度：pitch 0.19um，一层 100um 宽能排多少条线？
+set pitch 0.19                                ;# 栅格间距（um）
+puts &quot;100um 能排 [expr {int(100 / $pitch)}] 条线&quot;
+
+# 面积：0.06um × 0.33um 的引脚矩形
+puts &quot;引脚面积 [expr {0.06 * 0.33}] um2&quot;</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>三个反算题</div><div class="lab-b"><p>不看答案，先自己算，再用练习台验：</p>
+<ol><li>时序报告写 <code>slack = -0.032</code>，表头是 ns，换成 ps 是多少？</li><li>lef 里 <code>SIZE 2.4 BY 0.4</code>，单位 um，这个单元宽多少 nm、高多少 nm？</li><li>目标频率 1.2GHz，周期该在 SDC 里写多少 ns？换算成 ps 是多少？</li></ol>
+<p>验收标准：三题全对，且能说出&quot;为什么要先看文件单位再读数字&quot;。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>VDD 与 VSS 分别对应逻辑电平的什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">VDD 是供电电压、对应高电平（逻辑 1）；VSS 接地、对应低电平（逻辑 0）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>电阻与走线的粗细长短是什么关系？这条规律带来什么后果？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">越细越长电阻越大；导致长线/细线延迟大、setup 变差，所以关键信号走高层厚金属、少换层（via 也有电阻）。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>电容在芯片里出现在哪些地方？对延迟什么影响？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">相邻线之间、线与地之间、晶体管栅极；要给电容充放电信号才能翻转，电容越大延迟越大。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>动态功耗和漏功耗的来源分别是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">动态功耗来自电容充放电与信号翻转（翻转越频繁、电容越大、电压越高越大）；漏功耗来自关断时电子逃逸，不翻转也在漏，先进工艺占比更高。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>RC 提取在什么时候做？为什么 Place 阶段只是估算？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">在 CTS 之后跑 PT 时提取真实 R、C；Place 阶段还没有真实绕线，只能用简化模型估算。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>1ns 等于多少 ps？0.06um 等于多少 nm？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">1ns = 1000ps；0.06um = 60nm。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么工艺说 nm、而工具和 lef 用 um？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">节点名是给人看的代际称呼（28nm/16nm/7nm），工具与库内部统一用 um 表达几何尺寸；所以读数字前必须先确认文件单位。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>时序报告 WNS 显示 -52，怎么判断它是 ps 还是 ns？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">看报告表头单位（如 Units: 1ps），或结合周期量级反推；0.052ns 常见，-52ns 在正常周期下几乎不可能。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出电压/电流/电阻/电容/功耗的物理含义与常用单位</li><li>能说出 VDD/VSS 与逻辑 1/0 的对应关系</li><li>能秒答 1ns=1000ps、1um=1000nm，并把 0.052ns、0.06um 换算成 ps/nm</li><li>能由频率算周期、由周期算频率（1GHz↔1ns）</li><li>看到 lef 里的 pitch 0.2 / 线宽 0.06 / area 0.02 能说出各自的量与 nm 值</li><li>知道读任何数字前先确认&quot;这个文件用的什么单位&quot;</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-01b-design-flow/">← 芯片设计全流程：从需求到封装出货</a><a class="nav-btn" href="/lesson/02-02-pr-what/">什么是布局布线（PR）：把网表变成能送去生产的版图 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795485456"></script>
+<script src="/assets/tcl.js?v=1795485456"></script>
+<script src="/assets/app.js?v=1795485456"></script>
+</body>
+</html>

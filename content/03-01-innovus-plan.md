@@ -1,6 +1,6 @@
 ---
 id: 03-01-innovus-plan
-no: 25
+no: 31
 stage: 3
 title: 阶段三导读：40nm Innovus 项目实操路线
 en: Stage 3 Guide: Innovus 40nm Project Lab
@@ -19,7 +19,8 @@ summary: 阶段三是全课程的重头戏（课表 41 学时）。本页给出�
 
 | 工序 | 课表学时 | 本站进度 | 这一关的核心问题 |
 |---|---|---|---|
-| innovus 的使用 | 2 | [已上线 2 讲](/lesson/03-02-innovus-start/) | 怎么启动、怎么自动化、怎么查帮助 |
+| innovus 的使用 | 2 | [已上线](/lesson/03-02-innovus-start/) | 怎么启动、怎么自动化、怎么查帮助 |
+| 项目环境 | — | [已上线](/lesson/03-04-project-env/) | 目录怎么建、Run 怎么命名、Queue 怎么用 |
 | floorplan | 10 | 在建 | 芯片多大、macro 摆哪、约束怎么打 |
 | powerplan | 2 | 在建 | 电源怎么送到每个单元 |
 | Placement / setup 与 hold | 4 | 在建 | stdcell 怎么摆、时序违例怎么读 |
@@ -30,7 +31,13 @@ summary: 阶段三是全课程的重头戏（课表 41 学时）。本页给出�
 | ChipFinish | 2 | 在建 | 最后要吐哪些文件给签核 |
 
 :::note 学时说明
-本页只作路线导读，不占教学学时。阶段三已上线 **4 学时**（Innovus 启动与 init 导入两讲），其余工序随课程建设陆续补齐；全部上线后本阶段合计 41 学时。
+本页只作路线导读，不占教学学时。阶段三已上线 **6 学时**三讲：
+
+1. [启动 Innovus：版本、常用选项与帮助系统](/lesson/03-02-innovus-start/)（2 学时）
+2. [init_design：把数据导进 Innovus](/lesson/03-03-innovus-init/)（2 学时）
+3. [项目环境：目录规范、Run 与 Queue](/lesson/03-04-project-env/)（2 学时）
+
+其余工序随课程建设陆续补齐；全部上线后本阶段合计 41 学时。
 :::
 
 ## 九道工序的产出物 {#output}

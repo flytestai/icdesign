@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>lib 与 rc tech：延迟到底是怎么算出来的 · 22 | IC 后端学院</title>
+<title>lib 与 rc tech：延迟到底是怎么算出来的 · 27 | IC 后端学院</title>
 <meta name="description" content="时序数据只有两份文件：lib 负责单元延迟，rc tech 负责线延迟。这一课打开 lib 看它到底存了什么、工具怎么用查表的方式算出一个 cell 的 delay，讲清 input transition 与 output load 这两个决定性变量，再把 lib 文件名的每一段（台积电/lvt/ssg/0p81v/125c）拆开读，最后讲 PVT 与先进工艺的温度反转效应。">
-<link rel="icon" href="/assets/logo.svg?v=1795449784" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795449784">
+<link rel="icon" href="/assets/logo.svg?v=1795485456" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795485456">
 </head>
 <body data-page="lesson" data-lesson="02-06-pr-lib-rctech">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795449784" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795485456" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -52,7 +52,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>lib 与 rc tech：延迟到底是怎么算出来的</b></div>
     <div class="hero">
-      <div class="hero-no">22</div>
+      <div class="hero-no">27</div>
       <h1>lib 与 rc tech：延迟到底是怎么算出来的</h1>
       <p class="hero-en">lib and RC Tech: How Delay Is Computed</p>
       <p class="hero-sum">时序数据只有两份文件：lib 负责单元延迟，rc tech 负责线延迟。这一课打开 lib 看它到底存了什么、工具怎么用查表的方式算出一个 cell 的 delay，讲清 input transition 与 output load 这两个决定性变量，再把 lib 文件名的每一段（台积电/lvt/ssg/0p81v/125c）拆开读，最后讲 PVT 与先进工艺的温度反转效应。</p>
@@ -118,12 +118,15 @@
 </div>
 <p>规律记两条，够用了：</p>
 <ul><li><strong>电压越大，delay 越小</strong>（电压高压差大、驱动电流强）；</li><li><strong>同工艺下 ss 组（慢速低压）延迟最大，ff 组（快速高压）延迟最小</strong>。</li></ul>
+<figure class="fig-img"><a class="fig-a" href="/fig/pr-delay-voltage.png" data-fig="pr-delay-voltage"><img src="/fig/pr-delay-voltage.png" alt="Delay vs Voltage：电压从 Min 升到 Max，延迟从 Worst 单调降到 Best" loading="lazy" decoding="async"></a><figcaption>Delay vs Voltage：电压从 Min 升到 Max，延迟从 Worst 单调降到 Best</figcaption></figure>
+<p>这张图是<strong>单调下降</strong>的曲线，没有反转——所以&quot;低压 = 最慢&quot;这条永远成立，低压 corner 必须查。</p>
   <label class="ch-done"><input type="checkbox" data-mark="naming"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="temp" data-ch="temp">
   <div class="ch-h"><span class="ch-n">04</span><h2>温度：常规规律与温度反转</h2></div>
   <p>正常情况下，<strong>温度越高，delay 越大</strong>。原因是高温下晶格振动加剧，载流子迁移率下降，电流变小。</p>
-<p>但文档特别点出了先进工艺的一个反直觉现象：</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/pr-delay-temp.png" data-fig="pr-delay-temp"><img src="/fig/pr-delay-temp.png" alt="Delay vs Temperature：实线是常规（温度越高越慢），虚线是先进工艺的温度反转" loading="lazy" decoding="async"></a><figcaption>Delay vs Temperature：实线是常规（温度越高越慢），虚线是先进工艺的温度反转</figcaption></figure>
+<p>注意图里那条虚线和 <code>Temperature inversion</code> 的标注——它反过来向上走：<strong>温度越低，延迟越大</strong>。这就是文档特别点出的反直觉现象：</p>
 <div class="pit"><div class="pit-h">常见坑 · 温度反转效应（temperature inversion）</div><div class="pit-b"><p>在先进工艺（大致 28nm 往下越来越明显）里，<strong>温度越低，delay 反而越大</strong>。</p>
 <p><strong>原因</strong>：低电压下，晶体管的阈值电压 Vt 随温度降低而升高，&quot;过驱动电压（Vdd - Vt）&quot;被压缩，电流急剧变小——这个效应盖过了迁移率的影响。低压 + 低温是最坏的组合。</p>
 <p><strong>后果</strong>：不能想当然地&quot;高温才算最坏 corner&quot;。setup 检查里必须把低温 corner（如 <code>m40c</code>）也拉进来一起看，否则流片后在冷机启动/低温环境里翻车。</p>
@@ -136,6 +139,9 @@
   <div class="term-h"><span class="term-en">rc tech file</span><span class="term-zh">寄生参数工艺文件</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>描述金属层与通孔的<strong>单位长度电阻、单位长度电容</strong>等寄生参数模型，工具用它把版图上的几何形状（多长、多宽、周围有什么）换算成实际的寄生 R 和 C，进而算出线延迟。</p></div>
 </div>
+<div class="tip"><div class="tip-h">小技巧</div><p>课程文档里把库分成两半：<strong>Timing Lib</strong>（时序信息）和 <strong>TLU+ Lib</strong>（电容电阻寄生参数）。</p>
+<p><strong>TLU+ 就是 rc tech file 在 Cadence 体系里的常见叫法</strong>（TLU = Table Look-Up，按工艺层查表给 R/C）。所以听到&quot;读一下 TLU+&quot;，指的就是&quot;把 RC 寄生模型读进来&quot;，不是另一样东西。</p>
+<p>Synopsys 体系里对应的是 <strong>ITF / StarRC 的 technology file</strong>。名字不同，作用一样：<strong>给线延迟提供 R、C 来源。</strong></p></div>
 <p>文档的定义很干脆：<strong>&quot;存储线上的寄生参数，用于抽取寄生电阻和电容，用于计算 net delay。&quot;</strong></p>
 <h3 id="whyrc">为什么线延迟不能简单按长度算</h3>
 <p>一根导线的延迟不是一个固定系数乘长度就完事，它取决于：</p>
@@ -204,13 +210,13 @@
         <h3>这一课学完了吗？</h3>
         <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <button id="btn-done" class="pri">标记本课完成</button>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/02-05-pr-lef/">← LEF 详解：tech lef 与 cell lef 里到底写了什么</a><a class="nav-btn" href="/lesson/02-07-pr-mmmc/">MMMC：多模式多端角，工具到底在几种世界里跑时序 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-05a-pin-port/">← Pin 与 Port：单元接口和模块接口</a><a class="nav-btn" href="/lesson/02-06a-setup-hold/">Setup 与 Hold：两条红线与四种 Corner →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795449784"></script>
-<script src="/assets/tcl.js?v=1795449784"></script>
-<script src="/assets/app.js?v=1795449784"></script>
+<script src="/assets/shell.js?v=1795485456"></script>
+<script src="/assets/tcl.js?v=1795485456"></script>
+<script src="/assets/app.js?v=1795485456"></script>
 </body>
 </html>

@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>什么是布局布线（PR）：把网表变成能送去生产的版图 · 18 | IC 后端学院</title>
+<title>什么是布局布线（PR）：把网表变成能送去生产的版图 · 21 | IC 后端学院</title>
 <meta name="description" content="用一间毛坯房讲清 PR 到底在做什么：综合给的 netlist 只是逻辑连接，PR 把每个单元放到真实坐标上、用真实的金属线连起来，最后吐出 GDSII。顺带把 PD/DE/ME、block 与 top、三种线、芯片分类这些面试必问的名词一次说清。">
-<link rel="icon" href="/assets/logo.svg?v=1795449784" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795449784">
+<link rel="icon" href="/assets/logo.svg?v=1795485456" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795485456">
 </head>
 <body data-page="lesson" data-lesson="02-02-pr-what">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795449784" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795485456" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -52,7 +52,7 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>什么是布局布线（PR）：把网表变成能送去生产的版图</b></div>
     <div class="hero">
-      <div class="hero-no">18</div>
+      <div class="hero-no">21</div>
       <h1>什么是布局布线（PR）：把网表变成能送去生产的版图</h1>
       <p class="hero-en">What Is Place and Route</p>
       <p class="hero-sum">用一间毛坯房讲清 PR 到底在做什么：综合给的 netlist 只是逻辑连接，PR 把每个单元放到真实坐标上、用真实的金属线连起来，最后吐出 GDSII。顺带把 PD/DE/ME、block 与 top、三种线、芯片分类这些面试必问的名词一次说清。</p>
@@ -80,6 +80,7 @@
   <div class="term-b"><p>送工厂加工用的版图文件（II 指的是二进制形式）。它描述每一层金属、每一个孔、每一个单元在硅片上的<strong>真实形状和坐标</strong>——<strong>物理连接</strong>。</p></div>
 </div>
 <p>用装修打个比方：综合给你的是&quot;水电点位图&quot;（哪个插座接哪根线，纸上画得清），PR 要把它变成&quot;墙里真的埋进去的线管，位置精确到毫米&quot;。图纸和施工图不是一回事，netlist 和 GDSII 也不是一回事。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/pr-pnr-io.png" data-fig="pr-pnr-io"><img src="/fig/pr-pnr-io.png" alt="PR 的输入输出：前端给的 netlist 进 PnR，出来的是 GDSII" loading="lazy" decoding="async"></a><figcaption>PR 的输入输出：前端给的 netlist 进 PnR，出来的是 GDSII</figcaption></figure>
 <div class="pit"><div class="pit-h">常见坑 · 把 netlist 当版图</div><div class="pit-b"><p><strong>现象</strong>：面试被问&quot;你交付的成果是什么&quot;，答&quot;综合出来的 netlist&quot;。 <strong>原因</strong>：netlist 是逻辑网表，没有面积、没有坐标、没有金属层，工厂拿它没法生产。 <strong>正确说法</strong>：PR 的交付物是 GDSII（以及配套的 def、报告、时序数据库），netlist 只是 PR 的<strong>输入</strong>。</p></div></div>
   <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
 </section>
@@ -166,6 +167,20 @@
 <p><strong>芯片分类</strong>（知道各自算什么就行，面试常拿来探你的知识面）：</p>
 <div class="tbl"><table><thead><tr><th>类型</th><th>是什么</th><th>典型厂商/场景</th></tr></thead><tbody><tr><td>SOC</td><td>片上系统，把 CPU、总线、外设、存储接口集成到一颗</td><td>手机主芯片、车规芯片</td></tr><tr><td>CPU</td><td>通用处理器，看核心数、主频</td><td>Intel、AMD</td></tr><tr><td>GPU</td><td>图形处理器，大量并行计算</td><td>NVIDIA、AMD</td></tr><tr><td>NPU</td><td>神经网络加速单元</td><td>手机/服务器 AI 芯片</td></tr><tr><td>DSP</td><td>数字信号处理，音频、图像、通信基带</td><td>音频/基带芯片</td></tr><tr><td>DDR</td><td>缓存/内存接口控制器</td><td>内存条、SoC 的存储接口</td></tr><tr><td>USB / PCIE</td><td>高速串行传输接口</td><td>外设、板级互连</td></tr><tr><td>VCN</td><td>视频/音频编解码处理</td><td>多媒体芯片</td></tr></tbody></table></div>
 <p>这些名字不影响你摆一个 stdcell，但影响你判断&quot;这个项目大概多难&quot;：<strong>接口类（DDR/USB/PCIE）对时序和信号完整性极敏感，NPU/GPU 则是面积和功耗的大户</strong>。</p>
+<h3 id="soc">SOC：先进工艺的主流形态</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">SOC</span><span class="term-zh">System on Chip 片上系统</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>把 CPU、GPU、DDR、USB、PCIe 等多个&quot;原本各是一颗芯片&quot;的功能，<strong>集成到一颗大芯片上</strong>。现在先进工艺上做的绝大多数都是 SOC。</p></div>
+</div>
+<p>从 top（顶层）的视角看，SOC 里的每个子模块（CPU、DDR 控制器、USB PHY……）都是<strong>一个大号的 stdcell 或 macro</strong>：</p>
+<ul><li>你做其中某个 block 时，只关心它的内部；</li><li>顶层工程师关心的是<strong>模块之间怎么连、数据流怎么走、时序怎么对接</strong>（下一课会讲 top 与 block 的分工）。</li></ul>
+<p>所以&quot;SOC 内部的数据流走向与连接方式&quot;这句话，翻译成工作语言就是：<strong>谁给谁送数据、走哪条总线、跨不跨时钟域/电压域</strong>。</p>
+<h3 id="career">求职视角：哪类模块最值钱</h3>
+<p>文档在这一段说得很直接，值得抄下来：</p>
+<ul><li><strong>DDR、USB、PCIe 这几类模块难度最大</strong>——它们涉及<strong>跨电压域</strong>、<strong>低功耗设计</strong>、高速接口时序；</li><li>尤其 USB 相关的低功耗项目，工作内容丰富、挑战大；</li><li>面试官常问&quot;<strong>做过 PCIe 传输吗</strong>&quot;&quot;做过 DDR 接口吗&quot;；</li><li>简历上要<strong>明确写出你做过芯片里的哪个具体模块</strong>，并对整颗芯片的种类与构成有大致了解。</li></ul>
+<div class="tip"><div class="tip-h">小技巧</div><p>不要写&quot;负责后端物理设计&quot;，要写：</p>
+<blockquote><p>负责 XX 芯片 <strong>DDR 控制器 block</strong> 的 PR：面积 XX mm²、频率 XXX MHz、完成 floorplan/CTS/route 与时序收敛，DCLS/IR 达标。</p></blockquote>
+<p><strong>模块名 + 规模 + 频率 + 你做的那几步</strong>——四个要素齐了，面试官才有得问。</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="scale"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="in-project" data-ch="in-project">
@@ -199,8 +214,16 @@
   <div class="q-q"><span class="q-no"></span>布线有哪三种线？分别对应流程里哪一步？</div>
   <button class="q-show" type="button">看答案</button>
   <div class="q-a">供电、时钟、信号。供电对应 powerplan，时钟对应 cts，信号对应 route。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>SOC 是什么？从 top 视角看它的子模块算什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">System on Chip 片上系统，把 CPU/GPU/DDR/USB/PCIe 等功能集成到一颗芯片；从 top 看，每个子模块就是一个大号的 stdcell 或 macro。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>简历里写项目经历，至少要有哪几个要素？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">模块名（如 DDR 控制器 block）+ 规模（面积/门数）+ 频率 + 你负责的工序（floorplan/CTS/route/时序收敛）。</div>
 </div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用一句话说出 PR 是&quot;把 netlist 变成 GDSII&quot;</li><li>能区分逻辑连接（netlist）与物理连接（GDSII）</li><li>能说出 block 与 top 的边界由谁定、各自交付什么</li><li>能说出三种线及对应的流程阶段</li><li>能举出至少三种芯片类型并说出各自的特点</li></ul></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用一句话说出 PR 是&quot;把 netlist 变成 GDSII&quot;</li><li>能区分逻辑连接（netlist）与物理连接（GDSII）</li><li>能说出 block 与 top 的边界由谁定、各自交付什么</li><li>能说出三种线及对应的流程阶段</li><li>能举出至少三种芯片类型并说出各自的特点</li><li>能说出 SOC 的含义，以及为什么 DDR/USB/PCIe 这类模块在求职时更值钱</li></ul></div>
   <label class="ch-done"><input type="checkbox" data-mark="in-project"><span>这一章我学完了</span></label>
 </section></article>
 
@@ -215,13 +238,13 @@
         <h3>这一课学完了吗？</h3>
         <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <button id="btn-done" class="pri">标记本课完成</button>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/02-01-concepts-plan/">← 阶段二导读：后端基本概念与 PR 理论</a><a class="nav-btn" href="/lesson/02-03-pr-flow/">PR 全流程九步：从 init 到 chipfinish，以及一个项目怎么排期 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-01c-units/">← 电学基础与单位换算：ps、um 与那些 1000 倍</a><a class="nav-btn" href="/lesson/02-03-pr-flow/">PR 全流程九步：从 init 到 chipfinish，以及一个项目怎么排期 →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795449784"></script>
-<script src="/assets/tcl.js?v=1795449784"></script>
-<script src="/assets/app.js?v=1795449784"></script>
+<script src="/assets/shell.js?v=1795485456"></script>
+<script src="/assets/tcl.js?v=1795485456"></script>
+<script src="/assets/app.js?v=1795485456"></script>
 </body>
 </html>
