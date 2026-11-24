@@ -28,7 +28,7 @@ WEB = os.path.join(ROOT, "web")
 REMOTE = "/home/weizhen/icacademy"
 TAR = "/home/weizhen/icl_site.tar.gz"
 CHUNK = 8192
-ROUTES = ["/", "/quiz/", "/glossary/", "/search/", "/progress/", "/cheatsheet/",
+ROUTES = ["/", "/quiz/", "/glossary/", "/abbr/", "/search/", "/progress/", "/cheatsheet/",
           "/lesson/03-08-cts/", "/lesson/05-02-pt/", "/data/quiz.json", "/assets/shell.js"]
 
 

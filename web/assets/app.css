@@ -271,6 +271,8 @@ td code{font-size:12.5px}
 .sub-h{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--line)}
 .sub-h h1{font-size:27px;margin:0 0 6px;letter-spacing:-.3px}
 .sub-h p{margin:0;color:var(--muted);font-size:14.5px;max-width:70ch}
+.art h2{font-size:20px;margin:36px 0 12px;padding-bottom:9px;border-bottom:1px solid var(--line);color:#12314c;letter-spacing:-.2px}
+.art > h2:first-child{margin-top:0}
 .art h3{font-size:17px;margin:26px 0 10px;color:#12314c}
 .gn{font-size:12.5px;color:var(--dim);margin-left:auto}
 

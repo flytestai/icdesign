@@ -378,5 +378,5 @@ uncertainty 为什么不能设 0？| 它代表 jitter 与建模误差的安全�
 :::
 
 :::note 接下来
-阶段二到这里结束。这七讲给的是"数据与目标"，下一步就是动工具：[阶段三导读](/lesson/03-01-innovus-plan/) 里有 41 学时的工序清单，前两讲 [启动 Innovus](/lesson/03-02-innovus-start/) 和 [init_design](/lesson/03-03-innovus-init/) 已经上线——把这一课写的 sdc 真正读进工具、用 `report_clocks` 验证它生效，是阶段三第一个动作。
+阶段二到这里结束。PR 篇这十讲给的是"数据与目标"，下一步就是动工具：[阶段三导读](/lesson/03-01-innovus-plan/) 里有 41 学时的工序清单，前两讲 [启动 Innovus](/lesson/03-02-innovus-start/) 和 [init_design](/lesson/03-03-innovus-init/) 已经上线——把这一课写的 sdc 真正读进工具、用 `report_clocks` 验证它生效，是阶段三第一个动作。
 :::

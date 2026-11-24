@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>缩写解码表 | IC 后端学院</title>
+<meta name="description" content="PR 里那些三字母缩写，按"你在哪一步遇到它"分成七组：角色、流程、文件、时序、物理、单元、工具。每条一句话讲清它在流程里扮演什么角色，不是词典式定义。">
+<link rel="icon" href="/assets/logo.svg?v=1795488762" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795488762">
+</head>
+<body data-page="abbr" data-lesson="abbr">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795488762" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a class="on" href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><a class="ghost" href="/">← 课程</a>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<main class="sub">
+<div class="sub-h"><h1>缩写解码表</h1><p>PR 里那些三字母缩写，按"你在哪一步遇到它"分成七组：角色、流程、文件、时序、物理、单元、工具。每条一句话讲清它在流程里扮演什么角色，不是词典式定义。</p></div><article class="art"><h2 id="how">怎么用这一页</h2>
+<p>这一页不是术语词典（要看完整解释去 <a href="/glossary/">术语表</a>），它解决的是另一种卡顿：<strong>同事说了一串缩写，你听懂了每个字母，但不知道它在流程里是干什么的。</strong></p>
+<p>三点用法：</p>
+<ol><li><strong>按&quot;你卡在哪&quot;跳组</strong>：听人聊天听不懂→第一组；不知道下一步跑什么→第二组；收文件不知道哪份是哪份→第三组；时序报告看不懂→第四组；route 绕不通→第五组。</li><li><strong>每条只记&quot;角色&quot;，不记全称</strong>。全称是给简历和文档用的，工作里你只需要知道它占哪个位置。</li><li><strong>每组标题下都标了出处课</strong>，想深挖点链接回去读那一讲。</li></ol>
+<h2 id="confuse">最容易混的六对</h2>
+<p>这六对是新人问得最多的，先分清再往下看。</p>
+<div class="tbl"><table><thead><tr><th>一对</th><th>区别一句话</th></tr></thead><tbody><tr><td>LEF 与 DEF</td><td>LEF 描述&quot;<strong>长什么样</strong>&quot;（单元/工艺的规格，全项目通用）；DEF 记录&quot;<strong>这次摆在哪</strong>&quot;（本设计的实际坐标，一人一份）</td></tr><tr><td>lib 与 rc tech</td><td>lib 管 <strong>cell 延迟</strong>（晶体管快慢）；rc tech 管 <strong>线延迟</strong>（导线寄生 RC）</td></tr><tr><td>pin 与 port</td><td>pin 在 <strong>Cell 层</strong>（单元身上的引脚）；port 在 <strong>Block 层</strong>（模块对外的端口），位置由 Top 指定</td></tr><tr><td>WCS 与 BCF</td><td>WCS = 最慢条件，<strong>查 setup</strong>；BCF = 最快条件，<strong>查 hold</strong>。记反了报告全绿但芯片是废的</td></tr><tr><td>S1 与 S2</td><td>S1 是<strong>纯功能</strong>网表（用来估面积）；S2 是<strong>带 scan</strong> 的网表（门数涨 20%~100%，真正要做的版本）</td></tr><tr><td>PV 与 PA</td><td>PV 是 <strong>Physical Verification</strong>（DRC/LVS/天线）；PA 是 <strong>Power Analysis</strong>（IR drop/电迁移）。同在 ECO 阶段，修的东西完全不同</td></tr></tbody></table></div>
+<h2 id="people">一、角色：你在跟谁打交道</h2>
+<p>出处：<a href="/lesson/02-02-pr-what/">什么是布局布线（PR）</a>、<a href="/lesson/02-08-pr-sdc/">SDC 时序约束</a></p>
+<div class="tbl"><table><thead><tr><th>缩写</th><th>全称 · 中文</th><th>它在流程里是什么</th></tr></thead><tbody><tr><td>PR / PnR</td><td>Place and Route · 布局布线</td><td>把网表变成版图的那段活，也就是本课程的主体</td></tr><tr><td>PD</td><td>Physical Design · 物理设计</td><td>&quot;后端&quot;的正式叫法；PR 是 PD 的主战场</td></tr><tr><td>DE</td><td>Design Engineer · 前端设计</td><td>写 RTL、做综合、交网表给你的人。逻辑太深摆不下去，就找他改代码</td></tr><tr><td>ME</td><td>Middle End Engineer · 中端</td><td>夹在前后端之间：做 DFT、formal、MMMC 环境，网表也常从他那儿出</td></tr><tr><td>AE</td><td>Application Engineer · 应用工程师</td><td>工具厂商派到项目上的技术支持，内部命令不懂就问他</td></tr><tr><td>FCT</td><td>Full Chip Timing · 全芯片时序</td><td>写 SDC 的部门。约束不合理要提给他们改，不能自己偷偷改一版</td></tr><tr><td>Top</td><td>顶层</td><td>整个芯片那一层，负责给各 block 下发边界、port 位置和约束</td></tr><tr><td>Block</td><td>模块</td><td>你实际负责的那一块，有明确物理边界，接口由 Top 定</td></tr><tr><td>Fabless</td><td>无晶圆厂设计公司</td><td>只设计不生产，把制造交给 foundry</td></tr><tr><td>Foundry</td><td>晶圆代工厂</td><td>台积电、中芯这类，卖的是产能和工艺</td></tr><tr><td>IDM</td><td>Integrated Device Manufacturer</td><td>自己设计自己造，如 Intel</td></tr></tbody></table></div>
+<h2 id="flow">二、流程：一天到晚在跑什么</h2>
+<p>出处：<a href="/lesson/02-03-pr-flow/">PR 全流程九步</a></p>
+<div class="tbl"><table><thead><tr><th>缩写</th><th>全称 · 中文</th><th>它在流程里是什么</th></tr></thead><tbody><tr><td>init</td><td>初始化 · 导入设计</td><td>把网表、lef、lib、sdc 吃进工具，建立初始数据库</td></tr><tr><td>floorplan / FLP</td><td>布局规划</td><td>定 die 面积、摆 mem/macro、加物理单元；全流程里手动活最多的一步</td></tr><tr><td>powerplan</td><td>供电规划</td><td>打电源网络（VDD/VSS），先有电才能摆单元</td></tr><tr><td>place</td><td>布局</td><td>工具自动摆几百万个标准单元，人只给密度和约束</td></tr><tr><td>CTS</td><td>Clock Tree Synthesis · 时钟树综合</td><td>专门绕时钟线，让时钟同时到达所有触发器</td></tr><tr><td>optCTS</td><td>时钟树优化</td><td>CTS 做完时序通常更差（多了 buffer），这一轮专门修</td></tr><tr><td>route</td><td>布线</td><td>把所有信号线真正连起来，目标是 open 与 short 清零</td></tr><tr><td>optRoute / OBT</td><td>布线优化 · 流片前优化</td><td>同一件事的两个名字：真实 RC 下修最后的时序与 DRC</td></tr><tr><td>chipfinish</td><td>收尾</td><td>出 GDSII，做交付前的清理与检查</td></tr><tr><td>preCTS opt</td><td>布局优化</td><td>place 之后、CTS 之前那一轮，用估算时钟修 setup</td></tr><tr><td>FINAL PR</td><td>终版 PR</td><td>反复跑多个 run 后选定的那一版，之后只能走 ECO</td></tr><tr><td>ECO</td><td>Engineering Change Order · 工程变更</td><td>版图定死后的小修：改一根线、换一个 cell，不能挪 memory</td></tr><tr><td>tapeout</td><td>流片</td><td>把 GDSII 交给 foundry 做掩膜</td></tr><tr><td>BTO / MTO</td><td>Before / Mask Tape Out</td><td>送厂前的数据整合检查；MTO 之后数据彻底锁死</td></tr><tr><td>run</td><td>一次跑流</td><td>把一串命令丢进 Queue 跑完的一轮，几个钟头到几天</td></tr><tr><td>Try</td><td>试版本</td><td>同一阶段试不同参数的多版（FLP1、FLP2），比哪个结果好</td></tr></tbody></table></div>
+<h2 id="files">三、数据：别人交给你的文件</h2>
+<p>出处：<a href="/lesson/02-04-pr-data/">数据准备</a>、<a href="/lesson/02-06-pr-lib-rctech/">lib 与 rc tech</a></p>
+<div class="tbl"><table><thead><tr><th>缩写</th><th>全称 · 中文</th><th>它在流程里是什么</th></tr></thead><tbody><tr><td>netlist</td><td>网表（.v / .v.gz）</td><td>逻辑连接关系：谁连谁。PR 的第一份输入</td></tr><tr><td>GDSII / GDS</td><td>版图数据</td><td>PR 的最终输出，foundry 拿它做掩膜</td></tr><tr><td>DEF</td><td>Design Exchange Format</td><td>物理信息交换格式：die 大小、单元坐标、port 位置都在这</td></tr><tr><td>LEF</td><td>Library Exchange Format</td><td>技术描述格式，分 tech lef 与 cell lef 两种</td></tr><tr><td>tech lef</td><td>工艺 LEF</td><td>有哪些金属层、线宽间距、via 规则，是 DRC 的源头</td></tr><tr><td>cell lef</td><td>单元 LEF</td><td>每个 cell 多大、pin 在哪、什么形状</td></tr><tr><td>lib</td><td>Liberty · 时序库</td><td>cell 延迟表：给定输入转换与输出负载，查出延迟</td></tr><tr><td>rc tech</td><td>RC 工艺文件</td><td>线的寄生参数模型，同一根线在不同 corner 下 R、C 不同</td></tr><tr><td>TLU+ / ITF</td><td>两种 RC tech 格式</td><td>TLU+ 是 Cadence 的叫法，ITF 是 Synopsys 的叫法，同一类东西</td></tr><tr><td>SDC</td><td>Synopsys Design Constraints</td><td>时序&quot;要求&quot;：周期多长、外部给多少延迟、哪些是假路径</td></tr><tr><td>MMMC</td><td>Multi-Mode Multi-Corner</td><td>多模式多端角配置，实际落在 viewDefinition.tcl 里</td></tr><tr><td>SPEF</td><td>Standard Parasitic Exchange Format</td><td>抽出来的真实寄生 RC，PT 用它算线延迟</td></tr><tr><td>PG netlist</td><td>带电源地的网表</td><td>电源网络也连好的网表，做 LVS 时用它</td></tr><tr><td>UPF</td><td>Unified Power Format</td><td>低功耗意图：哪块能关电、工作在什么电压</td></tr></tbody></table></div>
+<h2 id="timing">四、时序：这门课的心脏</h2>
+<p>出处：<a href="/lesson/02-06a-setup-hold/">Setup 与 Hold</a>、<a href="/lesson/02-07-pr-mmmc/">MMMC</a></p>
+<div class="tbl"><table><thead><tr><th>缩写</th><th>全称 · 中文</th><th>它在流程里是什么</th></tr></thead><tbody><tr><td>setup</td><td>建立时间</td><td>数据不能太晚：下一个时钟沿来之前必须稳定</td></tr><tr><td>hold</td><td>保持时间</td><td>数据不能太早：当前时钟沿采完之后才能变</td></tr><tr><td>slack</td><td>余量</td><td>到达时间与要求时间之差，必须大于等于 0</td></tr><tr><td>arrival / required</td><td>到达时间 / 要求时间</td><td>一个是你实际什么时候到，一个是规定最晚什么时候到</td></tr><tr><td>WNS</td><td>Worst Negative Slack</td><td>最差那条路径差多少；负数就是没过，日常就看这一个数</td></tr><tr><td>TNS</td><td>Total Negative Slack</td><td>所有违例路径的 slack 累加，衡量&quot;烂得多不多&quot;</td></tr><tr><td>skew</td><td>时钟偏斜</td><td>同一个时钟到达两个触发器的时间差</td></tr><tr><td>insertion delay</td><td>时钟插入延迟</td><td>时钟从源头走到触发器花了多久</td></tr><tr><td>corner</td><td>端角</td><td>工艺/电压/温度/RC 的一组组合，代表&quot;一种可能的芯片&quot;</td></tr><tr><td>PVT</td><td>Process / Voltage / Temperature</td><td>工艺、电压、温度，也就是 corner 的三要素</td></tr><tr><td>SS / FF / TT</td><td>Slow-Slow / Fast-Fast / Typical</td><td>管子和线都慢 / 都快 / 都典型</td></tr><tr><td>WCS</td><td>Worst Case Slow</td><td>SS + 低压 + 高温 + RCmax，查 setup 用它</td></tr><tr><td>BCF</td><td>Best Case Fast</td><td>FF + 高压 + 低温 + RCmin，查 hold 用它</td></tr><tr><td>OCV</td><td>On-Chip Variation</td><td>同一颗芯片内部也有快慢，统一加个百分比余量</td></tr><tr><td>POCV</td><td>Parametric OCV</td><td>用统计分布代替固定百分比，更准也更省</td></tr><tr><td>derate</td><td>降额系数</td><td>OCV 的落地方式：晚路径乘 1.05、早路径乘 0.95</td></tr><tr><td>STA</td><td>Static Timing Analysis</td><td>静态时序分析，不仿真、靠遍历路径算时序</td></tr><tr><td>PT</td><td>PrimeTime</td><td>Synopsys 的 STA 签核工具，报告以它为准</td></tr><tr><td>RCmax / RCmin</td><td>最坏 / 最好 RC</td><td>线最慢与最快的两种假设，分别给 setup 与 hold</td></tr></tbody></table></div>
+<h2 id="physical">五、物理：绕不通的时候看这些</h2>
+<p>出处：<a href="/lesson/02-03-pr-flow/">PR 全流程九步</a>、<a href="/lesson/02-05-pr-lef/">LEF 详解</a></p>
+<div class="tbl"><table><thead><tr><th>缩写</th><th>全称 · 中文</th><th>它在流程里是什么</th></tr></thead><tbody><tr><td>DRC</td><td>Design Rule Check</td><td>设计规则检查：线太细、间距不够就报错，必须清零</td></tr><tr><td>LVS</td><td>Layout vs Schematic</td><td>版图与网表是否一致，多一根线少一个孔都算错</td></tr><tr><td>via</td><td>通孔</td><td>上下两层金属之间的连接柱</td></tr><tr><td>pitch</td><td>节距</td><td>相邻两根线的中心距，工艺定死，单元高度按它算</td></tr><tr><td>track</td><td>布线轨道</td><td>线只能走在固定网格上，轨道数决定能走多少线</td></tr><tr><td>M1~M9</td><td>Metal 1~9</td><td>第几层金属，下层细、上层粗，走线方向逐层交替</td></tr><tr><td>1P9M</td><td>1 Poly + 9 Metal</td><td>工艺层数的写法：1 层多晶硅 + 9 层金属</td></tr><tr><td>OBS</td><td>Obstruction</td><td>单元内部不许走线的区域，摆单元时工具自动避开</td></tr><tr><td>antenna</td><td>天线效应</td><td>长金属在制造中积电荷打穿栅氧，靠跳层或二极管泄放</td></tr><tr><td>density</td><td>密度</td><td>单位面积里有多少图形，太低太高都影响良率</td></tr><tr><td>congestion</td><td>拥塞</td><td>走线资源不够，route 绕不出来；根因通常在 floorplan</td></tr><tr><td>utilization</td><td>利用率</td><td>单元面积占 core 面积的比例，定太高必然拥塞</td></tr><tr><td>halo</td><td>保护区</td><td>macro 周围不许摆单元的一圈缓冲，用来留走线通道</td></tr><tr><td>tap cell / endcap</td><td>衬底接触 / 边界单元</td><td>没有逻辑但必须铺的单元，保证衬底电位与边界完整</td></tr><tr><td>NDR</td><td>Non-Default Rule</td><td>非默认布线规则：给时钟等关键信号加宽、加倍间距</td></tr><tr><td>IR drop</td><td>电压降</td><td>电流流过电源网络导致电压下降，降太多单元会变慢甚至失效</td></tr></tbody></table></div>
+<h2 id="cells">六、单元与接口</h2>
+<p>出处：<a href="/lesson/02-01a-chip-basics/">数字电路基础</a>、<a href="/lesson/02-05a-pin-port/">Pin 与 Port</a></p>
+<div class="tbl"><table><thead><tr><th>缩写</th><th>全称 · 中文</th><th>它在流程里是什么</th></tr></thead><tbody><tr><td>stdcell</td><td>Standard Cell · 标准单元</td><td>库里的基本逻辑单元，高度统一，工具自动摆</td></tr><tr><td>macro</td><td>宏单元</td><td>预先做好的大块（memory、PLL、IP），只能整体摆不能拆</td></tr><tr><td>SRAM</td><td>静态随机存储器</td><td>最典型的 macro，面积大，位置决定 floorplan 成败</td></tr><tr><td>DFF</td><td>D Flip-Flop · D 触发器</td><td>存一拍数据的单元，时序分析的起点与终点</td></tr><tr><td>CLK / CK</td><td>Clock</td><td>触发器的时钟端</td></tr><tr><td>pin</td><td>引脚</td><td>单元身上的连接点，属于 Cell 层</td></tr><tr><td>port</td><td>端口</td><td>模块对外的接口，属于 Block 层，位置由 Top 指定</td></tr><tr><td>IO</td><td>Input / Output</td><td>芯片或模块对外的出入口</td></tr><tr><td>orientation</td><td>朝向</td><td>单元能怎么翻转旋转（N/S/E/W 加镜像），受 SYMMETRY 限制</td></tr><tr><td>SITE</td><td>站位</td><td>单元放置的最小网格单位，单元宽度是它的整数倍</td></tr><tr><td>SYMMETRY</td><td>对称性</td><td>lef 里声明这个单元允许沿哪个轴翻转</td></tr><tr><td>MUX</td><td>Multiplexer · 多路选择器</td><td>多选一的组合逻辑单元</td></tr><tr><td>BUF / INV</td><td>Buffer / Inverter</td><td>缓冲器 / 反相器，用来驱动长线、重整 transition</td></tr><tr><td>ALU</td><td>Arithmetic Logic Unit</td><td>算术逻辑单元，CPU 里做运算的那部分</td></tr></tbody></table></div>
+<h2 id="tools">七、测试、工具与其它</h2>
+<p>出处：<a href="/lesson/02-04a-netlist-release/">网表版本与 Release</a>、<a href="/lesson/02-03-pr-flow/">PR 全流程九步</a></p>
+<div class="tbl"><table><thead><tr><th>缩写</th><th>全称 · 中文</th><th>它在流程里是什么</th></tr></thead><tbody><tr><td>DFT</td><td>Design for Test</td><td>可测性设计：插扫描链，让测试机测得出坏点</td></tr><tr><td>scan chain</td><td>扫描链</td><td>DFT 插进来的移位寄存器链，测试时把内部状态移出来看</td></tr><tr><td>S1 / S2</td><td>第一版 / 第二版网表</td><td>S1 纯功能（估面积用），S2 带 scan（真正要做的版本）</td></tr><tr><td>VCS</td><td>Verilog Compiled Simulator</td><td>Synopsys 的仿真工具，前端用它验功能</td></tr><tr><td>DC</td><td>Design Compiler</td><td>Synopsys 的综合工具，RTL 变网表</td></tr><tr><td>Genus</td><td>Cadence 的综合工具</td><td>跟 DC 抢同一个位置，项目里二选一</td></tr><tr><td>Formality</td><td>形式验证工具</td><td>证明综合后的网表与 RTL 逻辑等价</td></tr><tr><td>PLL</td><td>Phase-Locked Loop</td><td>锁相环，产生芯片内部时钟，本身是个 macro</td></tr><tr><td>EDA</td><td>Electronic Design Automation</td><td>电子设计自动化，泛指这一类工具软件</td></tr><tr><td>SOC</td><td>System on Chip</td><td>系统级芯片，把 CPU、memory、各种 IP 塞进一颗</td></tr><tr><td>IP</td><td>Intellectual Property</td><td>可复用的设计模块，买来的或内部积累的</td></tr><tr><td>PV</td><td>Physical Verification</td><td>物理验证：DRC、LVS、天线，ECO 阶段专门修它</td></tr><tr><td>PA</td><td>Power Analysis</td><td>功耗分析：IR drop、电迁移，ECO 阶段另一条线</td></tr><tr><td>DDR / USB / PCIe</td><td>常见高速接口</td><td>最值钱的几类 block，做这些的 PR 岗位溢价明显</td></tr></tbody></table></div>
+<h2 id="next">还看不懂怎么办</h2>
+<div class="tbl"><table><thead><tr><th>症状</th><th>去哪儿</th></tr></thead><tbody><tr><td>想看完整解释与出处</td><td><a href="/glossary/">术语表</a>：全站术语可搜、按阶段筛</td></tr><tr><td>分不清某个文件归谁管</td><td><a href="/lesson/02-04-pr-data/">数据准备</a> 的文件职责表</td></tr><tr><td>时序报告看不懂</td><td><a href="/lesson/02-06a-setup-hold/">Setup 与 Hold</a> 先读，再回 <a href="/lesson/02-07-pr-mmmc/">MMMC</a></td></tr><tr><td>缩写记住了但串不起流程</td><td><a href="/lesson/02-03-pr-flow/">PR 全流程九步</a> 那张九行表</td></tr></tbody></table></div></article>
+</main>
+<script src="/assets/shell.js?v=1795488762"></script>
+<script src="/assets/tcl.js?v=1795488762"></script>
+<script src="/assets/page.js?v=1795488762"></script>
+<script src="/assets/playground.js?v=1795488762"></script>
+</body>
+</html>

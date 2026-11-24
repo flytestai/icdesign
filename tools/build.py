@@ -75,7 +75,7 @@ def bust(html):
 
 
 NAV = [("/", "课程"), ("/playground/", "练习场"), ("/quiz/", "题库"), ("/exam/", "验收"), ("/glossary/", "术语"),
-       ("/cheatsheet/", "速查"), ("/search/", "搜索"), ("/progress/", "进度")]
+       ("/abbr/", "缩写"), ("/cheatsheet/", "速查"), ("/search/", "搜索"), ("/progress/", "进度")]
 
 BLOCK_RE = re.compile(r"^:::([a-z]+)(?:[ \t]+(.*?))?[ \t]*\n(.*?)^:::[ \t]*$", re.S | re.M)
 
@@ -305,6 +305,17 @@ def md(src, inline_only=False):
                 out.append(f'<h3 id="{m.group(2)}">{inline(m.group(1))}</h3>')
             else:
                 out.append(f"<h3>{inline(t)}</h3>")
+            i += 1
+            continue
+        if s.startswith("## "):
+            # 二级标题：课程正文里的 ## 已被 split_chapters 切走，
+            # 这个分支服务于静态页（_abbr.md / _cheatsheet.md）。
+            t = s[3:]
+            m = re.match(r"^(.+?)\s*\{#([\w-]+)\}\s*$", t)
+            if m:
+                out.append(f'<h2 id="{m.group(2)}">{inline(m.group(1))}</h2>')
+            else:
+                out.append(f"<h2>{inline(t)}</h2>")
             i += 1
             continue
         if s.startswith("|") and i + 1 < len(lines) and re.match(r"^\|[\s:|-]+\|$", lines[i + 1].strip()):
@@ -564,6 +575,7 @@ HOME = HEAD + """
     <a class="qcard" href="/playground/"><b>代码练习场</b><span>Linux 命令 + Tcl 代码 · 按课程顺序练 · 浏览器里直接跑</span></a>
     <a class="qcard" href="/quiz/"><b>题库</b><span>{nquiz} 道自测题 · 随机抽题 · 错题本</span></a>
     <a class="qcard" href="/glossary/"><b>术语表</b><span>{nterm} 条中英对照 · 按阶段筛选</span></a>
+    <a class="qcard" href="/abbr/"><b>缩写解码</b><span>PR 里的三字母缩写 · 按场景分七组一页查</span></a>
     <a class="qcard" href="/cheatsheet/"><b>命令速查</b><span>Tcl / Linux 常用命令一页查</span></a>
     <a class="qcard" href="/progress/"><b>进度看板</b><span>哪一阶段欠多少、下一步学什么</span></a>
   </div>
@@ -798,18 +810,26 @@ def build_subpages(lessons, nquiz, nterm):
     subpage("progress", "学习进度", "按阶段看完成度，知道下一步该学哪一章。", PROGRESS_BODY)
     build_playground()
     build_cheatsheet()
+    build_abbr()
+
+
+def build_static(slug, filename, dft_title, dft_lead):
+    """content/ 下划线开头的静态页（不进课程目录）→ web/<slug>/index.html"""
+    p = os.path.join(CONTENT, filename)
+    if not os.path.exists(p):
+        return False
+    meta, body = parse_front(open(p, encoding="utf-8").read())
+    subpage(slug, meta.get("title", dft_title), meta.get("summary", dft_lead),
+            f'<article class="art">{md(body)}</article>')
+    return True
 
 
 def build_cheatsheet():
-    p = os.path.join(CONTENT, "_cheatsheet.md")
-    if not os.path.exists(p):
-        return
-    src = open(p, encoding="utf-8").read()
-    meta, body = parse_front(src)
-    html = md(body)
-    subpage("cheatsheet", meta.get("title", "命令速查"),
-            meta.get("summary", "常用命令一页查，按工具分组。"),
-            f'<article class="art">{html}</article>')
+    build_static("cheatsheet", "_cheatsheet.md", "命令速查", "常用命令一页查，按工具分组。")
+
+
+def build_abbr():
+    build_static("abbr", "_abbr.md", "缩写解码表", "PR 里的英文缩写，按场景分组一页查。")
 
 
 def main():

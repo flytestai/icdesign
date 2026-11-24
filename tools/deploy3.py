@@ -145,7 +145,7 @@ def main():
 
         time.sleep(2)
         rc, out, err = sh(c, (
-            "for p in / /login /register /admin /playground/ /quiz/ /glossary/ /search/ /progress/ /cheatsheet/ "
+            "for p in / /login /register /admin /playground/ /quiz/ /glossary/ /abbr/ /search/ /progress/ /cheatsheet/ "
             "/lesson/01-01-linux-01-intro/ /lesson/01-06-linux-06-sed-awk/ "
             "/lesson/01-07-tcl-01-start/ /lesson/01-11-tcl-05-list-a/ /lesson/01-13-tcl-07-if/ "
             "/lesson/01-14-tcl-08-loops/ /lesson/01-16-tcl-10-final/ /data/quiz.json "
