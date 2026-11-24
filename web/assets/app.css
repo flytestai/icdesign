@@ -504,19 +504,20 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* 右侧交互终端 / 解释器 */
 .pg-right{display:flex;flex-direction:column;gap:12px;min-width:0}
 .pg-sbx,.pg-tsbx{margin:0}
-.pg-sbx .sbx-body{max-height:430px;min-height:300px}
-.pg-tsbx .sbx-out{max-height:430px}
+.pg-sbx .sbx-body{height:860px;max-height:860px}
+.pg-tsbx .sbx-body{max-height:none}
+.pg-tsbx .sbx-out{height:820px;max-height:820px}
 .pg-sbx .sbx-l .cmt,.pg-tsbx .sbx-out .cmt{color:#7d95ad;font-style:italic}
 @media(max-width:860px){
-  .pg-sbx .sbx-body{min-height:220px;max-height:320px}
-  .pg-tsbx .sbx-out{max-height:320px}
+  .pg-sbx .sbx-body{height:auto;min-height:380px;max-height:520px}
+  .pg-tsbx .sbx-out{height:auto;min-height:340px;max-height:520px}
 }
 .pg-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
 .pg-toolbar select{flex:1;min-width:220px;max-width:420px;border:1px solid #d5dce6;border-radius:9px;padding:8px 12px;font-size:14px;background:#fff}
 .pg-toolbar .pri{background:#4f46e5;color:#fff;border:none;border-radius:9px;padding:9px 20px;font-size:14px;font-weight:600;cursor:pointer}
 .pg-toolbar .pri:hover{filter:brightness(1.08)}
 .pg-toolbar .ghost{background:#fff;border:1px solid #d5dce6;color:#475569;border-radius:9px;padding:9px 16px;font-size:13.5px;cursor:pointer}
-.pg-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px}
+.pg-grid{display:grid;grid-template-columns:1fr;gap:14px}
 @media(max-width:860px){.pg-grid{grid-template-columns:1fr}}
 .pg-eh{font-size:12px;font-weight:700;color:#64748b;letter-spacing:.5px;padding:8px 12px;background:#f1f5f9;border:1px solid #e2e8f0;border-bottom:none;border-radius:10px 10px 0 0}
 .pg-editor textarea,.pg-stdin textarea{width:100%;height:430px;resize:vertical;border:1px solid #e2e8f0;border-radius:0 0 10px 10px;padding:12px 14px;font-family:ui-monospace,Consolas,monospace;font-size:13.5px;line-height:1.7;color:#0f172a;background:#fffdf5;outline:none;box-sizing:border-box;white-space:pre;overflow:auto;tab-size:4}

@@ -812,7 +812,7 @@ PLAYGROUND_BODY = """
         <div class="sbx-body"><div class="sbx-out"></div>
           <div class="sbx-line"><span class="sbx-ps1">[autumn@eda ~]$</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="敲命令，回车执行（先敲 help 看支持哪些）" aria-label="模拟终端输入"></div>
         </div>
-        <div class="sbx-f">和左边共用同一个环境：点「跑整段」等于把左边逐条敲进来，之后你可以接着改、接着试。想从头来就点「重置环境」。</div>
+        <div class="sbx-f">和上面共用同一个环境：点「跑整段」等于把上面逐条敲进来，之后你可以接着改、接着试。想从头来就点「重置环境」。</div>
       </div>
       <div class="tsbx pg-tsbx" id="pg-tcl" style="display:none">
         <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 交互解释器</b><span class="sbx-tip">一行一执行；括号没闭合会自动等续行</span><button class="sbx-rst" type="button">重置</button></div>
@@ -834,7 +834,7 @@ PLAYGROUND_BODY = """
 
 def build_playground():
     subpage("playground", "代码练习场（Linux + Tcl）",
-            "按课程顺序练：Linux 命令跑在模拟终端里，Tcl 代码直接执行。左边写、右边看输出，报错行为与真实环境一致。",
+            "按课程顺序练：Linux 命令跑在模拟终端里，Tcl 代码直接执行。上面写、下面看输出，报错行为与真实环境一致。",
             PLAYGROUND_BODY)
 
 

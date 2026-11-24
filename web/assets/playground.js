@@ -204,7 +204,7 @@ var TCL_PLAN = [
 'puts "split：[split "woaixuexi" x]  join：[join {a b c} -]"   ;# split 按 x 切；join 用 - 连起来' }
   ]},
   { group: 'Tcl 第 7 讲 · 流程控制（上）：if 与用户输入', items: [
-    { name: 'if 条件判断 + gets 输入（右侧 stdin 已预填 85）', stdin: '85', code:
+    { name: 'if 条件判断 + gets 输入（下方 stdin 已预填 85）', stdin: '85', code:
 'puts "Please enter the score："   ;# 提示用户输入分数\n' +
 'gets stdin score                  ;# 从键盘读一行，存进 score\n' +
 'if {$score >= 90} {               ;# 90 分及以上走这个分支\n' +
@@ -292,15 +292,15 @@ var TCL_PLAN = [
 '    puts "  move_objects -delta {-50 0}"           ;# 向左移动 50，模拟摆放调整\n' +
 '}                                                  ;# foreach 结束\n' +
 'puts "全部 $total 个单元处理完毕"                   ;# 收尾提示' },
-    { name: '猜数字游戏（右侧 stdin 已预填 3 次猜测）', stdin: '50\n75\n25', code:
+    { name: '猜数字游戏（下方 stdin 已预填 3 次猜测）', stdin: '50\n75\n25', code:
 'set answer [expr {int(rand()*100)}]  ;# 随机生成 0-99 的答案\n' +
 'set times 0                          ;# 记录已经猜了几次\n' +
 'while {1} {                          ;# 条件恒为真：死循环，靠 break 退出\n' +
 '    incr times                       ;# 次数 +1\n' +
 '    puts "第 $times 次猜：请输入 0-99 的数字"   ;# 提示输入\n' +
 '    gets stdin guess                 ;# 读入这次猜的数\n' +
-'    if {![string length $guess]} {   ;# stdin 读光了（右侧预输入已用完）\n' +
-'        puts "stdin 读完了（右侧只有 3 行），答案是 $answer"   ;# 公布答案，免得死循环\n' +
+'    if {![string length $guess]} {   ;# stdin 读光了（下方预输入已用完）\n' +
+'        puts "stdin 读完了（下方只有 3 行），答案是 $answer"   ;# 公布答案，免得死循环\n' +
 '        break                        ;# 跳出循环\n' +
 '    }                                ;# 守卫 if 结束\n' +
 '    if {$guess == $answer} {         ;# 猜中了\n' +
@@ -317,8 +317,8 @@ var TCL_PLAN = [
 
 /* ================================================================
  * 二、UI：交互终端 / 解释器 + 练习代码编辑器
- *   右边是能自己敲的终端（Linux）/ 解释器（Tcl）
- *   「跑整段」= 把左边逐条敲进去；「下一行」= 一条一条来
+ *   下面是能自己敲的终端（Linux）/ 解释器（Tcl）
+ *   「跑整段」= 把上面逐条敲进去；「下一行」= 一条一条来
  * ================================================================ */
 var state = { mode: 'linux', cursor: 0 };
 
@@ -364,8 +364,8 @@ function runLinuxAll() {
   var sh = termSh();
   if (!sh) { showTip('% 终端组件未加载，请刷新页面'); return; }
   var lines = codeLines();
-  if (!lines.length) { sh.print('（左边的练习代码是空的）', 'dim'); return; }
-  sh.print('—— 开始执行左边这 ' + lines.length + ' 行（跑完可以继续在下面自己敲）——', 'dim');
+  if (!lines.length) { sh.print('（上面的练习代码是空的）', 'dim'); return; }
+  sh.print('—— 开始执行上面这 ' + lines.length + ' 行（跑完可以继续在下面自己敲）——', 'dim');
   for (var i = 0; i < lines.length; i++) feedLinux(lines[i]);
   state.cursor = lines.length;
   syncStep();
@@ -390,9 +390,9 @@ function runTclAll() {
   var repl = tclRepl();
   if (!repl) { showTip('% Tcl 解释器未加载，请刷新页面'); return; }
   var blocks = tclBlocks();
-  if (!blocks.length) { repl.print('（左边的练习代码是空的）', 'dim'); return; }
+  if (!blocks.length) { repl.print('（上面的练习代码是空的）', 'dim'); return; }
   var n = tclSetupStdin(repl);
-  repl.print('—— 开始执行左边这片代码（' + blocks.length + ' 段' + (n ? '，stdin 预输入 ' + n + ' 行' : '') + '）——', 'dim');
+  repl.print('—— 开始执行上面这片代码（' + blocks.length + ' 段' + (n ? '，stdin 预输入 ' + n + ' 行' : '') + '）——', 'dim');
   for (var i = 0; i < blocks.length; i++) feedTclBlock(repl, blocks[i]);
   var left = repl.stdinLeft();
   if (left) repl.print('% stdin 还剩 ' + left + ' 行没被 gets 读走', 'dim');
@@ -516,11 +516,11 @@ function setMode(mode, focus) {
   el('pg-tcl').style.display = mode === 'tcl' ? '' : 'none';
   el('pg-stdin-box').style.display = mode === 'tcl' ? '' : 'none';
   el('pg-eh').textContent = mode === 'linux'
-    ? 'Linux 命令（一行一条；# 开头是注释。右边可以自己敲，也可以点「下一行」一条条来）'
-    : 'Tcl 代码（;# 或 # 开头都是注释。右边解释器可以一行一敲，变量会一直留着）';
+    ? 'Linux 命令（一行一条；# 开头是注释。下面可以自己敲，也可以点「下一行」一条条来）'
+    : 'Tcl 代码（;# 或 # 开头都是注释。下面解释器可以一行一敲，变量会一直留着）';
   el('pg-note').innerHTML = mode === 'linux'
-    ? '两边的环境是同一个：右边终端里自己敲的命令，和「跑整段」执行的是同一套文件系统，所以 <b>rm 掉的文件真的会没</b>；想恢复初始状态点「重置环境」或终端右上角的「重置」。支持的命令：ls（-l -a -h -t -d）·cd（含 cd -）·pwd·mkdir·touch·rm·cp·mv·cat·head·tail·wc·nl·grep（含 -R）·sed·awk·sort（含 -u）·uniq·cut·find·du·chmod·tree·which·history·echo·通配符 <code>*</code>·管道与重定向。注意：awk / sed 的程序要写单引号，双引号里 <code>$1</code> 会先被 shell 吃掉。tar / ln / md5sum 这类需要真实文件系统的命令，请在课程页的练习终端或真机上练。'
-    : '右边的解释器是有状态的：<b>set 过的变量、proc 定义都留着</b>，敲一行看一行结果，最适合试 `expr`、`lindex`、`string` 这类小命令。需要 <code>gets stdin</code> 的练习，先在下面 stdin 框里预写好每行一个值。支持：set·puts·expr·incr·append·unset·array·dict get·list/lindex/llength/lappend/lreplace/lsearch/lsort/concat/split/join·if·while·foreach·for·break·continue·proc（默认参数与 args）·global·return·gets stdin·rand()。';
+    ? '上下两个环境是同一个：下面终端里自己敲的命令，和「跑整段」执行的是同一套文件系统，所以 <b>rm 掉的文件真的会没</b>；想恢复初始状态点「重置环境」或终端右上角的「重置」。支持的命令：ls（-l -a -h -t -d）·cd（含 cd -）·pwd·mkdir·touch·rm·cp·mv·cat·head·tail·wc·nl·grep（含 -R）·sed·awk·sort（含 -u）·uniq·cut·find·du·chmod·tree·which·history·echo·通配符 <code>*</code>·管道与重定向。注意：awk / sed 的程序要写单引号，双引号里 <code>$1</code> 会先被 shell 吃掉。tar / ln / md5sum 这类需要真实文件系统的命令，请在课程页的练习终端或真机上练。'
+    : '下面的解释器是有状态的：<b>set 过的变量、proc 定义都留着</b>，敲一行看一行结果，最适合试 `expr`、`lindex`、`string` 这类小命令。需要 <code>gets stdin</code> 的练习，先在下面 stdin 框里预写好每行一个值。支持：set·puts·expr·incr·append·unset·array·dict get·list/lindex/llength/lappend/lreplace/lsearch/lsort/concat/split/join·if·while·foreach·for·break·continue·proc（默认参数与 args）·global·return·gets stdin·rand()。';
   buildSelect();
   loadCode();
   if (focus !== false) focusTerm();
