@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 7 讲 · 流程控制（上）：if 条件判断与用户输入 · 13 | IC 后端学院</title>
 <meta name="description" content="if-elseif-else 语法与四大语法铁律（文档强调的初学者大坑）、比较与逻辑运算符、gets stdin 用户输入、rand() 随机数、成绩等级判断与猜数字游戏（文档原题）。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="01-13-tcl-07-if">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -248,21 +248,17 @@ while {1} {
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>if 的四大铁律？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">① } 和 elseif/else 同行且中间有空格；② 条件用 {} 包裹且 { 不能换行；③ 全部英文半角符号；④ 一行一条完整命令，不能用换行切开 if。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>gets stdin 相当于 Python 的什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">input()，从标准输入读一行存进变量。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>rand() 的取值范围？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">0 到 1 之间、不等于 1。配 int() 用：<code>expr {int(rand()*100)}</code> 生成 0-99 整数。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>条件表达式必须用什么包裹？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a"><code>{}</code>，且 <code>{</code> 必须紧跟条件不能换行。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能写 if/elseif/else 并背出四大铁律</li><li>会用 gets stdin 读输入并完成交互判断</li><li>会用 rand() 造随机数</li></ul></div>
@@ -285,8 +281,8 @@ while {1} {
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

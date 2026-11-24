@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 5 课 · 搜索、权限、打包与正则表达式 · 05 | IC 后端学院</title>
 <meta name="description" content="grep 全家用法（-n / -A / -B / -R / -E / zgrep）；mv / cp / find / 软链接 / du；chmod / chown / chgrp 与用户组管理；md5sum / which；tar 打包压缩；:%! 在 vi 里调用命令；正则表达式与 vi 内替换删除；批量注释；课后练习三。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="01-05-linux-05-search-perm">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -153,25 +153,20 @@
   <div class="ch-h"><span class="ch-n">08</span><h2>动手练：练习三</h2></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>grep &amp; 正则表达式练习</div><div class="lab-b"><p>1、将 .bash_history 写入到一个文件 demo_003.txt 中 2）在文件外部进行搜索的练习 2.1 搜索文件中是否包含关键字 history 2.2 搜索文件中以 c 开头的行 2.3 搜索文件以 f 结尾的行 2.4 搜索包含 cd 的行，要求显示行号，并且显示 cd 的前后 10 行 2.5 搜索包含字母 abc 的行 2.6 搜索包含数字 0-9 的行 2.7 搜索不包含数字的行 3）在文件内部练习（vi 打开 demo_003.txt） 3.1 在每一行的开头插入内容 test！！！ 3.2 在每一行的结尾插入 finish！！！ 3.3 在文件内部搜索关键字 demo 3.4 在文件内部搜索所有字母开头的行 3.5 在文件内替换所有 cd 为 KKK 3.6 删除所有 a 开头的行 3.7 删除所有 s 结尾的行 4、在文件内部使用 grep 过滤出所有的 KKK 的行</p></div></div>
 <div class="tip"><div class="tip-h">小技巧</div><p>alias 的配置（用户自定义快捷指令）写在 <code>~/.bashrc</code> / <code>~/.alias</code> 里；<code>source</code> 命令用来执行脚本，使配置文件生效：<code>source ~/.bashrc</code>。</p></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>grep 搜关键字并显示它前后各 10 行用哪个选项？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">grep -10n 关键字 文件名；-A10 只显示后面 10 行，-B10 只显示前面 10 行。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>r w x 的数字分别是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">r=4、w=2、x=1。757 = rwx r-x rwx。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>cp -r 和 cp -a 的区别？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">-r 只递归复制；-a 递归复制且保留权限、时间戳、软链接等全部属性。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>tar 打包并压缩用什么参数？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">-czvf（c 创建 z 压缩 v 显示过程 f 指定包名）；解压用 -xvf，解压到指定目录加 -C。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>压缩过的 log 为什么 grep 搜不了？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">grep 只能搜普通文件；压缩文件（如 Place.log.gz）要用 zgrep。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>grep 的 -n / -A10 / -B10 / -R / -E 用法全部练过</li><li>会用数字法和字母法改权限，会算 757</li><li>tar 四件套（cvf / czvf / tvf / xvf）一条龙</li><li>八个基本正则题全部在 bre_pt.txt 上验证过</li><li>练习三全部完成</li></ul></div>
@@ -194,8 +189,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

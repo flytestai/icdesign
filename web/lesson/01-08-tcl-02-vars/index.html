@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 2 讲 · 变量与替换规则（TCL 的灵魂） · 08 | IC 后端学院</title>
 <meta name="description" content="set 定义变量、$ 取变量、[ ] 执行命令、{} 和 "" 分组——三种替换是全课程最重要的一讲。还有特殊变量名的 ${} 包裹写法、set 一次只能定义一个变量的字典解法。掌握这一讲，后面所有语法都豁然开朗。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="01-08-tcl-02-vars">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -161,17 +161,14 @@ puts [dict get $info name]    ;# 取出 zhangsan</pre><button class="tcl-go" typ
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（2 题）</div><div class="lab-b"><ol><li>定义变量 <code>user_name</code>、<code>age</code>，用一条 <code>puts</code> 同时打印它们。</li><li>解释为什么 <code>puts {age=$age}</code> 不会输出变量值。</li></ol></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>练习 1 的写法？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a"><code>set user_name &quot;Tom&quot;</code>、<code>set age 25</code>，然后 <code>puts &quot;user=$user_name age=$age&quot;</code>。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>练习 2 的答案？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">因为 <code>{}</code> 是&quot;不读变量&quot;的分组，里面的 <code>$age</code> 不会被替换，会原样输出 <code>age=$age</code>。想读变量改用双引号 <code>&quot;age=$age&quot;</code>。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>[expr {1 + 2}]</code> 里的方括号是什么机制？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">命令替换：先执行里面的命令，用结果替换整个 [...]。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能不看示例写出 set + puts 的定义与打印</li><li>能解释 {} &quot;&quot; [] 三种符号的区别</li><li>变量名含特殊字符时知道用 ${} 调用</li></ul></div>
@@ -194,8 +191,8 @@ puts [dict get $info name]    ;# 取出 zhangsan</pre><button class="tcl-go" typ
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

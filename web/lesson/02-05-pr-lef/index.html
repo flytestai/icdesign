@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LEF 详解：tech lef 与 cell lef 里到底写了什么 · 25 | IC 后端学院</title>
 <meta name="description" content="打开 lef 文件看真东西：tech lef 里的版本、单位、金属层定义、最小宽度与间距、pitch、走线方向、via 定义与电阻、obs 遮挡块；cell lef 里的单元尺寸与引脚。最后讲清 lef 与 def 的分工，以及工艺从 40nm 走到 3nm 时规则为什么越来越难。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="02-05-pr-lef">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -72,8 +72,8 @@
 </section>
 <section class="ch" id="tech" data-ch="tech">
   <div class="ch-h"><span class="ch-n">02</span><h2>tech lef：工艺的规则书</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">tech lef</span><span class="term-zh">工艺 LEF</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">tech lef</span><span class="term-zh">工艺 LEF</span></div>
   <div class="term-b"><p>只描述<strong>工艺</strong>、不含具体设计的 lef：能用哪些金属层、每层的宽度/间距/pitch 规则、via 的定义与电阻、走线方向。一个工艺一份，所有用这个工艺的项目共用。</p></div>
 </div>
 <p>文档列了 tech lef 里必须看懂的五块内容，我们一块一块看：</p>
@@ -82,8 +82,8 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">VERSION 5.8 ;                      # lef 语法版本，工具会校验</span><span class="ln ">UNITS</span><span class="ln ">  DATABASE MICRONS 1000 ;          # 数据库单位：1 微米 = 1000 个内部单位（即 1nm）</span><span class="ln ">END UNITS</span></code></pre></div>
 <p><code>DATABASE MICRONS 1000</code> 意味着文件里写的长度都是&quot;整数个内部单位&quot;，1000 个单位 = 1μm。所以看到 <code>WIDTH 0.14 ;</code> 和看到 <code>WIDTH 140 ;</code> 可能是同一件事，取决于单位——<strong>读 lef 前先确认单位</strong>，否则会把 0.14μm 当成 140μm。</p>
 <h3 id="layer">2. 金属层定义：层数、宽度、间距</h3>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">metal layer</span><span class="term-zh">金属层</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">metal layer</span><span class="term-zh">金属层</span></div>
   <div class="term-b"><p>芯片里的走线层，从下到上编号（M0、M1、M2…）。<strong>总层数取决于工艺</strong>：40nm 常见 1P9M 左右（9 层金属），先进工艺能到 15 层以上。每一层都是独立的，宽度、间距、方向各不相同。</p></div>
 </div>
 <figure class="fig-img"><a class="fig-a" href="/fig/pr-cross-section.png" data-fig="pr-cross-section"><img src="/fig/pr-cross-section.png" alt="1P9M 工艺剖面：M0~M9 金属层与 V0~V8 通孔，左右两侧标注各层线宽/间距" loading="lazy" decoding="async"></a><figcaption>1P9M 工艺剖面：M0~M9 金属层与 V0~V8 通孔，左右两侧标注各层线宽/间距</figcaption></figure>
@@ -93,12 +93,12 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">LAYER M2</span><span class="ln ">  TYPE ROUTING ;                   # 这一层用来走线（不是 cut/via 层）</span><span class="ln ">  DIRECTION HORIZONTAL ;           # 首选走线方向：水平（M1 常为垂直，奇偶层交替）</span><span class="ln ">  WIDTH 0.07 ;                     # 默认线宽 0.07μm</span><span class="ln ">  PITCH 0.14 ;                     # 线间距栅格：相邻两条线的中心距</span><span class="ln ">  SPACING 0.07 ;                   # 最小间距：两条线边缘至少隔 0.07μm</span><span class="ln ">  SPACING 0.6 RANGE 10 100000 ;    # 特殊规则：长度在 10~100000 之间时，间距要 0.6</span><span class="ln ">END M2</span></code></pre></div>
 <p>重点看三个词：</p>
 <ul><li><strong>WIDTH（宽度）</strong>：这条线最细能画多细。越细电阻越大、越慢；</li><li><strong>SPACING（间距）</strong>：两条线之间至少要留多少空隙，留不够就是 DRC 违规；</li><li><strong>特殊区间规则</strong>（<code>RANGE 10 100000</code>）：长线更容易受干扰/更容易短路，所以长度达到一定值后间距要求会更严。<strong>这一类&quot;分段规则&quot;是先进工艺里最坑人的地方</strong>——你按默认间距绕的线，一旦长度超过阈值就变成违规。</li></ul>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">pitch</span><span class="term-zh">栅格间距</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">pitch</span><span class="term-zh">栅格间距</span></div>
   <div class="term-b"><p>同层相邻两条线的<strong>中心到中心</strong>距离（文档的说法：从 M1 最左侧到另一条 M1 最左侧的距离）。它是布线器的最小步进单位——所有线的位置都落在 pitch 的整数倍上，所以 pitch 越小，能塞的线越多。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">DRC</span><span class="term-zh">设计规则检查</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">DRC</span><span class="term-zh">设计规则检查</span></div>
   <div class="term-b"><p>Design Rule Check。检查设计里有没有违反工艺规则的地方（间距不够、宽度不足、via 缺失、密度不够等）。<strong>DRC 不通过就不能流片</strong>，所以它贯穿 PR 全程，route 之后最集中。</p></div>
 </div>
 <h3 id="direction">3. 走线方向：横纵交替</h3>
@@ -109,8 +109,8 @@
 <p><strong>真相</strong>：在 floorplan 语境里，<strong>M1、M2 常常是 memory 的实例名</strong>（memory 1、memory 2），和金属层 M1/M2 完全是两回事。文档里那段&quot;Memory 名称通常标记为 M1、要关注它的宽和高、多少比特&quot;说的就是这个。</p>
 <p><strong>分清的办法</strong>：看上下文——带&quot;层/走线/via&quot;的是金属层，带&quot;宽高/比特/摆放&quot;的是 memory 实例。</p></div></div>
 <h3 id="via">4. via：连接不同金属层</h3>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">via</span><span class="term-zh">通孔</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">via</span><span class="term-zh">通孔</span></div>
   <div class="term-b"><p>连接相邻两层金属的&quot;竖井&quot;。M1 通过 via1 连到 M2，M2 通过 via2 连到 M3。它有自己的尺寸、包围（enclosure）规则和电阻。</p></div>
 </div>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">VIA VIA12 DEFAULT</span><span class="ln ">  LAYER M1 ;</span><span class="ln ">    RECT -0.03 -0.03 0.03 0.03 ;   # 下层金属上的接触矩形</span><span class="ln ">  LAYER VIA1 ;</span><span class="ln ">    RECT -0.02 -0.02 0.02 0.02 ;   # 孔本身的尺寸</span><span class="ln ">  LAYER M2 ;</span><span class="ln ">    RECT -0.03 -0.03 0.03 0.03 ;   # 上层金属上的接触矩形</span><span class="ln ">END VIA12</span></code></pre></div>
@@ -124,8 +124,8 @@
 </section>
 <section class="ch" id="cell" data-ch="cell">
   <div class="ch-h"><span class="ch-n">03</span><h2>cell lef：每个单元长什么样</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">cell lef</span><span class="term-zh">单元 LEF</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">cell lef</span><span class="term-zh">单元 LEF</span></div>
   <div class="term-b"><p>描述每个标准单元/宏单元：宽高（SIZE）、有几个 pin、pin 的名字与方向（input/output/inout）、pin 的形状与位置、单元类别（CORE / BLOCK）。</p></div>
 </div>
 <figure class="fig-img"><a class="fig-a" href="/fig/pr-celllef.png" data-fig="pr-celllef"><img src="/fig/pr-celllef.png" alt="真实 cell lef 片段：MACRO RSDFFARX1_LVT 的 SIZE、SYMMETRY 与 PIN D 的 PORT 定义" loading="lazy" decoding="async"></a><figcaption>真实 cell lef 片段：MACRO RSDFFARX1_LVT 的 SIZE、SYMMETRY 与 PIN D 的 PORT 定义</figcaption></figure>
@@ -162,29 +162,23 @@
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>打开一份 lef，把这五样找出来</div><div class="lab-b"><p>用课程页的练习终端（或真机）执行下面几条，边看边记：</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 找工艺层定义：能看到每层的 DIRECTION / WIDTH / PITCH / SPACING</span><span class="ln ">grep -n &quot;^LAYER&quot; tech.lef | head -20</span><span class="ln "> </span><span class="ln cmt"># 找 via 定义与它的电阻</span><span class="ln ">grep -n -A6 &quot;^VIA &quot; tech.lef | head -40</span><span class="ln "> </span><span class="ln cmt"># 找一个单元，看它的尺寸和引脚方向</span><span class="ln ">grep -n -A20 &quot;MACRO NAND2_X1&quot; cells.lef</span><span class="ln "> </span><span class="ln cmt"># 数一数有多少个单元</span><span class="ln ">grep -c &quot;^MACRO&quot; cells.lef</span></code></pre></div>
 <p>验收标准：能指出该工艺有几层可用金属层、M1 与 M2 的 preferred direction 分别是什么、NAND2_X1 有几个输入 pin、它的输出 pin 在哪一侧。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>tech lef 与 cell lef 分别描述什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">tech lef 描述工艺规则（金属层、宽度、间距、via、走线方向），与具体设计无关；cell lef 描述每个单元的形状、尺寸与引脚。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>pitch 是什么？为什么它决定能塞多少条线？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">同层相邻两条线的中心距，是布线器的最小步进单位；pitch 越小，同样宽度里能排下的线越多。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>文档里&quot;长度 10~100000 时间隔要达到 0.6&quot;说的是什么规则？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">分段间距规则：线长超过阈值后，为避免干扰/短路，最小间距要求变严。长线按默认间距绕就会报 DRC。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么 macro 的 OBS 会让布线绕不通？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">OBS 是禁布区，macro 常把整片金属层标成 obs；把它摆在通道中间等于把通道堵死。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>lef 和 def 的区别，用一句话说。</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">lef 是库信息（形状与规则，基本不变），def 是这一版设计的实际坐标（每版都变）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么先进工艺必须换 Innovus/ICC2？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">规则复杂度和数量大幅上升（多重曝光、颜色、分段间距等），老引擎处理不了这些约束组合，运行时间也撑不住。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能在 lef 里定位 VERSION/UNITS、LAYER、VIA、MACRO、PIN、OBS 六类关键段</li><li>能解释 WIDTH / SPACING / PITCH / DIRECTION 各自约束什么</li><li>能说出 via 电阻为什么要少换层</li><li>能说清 lef 与 def 的分工（字典 vs 答卷）</li><li>能说出标准单元&quot;等高&quot;这个约定为什么是自动布局的前提</li></ul></div>
@@ -207,8 +201,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

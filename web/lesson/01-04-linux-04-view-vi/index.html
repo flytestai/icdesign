@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 4 课 · 查看与编辑文件（vi 全套） · 04 | IC 后端学院</title>
 <meta name="description" content="cat / more / less / head / tail / vi 五种查看方式；vi/vim/gvim 编辑模式与命令行模式全套用法；diff 对比文件；alias 快捷指令；重定向 > 与管道 |；Linux 快捷键；课后练习二。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="01-04-linux-04-view-vi">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -109,21 +109,17 @@
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">05</span><h2>动手练：练习二</h2></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>练习二（17 题）</div><div class="lab-b"><p>1、进入家目录 2、创建目录 D1（如果有了，先删除） 3、在 D1 目录下创建文件 test01.txt，输入以下内容并保存退出： aaa bbb ccc 4、在 D1 目录下创建目录 D2 5、在 D2 目录下创建文件 test02.txt，输入以下内容并保存退出： aaa ddd ccc 6、对比 test01 和 test02 文件的不同 7、使用 7 种方式查看 test01 文件 8、回到家目录，执行下面的命令，作用是查看 history 执行过的命令然后写入到 1.t： cat .bash_history &gt; 1.t 9、查看 1.t 最后一行 10、在文件中设置行号 11、跳转到文件开头 12、跳转到第 15 行 13、跳转到第 20 行 14、搜索关键字 cd 15、搜索关键字 mkdir 16、编辑 1.t，在最后一行输入： this is test input++++++++++ 17、不保存退出 1.t</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>more 和 less 退出方式的区别？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">more 翻到底自动退出、也可按 q；less 必须按 q 才能退出。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>vi 里 :q! 和 :wq! 的区别？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">:q! 强制不保存退出；:wq! 强制保存并退出。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>&gt; 和</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">分别是什么作用？| &gt; 是重定向，把输出写入文件；| 是管道，把前一个命令的输出交给后一个命令继续处理。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>vi 怎么搜索关键字？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">/关键字 向下搜（n 下一个，shift+n 上一个）；?关键字 向上搜；:set ic 可忽略大小写。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>七种查看文件的方式都说得出、用得上</li><li>vi 编辑模式三个入口键 + 命令行模式十条命令全记熟</li><li>重定向和管道能各举一个工作场景</li><li>练习二 17 题全部完成</li></ul></div>
@@ -146,8 +142,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 4 讲 · 数组：键-值对（相当于 Python 的字典） · 10 | IC 后端学院</title>
 <meta name="description" content="数组是"键-值对"集合，对应 Python 的字典。定义与访问、array set 批量赋值与两个易错点、嵌套列表写法与 dict get、增改、unset 删除与两种报错、foreach 两种遍历、{} "" [] 原理复用、文档原题 fruit 练习。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="01-10-tcl-04-array">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -262,21 +262,17 @@ foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值</pre>
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>set 数组名(键) 值</code> 什么时候是新增、什么时候是修改？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">键已存在就是修改，不存在就是新增。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>array set 的第一个参数有什么限制？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">必须是不带括号和 key 的纯数组名，写 person(001) 会直接报错。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>unset 数组(键) 和 unset 数组 的区别？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">前者删单个元素（再访问报 no such element in array），后者删整个数组（再访问报 no such array）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>array names 和 array get 分别返回什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">names 返回所有键名；get 返回键和值交替排列的扁平列表。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用两种写法定义数组（逐个 set / array set 批量）</li><li>能写出两种 foreach 遍历并说清区别</li><li>能背出 array set 首参不能带括号这条铁律</li><li>能区分两种 unset 报错信息</li></ul></div>
@@ -299,8 +295,8 @@ foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值</pre>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

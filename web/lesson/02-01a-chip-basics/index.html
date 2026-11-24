@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>数字电路基础：从晶体管到 CPU · 18 | IC 后端学院</title>
 <meta name="description" content="后端工程师不必设计电路，但必须知道自己在摆的是什么东西。这一课从最底层的晶体管讲起：NMOS 的三个极怎么控制电流、28nm 指的是沟道多宽、为什么沟道太短会漏电、FinFET 为什么要三面包裹；再往上讲到与或非门、二进制与半加器/全加器，最后拼成 ALU 与 CPU 的模块图，说清"晶体管→逻辑门→功能模块→CPU"这条认知链。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="02-01a-chip-basics">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -71,15 +71,15 @@
 </section>
 <section class="ch" id="transistor" data-ch="transistor">
   <div class="ch-h"><span class="ch-n">02</span><h2>晶体管：一个能被电压控制的开关</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">晶体管</span><span class="term-zh">transistor / MOSFET</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">晶体管</span><span class="term-zh">transistor / MOSFET</span></div>
   <div class="term-b"><p>半导体芯片里最基础的单元，一个<strong>用栅极电压控制电流通断</strong>的器件。芯片里几百万、几十亿个这样的开关，组合出全部功能。</p></div>
 </div>
 <p>以 <strong>NMOS</strong> 为例，它有三个极：</p>
 <ul><li><strong>源极（Source）</strong>：电流入口；</li><li><strong>漏极（Drain）</strong>：电流出口；</li><li><strong>栅极（Gate）</strong>：控制端。<strong>不加电压时沟道是断的，电流过不去；加上电压后电子被吸附到沟道里，形成导电通道，电流就能通过</strong>。</li></ul>
 <figure class="fig-img"><a class="fig-a" href="/fig/chip-nmos-switch.jpg" data-fig="chip-nmos-switch.jpg"><img src="/fig/chip-nmos-switch.jpg" alt="晶体管就是一个能被电压控制的电子开关：不加电压门关着、电流过不去；加上电压门打开、电流通过。源极是电流入口，漏极是出口，栅极负责发号施令。右边那句是本课要记住的一句话——晶体管 = 能被电压控制的开关。" loading="lazy" decoding="async"></a><figcaption>晶体管就是一个能被电压控制的电子开关：不加电压门关着、电流过不去；加上电压门打开、电流通过。源极是电流入口，漏极是出口，栅极负责发号施令。右边那句是本课要记住的一句话——晶体管 = 能被电压控制的开关。</figcaption></figure>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">沟道</span><span class="term-zh">channel</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">沟道</span><span class="term-zh">channel</span></div>
   <div class="term-b"><p>栅极下方连接源极与漏极的那条通道。它的<strong>长度</strong>决定了器件有多快、多小——这就是&quot;工艺节点&quot;的来源。</p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="transistor"><span>这一章我学完了</span></label>
@@ -89,8 +89,8 @@
   <div class="tip"><div class="tip-h">小技巧</div><p>所谓 28nm、16nm、7nm 工艺，指的是<strong>沟道（栅极下方那条通道）的长度</strong>，不是芯片面积、也不是线宽。</p>
 <p>工艺越先进 → 沟道越短 → 晶体管占的面积越小 → 同样面积能塞更多器件。</p></div>
 <p>但沟道不能无限缩短，因为会出现<strong>短沟道效应</strong>：</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">短沟道效应</span><span class="term-zh">short channel effect</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">短沟道效应</span><span class="term-zh">short channel effect</span></div>
   <div class="term-b"><p>沟道太短时，<strong>源极和漏极离得太近</strong>。即使栅极不加电压，电子也会从源极直接&quot;溜&quot;到漏极（电子逃逸），形成关不断的漏电流。</p></div>
 </div>
 <p>后果很严重：器件关不掉 → 静态功耗暴涨 → 芯片发烫、待机功耗超标。<strong>这是工艺走到 28nm 以下时最头疼的物理问题。</strong></p>
@@ -99,8 +99,8 @@
 </section>
 <section class="ch" id="finfet" data-ch="finfet">
   <div class="ch-h"><span class="ch-n">04</span><h2>FinFET：把沟道立起来，三面包裹</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">FinFET</span><span class="term-zh">鳍式场效应晶体管</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">FinFET</span><span class="term-zh">鳍式场效应晶体管</span></div>
   <div class="term-b"><p>把硅的沟道<strong>竖起来做成鱼鳍状</strong>，让栅极从<strong>顶部、左侧、右侧三面</strong>包住沟道的器件结构。</p></div>
 </div>
 <figure class="fig-img"><a class="fig-a" href="/fig/chip-finfet.jpg" data-fig="chip-finfet.jpg"><img src="/fig/chip-finfet.jpg" alt="平面 MOS 只有顶面被栅极控制，像从上面一只手按住小路；FinFET 把沟道立起来，栅极从顶部、左侧、右侧三面抱住，接触更多、控制更强，电子更不容易乱跑。图左下角那个「常见分界」小框，就是下面这张工艺分界表。" loading="lazy" decoding="async"></a><figcaption>平面 MOS 只有顶面被栅极控制，像从上面一只手按住小路；FinFET 把沟道立起来，栅极从顶部、左侧、右侧三面抱住，接触更多、控制更强，电子更不容易乱跑。图左下角那个「常见分界」小框，就是下面这张工艺分界表。</figcaption></figure>
@@ -112,8 +112,8 @@
 </section>
 <section class="ch" id="gate" data-ch="gate">
   <div class="ch-h"><span class="ch-n">05</span><h2>逻辑门：几个晶体管搭出一个功能</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">逻辑门</span><span class="term-zh">logic gate</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">逻辑门</span><span class="term-zh">logic gate</span></div>
   <div class="term-b"><p>由多个晶体管组合而成、实现一个基本逻辑功能的电路单元。芯片里所有复杂功能，最终都是它们的组合。</p></div>
 </div>
 <p>先记住电平约定：<strong>1 = 高电平（VDD），0 = 低电平（VSS/地）</strong>。</p>
@@ -137,8 +137,8 @@
   <div class="ch-h"><span class="ch-n">07</span><h2>从加法器到 CPU：模块级视角</h2></div>
   <p>CPU 由几类模块组成（文档列举的）：</p>
 <div class="tbl"><table><thead><tr><th>模块</th><th>作用</th></tr></thead><tbody><tr><td><strong>ALU</strong>（算术逻辑单元）</td><td>做加减、与或、比较等运算</td></tr><tr><td><strong>Register</strong>（寄存器）</td><td>存中间结果，由大量 DFF 组成</td></tr><tr><td><strong>控制单元</strong>（Control）</td><td>产生控制信号，指挥各模块按节拍动作</td></tr><tr><td><strong>高速存储</strong>（Cache/SRAM）</td><td>缓存数据，通常是硬 macro</td></tr><tr><td><strong>总线接口</strong>（Bus/IO）</td><td>与外部交换数据</td></tr></tbody></table></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">DFF</span><span class="term-zh">D 触发器</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">DFF</span><span class="term-zh">D 触发器</span></div>
   <div class="term-b"><p>D Flip-Flop，最基本的存储单元，<strong>在时钟沿把输入 D 搬到输出 Q</strong>，其余时间保持不变。它是时序分析的分界线：一条路径从某个 DFF 的 Q 出发，到另一个 DFF 的 D 结束。</p></div>
 </div>
 <p><strong>对后端的意义</strong>：一个 CPU 项目动辄几千万门，不可能一个人做。<strong>你会被分配其中一两个模块（block）</strong>，比如 ALU 或某个 Cache 控制逻辑——这也是为什么后面所有课程都在讲&quot;模块级（block）设计&quot;。你做的那一块，就是一个有边界、有端口的独立小芯片。</p>
@@ -202,37 +202,29 @@ puts &quot;1111(2) = [expr {8 + 4 + 2 + 1}]&quot;</pre><button class="tcl-go" ty
 </div>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>手算 + 对号</div><div class="lab-b"><ol><li>手算二进制 <code>1011</code> 的十进制值，再用练习台验算；</li><li>说出 <code>1 XOR 1</code> 为什么是 0、<code>1 AND 1</code> 为什么是 1；</li><li>在纸上画一个 NMOS，标出源极、漏极、栅极，并写出&quot;栅极加压/不加压&quot;两种情况的沟道状态；</li><li>用一句话解释：为什么 16nm 以下要用 FinFET。</li></ol>
 <p>验收标准：四题都能不看课回答出来，且能说清&quot;28nm 指的是沟道长度&quot;。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>晶体管三个极分别是什么？栅极怎么控制电流？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">源极（电流入口）、漏极（电流出口）、栅极（控制端）。栅极不加电压时沟道阻断，加电压后电子被吸附到沟道，形成导电通道。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>&quot;28nm 工艺&quot;里的 28nm 指什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">指沟道长度（栅极下方连接源漏的通道长度），不是线宽也不是芯片面积。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>短沟道效应是什么？为什么可怕？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">沟道太短导致源漏太近，即使栅极不加电压电子也会从源极溜到漏极，形成关不断的漏电流；后果是静态功耗暴涨、芯片发烫。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>FinFET 相比平面 MOS 的关键差别是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">把沟道竖起来做成鳍状，栅极从顶面 + 左右两侧三面包裹，接触面积更大、控制力更强，从而抑制短沟道漏电。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>半加器由哪两个门组成？各负责什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">异或门负责求和（输入不同输出 1），与门负责进位（两个都为 1 才进位）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>全加器比半加器多了什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">多一个进位输入 Cin，用于接收低位来的进位；多个全加器串联构成多位加法器。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>CPU 通常由哪几类模块组成？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">ALU（运算）、寄存器（存储中间结果）、控制单元、高速存储（Cache/SRAM）、总线接口。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么 NAND 比 AND 更常用？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">同样功能下 NAND 用的晶体管更少、面积更小、速度更快，所以标准单元库里 NAND 单元最多。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能画出 NMOS 三极并说明栅极加压/不加压两种状态</li><li>能解释 28nm = 沟道长度，以及短沟道效应与漏电的关系</li><li>能说出 FinFET 三面包裹解决了什么问题，以及从哪一代工艺开始用</li><li>能写出与/或/非/异或的真值表，并说明半加器为什么由 XOR + AND 组成</li><li>能背出 CPU 的五类模块，并说出后端通常负责其中一两个 block</li><li>能说出 DFF 在时序分析里的角色（分界线）</li></ul></div>
@@ -255,8 +247,8 @@ puts &quot;1111(2) = [expr {8 + 4 + 2 + 1}]&quot;</pre><button class="tcl-go" ty
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

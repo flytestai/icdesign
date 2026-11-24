@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>电学基础与单位换算：ps、um 与那些 1000 倍 · 20 | IC 后端学院</title>
 <meta name="description" content="后面所有课的每个数字都带单位，单位错了十倍，结论就全错。这一课把电压/电流/电阻/电容/功耗五个基本量讲清物理含义，再把两套必须形成肌肉记忆的换算练熟：时间 ps↔ns（时序报告用）、长度 um↔nm（lef 与工艺用），最后用真实的 lef 数字（pitch 0.2um、线宽 0.06um、面积 0.02um²）做一遍对号。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="02-01c-units">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -72,8 +72,8 @@
 <section class="ch" id="basics" data-ch="basics">
   <div class="ch-h"><span class="ch-n">02</span><h2>五个基本量：物理含义比公式重要</h2></div>
   <h3 id="voltage">电压 V：推动电子的&quot;水位差&quot;</h3>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">电压</span><span class="term-zh">voltage</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">电压</span><span class="term-zh">voltage</span></div>
   <div class="term-b"><p>两点之间的电势差，为电荷（电子）流动提供<strong>驱动力</strong>，单位<strong>伏特（V）</strong>。水位差越大，水流越急；电压越高，电流越大。</p></div>
 </div>
 <p>芯片里只有两个电压名字要记：</p>
@@ -81,32 +81,32 @@
 <p>所以&quot;信号是 1&quot;的物理含义就是&quot;这根线被拉到 VDD&quot;。而 PR 里 <strong>power plan</strong> 要做的，就是把 VDD/VSS 送到每一个单元的电源脚上。</p>
 <p>电压和延迟的关系（后面 lib 课要反复用）：<strong>电压越高，驱动力越强，延迟越小</strong>。</p>
 <h3 id="current">电流 I：单位时间流过多少电荷</h3>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">电流</span><span class="term-zh">current</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">电流</span><span class="term-zh">current</span></div>
   <div class="term-b"><p>单位时间内流过导体横截面的电荷量，反映&quot;流动的快慢&quot;，常用单位<strong>毫安 mA / 微安 μA</strong>。</p></div>
 </div>
 <p>芯片里电流的两个关注点：</p>
 <ul><li><strong>峰值电流</strong>：太多会把电压拉低（IR drop），单元供电不足就变慢甚至失效；</li><li><strong>平均电流</strong>：决定功耗和散热。</li></ul>
 <h3 id="resistance">电阻 R：走线越细越长，越难走</h3>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">电阻</span><span class="term-zh">resistance</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">电阻</span><span class="term-zh">resistance</span></div>
   <div class="term-b"><p>导体对电流的阻碍，单位<strong>欧姆（Ω）</strong>。<strong>走线越细越长，电阻越大</strong>；温度越高，金属电阻也越大。</p></div>
 </div>
 <p>这条规律有一串直接后果：</p>
 <ul><li>长线电阻大 → 延迟大 → setup 变差（后面 rc tech / net delay 课的主线）；</li><li>细线（低层金属 M1）电阻大 → 关键信号优先走高层厚金属；</li><li>via 也有电阻 → 换层越多，串联电阻越大。</li></ul>
 <h3 id="capacitance">电容 C：两根导体之间的&quot;存储能力&quot;</h3>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">电容</span><span class="term-zh">capacitance</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">电容</span><span class="term-zh">capacitance</span></div>
   <div class="term-b"><p>两个导体之间隔一层绝缘介质，就能存储电荷，这个能力叫电容，单位<strong>法拉（F）</strong>，芯片里常用 pF / fF。</p></div>
 </div>
 <p>芯片里电容无处不在：<strong>相邻两根线之间</strong>（耦合电容）、<strong>线与地之间</strong>、<strong>晶体管的栅极</strong>。它带来的后果是&quot;要给电容充放电，信号才能翻转&quot;——<strong>电容越大，延迟越大</strong>。</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">RC 提取</span><span class="term-zh">RC extraction</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">RC 提取</span><span class="term-zh">RC extraction</span></div>
   <div class="term-b"><p>把版图上的几何形状换算成真实的寄生电阻 R 与寄生电容 C 的过程。<strong>Place 阶段只是估算（trial/estimate），CTS 之后跑 PT 时才会提取真实的线上 R、C。</strong></p></div>
 </div>
 <h3 id="power">功耗 P：动态 + 漏电</h3>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">功耗</span><span class="term-zh">power</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">功耗</span><span class="term-zh">power</span></div>
   <div class="term-b"><p>电路消耗的功率，芯片里分两块：<br>- <strong>动态功耗</strong>：电容充放电 + 信号翻转产生的功耗——<strong>翻转越频繁、电容越大、电压越高，动态功耗越大</strong>；<br>- <strong>漏功耗（leakage）</strong>：晶体管关断时电子逃逸造成的微弱漏电，<strong>不翻转也在漏</strong>，工艺越先进占比越高。</p></div>
 </div>
 <p>这就是为什么低功耗设计有三板斧：<strong>降电压、降频率/关时钟（clock gating）、换高阈值电压单元（hvt 漏电小）</strong>。</p>
@@ -188,37 +188,29 @@ puts &quot;引脚面积 [expr {0.06 * 0.33}] um2&quot;</pre><button class="tcl-g
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>三个反算题</div><div class="lab-b"><p>不看答案，先自己算，再用练习台验：</p>
 <ol><li>时序报告写 <code>slack = -0.032</code>，表头是 ns，换成 ps 是多少？</li><li>lef 里 <code>SIZE 2.4 BY 0.4</code>，单位 um，这个单元宽多少 nm、高多少 nm？</li><li>目标频率 1.2GHz，周期该在 SDC 里写多少 ns？换算成 ps 是多少？</li></ol>
 <p>验收标准：三题全对，且能说出&quot;为什么要先看文件单位再读数字&quot;。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>VDD 与 VSS 分别对应逻辑电平的什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">VDD 是供电电压、对应高电平（逻辑 1）；VSS 接地、对应低电平（逻辑 0）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>电阻与走线的粗细长短是什么关系？这条规律带来什么后果？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">越细越长电阻越大；导致长线/细线延迟大、setup 变差，所以关键信号走高层厚金属、少换层（via 也有电阻）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>电容在芯片里出现在哪些地方？对延迟什么影响？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">相邻线之间、线与地之间、晶体管栅极；要给电容充放电信号才能翻转，电容越大延迟越大。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>动态功耗和漏功耗的来源分别是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">动态功耗来自电容充放电与信号翻转（翻转越频繁、电容越大、电压越高越大）；漏功耗来自关断时电子逃逸，不翻转也在漏，先进工艺占比更高。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>RC 提取在什么时候做？为什么 Place 阶段只是估算？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">在 CTS 之后跑 PT 时提取真实 R、C；Place 阶段还没有真实绕线，只能用简化模型估算。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>1ns 等于多少 ps？0.06um 等于多少 nm？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">1ns = 1000ps；0.06um = 60nm。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么工艺说 nm、而工具和 lef 用 um？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">节点名是给人看的代际称呼（28nm/16nm/7nm），工具与库内部统一用 um 表达几何尺寸；所以读数字前必须先确认文件单位。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>时序报告 WNS 显示 -52，怎么判断它是 ps 还是 ns？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">看报告表头单位（如 Units: 1ps），或结合周期量级反推；0.052ns 常见，-52ns 在正常周期下几乎不可能。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出电压/电流/电阻/电容/功耗的物理含义与常用单位</li><li>能说出 VDD/VSS 与逻辑 1/0 的对应关系</li><li>能秒答 1ns=1000ps、1um=1000nm，并把 0.052ns、0.06um 换算成 ps/nm</li><li>能由频率算周期、由周期算频率（1GHz↔1ns）</li><li>看到 lef 里的 pitch 0.2 / 线宽 0.06 / area 0.02 能说出各自的量与 nm 值</li><li>知道读任何数字前先确认&quot;这个文件用的什么单位&quot;</li></ul></div>
@@ -241,8 +233,8 @@ puts &quot;引脚面积 [expr {0.06 * 0.33}] um2&quot;</pre><button class="tcl-g
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

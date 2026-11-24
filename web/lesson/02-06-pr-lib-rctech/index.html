@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>lib 与 rc tech：延迟到底是怎么算出来的 · 27 | IC 后端学院</title>
 <meta name="description" content="时序数据只有两份文件：lib 负责单元延迟，rc tech 负责线延迟。这一课打开 lib 看它到底存了什么、工具怎么用查表的方式算出一个 cell 的 delay，讲清 input transition 与 output load 这两个决定性变量，再把 lib 文件名的每一段（台积电/lvt/ssg/0p81v/125c）拆开读，最后讲 PVT 与先进工艺的温度反转效应。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="02-06-pr-lib-rctech">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -73,8 +73,8 @@
 </section>
 <section class="ch" id="lib" data-ch="lib">
   <div class="ch-h"><span class="ch-n">02</span><h2>lib：单元延迟与功耗的字典</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">lib</span><span class="term-zh">单元库时序功耗文件</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">lib</span><span class="term-zh">单元库时序功耗文件</span></div>
   <div class="term-b"><p>Liberty 格式的库文件，描述每个标准单元的：物理属性（面积、引脚电容）、功能（是 and 还是 or）、时序信息（延迟查表）、功耗信息（漏电、内部功耗）。<strong>一个 PVT 组合一份 lib</strong>，所以一个工艺往往有几十份 lib。</p></div>
 </div>
 <p>文档说 lib 主要包括三块内容，我们逐块看：</p>
@@ -89,8 +89,8 @@
 <p>这是 lib 最核心的部分。工具<strong>不用公式现算延迟，而是查表 + 插值</strong>，这就是 <code>delay_model : table_lookup</code> 的含义。</p>
 <p>一张 3×3 的延迟表长这样（单位 ps）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">                          output load (pF)</span><span class="ln ">                        0.5     1.0     2.0</span><span class="ln ">             0.02  →   12.1    18.4    27.9</span><span class="ln ">input        0.05  →   15.6    22.0    31.2</span><span class="ln ">transition   0.10  →   21.3    28.5    38.7</span></code></pre></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">查表 table lookup</span><span class="term-zh">查表 table lookup</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">查表 table lookup</span><span class="term-zh">查表 table lookup</span></div>
   <div class="term-b"><p>按两个索引（输入 transition、输出 load）去表里定位，落在格点之间就做线性插值。文档里的说法：&quot;输入 pin 是第二个值，输出是第三个值，就查表中（1，2）——<strong>索引从 0 开始</strong>。&quot; 所以实际表里的第 2 行第 3 列，代码里写的是 <code>[1][2]</code>。</p></div>
 </div>
 <p>为什么是这两维？因为它们就是决定延迟的两个物理量，看下一节。</p>
@@ -112,8 +112,8 @@
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">tsc28_lvtssg0p81v125c.lib</span><span class="ln "> │     │   │  │     │</span><span class="ln "> │     │   │  │     └── 125c   = 125°C（m40c 就是 -40°C）</span><span class="ln "> │     │   │  └──────── 0p81v  = 0.81V（p 代表小数点）</span><span class="ln "> │     │   └─────────── ssg    = 慢速低压（slow-slow global）</span><span class="ln "> │     └─────────────── lvt    = 低阈值电压（low Vt）</span><span class="ln "> └───────────────────── tsc    = 台积电（TSMC）</span></code></pre></div>
 <p>逐个拆开：</p>
 <div class="tbl"><table><thead><tr><th>段</th><th>含义</th><th>说明</th></tr></thead><tbody><tr><td><code>tsc</code></td><td>台积电</td><td>不同晶圆厂的库前缀不同，S 家/中芯各有一套</td></tr><tr><td><code>lvt</code></td><td>阈值电压等级</td><td><code>lvt</code> 低阈值（快、漏电大）、<code>svt</code> 标准阈值、<code>hvt</code> 高阈值（慢、省电）</td></tr><tr><td><code>ssg</code> / <code>ffg</code></td><td>工艺快慢</td><td><code>ssg</code> 慢速低压、<code>ffg</code> 快速高压；<code>tt</code> 是典型（typical）</td></tr><tr><td><code>0p81v</code></td><td>电压</td><td>0.81V</td></tr><tr><td><code>125c</code> / <code>m40c</code></td><td>温度</td><td>125°C / -40°C（<code>m</code> = minus）</td></tr></tbody></table></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">PVT</span><span class="term-zh">工艺-电压-温度</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">PVT</span><span class="term-zh">工艺-电压-温度</span></div>
   <div class="term-b"><p><strong>P</strong>rocess（工艺变化参数，P 对应 ss/tt/ff）、<strong>V</strong>oltage（电压）、<strong>T</strong>emperature（温度）。三者一起定义了&quot;这颗芯片在什么条件下工作&quot;，一个 PVT 组合对应一份 lib。PR 必须同时满足<strong>最慢</strong>和<strong>最快</strong>两端，所以库里同时要看 ss 和 ff。</p></div>
 </div>
 <p>规律记两条，够用了：</p>
@@ -135,8 +135,8 @@
 </section>
 <section class="ch" id="rctech" data-ch="rctech">
   <div class="ch-h"><span class="ch-n">05</span><h2>rc tech file：线延迟从哪来</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">rc tech file</span><span class="term-zh">寄生参数工艺文件</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">rc tech file</span><span class="term-zh">寄生参数工艺文件</span></div>
   <div class="term-b"><p>描述金属层与通孔的<strong>单位长度电阻、单位长度电容</strong>等寄生参数模型，工具用它把版图上的几何形状（多长、多宽、周围有什么）换算成实际的寄生 R 和 C，进而算出线延迟。</p></div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p>课程文档里把库分成两半：<strong>Timing Lib</strong>（时序信息）和 <strong>TLU+ Lib</strong>（电容电阻寄生参数）。</p>
@@ -166,33 +166,26 @@
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>在 lib 里查三样东西</div><div class="lab-b"><p>用课程页的练习终端（或真机）跑下面几条，边跑边看输出：</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 看库的基本单位与延迟模型：确认时间单位是 ns 还是 ps</span><span class="ln ">grep -n &quot;time_unit\|delay_model\|capacitive_load_unit&quot; tsc28_lvtssg0p81v125c.lib | head</span><span class="ln "> </span><span class="ln cmt"># 找一个单元，看它的功能和引脚电容</span><span class="ln ">grep -n -A12 &quot;^  cell (NAND2_X1)&quot; tsc28_lvtssg0p81v125c.lib</span><span class="ln "> </span><span class="ln cmt"># 数一数这个库里有多少个单元</span><span class="ln ">grep -c &quot;^  cell (&quot; tsc28_lvtssg0p81v125c.lib</span><span class="ln "> </span><span class="ln cmt"># 看它有哪些 RC corner 相关的环境目录</span><span class="ln ">ls -d */ | head -20</span></code></pre></div>
 <p>验收标准：能说出这个 lib 的时间单位、<code>NAND2_X1</code> 的功能表达式、它的输入引脚电容值，以及它是 ss 组还是 ff 组（从文件名判断）。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>一个 cell 的延迟由哪两个量决定？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">input transition（输入转换时间）和 output load（输出负载电容）。transition 越大、load 越重，延迟越大。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>工具怎么用 lib 算延迟？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">查表 + 插值。按（input transition, output load）两个索引定位表项，落在格点之间做线性插值；索引从 0 开始。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>input transition 这个值是谁给的？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">上一级输出的 transition 传下来的，沿路径逐级传播；源头是输入端口或时钟源的 transition，所以要用 set_input_transition 约束。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>lib 与 rc tech 各算哪种延迟？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">lib 算 cell delay（单元延迟）；rc tech 提供寄生 R/C 用于算 net delay（线延迟）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>tsc28_lvtssg0p81v125c.lib</code> 这个文件名能读出什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">台积电 28nm、lvt 低阈值电压、ssg 慢速低压、0.81V、125°C。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>电压和温度对 delay 的影响是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">电压越大 delay 越小；常规情况温度越高 delay 越大，但先进工艺存在温度反转效应——低压低温时温度越低 delay 反而越大。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么线延迟需要用 StarRC/QRC 抽取而不是按长度估？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">因为线延迟取决于长度、宽度、金属层、周围耦合环境等多个因素，要靠寄生抽取把版图几何换算成实际 R/C。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出&quot;路径延迟 = Σ cell delay + Σ net delay&quot;，并指出两部分各由哪份文件提供</li><li>能解释查表的两个索引是什么，以及为什么索引从 0 开始</li><li>能背出&quot;一个 cell 的延迟由 input transition 与 output load 决定&quot;</li><li>能逐段读出 lib 文件名里的工艺、Vt 类型、快慢组、电压、温度</li><li>能说出 PVT 三个字母各代表什么，以及温度反转效应的原因与后果</li><li>能说出 setup 看慢 corner、hold 看快 corner 的理由</li></ul></div>
@@ -215,8 +208,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

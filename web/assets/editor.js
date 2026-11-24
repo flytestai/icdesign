@@ -30,9 +30,11 @@
 
   /* ---------------- 样式 ---------------- */
   var css = [
-    ".icledit{margin-left:10px;border:1px solid #b8c6d8;background:#eef4fb;color:#2f7fd0;",
-    "border-radius:6px;padding:2px 10px;font-size:13px;cursor:pointer;vertical-align:middle}",
-    ".icledit:hover{background:#dfeaf7}",
+    ".icledit{flex:0 0 auto;margin-left:auto;display:inline-flex;align-items:center;justify-content:center;",
+    "width:26px;height:26px;border:1px solid #b8c6d8;background:#eef4fb;color:#2f7fd0;border-radius:7px;",
+    "cursor:pointer;user-select:none;-webkit-user-select:none;padding:0}",
+    ".icledit:hover{background:#dfeaf7;border-color:#9dc3ea}",
+    ".icledit svg{display:block;pointer-events:none}",
     ".icl-mask{position:fixed;inset:0;background:rgba(20,30,45,.45);z-index:9998;",
     "display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow:auto}",
     ".icl-modal{background:#fff;border-radius:12px;max-width:880px;width:100%;padding:18px 20px;",
@@ -71,14 +73,23 @@
   st.textContent = css;
   document.head.appendChild(st);
 
-  /* ---------------- 每个小节加"编辑"按钮 ---------------- */
+  /* ---------------- 每个小节加铅笔编辑按钮 ----------------
+   * 按钮挂在 .ch-h 容器上（不进 h2），标题文字永远不会混入图标；
+   * user-select:none + pointer-events:none 保证复制内容时不带图标。 */
+  var PENCIL_SVG = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false">'
+    + '<path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/>'
+    + '<path fill="currentColor" d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>'
+    + "</svg>";
+
   document.querySelectorAll("section.ch[data-ch]").forEach(function (sec) {
-    var h = sec.querySelector(".ch-h h2");
-    if (!h) return;
+    var h = sec.querySelector(".ch-h");
+    if (!h || h.querySelector(".icledit")) return;   // 防重复：已有按钮的小节跳过
     var b = document.createElement("button");
     b.className = "icledit";
     b.type = "button";
-    b.textContent = "✏️ 编辑";
+    b.title = "编辑本节";
+    b.setAttribute("aria-label", "编辑本节");
+    b.innerHTML = PENCIL_SVG;
     b.addEventListener("click", function () { openEditor(sec); });
     h.appendChild(b);
   });

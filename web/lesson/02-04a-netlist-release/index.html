@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>网表版本、Release 路径与迭代协作 · 24 | IC 后端学院</title>
 <meta name="description" content="真实项目里网表不是"一份"，而是一串版本。这一课讲清网表怎么命名（模块名+后缀）、Release 路径在服务器上长什么样（项目/ME 或 DE/模块）、S1 与 S2 两版网表各用来干什么、instance 数量为什么会从 200 万跳到 400 万、模块形状从矩形变 L 型时为什么之前两个月的布局全废——以及最后一条：为什么必须在最后一版网表定下来之前把问题全抛出去。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="02-04a-netlist-release">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -80,8 +80,8 @@
 </section>
 <section class="ch" id="release" data-ch="release">
   <div class="ch-h"><span class="ch-n">03</span><h2>Release：一个动作，也是一个路径</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Release</span><span class="term-zh">交付/上传</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">Release</span><span class="term-zh">交付/上传</span></div>
   <div class="term-b"><p>在项目语境里是个<strong>动作</strong>：把本地综合好的网表<strong>上传到服务器上约定的共享路径</strong>，让下游（后端）能取到。<br>注意它不是&quot;发个邮件&quot;，而是&quot;放到那个大家都能访问的目录里&quot;。</p></div>
 </div>
 <p>路径结构（Linux 服务器上的典型形态）：</p>
@@ -96,8 +96,8 @@
   <div class="ch-h"><span class="ch-n">04</span><h2>S1 与 S2：两版网表，两种用途</h2></div>
   <p>项目里你会拿到两次&quot;正式&quot;网表：</p>
 <div class="tbl"><table><thead><tr><th>版本</th><th>内容</th><th>用来干什么</th></tr></thead><tbody><tr><td><strong>S1</strong></td><td><strong>纯功能（func）网表</strong>，没插扫描链</td><td>检查 RTL 从 v1.0 到 v2.0 时<strong>内部逻辑增长了多少</strong>（instance 数变化），先把面积与可行性摸清</td></tr><tr><td><strong>S2</strong></td><td>插入 <strong>scan chain</strong> 之后的最终版</td><td><strong>后续所有分析、签核都基于 S2</strong></td></tr></tbody></table></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Scan Chain</span><span class="term-zh">扫描链</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">Scan Chain</span><span class="term-zh">扫描链</span></div>
   <div class="term-b"><p>DFT 部门在网表里插入的测试结构：把大量触发器串成一条（或多条）移位链，让测试机能用少量引脚把内部状态扫进扫出。<strong>它会让网表变大、路径变长</strong>，所以 PR 必须专门为它做优化。</p></div>
 </div>
 <p>所以流程是：<strong>S1 到手先估算面积 → S2 到手才是真正要做的版本</strong>。很多新人拿到 S1 就开始认真做 floorplan，做完发现 S2 涨了 20% 逻辑，全部推翻。</p>
@@ -105,8 +105,8 @@
 </section>
 <section class="ch" id="instance" data-ch="instance">
   <div class="ch-h"><span class="ch-n">05</span><h2>数量波动：200 万 → 400 万 → 300 万</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">instance</span><span class="term-zh">实例</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">instance</span><span class="term-zh">实例</span></div>
   <div class="term-b"><p>网表里每一个&quot;被用到的单元&quot;就是一个 instance。<strong>instance 数直接对应面积</strong>，是判断&quot;这块能不能做下&quot;的第一指标。</p></div>
 </div>
 <p>文档给的真实情形，值得完整走一遍：</p>
@@ -152,37 +152,29 @@
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>在服务器上认一遍路径与版本</div><div class="lab-b"><p>在练习终端（或真机）里跑下面几条，练&quot;看路径、看时间、看版本&quot;：</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 看项目根目录下有哪些 release 目录（ME 是后端，DE 是前端）</span><span class="ln ">ls -l /proj/demo/ 2&gt;/dev/null || ls -l .</span><span class="ln "> </span><span class="ln cmt"># 2. 找自己模块的网表，注意后缀与大小写</span><span class="ln ">find . -name &quot;alu*.v.gz&quot; -o -name &quot;alu*.v&quot; 2&gt;/dev/null | head</span><span class="ln "> </span><span class="ln cmt"># 3. 看时间戳：哪一版最新，谁传的（时间戳比文件名更可信）</span><span class="ln ">ls -lt --time-style=long-iso *.v.gz 2&gt;/dev/null | head -5</span><span class="ln "> </span><span class="ln cmt"># 4. 不解压也能粗看网表里有多少个实例（统计以单元名开头的行）</span><span class="ln ">gzip -dc alu.v.gz 2&gt;/dev/null | grep -c &quot;^[A-Z]&quot; | head -1</span><span class="ln "> </span><span class="ln cmt"># 5. 看网表里 module 名与顶层名是否与约定一致</span><span class="ln ">gzip -dc alu.v.gz 2&gt;/dev/null | grep -m3 &quot;^module&quot;</span></code></pre></div>
 <p>验收标准：能说出这个项目里网表放在哪、最新一版的时间戳是什么、顶层 module 叫什么。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>网表文件常见的三种后缀是什么？文件名主体用什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a"><code>.v</code>、<code>.v.gz</code>、<code>.gz</code>；文件名主体是模块名，小写（模块 ALU → alu.v.gz）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Release 在项目语境里是什么意思？ME 与 DE 目录分别放什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">是一个动作：把本地综合好的网表上传到服务器约定路径；ME 放综合后的网表等中端交付物，DE 放前端交付物（RTL 等）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>接手别人的模块，第一件该问什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">问这个模块的 release 路径在哪，然后看路径下的版本与时间戳。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>S1 和 S2 网表分别是什么？各自用来干什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">S1 是纯功能网表（未插 scan），用来评估 RTL 迭代带来的逻辑增长与面积可行性；S2 是插入 scan chain 后的最终版，所有分析与签核基于 S2。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>instance 数从 200 万涨到 400 万，后端应该怎么做？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">立刻反馈给顶层/前端（必要时找 DFT 确认 scan 增长），让上游优化代码或 scan 文件；不要靠压密度硬扛。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>模块形状从矩形变成 L 型，为什么之前的工作会白做？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">端口位置、可用通道、memory 摆放全变，布局没法复用，需要重做 floorplan，甚至同一 block 做多版 plan。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Delay 的两层含义是什么？项目后期为什么要特别管第二层？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">技术延迟（信号耗时）与协作延迟（跨部门交付等待）；后期时间紧，协作 delay 会直接导致最后一周堆满问题、无法收敛，必须提前锁死交付时间。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>&quot;最后一版网表定责&quot;这条规矩讲的是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">最后一版网表给出之前，所有逻辑/约束/面积问题必须反馈清楚；之后再出问题，责任会落在没提前说的后端身上。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出网表命名规则与三种后缀</li><li>能画出 项目/ME|DE/模块/文件 的 release 结构</li><li>能说清 S1（评估增长）与 S2（正式做）的区别</li><li>能复述 200万→400万→300万 的迭代过程与应对动作</li><li>能解释形状变更（L 型/LU 型/拆块）为什么导致重做</li><li>能说出&quot;带数据提问&quot;的三要素（数字、选项、建议）</li><li>知道前期质量决定后期强度，别把问题堆到最后一周</li></ul></div>
@@ -205,8 +197,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

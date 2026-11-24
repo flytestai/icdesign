@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>阶段二导读：后端基本概念与 PR 理论 · 17 | IC 后端学院</title>
 <meta name="description" content="阶段二已从"占位"扩充为 13 讲正式内容（28 学时）。本页是这一阶段的地图：每讲讲什么、彼此怎么咬合、先学哪个后学哪个，以及学完你应该能回答哪些问题。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="02-01-concepts-plan">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -90,21 +90,17 @@
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>晶体管三个极是什么？FinFET 解决了什么问题？28nm 指的是什么？</li><li>芯片从需求到封装出货，中间有哪七段？每段的交付物是什么？</li><li>1ns 等于多少 ps？lef 里的 0.06 指的是多少 nm？</li><li>PR 的输入和输出分别是什么文件？为什么说它是&quot;逻辑连接变物理连接&quot;？</li><li>九步流程里，哪一步决定芯片面积？哪一步最容易出 DRC？</li><li>init 阶段少给了 mmmc 文件，会有什么现象？（提示：不报错，但时钟为 0）</li><li>tech lef 和 cell lef 各描述什么？lef 与 def 的区别是什么？</li><li>一个 cell 的延迟由哪两个量决定？transition 的值从哪来？</li><li><code>tsc28_lvtssg0p81v125c.lib</code> 这个文件名能读出哪些信息？</li><li>为什么 setup 用慢 corner、hold 用快 corner？</li><li><code>set_input_delay</code> 约束的到底是什么？只写 -max 不写 -min 会怎样？</li></ul></div>
 <div class="note"><div class="note-h">学习建议</div><p>这一阶段的课<strong>不要只看不动手</strong>。每讲都带可以在浏览器里跑的练习终端（阶段一学的 Linux 命令全都能用），看到 lef、sdc 这类文件内容时，亲手 <code>grep</code> 一遍，记忆强度完全不一样。</p>
 <p>配套资源：每讲底部有自测题，<a href="/quiz/">题库</a> 可以随机抽题，<a href="/glossary/">术语表</a> 能按阶段筛出这一阶段所有中英对照术语。</p></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>阶段二现在一共有几讲、多少学时？分哪两篇？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">13 讲、28 学时（课表原标 4 学时，按实际需要扩充）；分基础篇（晶体管/全流程/电学单位）与 PR 篇（PR 概念/流程/数据/文件/时序约束）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么把&quot;数据准备&quot;放在 lef 和 lib 之前讲？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">先建立&quot;要哪些文件&quot;的清单，再逐个深入内容；否则打开 lef 时不知道它在整个流程里干什么用。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>可以先跳过基础篇直接读 PR 篇吗？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">不建议、但可以&quot;边读边补&quot;。基础篇三讲是后面所有内容的词汇表与单位表；完全跳过会在 lib、sdc 上卡住。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>可以跳过阶段二直接学 Innovus 实操吗？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">不建议。实操每一步都在用这一阶段的概念（floorplan 算面积、cts 理解 skew、route 理解 DRC），概念不清就只能照抄步骤。</div>
 </div></div>
   <label class="ch-done"><input type="checkbox" data-mark="ability"><span>这一章我学完了</span></label>
@@ -126,8 +122,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

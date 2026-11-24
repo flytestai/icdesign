@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 3 课 · 目录与文件操作 · 03 | IC 后端学院</title>
 <meta name="description" content="ls / ll 全部常用选项与输出解析；cd / realpath / pwd / history；mkdir / rmdir / rm；touch 创建文件与通配符；课后练习一（19 题）。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="01-03-linux-03-files">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -120,21 +120,17 @@
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练：练习一</h2></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>练习一（19 题，全部在终端完成）</div><div class="lab-b"><p>1、进入到家目录 2、查看家目录下的内容 3、查看家目录下的详细信息 4、进入到根目录下的 etc 目录 5、回到上一级目录 6、回到家目录 7、回到刚才打开的目录 8、在家目录下创建目录 PT 9、在 PT 目录下创建多个目录 P1、D2、K3 10、在 P1 目录下创建文件 txt1、在 D2 目录下创建文件 txt2 11、在 K3 目录下创建目录 P4 12、在 PT 目录下创建文件 asd111、qwe222、zxc333、asd444、asd555 13、在 PT 目录下创建目录 poi111、lkjs222、mnb333、psaik61 14、ls 查看 PT 目录下所有 P 开头的目录内容 15、删除 PT 目录下以 m 开头的目录或文件 16、删除 PT 目录下以 2 结尾的目录或文件 17、删除 PT 目录下包含 asd 的目录或文件 18、删除 PT 目录下 p 开头 1 结尾、且中间包含 i 的目录或文件 19、删除 K3 目录下所有内容</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>ll -rth 是什么组合？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">详细信息 + 反转 + 时间 + 人类可读大小：按修改时间从旧到新列出，最常用的组合。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>mkdir -p a/b/c/d/e 的作用？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">按层级一次性创建整条目录链（父目录不存在也能建）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>cd - 和 cd .. 的区别？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">cd - 回到上一次打开的目录（来回切换），cd .. 是上一级目录。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>通配符 a*y*b 能匹配 a234yyb 吗？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">能：a 开头、中间含 y、b 结尾。a12nn3b 就不匹配（没有 y）。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>ls 七个常用选项全部记熟，会读 ll 的 12 列输出</li><li>cd 五种写法都练过一遍</li><li>练习一 19 题全部独立完成</li></ul></div>
@@ -157,8 +153,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

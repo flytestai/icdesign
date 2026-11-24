@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>芯片设计全流程：从需求到封装出货 · 19 | IC 后端学院</title>
 <meta name="description" content="一颗芯片从甲方需求到市面上的封装件，中间经过哪些人、哪些工具、哪些交付物。这一课把前端（RTL + 仿真）、中端（综合 + 形式验证）、后端（布局布线到 GDSII）、制造（光刻刻蚀 → 晶圆测试 → 切割封装）四段串成一条线，明确 DE/ME/PD 的分工边界，以及哪些环节是工具自动跑、哪些必须人手动干。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="02-01b-design-flow">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -79,15 +79,15 @@
 </section>
 <section class="ch" id="frontend" data-ch="frontend">
   <div class="ch-h"><span class="ch-n">03</span><h2>第二段：前端 RTL 编码与仿真</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">RTL</span><span class="term-zh">Register Transfer Level 寄存器传输级</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">RTL</span><span class="term-zh">Register Transfer Level 寄存器传输级</span></div>
   <div class="term-b"><p>用硬件描述语言描述&quot;每个时钟沿，数据从哪些寄存器经过哪些逻辑搬到哪些寄存器&quot;的层级。<strong>它只描述逻辑，不含任何物理信息</strong>（没有延迟、没有面积、没有位置）。</p></div>
 </div>
 <p>前端工程师（<strong>DE</strong>，Design Engineer）用 <strong>Verilog</strong> 或 <strong>VHDL</strong> 把架构师的连接关系写成 RTL 代码：</p>
 <div class="code"><div class="code-h"><span class="code-lang">verilog</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">// 一个 8 位计数器：每个时钟上升沿加 1，rst 为低时清零</span><span class="ln ">always @(posedge clk or negedge rst_n) begin</span><span class="ln ">    if (!rst_n) cnt &lt;= 8'b0 ;        // 复位：清零</span><span class="ln ">    else        cnt &lt;= cnt + 1'b1 ;  // 正常：每拍加一</span><span class="ln ">end</span></code></pre></div>
 <p>写完之后必须<strong>仿真验证</strong>：</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">仿真</span><span class="term-zh">simulation（工具：VCS）</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">仿真</span><span class="term-zh">simulation（工具：VCS）</span></div>
   <div class="term-b"><p>用软件模拟电路行为，给一组输入激励，看输出是否符合预期。目的是<strong>消灭逻辑 Bug</strong>。</p></div>
 </div>
 <p>文档强调了一个关键点：<strong>仿真阶段不涉及物理延迟（Delay）</strong>。VCS 只看&quot;逻辑对不对&quot;，不问&quot;信号要跑多久&quot;。因为这个阶段网表还不存在，没有门、没有线，自然也谈不上延迟。</p>
@@ -98,8 +98,8 @@
 </section>
 <section class="ch" id="synthesis" data-ch="synthesis">
   <div class="ch-h"><span class="ch-n">04</span><h2>第三段：中端综合</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">综合</span><span class="term-zh">synthesis（工具：DC / Genus）</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">综合</span><span class="term-zh">synthesis（工具：DC / Genus）</span></div>
   <div class="term-b"><p>把 RTL 代码翻译成<strong>门级网表</strong>：选用库里真实存在的标准单元（与门、触发器……），并把它们连起来。输入是 RTL + 库 + 约束，输出是 netlist。</p></div>
 </div>
 <p>两家工具，性格不同（文档的对比很实用）：</p>
@@ -107,13 +107,13 @@
 <p>文档提到一个真实做法：<strong>不少公司两种工具都跑一遍，比较结果挑更好的那版</strong>。这不是折腾——综合结果直接决定后面 PR 有多难做，值得多花一天机时。</p>
 <p>综合阶段要做三件事：</p>
 <ol><li><strong>读 SDC 约束</strong>——按目标频率决定用什么单元、什么驱动强度；</li><li><strong>选 Memory 宏单元</strong>——存储不用触发器堆，直接用第三方 IP（SRAM）；</li><li><strong>初步 STA 检查</strong>——先看个大概，<strong>详细的静态时序分析由后端做</strong>。</li></ol>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">SDC</span><span class="term-zh">Synopsys Design Constraints</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">SDC</span><span class="term-zh">Synopsys Design Constraints</span></div>
   <div class="term-b"><p>时序约束文件，告诉工具&quot;要在什么频率下工作、外部给多少延迟&quot;。<strong>综合和 PR 都读它</strong>，是贯穿前后端的&quot;要求文档&quot;（阶段二后面有专课）。</p></div>
 </div>
 <p>综合完还要过一道关：<strong>形式验证</strong>。</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">形式验证</span><span class="term-zh">Formality（工具名）</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">形式验证</span><span class="term-zh">Formality（工具名）</span></div>
   <div class="term-b"><p>用数学方法证明&quot;综合后的网表&quot;与&quot;原始 RTL&quot;<strong>功能完全等价</strong>。它不是仿真（不跑激励），而是穷举证明。</p></div>
 </div>
 <p>为什么必须要它？因为综合工具做优化时会重写逻辑（合并、替换单元、删冗余）。<strong>万一它优化错了，仿真是发现不了的</strong>——你仿的是 RTL，不是网表。Formality 通过，才敢说&quot;网表就是那份 RTL&quot;。</p>
@@ -131,14 +131,14 @@
 <section class="ch" id="fab" data-ch="fab">
   <div class="ch-h"><span class="ch-n">06</span><h2>第五段：流片、制造与封装</h2></div>
   <p>GDSII 交付之后就离开设计团队了，进入制造：</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">GDSII</span><span class="term-zh">GDS II 版图文件</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">GDSII</span><span class="term-zh">GDS II 版图文件</span></div>
   <div class="term-b"><p>交付给代工厂的最终版图数据，含每一层掩模的全部几何图形。<strong>它是设计阶段的终点，制造阶段的起点。</strong></p></div>
 </div>
 <p>制造链路：</p>
 <ol><li><strong>代工厂（Foundry）流片</strong>：台积电、三星、中芯国际这类厂，用<strong>光刻、刻蚀</strong>等工艺把版图一层层&quot;印&quot;到硅晶圆上；</li><li><strong>晶圆（wafer）</strong>：一片晶圆上同时做几百上千颗相同的芯片；</li><li><strong>晶圆测试（CP/Wafer Sort）</strong>：逐颗测，把坏片标出来——<strong>先筛掉再切割，省封装费</strong>；</li><li><strong>切割（Dicing）</strong>：切成一颗颗独立的 die；</li><li><strong>封装（Packaging）</strong>：装进外壳、引出引脚，做成能焊到板子上的芯片；</li><li><strong>成品测试（FT）→ 分选编袋 → 出货</strong>：成为你在市场上买到的那个封装件。</li></ol>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">foundry</span><span class="term-zh">代工厂</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">foundry</span><span class="term-zh">代工厂</span></div>
   <div class="term-b"><p>只做制造、不做设计的晶圆厂（台积电、三星、中芯国际）。与之相对的是 Fabless（只设计不制造，如英伟达、高通）和 IDM（设计制造都做，如英特尔）。</p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="fab"><span>这一章我学完了</span></label>
@@ -150,33 +150,26 @@
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>把这条链画成一张表</div><div class="lab-b"><p>在纸上（或用课程页的笔记功能）列四列：<strong>环节 / 谁做 / 工具 / 交付物</strong>，把七个环节填满。然后回答三个问题：</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 一份典型的 release 目录里，网表和 sdc 通常放在哪？先看看结构</span><span class="ln ">find . -maxdepth 2 -type d | head -20</span><span class="ln "> </span><span class="ln cmt"># 2. 网表文件通常是什么后缀？（.v / .v.gz）</span><span class="ln ">ls -lh *.v *.v.gz 2&gt;/dev/null | head</span><span class="ln "> </span><span class="ln cmt"># 3. 约束文件的后缀是什么？</span><span class="ln ">ls -lh *.sdc *.sdc.gz 2&gt;/dev/null | head</span></code></pre></div>
 <p>验收标准：不看课能按顺序说出&quot;需求→RTL→仿真→综合→形式验证→后端→GDSII→流片→封测&quot;，并说清每一环的交付物与负责人。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>前端仿真用的是什么工具？它验证的是什么，不验证什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">VCS。验证逻辑功能是否正确，不验证物理延迟（那个阶段还没有门和线）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>综合的作用是什么？DC 和 Genus 各有什么特点？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">把 RTL 翻译成门级网表；DC 成熟稳定不易报错，Genus 综合时考虑时序、对后续时序分析更友好，很多公司两者都跑再比较。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么综合之后还要做形式验证（Formality）？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">综合工具会重写逻辑做优化，万一优化出错，仿真（仿的是 RTL）发现不了；Formality 用数学方法证明网表与 RTL 功能等价。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>后端接手的三个核心输入是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">门级 netlist、SDC 约束、库（lib/lef，走 MMMC 配置）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>后端里手动工作量最大的是哪一步？为什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">Floorplan：Memory 摆哪、IO 端口放哪直接决定绕线资源与时序质量，必须人来决策；而几百万 cell 的摆放是工具自动的。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>GDSII 之后到出货要经过哪些步骤？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">代工厂流片（光刻刻蚀）→ 晶圆 → 晶圆测试筛坏片 → 切割 → 封装 → 成品测试 → 分选出货。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>&quot;仿真通过&quot;为什么不能代表&quot;设计没问题&quot;？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">仿真只验功能；组合逻辑链过长等时序问题在功能上完全正确，但物理上跑不到目标频率，需靠 STA/PR 检查。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能按顺序背出七个环节与各自交付物</li><li>能说出 DE / ME / PD 各管哪一段、用什么工具</li><li>能解释&quot;仿真只验功能、时序靠 STA/PR&quot;</li><li>能解释为什么必须有形式验证</li><li>能说出后端里 Floorplan 手动、Placement 自动的分界</li><li>能说出 GDSII 之后到封装出货的六步</li></ul></div>
@@ -199,8 +192,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

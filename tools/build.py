@@ -146,8 +146,8 @@ def render_term(arg, body):
     en = parts[0] if parts else ""
     zh = parts[1] if len(parts) > 1 else en
     txt = "\n".join(body).strip()
-    return f"""<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">{inline(en)}</span><span class="term-zh">{inline(zh)}</span><i class="term-ico">点击看解释</i></div>
+    return f"""<div class="term open">
+  <div class="term-h"><span class="term-en">{inline(en)}</span><span class="term-zh">{inline(zh)}</span></div>
   <div class="term-b">{md(txt, inline_only=True)}</div>
 </div>"""
 
@@ -158,14 +158,13 @@ def render_quiz(arg, body):
         if "|" not in line:
             continue
         q, a = line.split("|", 1)
-        rows.append(f"""<div class="q-item">
+        rows.append(f"""<div class="q-item open">
   <div class="q-q"><span class="q-no"></span>{inline(q.strip())}</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">{inline(a.strip())}</div>
 </div>""")
     if not rows:
         return ""
-    return f'<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div>{"".join(rows)}</div>'
+    return f'<div class="quiz"><div class="quiz-h">自测</div>{"".join(rows)}</div>'
 
 
 def render_sandbox(arg):

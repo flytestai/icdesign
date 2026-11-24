@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PR 的数据准备：一次 init 到底要喂几个文件 · 23 | IC 后端学院</title>
 <meta name="description" content="把 init 阶段要导入的文件一次列全：design data（netlist）与 physical data（tech lef / cell lef / def）、timing data（lib / rc tech / sdc）、MMMC 环境。重点讲清 netlist 和 def 这两个"最容易被误解"的文件，并给出缺文件时的真实报错对照表。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="02-04-pr-data">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -68,12 +68,12 @@
 <p>新人接手一个项目，第一件事不是敲命令，而是<strong>确认数据齐不齐</strong>。缺一个文件，后面所有工作都是零。</p>
 <p>文档把 PR 的数据分成两大类，我们按这个分类来记：</p>
 <div class="tbl"><table><thead><tr><th>大类</th><th>文件</th><th>后缀</th><th>谁给</th><th>一句话作用</th></tr></thead><tbody><tr><td><strong>design data</strong></td><td>netlist（网表）</td><td><code>.v.gz</code></td><td>前端（综合后）</td><td>有哪些单元、怎么连</td></tr><tr><td><strong>physical data</strong></td><td>tech lef</td><td><code>.lef</code></td><td>工艺厂/库组</td><td>工艺规则：金属层、宽度、间距、via</td></tr><tr><td></td><td>cell lef</td><td><code>.lef</code></td><td>库组</td><td>每个单元的形状、引脚位置</td></tr><tr><td></td><td>def</td><td><code>.def.gz</code></td><td>上一道工序/顶层</td><td>这一版设计的实际物理数据（位置）</td></tr><tr><td><strong>timing data</strong></td><td>lib</td><td><code>.lib</code></td><td>库组</td><td>单元的延迟与功耗（工具算 cell delay）</td></tr><tr><td></td><td>rc tech file</td><td><code>.tluplus</code> / QRC tech</td><td>工艺厂/库组</td><td>单位电阻电容（工具算 net delay）</td></tr><tr><td></td><td>sdc</td><td><code>.sdc</code></td><td>FCT/时序组</td><td>时序约束：优化的目标</td></tr><tr><td><strong>环境</strong></td><td>MMMC（viewDefinition.tcl）</td><td><code>.tcl</code></td><td>项目组</td><td>多模式多端角的配置</td></tr></tbody></table></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">physical data</span><span class="term-zh">物理数据</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">physical data</span><span class="term-zh">物理数据</span></div>
   <div class="term-b"><p>和&quot;物理形状、位置、工艺规则&quot;有关的数据：lef、def 都属于这一类。它们决定&quot;东西长什么样、放在哪&quot;，但不决定&quot;延迟是多少&quot;。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">timing data</span><span class="term-zh">时序数据</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">timing data</span><span class="term-zh">时序数据</span></div>
   <div class="term-b"><p>和&quot;延迟、约束&quot;有关的数据：lib（单元延迟）、rc tech（线延迟）、sdc（约束）。它们决定工具算出来的时序对不对、优化目标是什么。</p></div>
 </div>
 <p>一句记法：<strong>physical data 管形状位置，timing data 管快慢与目标。</strong></p>
@@ -81,8 +81,8 @@
 </section>
 <section class="ch" id="netlist" data-ch="netlist">
   <div class="ch-h"><span class="ch-n">02</span><h2>netlist：逻辑连接的文字描述</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">gate-level netlist</span><span class="term-zh">门级网表</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">gate-level netlist</span><span class="term-zh">门级网表</span></div>
   <div class="term-b"><p>综合之后的网表，里面全是标准单元和宏单元（触发器、与非门、mem 等）的实例与连线，不再有 <code>always</code>、<code>if</code> 这种行为级描述。文件名一般就是模块名（tile 名）加 <code>.v.gz</code>。</p></div>
 </div>
 <p>理解 netlist 最好的办法是看一个&quot;从行为到门&quot;的例子。RTL 里可能只写了一行：</p>
@@ -112,20 +112,20 @@
 </section>
 <section class="ch" id="def" data-ch="def">
   <div class="ch-h"><span class="ch-n">04</span><h2>def：这一版设计的&quot;实际位置&quot;</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">DEF</span><span class="term-zh">设计交换格式</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">DEF</span><span class="term-zh">设计交换格式</span></div>
   <div class="term-b"><p>Design Exchange Format。存储一个设计<strong>当前的实际物理数据</strong>：design 名、die 大小、track 信息、每个单元/端口的具体坐标与朝向、布线结果（视导出阶段而定）。</p></div>
 </div>
 <p>def 最大的价值是<strong>跨工具、跨团队交换</strong>。文档给了两个典型场景：</p>
 <ol><li><strong>跨工具</strong>：用 Innovus 跑到 place，接着想用 ICC2 跑 cts——就把到 place 为止的所有物理信息导出成 def，喂给 ICC2。</li><li><strong>跨层级</strong>：top 确定好每个 block 的面积和 port 位置后，用 def 发给每个 block 的 <strong>harden owner</strong>（模块负责人）。</li></ol>
 <p>命令对照（记住这一对就够用）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># Innovus：导出 / 读入 def</span><span class="ln ">defOut floorplan.def        ;# 把当前物理数据吐成 def 文件</span><span class="ln ">defIn  floorplan.def        ;# 读入别人给的 def（比如 top 下发的边界）</span><span class="ln "> </span><span class="ln cmt"># ICC2 / Fusion Compiler：同一件事，命令名不同</span><span class="ln ">write_def floorplan.def     ;# 导出</span><span class="ln ">read_def  floorplan.def     ;# 读入</span></code></pre></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">harden</span><span class="term-zh">硬化（模块定版）</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">harden</span><span class="term-zh">硬化（模块定版）</span></div>
   <div class="term-b"><p>block 做到&quot;形状、端口、时序都定下来，可以被顶层直接当黑盒使用&quot;的状态。owner 就是负责这块的人。top 给他 def 定边界，他做完再交回 def/GDS。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Hard Block / harden</span><span class="term-zh">硬块</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">Hard Block / harden</span><span class="term-zh">硬块</span></div>
   <div class="term-b"><p>口语里的 <strong>Hard</strong>、<strong>Hard Block</strong>、<strong>harden 过的模块</strong>，说的是同一件事：<strong>已经有真实物理信息（面积、pin 位置、布线结果）的模块</strong>。<br>与之相对的是&quot;软&quot;的 netlist——只有逻辑连接，没有面积和位置。<strong>从软到硬，就是 PR 干的事。</strong></p></div>
 </div>
 <div class="note"><div class="note-h">为什么 def 比 GDS 更适合当&quot;合同&quot;</div><p>GDS 是最终版图，信息量大但改起来重；def 是轻量的&quot;位置清单&quot;，读入快、可编辑、工具间通用。所以 block 与 top 之间反复迭代阶段用 def 交接，最后定版才用 GDS。</p></div>
@@ -134,12 +134,12 @@
 <section class="ch" id="lef" data-ch="lef">
   <div class="ch-h"><span class="ch-n">05</span><h2>lef：两个文件，两种信息</h2></div>
   <p>lef 有两个，名字像但作用完全不同，<strong>这是新人最容易混的一对</strong>：</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">tech lef</span><span class="term-zh">工艺 LEF</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">tech lef</span><span class="term-zh">工艺 LEF</span></div>
   <div class="term-b"><p>描述<strong>工艺本身</strong>：能用哪些金属层（M0/M1/M2…，层数取决于工艺）、每层的最小宽度与间距、via 的定义与电阻、横纵向走线方向等。它跟具体设计无关，一个工艺一份。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">cell lef</span><span class="term-zh">单元 LEF</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">cell lef</span><span class="term-zh">单元 LEF</span></div>
   <div class="term-b"><p>描述<strong>每个单元</strong>：长、宽、高，有几个输入 pin、几个输出 pin、pin 在什么位置、什么方向。工具靠它知道&quot;这个单元占多大地方、线该接到哪&quot;。</p></div>
 </div>
 <p>下一课会用一整课把这两种 lef 拆开看（含 pitch、DRC、obs 这些细节）。</p>
@@ -149,12 +149,12 @@
   <div class="ch-h"><span class="ch-n">06</span><h2>lib / rc tech / sdc：三个&quot;算延迟和定目标&quot;的文件</h2></div>
   <p>这三个是 timing data，作用一句话区分：</p>
 <div class="tbl"><table><thead><tr><th>文件</th><th>回答什么问题</th><th>缺了会怎样</th></tr></thead><tbody><tr><td><strong>lib</strong></td><td>这个单元在给定输入转换时间、给定负载下，延迟是多少？</td><td>工具算不出 cell delay，时序报告全是 0 或直接报错</td></tr><tr><td><strong>rc tech</strong></td><td>这段线每单位长度的电阻电容是多少？</td><td>算不出 net delay，长线的影响被低估</td></tr><tr><td><strong>sdc</strong></td><td>我要优化到什么程度？时钟多快？哪些路径不用管？</td><td>工具没有目标，等于没有优化</td></tr></tbody></table></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">lib</span><span class="term-zh">单元时序/功耗库</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">lib</span><span class="term-zh">单元时序/功耗库</span></div>
   <div class="term-b"><p>描述每个标准单元的延迟、功耗、功能与面积。工具用<strong>查表</strong>的方式算延迟：给一个输入转换时间（input transition）和一个输出负载（output load），在二维表里插值出延迟值。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">rc tech file</span><span class="term-zh">RC 工艺文件</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">rc tech file</span><span class="term-zh">RC 工艺文件</span></div>
   <div class="term-b"><p>记录单位长度的寄生电阻 R 与寄生电容 C，供工具抽取/估算 net 的寄生参数，进而算线延迟。抽取寄生参数的专业工具是 <strong>StarRC</strong>（Synopsys）和 <strong>QRC</strong>（Cadence）。</p></div>
 </div>
 <p>lib 和 rc tech 的细节在第 6 课（cell delay 与 net delay 怎么算），sdc 在第 8 课，MMMC 在第 7 课。这一课你只要建立&quot;哪个文件解决哪类问题&quot;的直觉。</p>
@@ -175,29 +175,23 @@
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>给自己列一张交接清单</div><div class="lab-b"><p>假设 leader 让你接手一个 block，请写出一张&quot;我要什么文件&quot;的清单，每项包含：文件名/后缀、谁给、用来干什么、缺了会报什么错。</p>
 <p>再补一条软性要求：向对方要文件时，必须同时要到<strong>库版本号</strong>（lef/lib 的日期或版本），否则后面所有对不上的问题都会算在你头上。</p>
 <p>验收标准：清单不少于 8 项（netlist、tech lef、cell lef、def、lib、rc tech、sdc、MMMC）；能说出 def 与 lef 的区别；能背出 Innovus 与 ICC2 导入/导出 def 的命令差异。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>init 阶段需要哪几类文件？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">design data（netlist）、physical data（tech lef / cell lef / def）、timing data（lib / rc tech / sdc），外加 MMMC 环境（viewDefinition.tcl）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>netlist 和 def 的核心区别是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">netlist 只描述逻辑连接（谁连谁），没有坐标；def 描述这一版设计的实际物理数据（die 大小、单元与端口的具体位置）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>lef 为什么有两个？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">tech lef 描述工艺规则（金属层、宽度、间距、via），与设计无关；cell lef 描述每个单元的形状与引脚。两者作用完全不同。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>top 为什么用 def 而不用 GDS 给 block owner 定边界？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">def 轻量、可编辑、工具间通用，适合反复迭代；GDS 信息量大但改动成本高，一般只在定版后交接。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>导出/读入 def 的命令在 Innovus 和 ICC2 里分别是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">Innovus：<code>defOut</code> / <code>defIn</code>；ICC2（及 Fusion Compiler）：<code>write_def</code> / <code>read_def</code>。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>Cannot find cell 'INV_X1'</code> 通常说明什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">cell lef 没读全，或工艺库版本与网表不匹配；也可能库搜索路径没配对。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能不看书列出 init 需要的 8 类文件并说出各自作用</li><li>能解释 netlist 是逻辑连接、def 是物理数据</li><li>能说出 tech lef 与 cell lef 的分工</li><li>能写出 Innovus 与 ICC2 的 def 导入导出命令</li><li>看到 <code>Cannot find library</code> / <code>Cannot find cell</code> 能定位到缺哪个文件</li></ul></div>
@@ -220,8 +214,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

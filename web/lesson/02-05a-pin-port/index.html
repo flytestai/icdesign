@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pin 与 Port：单元接口和模块接口 · 26 | IC 后端学院</title>
 <meta name="description" content="版图界面上那些黄色的小点和小片，含义完全不同：单元上的叫 pin，模块边缘的叫 port。这一课把两者的层级、方向、物理形态讲清，再讲清 Input/Output 的相对性、模块 90 度翻转与镜像、以及"顶层给你的 port 位置与顺序必须一模一样"这条硬规定——它决定两个模块能不能拼上。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="02-05a-pin-port">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -73,8 +73,8 @@
 </section>
 <section class="ch" id="pin" data-ch="pin">
   <div class="ch-h"><span class="ch-n">02</span><h2>Pin：单元的接口，库说了算</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">pin</span><span class="term-zh">引脚</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">pin</span><span class="term-zh">引脚</span></div>
   <div class="term-b"><p>标准单元或宏单元自己的输入/输出端点。名字、方向、形状都写在 cell lef 里（<code>PIN A { DIRECTION INPUT ; PORT LAYER M1 ; RECT ... }</code>）。</p></div>
 </div>
 <p>一个 DFF 的典型引脚（文档举的例子）：</p>
@@ -84,12 +84,12 @@
 </section>
 <section class="ch" id="port" data-ch="port">
   <div class="ch-h"><span class="ch-n">03</span><h2>Port：模块的接口，你说了算</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">port</span><span class="term-zh">端口</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">port</span><span class="term-zh">端口</span></div>
   <div class="term-b"><p>一个 block 对外的接口，位于模块边缘。<strong>它决定这个 block 怎么和外面（相邻模块、顶层）连起来。</strong></p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">IO</span><span class="term-zh">输入输出</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">IO</span><span class="term-zh">输入输出</span></div>
   <div class="term-b"><p>Input/Output 的合称。说&quot;这个模块的 IO 在哪边&quot;，意思就是&quot;它的 port 集中分布在哪个方向&quot;。<strong>IO 是个统称，port 是具体的那个接口。</strong></p></div>
 </div>
 <p>port 的三个关键属性：</p>
@@ -111,8 +111,8 @@
 <section class="ch" id="orient" data-ch="orient">
   <div class="ch-h"><span class="ch-n">05</span><h2>翻转与镜像：模块能转，port 顺序会变</h2></div>
   <p>模块在版图上可以摆放成 8 种朝向（<strong>N/S/E/W 四个方向 × 是否镜像</strong>），文档说的&quot;支持 XY 翻转、允许 90 度旋转&quot;就是这个意思。</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">orientation</span><span class="term-zh">朝向</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">orientation</span><span class="term-zh">朝向</span></div>
   <div class="term-b"><p>单元或模块在版图上的摆法，由&quot;方向（N/S/E/W）+ 是否镜像（MX/MY）&quot;组合而成。lef 里用 <code>SYMMETRY X Y</code> 声明这个单元允许沿哪个轴镜像；不允许的朝向工具不会去用。</p></div>
 </div>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">   原方向          旋转 90°         镜像（X 轴翻转）</span><span class="ln ">  ┌────┬──┐      ┌────────┐       ┌────────┐</span><span class="ln ">  │ P1 │P2│      │P3      │       │P2    P1│</span><span class="ln ">  │    │  │      │        │       │        │</span><span class="ln ">  └────┴──┘      │P1    P2│       └────────┘</span><span class="ln ">                 └────────┘</span></code></pre></div>
@@ -135,37 +135,29 @@
 <p>所以看到 memory 时，你关注的是它的 <strong>size + pin 分布 + 通道</strong>，不是它的功能。</p>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>在 lef 里数 pin，在 def 里找 port</div><div class="lab-b"><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 找一个标准单元，看它有几个 pin、方向分别是什么</span><span class="ln ">grep -n -A3 &quot;^  PIN &quot; cells.lef | head -30</span><span class="ln "> </span><span class="ln cmt"># 2. 统计某个单元里 input / output 各有几个</span><span class="ln ">grep -c &quot;DIRECTION INPUT&quot; cells.lef</span><span class="ln ">grep -c &quot;DIRECTION OUTPUT&quot; cells.lef</span><span class="ln "> </span><span class="ln cmt"># 3. 在 def 里找模块的 port（PINS 段），看位置与方向</span><span class="ln ">grep -n -A6 &quot;^PINS&quot; design.def | head -30</span><span class="ln "> </span><span class="ln cmt"># 4. 看 port 的方向与层</span><span class="ln ">grep -n &quot;DIRECTION&quot; design.def | head -10</span></code></pre></div>
 <p>验收标准：能报出某个单元有几个 input pin、几个 output pin，并从 def 里读出至少两个 port 的名字、方向与所在层。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Pin 与 Port 的层级差别是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">Pin 属于 Cell 层（标准单元/宏单元自己的引脚，写在 cell lef 里，改不了）；Port 属于 Block 层（整个模块对外的接口，floorplan 时摆放或被顶层指定）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>DFF 的 CK / D / Q / S 分别是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">CK 时钟输入、D 数据输入、Q 数据输出、S 测试扫描相关输入。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Input / Output 为什么说是相对的？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">同一个信号在驱动方是 Output、在接收方是 Input；箭头朝内是 Input、朝外是 Output，必须先确定站在谁的角度。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Port 的三个关键属性是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">位置（在边缘哪一段）、顺序（总线内如何排列）、方向（Input/Output）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>模块翻转或旋转 90 度后，port 会有什么问题？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">port 的物理顺序/位置随之改变；若顶层按原朝向连接，拼上去会错位，所以朝向要和顶层锁定一致。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>顶层给 def 文件的场景下，port 位置能自己改吗？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">不能。def 里写死了面积与 port 位置，必须遵守，否则拼不上顶层。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么说 Memory 只需要关心 port？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">它是第三方封装好的宏单元，内部逻辑无需处理，PR 只关心尺寸、pin 分布、朝向和周围通道（内部是禁布区）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>描述尺寸时应该用哪两个词？lef 的 SIZE 先后顺序是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">用 width（宽）和 height（高）；SIZE 前面是宽（X），后面是高（Y）。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能一句话区分 pin（Cell 层）与 port（Block 层）</li><li>能说出 DFF 四个常见 pin 的作用</li><li>能解释 Input/Output 的相对性，并说出箭头方向的约定</li><li>能说出 port 的三个属性，以及&quot;顶层指定&quot;时不能自改</li><li>能解释翻转/镜像为什么会让 port 顺序变化，为什么必须与顶层锁定</li><li>知道 lef 的 SIZE 是&quot;宽 BY 高&quot;，面积按宽×高算</li></ul></div>
@@ -188,8 +180,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

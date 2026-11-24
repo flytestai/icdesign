@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>启动 Innovus：版本、常用选项与帮助系统 · 32 | IC 后端学院</title>
 <meta name="description" content="从 Encounter/ICC 到 Innovus/ICC2 的换代原因讲起，然后真刀真枪地启动工具：怎么确认版本、九个最常用的启动选项（写 log、自动跑脚本、无界面、定时、多核、帮助、GUI 开关）、CPU 该给多少核以及为什么不能给太多、启动后怎么调核数，最后把界面分成四块认识一遍。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="03-02-innovus-start">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -81,12 +81,12 @@
 <p><strong>为什么第一件事是查版本？</strong> 因为不同版本的命令行为有差异（尤其 <code>ccopt</code>、<code>setPlaceMode</code> 的参数），网上抄来的脚本报错，八成是版本不匹配。项目里也会明确要求&quot;用 21.1 及以上&quot;，出了问题才有人背书。</p>
 <div class="tip"><div class="tip-h">小技巧</div><p>三种常见情况：</p>
 <ol><li><code>command not found</code> → PATH 没配，找 <code>source /xxx/setup.csh</code> 或 <code>module load innovus</code>；</li><li>报 <strong>license</strong> 相关错误 → license 服务器不通或没有空闲 license，找 IT/管理员，不是你的脚本问题；</li><li>启动卡在 <code>Loading...</code> 很久 → 磁盘 IO 慢或家目录配额满，<code>df -h ~</code> 看一眼。</li></ol></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">license</span><span class="term-zh">许可证</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">license</span><span class="term-zh">许可证</span></div>
   <div class="term-b"><p>EDA 工具的授权凭证，按工具、按功能、<strong>按核数</strong>计量。启动失败里最常见的一类就是拿不到 license——它和脚本写错是两回事，先分清再排查。抢不到时可以带 <code>-wait</code> 排队等。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">GUI</span><span class="term-zh">图形界面模式</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">GUI</span><span class="term-zh">图形界面模式</span></div>
   <div class="term-b"><p>带版图窗口的运行模式（默认）。与之相对的 <code>-no_gui</code> 只跑命令、不加载图形引擎。<strong>GUI 用来 debug，脚本用来干活</strong>——这是 PR 工作的基本分工。</p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="start"><span>这一章我学完了</span></label>
@@ -96,8 +96,8 @@
   <p>文档列了九条，我按&quot;一定会用到的程度&quot;重排，并补上实际工作中的注意点。</p>
 <h3 id="log">1. <code>-log</code>：把这一趟的全部输出记下来</h3>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 启动时指定 log 文件名，工具的所有输出都会写进 test.log</span><span class="ln ">innovus -log test.log</span></code></pre></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">log</span><span class="term-zh">运行日志</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">log</span><span class="term-zh">运行日志</span></div>
   <div class="term-b"><p>记录这一趟运行中<strong>所有</strong>内容：你在界面上做的操作、输入的每条命令、命令的返回结果、warning 与 error。<strong>它是唯一能事后追溯的证据。</strong></p></div>
 </div>
 <p>为什么这条最重要？因为 Innovus 跑到一半崩了、或者同事问你&quot;你昨天那个 run 到底怎么配的&quot;，<strong>只有 log 能回答</strong>。文档原话：&quot;log 内容一般是界面做的操作，以及操作的结果，输入的 cmd 等等。&quot;</p>
@@ -134,8 +134,8 @@
 <h3 id="setcpu">6. 启动后调整核数：SetMultiCpuUsage</h3>
 <p>已经进去了才发现核给少了，不用退出重开：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 改成 32 核，并允许工具根据当前任务自动调整实际使用核数</span><span class="ln ">setMultiCpuUsage -localCpu 32 -cpuAutoAdjust true</span></code></pre></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">setMultiCpuUsage</span><span class="term-zh">多核使用设置</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">setMultiCpuUsage</span><span class="term-zh">多核使用设置</span></div>
   <div class="term-b"><p>Innovus 里控制并行线程数的命令。<code>-localCpu</code> 指定本机可用核数，<code>-cpuAutoAdjust true</code> 让工具在不同阶段自动升降（比如 placement 用得多、report 用得少）。</p></div>
 </div>
 <p>注意大小写：Innovus 的命令是<strong>驼峰式</strong>（<code>setMultiCpuUsage</code>、<code>setPlaceMode</code>、<code>optDesign</code>），而它内部很多底层命令是小写下划线式（<code>ccopt_design</code>、<code>place_opt_design</code>）。两种都存在，别以为敲错了。</p>
@@ -163,37 +163,29 @@
 <p>进去以后在命令行里再敲这三条：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 看 place 相关命令有哪些（帮助系统按关键字搜）</span><span class="ln ">help *place*</span><span class="ln "> </span><span class="ln cmt"># 把核数调成 8 并开启自动调整</span><span class="ln ">setMultiCpuUsage -localCpu 8 -cpuAutoAdjust true</span><span class="ln "> </span><span class="ln cmt"># 打开图形界面看版图区（需要有显示环境）</span><span class="ln ">win on</span></code></pre></div>
 <p>验收标准：能报出工具版本、本机逻辑核数、<code>-log</code> 与 <code>-files</code> 的作用差别，并成功用一条命令完成&quot;启动→跑脚本→写 log&quot;。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Innovus 与 ICC2 分别属于哪家公司？它们替代的老工具是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">Innovus 是 Cadence 的，替代 Encounter；ICC2 是 Synopsys 的，替代 ICC。老一代适用于 90nm 以上，先进工艺必须用新一代。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么每次上机第一件事是 <code>which innovus</code>？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">它同时给出工具所在目录和版本号；版本不同命令行为有差异，脚本报错常因版本不匹配。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>-log</code> 和 <code>-files</code> 分别做什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a"><code>-log</code> 把这一趟的所有输出（界面操作、输入命令、结果、warning/error）写进指定文件；<code>-files</code> 让工具启动后自动执行指定 tcl 脚本。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>-no_gui</code> 有什么好处？进去后怎么再打开界面？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">省内存、省启动时间，适合服务器批量跑 run；进去后执行 <code>win on</code> 打开，<code>win off</code> 关闭。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>-cpus</code> 为什么不能设太高？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">会消耗大量并行 license，且可能超过集群每任务核数上限被调度器 kill，导致长时间 run 白跑。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>进去之后怎么改核数？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a"><code>setMultiCpuUsage -localCpu 32 -cpuAutoAdjust true</code>。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>想找所有名字里带 place 的命令，怎么做？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a"><code>help *place*</code>；看某条命令的完整参数用 <code>cmd -help</code>；看启动选项用 <code>innovus -help</code>。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Tab 键有两个什么用法？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">补全命令/路径名；在命令后加空格再按 Tab 列出该命令的所有可用参数。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 Innovus/ICC2 对应替代的老工具，以及换代的核心原因（运行时间与先进工艺约束）</li><li>能用一条命令完成&quot;无界面启动 + 自动跑脚本 + 写 log&quot;</li><li>能解释 <code>-wait</code> 的真实语义（license 排队）</li><li>能说出 <code>-cpus</code> 给太高会被 kill 的两个原因</li><li>能用 <code>which</code> / <code>nproc</code> / <code>lscpu</code> 三个命令确认环境</li><li>能说出三个帮助入口各自查什么</li><li>能把界面分成版图区、命令行、输出窗、层次树四块并说出各自用途</li></ul></div>
@@ -216,8 +208,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

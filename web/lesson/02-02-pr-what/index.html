@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>什么是布局布线（PR）：把网表变成能送去生产的版图 · 21 | IC 后端学院</title>
 <meta name="description" content="用一间毛坯房讲清 PR 到底在做什么：综合给的 netlist 只是逻辑连接，PR 把每个单元放到真实坐标上、用真实的金属线连起来，最后吐出 GDSII。顺带把 PD/DE/ME、block 与 top、三种线、芯片分类这些面试必问的名词一次说清。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="02-02-pr-what">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -67,16 +67,16 @@
   <div class="goal"><span>本章目标</span>能用一句话说出 PR 的输入和输出（netlist → GDSII），能分清 PD/DE/ME 三个岗位，能说出 block 与 top 的区别、三种线分别是什么。</div>
 <p><strong>PR = Place and Route = 布局和布线。</strong> 它在做的事情只有一件：</p>
 <blockquote><p>把综合之后的 <strong>netlist（网表）</strong>，变成可以送去工厂流片的 <strong>GDSII</strong>。</p></blockquote>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">PR / PnR</span><span class="term-zh">布局布线</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">PR / PnR</span><span class="term-zh">布局布线</span></div>
   <div class="term-b"><p>Place and Route 的缩写，写作 PR 或 PnR 都行，指同一个流程：先把单元&quot;摆&quot;到芯片上的具体坐标（Place），再用金属线把该连的连起来（Route）。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">netlist</span><span class="term-zh">网表</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">netlist</span><span class="term-zh">网表</span></div>
   <div class="term-b"><p>综合工具吐出来的电路描述文件，后缀一般是 <code>.v.gz</code>（压缩的 Verilog）。它只说明&quot;哪个引脚连哪个引脚&quot;——<strong>逻辑连接</strong>，不含任何坐标、长度、层信息。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">GDSII</span><span class="term-zh">版图文件</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">GDSII</span><span class="term-zh">版图文件</span></div>
   <div class="term-b"><p>送工厂加工用的版图文件（II 指的是二进制形式）。它描述每一层金属、每一个孔、每一个单元在硅片上的<strong>真实形状和坐标</strong>——<strong>物理连接</strong>。</p></div>
 </div>
 <p>用装修打个比方：综合给你的是&quot;水电点位图&quot;（哪个插座接哪根线，纸上画得清），PR 要把它变成&quot;墙里真的埋进去的线管，位置精确到毫米&quot;。图纸和施工图不是一回事，netlist 和 GDSII 也不是一回事。</p>
@@ -96,16 +96,16 @@
 <section class="ch" id="roles" data-ch="roles">
   <div class="ch-h"><span class="ch-n">03</span><h2>三个岗位缩写：PD / DE / ME</h2></div>
   <p>看招聘 JD 时最先撞上的三个词：</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">PD</span><span class="term-zh">物理设计工程师</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">PD</span><span class="term-zh">物理设计工程师</span></div>
   <div class="term-b"><p>Physical Design Engineer，也就是&quot;后端&quot;。负责把 netlist 做到 GDSII：floorplan、place、cts、route，以及中间无数轮优化。<strong>PR 就是 PD 的主战场。</strong></p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">DE</span><span class="term-zh">设计工程师（前端）</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">DE</span><span class="term-zh">设计工程师（前端）</span></div>
   <div class="term-b"><p>Design Engineer。写 RTL、做综合、给后端交网表的人。后端发现&quot;这条路径逻辑太深，怎么摆都过不了&quot;时，要找 DE 改 RTL。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">ME</span><span class="term-zh">中端工程师</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">ME</span><span class="term-zh">中端工程师</span></div>
   <div class="term-b"><p>Middle End Engineer。夹在前后端之间：DFT（扫描链插入）、formal、低功耗结构、网表质量检查，也常负责 MMMC 环境与 sdc 的整合。<strong>不是所有公司都设这个岗，但大厂很常见。</strong></p></div>
 </div>
 <p>一句话记法：<strong>DE 写逻辑，ME 加结构，PD 落到硅片上。</strong></p>
@@ -121,12 +121,12 @@
 <section class="ch" id="block-top" data-ch="block-top">
   <div class="ch-h"><span class="ch-n">05</span><h2>block 级和 top 级：你接到的活是哪一种</h2></div>
   <p>后端设计按层级分两类，<strong>决定了你每天要操心的东西完全不同</strong>：</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">block / tile</span><span class="term-zh">模块（块级设计）</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">block / tile</span><span class="term-zh">模块（块级设计）</span></div>
   <div class="term-b"><p>一个完整芯片被切成若干块，分给不同的人做。<strong>block 和 tile 是一个意思</strong>，就是&quot;分给你的那块活&quot;。块级设计的边界是别人定好的：面积多大、从哪进哪出（port 位置），你只管把块内部做干净。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">top</span><span class="term-zh">顶层（顶层设计）</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">top</span><span class="term-zh">顶层（顶层设计）</span></div>
   <div class="term-b"><p>把各个 block 拼成一颗完整芯片的那一层。要定整颗芯片的面积、每个 block 摆在哪、block 之间的连线怎么走，还要把电源网络从 pad 一路送到每个 block 里。</p></div>
 </div>
 <div class="tbl"><table><thead><tr><th></th><th>block 级</th><th>top 级</th></tr></thead><tbody><tr><td>边界</td><td>别人给（面积 + port 位置）</td><td>自己定</td></tr><tr><td>主要矛盾</td><td>块内时序、拥塞、DRC</td><td>块间连线、电源网络、全局拥塞</td></tr><tr><td>交付</td><td>干净的 block（def/lef/GDS）</td><td>整颗芯片 GDSII</td></tr><tr><td>交接方式</td><td>top 用 <strong>def</strong> 把面积和 port 位置发给 block owner</td><td>收回各 block 的 def/GDS 拼装</td></tr></tbody></table></div>
@@ -136,16 +136,16 @@
 <section class="ch" id="place" data-ch="place">
   <div class="ch-h"><span class="ch-n">06</span><h2>布局：什么必须人摆，什么能自动摆</h2></div>
   <p>&quot;布局&quot;听着像全部自动，其实分三类器件，待遇完全不同：</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">macro / mem / sram</span><span class="term-zh">宏单元、存储器</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">macro / mem / sram</span><span class="term-zh">宏单元、存储器</span></div>
   <div class="term-b"><p>第三方厂商做好的成品 IP（内存、SRAM、模拟模块、PLL 等），有固定形状和固定引脚位置。<strong>必须由人（或脚本按人的策略）摆放到确定位置</strong>——工具不会自动帮你摆，因为摆错会同时毁掉时序和布线通道。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">stdcell</span><span class="term-zh">标准单元</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">stdcell</span><span class="term-zh">标准单元</span></div>
   <div class="term-b"><p>标准单元库里的基本逻辑门（与、或、非、触发器等），<strong>等高、宽度不同、按行（row）排列</strong>。因为有统一的 lib/lef 描述，工具可以自动摆放、自动优化。</p></div>
 </div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">physical cell</span><span class="term-zh">物理单元</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">physical cell</span><span class="term-zh">物理单元</span></div>
   <div class="term-b"><p>只有物理信息、<strong>没有逻辑功能</strong>的单元：tap cell（阱接触）、endcap（行端帽）、decap（去耦电容）、filler（填充）。它们不进网表，是 PR 阶段按规则补进去的。</p></div>
 </div>
 <p>为什么 mem 要人摆？三个原因，面试常问：</p>
@@ -168,8 +168,8 @@
 <div class="tbl"><table><thead><tr><th>类型</th><th>是什么</th><th>典型厂商/场景</th></tr></thead><tbody><tr><td>SOC</td><td>片上系统，把 CPU、总线、外设、存储接口集成到一颗</td><td>手机主芯片、车规芯片</td></tr><tr><td>CPU</td><td>通用处理器，看核心数、主频</td><td>Intel、AMD</td></tr><tr><td>GPU</td><td>图形处理器，大量并行计算</td><td>NVIDIA、AMD</td></tr><tr><td>NPU</td><td>神经网络加速单元</td><td>手机/服务器 AI 芯片</td></tr><tr><td>DSP</td><td>数字信号处理，音频、图像、通信基带</td><td>音频/基带芯片</td></tr><tr><td>DDR</td><td>缓存/内存接口控制器</td><td>内存条、SoC 的存储接口</td></tr><tr><td>USB / PCIE</td><td>高速串行传输接口</td><td>外设、板级互连</td></tr><tr><td>VCN</td><td>视频/音频编解码处理</td><td>多媒体芯片</td></tr></tbody></table></div>
 <p>这些名字不影响你摆一个 stdcell，但影响你判断&quot;这个项目大概多难&quot;：<strong>接口类（DDR/USB/PCIE）对时序和信号完整性极敏感，NPU/GPU 则是面积和功耗的大户</strong>。</p>
 <h3 id="soc">SOC：先进工艺的主流形态</h3>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">SOC</span><span class="term-zh">System on Chip 片上系统</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">SOC</span><span class="term-zh">System on Chip 片上系统</span></div>
   <div class="term-b"><p>把 CPU、GPU、DDR、USB、PCIe 等多个&quot;原本各是一颗芯片&quot;的功能，<strong>集成到一颗大芯片上</strong>。现在先进工艺上做的绝大多数都是 SOC。</p></div>
 </div>
 <p>从 top（顶层）的视角看，SOC 里的每个子模块（CPU、DDR 控制器、USB PHY……）都是<strong>一个大号的 stdcell 或 macro</strong>：</p>
@@ -190,37 +190,29 @@
 <p>下一课就把第 4 步这九个阶段一个一个拆开讲，并且告诉你每个阶段&quot;做完怎么看它做得好不好&quot;。</p>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>用一张纸画出这条链</div><div class="lab-b"><p>在一张纸上从左到右写五个框：<code>RTL</code> → <code>netlist</code> → <code>PR</code> → <code>GDSII</code> → <code>流片</code>。然后在每个箭头下面写一行字：这一步的产物是什么、谁做、下一个环节拿它干什么。</p>
 <p>验收标准：能不看资料说清 netlist 和 GDSII 的差别（一个有坐标一个没有）、能说出 block 与 top 各交付什么、能说出三种线分别对应流程里的哪一步。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>PR 的输入和输出分别是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">输入是综合后的 netlist（网表）；输出是 GDSII（版图），以及 def、报告、时序数据库等配套文件。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>PD、DE、ME 分别指什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">PD = Physical Design Engineer（后端/物理设计）；DE = Design Engineer（前端，写 RTL、做综合）；ME = Middle End Engineer（中端，DFT、formal、MMMC 等）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>block 和 tile 有什么区别？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">没有区别，是同一个东西的两种叫法，指分给某个人的那块模块设计。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么 mem/SRAM 必须人摆，stdcell 可以自动摆？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">mem 是第三方 IP，引脚位置固定、面积大、上方常禁止走线；stdcell 等高、按行排、有统一 lib/lef 描述，工具能自动摆放和优化。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>physical cell 是什么？举两个例子。</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">只有物理信息、没有逻辑功能的单元，不进网表，PR 阶段按规则补入。例如 tap cell、endcap、decap、filler。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>布线有哪三种线？分别对应流程里哪一步？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">供电、时钟、信号。供电对应 powerplan，时钟对应 cts，信号对应 route。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>SOC 是什么？从 top 视角看它的子模块算什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">System on Chip 片上系统，把 CPU/GPU/DDR/USB/PCIe 等功能集成到一颗芯片；从 top 看，每个子模块就是一个大号的 stdcell 或 macro。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>简历里写项目经历，至少要有哪几个要素？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">模块名（如 DDR 控制器 block）+ 规模（面积/门数）+ 频率 + 你负责的工序（floorplan/CTS/route/时序收敛）。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用一句话说出 PR 是&quot;把 netlist 变成 GDSII&quot;</li><li>能区分逻辑连接（netlist）与物理连接（GDSII）</li><li>能说出 block 与 top 的边界由谁定、各自交付什么</li><li>能说出三种线及对应的流程阶段</li><li>能举出至少三种芯片类型并说出各自的特点</li><li>能说出 SOC 的含义，以及为什么 DDR/USB/PCIe 这类模块在求职时更值钱</li></ul></div>
@@ -243,8 +235,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 6 讲 · 列表（下）：增删改查、排序与转换 · 12 | IC 后端学院</title>
 <meta name="description" content="列表核心操作函数总表（concat/lindex/llength/lappend/lreplace/lsearch/lsort/split/join）+ 两个必考陷阱（谁改源数据、lsort 默认字典序）+ split/join 互逆转换 + 本讲练习。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="01-12-tcl-06-list-b">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -165,21 +165,17 @@ puts &quot;单元：[lindex $parts 1]&quot;</pre><button class="tcl-go" type="bu
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">03</span><h2>动手练</h2></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（3 题，验证两个陷阱）</div><div class="lab-b"><ol><li>用 lappend 往 <code>num_list</code> 追加 6，验证源列表变了；再用 lreplace 替换索引 0 的元素，验证源列表没变。</li><li><code>set s &quot;a,b,c&quot;</code>，用 split 拆成列表，再用 join 用 <code>-</code> 拼回字符串。</li><li>分别跑 <code>lsort {9 100 20}</code> 和 <code>lsort -integer {9 100 20}</code>，对比结果。</li></ol></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>lappend 和 lreplace 谁修改源数据？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">lappend 修改源数据；lreplace 不修改，返回新列表要用 set 接住。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>lsort 排数字要加什么参数？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">-integer（整数）或 -real（浮点）；默认是字符串字典排序，100 会排在 2 前面。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>lsearch 返回什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">元素所在的索引号；找不到返回 -1。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>split 和 join 的关系？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">互逆操作：split 撕开字符串变列表，join 粘合列表变字符串。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>9 个列表函数能说出用途和语法</li><li>两个必考陷阱都能背下来并演示</li><li>split/join 能互转一段实际数据（如路径）</li></ul></div>
@@ -202,8 +198,8 @@ puts &quot;单元：[lindex $parts 1]&quot;</pre><button class="tcl-go" type="bu
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>项目环境：目录规范、Run 与 Queue · 34 | IC 后端学院</title>
 <meta name="description" content="上机第一件事不是敲 innovus，而是搞清楚自己在哪个目录、该把东西放哪。这一课给出标准的项目目录结构（work/scripts/data/library/report/logs 各放什么）、终端多窗口与命名习惯、Run 的命名规范，以及真实项目里怎么把多版 floorplan 丢进集群 Queue、在等待的三四天里做什么。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="03-04-project-env">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -74,8 +74,8 @@
   <div class="ch-h"><span class="ch-n">02</span><h2>六个目录，各管一件事</h2></div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">/proj/&lt;项目名&gt;/          ← 也可能在 ~/work/&lt;项目名&gt;/</span><span class="ln ">├── work/               ← 你的工作目录：跑工具、放 run 的现场</span><span class="ln ">├── scripts/            ← 脚本（Flow）：所有 tcl、makefile、配置文件</span><span class="ln ">├── data/               ← 数据：网表、def、sdc 等输入</span><span class="ln ">├── library/            ← 库：lef / lib / rc tech / 内部库</span><span class="ln ">├── report/             ← 报告：每个阶段吐出的时序、面积、DRC 报告</span><span class="ln ">└── logs/               ← 日志：工具跑批的输出</span></code></pre></div>
 <div class="tbl"><table><thead><tr><th>目录</th><th>放什么</th><th>谁产生</th></tr></thead><tbody><tr><td><strong>work</strong></td><td>run 目录、临时文件、调试现场</td><td>你</td></tr><tr><td><strong>scripts</strong></td><td>所有脚本（<strong>也叫 Flow</strong>）</td><td>你 / 团队</td></tr><tr><td><strong>data</strong></td><td>netlist、def、io file、sdc</td><td>上游 release</td></tr><tr><td><strong>library</strong></td><td>tech lef / cell lef / lib / rc tech / 内部库</td><td>库组 / 工艺厂</td></tr><tr><td><strong>report</strong></td><td>时序报告、面积报告、DRC/LVS 报告</td><td>工具</td></tr><tr><td><strong>logs</strong></td><td>运行日志</td><td>工具</td></tr></tbody></table></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Flow</span><span class="term-zh">流程脚本</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">Flow</span><span class="term-zh">流程脚本</span></div>
   <div class="term-b"><p>一个项目里&quot;把九道工序串起来自动跑&quot;的脚本集合（一堆 tcl + 配置文件），放在 <code>scripts/</code> 下。<strong>新人最重要的自学材料不是文档，是 Flow</strong>——它写明了每一步用什么命令、什么参数、按什么顺序。</p></div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><ul><li>work 是&quot;现场&quot;，会被反复清空重建；</li><li>scripts 是&quot;资产&quot;，要进版本库（git/svn）、要被同事 review、要能复现。</li></ul>
@@ -97,8 +97,8 @@
 </section>
 <section class="ch" id="run" data-ch="run">
   <div class="ch-h"><span class="ch-n">04</span><h2>Run：一个 run 就是一个&quot;从头跑一遍的版本&quot;</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">run</span><span class="term-zh">一次完整运行</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">run</span><span class="term-zh">一次完整运行</span></div>
   <div class="term-b"><p>针对某一版数据/某一版配置，把流程从头跑一遍（或从某个阶段跑到底），看结果有没有变好。<strong>一个 run 对应一个目录、一份 log、一套报告。</strong></p></div>
 </div>
 <p>命名规范（文档建议）：<strong>日期 + 改动内容</strong>。例如：</p>
@@ -108,8 +108,8 @@
 </section>
 <section class="ch" id="queue" data-ch="queue">
   <div class="ch-h"><span class="ch-n">05</span><h2>Queue：把耗时的事丢给集群</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">Queue</span><span class="term-zh">队列 / 集群</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">Queue</span><span class="term-zh">队列 / 集群</span></div>
   <div class="term-b"><p>项目组的服务器集群把机器资源切成若干队列（如 <code>normal</code>、<code>abc</code>）。你把任务提交进去，调度器排队分配机器执行。<strong>所有&quot;自动跑&quot;的步骤都走这条路。</strong></p></div>
 </div>
 <p>为什么必须用集群？因为 PR 的自动流程<strong>极耗资源、极耗时</strong>：</p>
@@ -133,37 +133,29 @@
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>建一套自己的项目目录</div><div class="lab-b"><p>在练习终端（或真机）里，从零建出这套结构，并验证每一步：</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 先看清当前在哪、有什么（永远先看再动）</span><span class="ln ">pwd</span><span class="ln ">ls -la</span><span class="ln "> </span><span class="ln cmt"># 2. 建自己的 work 目录（用自己名字，避免和共用账号冲突）</span><span class="ln ">mkdir -p work/$(whoami)/run_1025_base</span><span class="ln "> </span><span class="ln cmt"># 3. 建其余五个目录（-p 表示父目录不存在就一起建）</span><span class="ln ">mkdir -p scripts data library report logs</span><span class="ln "> </span><span class="ln cmt"># 4. 看一眼最终结构（tree 没装就用 ls -R）</span><span class="ln ">ls -R . | head -30</span><span class="ln "> </span><span class="ln cmt"># 5. 建一个 run 目录，并让 log 落在 logs/ 下（输出同时上屏和进文件）</span><span class="ln ">cd work/$(whoami)/run_1025_base</span><span class="ln ">echo &quot;run start: $(date)&quot; | tee ../../logs/run_1025.log</span><span class="ln "> </span><span class="ln cmt"># 6. 检查目录属主与权限（确认没动到别人的东西）</span><span class="ln ">ls -ld ../../work ../../work/*</span></code></pre></div>
 <p>验收标准：目录结构建对、run 目录名带日期与内容、log 能落到 <code>logs/</code> 下、能说出六个目录各放什么。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>work / scripts / data / library / report / logs 各放什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">work 是你的 run 与调试现场；scripts 放所有流程脚本（Flow）；data 放网表/def/sdc 等输入；library 放 lef/lib/rc tech/内部库；report 放各阶段报告；logs 放运行日志。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么脚本不能写在 work 目录里？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">work 是会被反复清空重建的现场，scripts 是要进版本库、要被 review、要能复现的资产；写错地方等于图纸放在会被推平的工地。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>发现 work 目录里有别人的内容怎么办？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">不要清空公共目录；在 work 下自建以自己名字命名的目录，避免冲突；删除前先 ls 确认属主与内容。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Run 命名应该包含什么？为什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">日期 + 改动内容；因为一个 run 可能跑两三天，一周后要靠名字回忆改了什么。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Queue / 集群解决什么问题？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">把极耗资源、极耗时的自动流程（place→cts→route）丢到集群排队执行，不占用登录节点；你只做手动的 floorplan 与结果分析。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>一个大模块从 place 到 cts 出结果大概要多久？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">五六百万门的规模，可能 3~4 天。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>多版本 Try 机制是什么？等待期间该做什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">同时/依次提交多版 floorplan 比较结果择优；等待期应分析上一批结果、加新约束、再提交，形成&quot;提交→分析→再提交&quot;的循环。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>提交后必须关注什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">任务状态（是否被 Killed）、资源与 license、log 尾部有没有 ERROR；跑批第一原则是确认它真的在跑。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能默写六个目录及各自内容</li><li>能用 mkdir -p 一次建出结构，并说出 <code>-p</code> 的作用</li><li>能说出为什么 scripts 要进版本库、work 会被清空</li><li>会开多终端（Ctrl+Shift+T）并给窗口改名区分 Run / Debug</li><li>能按&quot;日期 + 改动&quot;给 run 命名</li><li>能解释 Queue 的作用、3~4 天的量级、以及等待期该做的分析循环</li><li>知道提交后要查状态与 log，避免白等两天</li></ul></div>
@@ -186,8 +178,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

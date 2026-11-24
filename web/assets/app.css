@@ -98,18 +98,14 @@ strong{color:var(--ink);font-weight:650}
 .check ul{margin:6px 0;padding-left:22px}
 .check li{font-size:14px;color:#255a49}
 
-/* ---------- 术语卡 ---------- */
-.term{margin:14px 0;border:1px solid #e0e7f1;border-radius:10px;background:#fff;cursor:pointer;transition:.18s}
+/* ---------- 术语卡（默认展开，不可折叠） ---------- */
+.term{margin:14px 0;border:1px solid #e0e7f1;border-radius:10px;background:#fff}
 .term:hover{border-color:#c7d6e8;box-shadow:0 2px 10px rgba(30,60,100,.06)}
 .term-h{display:flex;align-items:center;gap:10px;padding:10px 14px;flex-wrap:wrap}
 .term-en{font-family:var(--mono);font-size:14px;font-weight:600;color:#1d4e7c}
 .term-zh{font-size:13.5px;color:var(--ink2);background:#eef3f8;border-radius:5px;padding:1px 8px}
-.term-ico{margin-left:auto;font-style:normal;font-size:11px;color:var(--dim)}
-.term-b{display:none;padding:0 14px 12px;border-top:1px dashed #e6ecf4;font-size:14px;color:#33445a}
+.term-b{display:block;padding:0 14px 12px;border-top:1px dashed #e6ecf4;font-size:14px;color:#33445a}
 .term-b p{margin:8px 0}
-.term.open .term-b{display:block}
-.term.open .term-ico{color:var(--brand)}
-.term.open .term-ico::after{content:" · 收起"}
 
 /* ---------- 代码 ---------- */
 .code{margin:16px 0;border-radius:10px;overflow:hidden;background:var(--code-bg);box-shadow:0 2px 12px rgba(10,25,40,.14)}
@@ -139,9 +135,7 @@ td code{font-size:12.5px}
 .q-q{display:flex;gap:8px;font-size:14.5px;color:#2f2a45;font-weight:600;line-height:1.7}
 .q-no{color:var(--violet);font-family:var(--mono);font-size:12px;padding-top:3px}
 .q-show{margin:8px 0 0 22px;border:1px solid #ddd5f2;background:#fff;color:var(--violet);border-radius:7px;font-size:12px;padding:3px 10px;cursor:pointer;font-family:inherit}
-.q-a{display:none;margin:9px 0 0 22px;padding:9px 13px;background:#fff;border-left:3px solid #c9bcf0;border-radius:0 7px 7px 0;font-size:14px;color:#3a3352}
-.q-item.open .q-a{display:block}
-.q-item.open .q-show{display:none}
+.q-a{display:block;margin:9px 0 0 22px;padding:9px 13px;background:#fff;border-left:3px solid #c9bcf0;border-radius:0 7px 7px 0;font-size:14px;color:#3a3352}
 
 /* ---------- 章节完成 ---------- */
 .ch-done{display:inline-flex;align-items:center;gap:8px;margin:16px 0 4px;padding:7px 12px;border:1px solid var(--line);

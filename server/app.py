@@ -330,9 +330,16 @@ def admin_set_section(lesson: str, chapter: str, r: SectionIn, request: Request)
     if body is not None:
         # 兜底：正文里任何外链/base64 图片一律转存到服务器本机，杜绝超链接引用
         body, n_conv = _localize_images(lesson, chapter, body)
+        # 兜底：旧版折叠标记（"点击看解释"小字/看答案按钮）已改为默认展开，统一清掉
+        body = re.sub(r'<i class="term-ico"[^>]*>[^<]*</i>', "", body)
+        body = re.sub(r'<button class="q-show"[^>]*>[^<]*</button>', "", body)
     if body is not None and len(body) > MAX_SECTION_HTML:
         raise HTTPException(400, "小节内容过大（上限 30 万字符）")
+    # 标题清洗：历史版本的编辑按钮曾挂在 h2 里，保存的标题可能带"✏️ 编辑"尾巴
     title = (r.title or "").strip() or None
+    if title:
+        title = re.sub(r"\s*✏️?\s*编辑\s*$", "", title).strip() or None
+        title = title.replace("✏️ 编辑", "").replace("✏️编辑", "").replace("✏️", "").strip() or None
     body = body if (body is not None and body.strip()) else None
     with closing(db()) as c:
         c.execute(

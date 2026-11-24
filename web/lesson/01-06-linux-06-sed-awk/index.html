@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 6 课 · 文本三剑客：sed / awk / gvim · 06 | IC 后端学院</title>
 <meta name="description" content="sed 打印/新增/删除/替换（含 -i 注意事项）；awk 完整语法框架、内置变量、常用函数与 10 条实操；gvim 常用命令全套（设置/光标移动/编辑/可视/分屏/.vimrc 配置）；课后 awk 练习。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="01-06-linux-06-sed-awk">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -138,29 +138,23 @@
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练：awk 练习</h2></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>awk 练习（10 题）</div><div class="lab-b"><p>1、回到家目录 2、创建文件 demo_awk.txt 3、在 demo_awk.txt 中输入以下内容： demo  111  222  333 clock 444  555  666 test:777:888:999 run;1;2;3 icc/4/5/6 4、取出第五行的 6 5、取出 222 6、取出 999 7、根据冒号分割，取出第 2 列大于 400 且第 4 列小于 1000 的行的第 2 列 8、根据空格分割，取出第 2 列大于 100 小于 200 的行的第 3 列 9、根据冒号分割，取出第 2 列等于 777 的第 3 列 10、根据空格分割，取出第 3 列不等于 222 的整行</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>sed 怎么才真正修改文件？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">加 -i 选项；不加 -i 只打印结果，原文件不变。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>awk 里 $2 和 $NF 的区别？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">$2 是第 2 列；$NF 是最后一列（NF 是该行总列数）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>awk 按 : 分割取第 3 列怎么写？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">awk -F ':' '{print $3}' 文件。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>统计文件行数的 awk 命令？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">awk 'END{print NR}' 文件。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>gvim 里复制一行再粘贴用什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">yy 复制当前行，p 粘贴到光标下方；u 撤销、ctrl+r 重做。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>:vsp 和 :sp 的区别？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">:vsp 左右分屏打开文件，:sp 上下分屏；ctrl+w 再按 w 在分屏间切换。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>sed 打印/新增/删除/替换 8 条命令全部验证过</li><li>awk 三段式框架 + 6 个内置变量 + 3 个常用函数都记得住</li><li>awk 练习 10 题全部独立完成</li><li>会用 gvimdiff 和 g+f/ctrl+o 在文件间跳转</li><li>gvim 的 yy/dd/p/u、ciw、分屏、.vimrc 配置都动手练过</li></ul></div>
@@ -184,8 +178,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

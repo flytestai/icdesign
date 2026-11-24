@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 1 讲 · 开工准备：环境与第一个命令 · 07 | IC 后端学院</title>
 <meta name="description" content="TCL 平时不是独立运行的，而是"寄生"在 EDA 工具里。这一课搞定 innovus 打不开的排查、写出第一个 puts、弄清两种注释写法，并在网页练习台上跑出第一行输出。全程 Python 对照。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="01-07-tcl-01-start">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -91,8 +91,8 @@
 <p>下面的输入行可以直接继续敲命令：敲 <code>set name &quot;张工&quot;</code> 回车，再敲 <code>puts &quot;你好，$name&quot;</code> 回车——<code>$name</code> 是取变量的值，第 2 讲细讲。</p>
 <p><strong>先记住一张总对照表，心里就有地图了：</strong></p>
 <div class="tbl"><table><thead><tr><th>你在 Python 里写的</th><th>在 TCL 里要这样写</th></tr></thead><tbody><tr><td><code>name = &quot;Tom&quot;</code></td><td><code>set name &quot;Tom&quot;</code></td></tr><tr><td><code>print(x)</code></td><td><code>puts $x</code></td></tr><tr><td><code>x = x + 1</code></td><td><code>incr x</code></td></tr><tr><td><code>x + y * 2</code></td><td><code>expr {$x + $y * 2}</code></td></tr><tr><td>字典 <code>d = {&quot;a&quot;: 1}</code></td><td>数组 <code>set d(a) 1</code></td></tr><tr><td>列表 <code>lst = [1,2,3]</code></td><td><code>set lst {1 2 3}</code></td></tr><tr><td><code>for i in lst:</code></td><td><code>foreach i $lst { ... }</code></td></tr><tr><td><code>def f(a, b):</code></td><td><code>proc f {a b} { ... }</code></td></tr><tr><td><code>*args</code></td><td><code>args</code></td></tr></tbody></table></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">TCL</span><span class="term-zh">Tool Command Language，EDA 工具的脚本语言</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">TCL</span><span class="term-zh">Tool Command Language，EDA 工具的脚本语言</span></div>
   <div class="term-b"><p>核心哲学只有一句话：<strong>一切都是命令 + 参数</strong>。Innovus、DC、PT 的命令行全是 TCL。</p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="puts"><span>这一章我学完了</span></label>
@@ -114,21 +114,17 @@
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（2 题）</div><div class="lab-b"><ol><li>配好环境，打开并关闭一次 Innovus 窗口。</li><li>用 <code>puts</code> 输出&quot;我要学 TCL 了&quot;。</li></ol></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>练习 2 怎么写？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a"><code>puts &quot;我要学 TCL 了&quot;</code>。注意英文双引号；puts 自动换行。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>innovus 打不开第一件事查什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a"><code>~/.bashrc</code> 里有没有 source 各家工具脚本，改完 <code>source .bashrc</code>。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>TCL 的核心哲学是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">一切都是命令 + 参数。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>puts</code> 相当于 Python 的什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">print()，输出内容并换行。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 TCL 和 EDA 工具的关系</li><li>能在练习台用 puts 输出任意一句话</li><li>能区分 <code>#</code> 和 <code>;#</code> 两种注释</li></ul></div>
@@ -151,8 +147,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>

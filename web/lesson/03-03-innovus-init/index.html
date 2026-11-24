@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>init_design：把数据导进 Innovus，并证明它导对了 · 33 | IC 后端学院</title>
 <meta name="description" content="数据准备的文件清单前面讲过，这一课讲怎么把它们真正喂进工具。对比脚本方式与 GUI 方式、逐段拆一份能跑的 init 脚本、说清 init_design 那一刻工具做了什么，然后给出导入后的五条验证检查和一张报错对照表——绝大多数"跑出来结果不对"的问题，都死在这一步没验干净。">
-<link rel="icon" href="/assets/logo.svg?v=1795525188" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795525188">
+<link rel="icon" href="/assets/logo.svg?v=1795533085" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795533085">
 </head>
 <body data-page="lesson" data-lesson="03-03-innovus-init">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795525188" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795533085" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -96,15 +96,15 @@
 </section>
 <section class="ch" id="what" data-ch="what">
   <div class="ch-h"><span class="ch-n">04</span><h2>init_design 那一刻，工具做了什么</h2></div>
-  <div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">init_design</span><span class="term-zh">初始化设计</span><i class="term-ico">点击看解释</i></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">init_design</span><span class="term-zh">初始化设计</span></div>
   <div class="term-b"><p>Innovus 里把&quot;配置&quot;变成&quot;真设计&quot;的那一条命令：建库、链接、建层次、建时序图、挂约束，五件事一次做完。**执行它之前所有的 <code>set init_*</code> 都只是在记配置，不产生任何动作。**</p></div>
 </div>
 <p>理解这一步干了什么，你就知道后面为什么会有那些报错：</p>
 <ol><li><strong>建库（build library）</strong>：把 lef 里的形状信息、lib 里的时序信息合并成内存中的单元库；</li><li><strong>链接（link）</strong>：把 netlist 里每个实例（instance）映射到库里的某个 cell。<strong>找不到就是 link 失败</strong>；</li><li><strong>建层次</strong>：按 <code>init_top_cell</code> 展开层次树，处理重复名（uniquify）；</li><li><strong>建时序图</strong>：把 net、pin、时钟关系建成图结构，供后面所有时序计算使用；</li><li><strong>挂约束</strong>：把每个 view 的 sdc 挂到对应的分析环境上。</li></ol>
 <p>第 2 步是事故高发区。<strong>link 失败的本质永远是&quot;名字对不上&quot;</strong>：netlist 里叫 <code>NAND2_X1</code>，库里叫 <code>NAND2X1</code>（差一个下划线），就找不到。</p>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">link</span><span class="term-zh">链接</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">link</span><span class="term-zh">链接</span></div>
   <div class="term-b"><p>把网表里的每个实例映射到库（lef + lib）里的具体 cell。<strong>link 成功 = 名字能对上</strong>；link 失败无一例外是网表版本与 lef/lib 版本不匹配，或者少导入了某个 lef。</p></div>
 </div>
   <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
@@ -115,8 +115,8 @@
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 设计概况：实例数、端口数、单元数——数量级对不上就是网表拿错了</span><span class="ln ">report_summary</span><span class="ln "> </span><span class="ln cmt"># 2. 设计规则体检：悬空输入、无驱动网络、多驱动、未连接电源</span><span class="ln ">checkDesign -all</span><span class="ln "> </span><span class="ln cmt"># 3. 约束体检：有没有时钟、有没有未约束的路径、有没有时序环路</span><span class="ln ">check_timing</span><span class="ln "> </span><span class="ln cmt"># 4. 时钟是否真的建上了：数量、名字、周期对不对</span><span class="ln ">report_clocks</span><span class="ln "> </span><span class="ln cmt"># 5. 全局时序概览：WNS/TNS 的量级是否合理（此时还没优化，差是正常的，差得离谱才是问题）</span><span class="ln ">report_timing_summary</span></code></pre></div>
 <p>五条各自的判读标准：</p>
 <div class="tbl"><table><thead><tr><th>检查</th><th>看什么</th><th>异常信号</th></tr></thead><tbody><tr><td><code>report_summary</code></td><td>instance 数、port 数</td><td>数量差一个量级 → 网表版本错 / top 选错</td></tr><tr><td><code>checkDesign</code></td><td>unconnected、no driver、multi driver</td><td>大量 no driver → 库缺 cell 或电源没接上</td></tr><tr><td><code>check_timing</code></td><td>no_clock、unconstrained endpoint</td><td><code>no_clock</code> 非零 → 时钟没建上，sdc 没生效</td></tr><tr><td><code>report_clocks</code></td><td>时钟列表</td><td>空列表 → mmmc 没读进来；周期不对 → sdc 版本错</td></tr><tr><td><code>report_timing_summary</code></td><td>WNS / TNS</td><td>WNS 差几十 ns → 约束写错（比如周期少写一个 0）</td></tr></tbody></table></div>
-<div class="term" tabindex="0">
-  <div class="term-h"><span class="term-en">未约束路径</span><span class="term-zh">unconstrained path</span><i class="term-ico">点击看解释</i></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">未约束路径</span><span class="term-zh">unconstrained path</span></div>
   <div class="term-b"><p>没有被任何时钟或 io delay 覆盖到的时序路径。工具<strong>不会优化它，也不算进 WNS</strong>——报告看起来&quot;没问题&quot;，实际是定时炸弹。<code>check_timing</code> 输出里的 unconstrained endpoint 计数就是查这件事。</p></div>
 </div>
 <p><strong>这五条命令建议直接写进 init 脚本末尾</strong>，每次跑完自动打印，不用靠人记。</p>
@@ -134,37 +134,29 @@
 <p>脚本末尾建议固定加上这几行（每次跑自动留证据）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># init 之后的五条体检，输出直接进 log</span><span class="ln ">report_summary</span><span class="ln ">checkDesign -all</span><span class="ln ">check_timing</span><span class="ln ">report_clocks</span><span class="ln ">report_timing_summary</span><span class="ln "> </span><span class="ln cmt"># 存库，下次用 loadDesign DBS/top.enc 直接续跑</span><span class="ln ">saveDesign DBS/top.enc</span></code></pre></div>
 <p>验收标准：能报出实例数、时钟个数与主时钟周期、<code>check_timing</code> 里 unconstrained 端点数，并确认 log 中无 ERROR。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么推荐脚本方式而不是 GUI 导入？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">脚本完全可重复、可进版本库、出错有 log 可查；GUI 输入项多、容易点漏且漏了不一定报错，别人无法复现。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>init 脚本里为什么常常只列 lef 和 verilog，不单独列 lib 和 sdc？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">因为 <code>init_mmmc_file</code> 指向的 viewDefinition.tcl 里已经引用了 lib 与 sdc；但这也意味着漏了 mmmc 会导致没有时钟、只有默认环境。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>init_design</code> 之前和之后的 <code>set init_*</code> 有什么区别？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">之前是配置、之后才生效；写在 <code>init_design</code> 之后的配置完全无效且不报错。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>init_design 内部的 link 是在做什么？link 失败的本质原因是什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">把 netlist 里每个实例映射到库里的具体 cell；失败本质是名字对不上（网表与 lef/lib 版本或命名不一致）。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么&quot;init_design 不报错&quot;不能算导入成功？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">工具对缺时钟、缺 cell 等问题常只给 warning，允许你后面补；错误会埋到 route 之后才暴露，重跑代价极大。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>列出 init 后的五条验证检查。</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">report_summary、checkDesign -all、check_timing、report_clocks、report_timing_summary。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>report_clocks</code> 返回空列表说明什么？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">MMMC 没读进来，或 sdc 里没有 create_clock，时序约束完全没生效。</div>
-</div><div class="q-item">
+</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>Library unit mismatch</code> 一般怎么修？</div>
-  <button class="q-show" type="button">看答案</button>
   <div class="q-a">统一时间/电容单位（如 ns、pF），或去掉 setLibraryUnit 让工具从 lib 自动获取。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出脚本方式相对 GUI 的三个优势，并解释为什么 GUI 会漏项</li><li>能背出 init 需要的数据清单（netlist / tech lef / cell lef / lib / rc tech / sdc / mmmc / def / pwr-gnd 名）</li><li>能默写一份 init 脚本的骨架（mmmc → lef → verilog+top → pwr/gnd → init_design）</li><li>能解释 init_design 五个内部动作，尤其是 link</li><li>能列出五条验证检查及各自的异常信号</li><li>遇到 <code>Cannot find cell</code> / <code>0 clocks defined</code> / <code>Unconnected power pin</code> 能立刻说出原因与修法</li><li>知道用 saveDesign / loadDesign 保存与续跑</li></ul></div>
@@ -188,8 +180,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795525188"></script>
-<script src="/assets/tcl.js?v=1795525188"></script>
-<script src="/assets/app.js?v=1795525188"></script>
+<script src="/assets/shell.js?v=1795533085"></script>
+<script src="/assets/tcl.js?v=1795533085"></script>
+<script src="/assets/app.js?v=1795533085"></script>
 </body>
 </html>
