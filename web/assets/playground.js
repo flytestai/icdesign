@@ -488,6 +488,20 @@ function buildSelect() {
   });
 }
 
+// 代码框高度跟着内容走：正好比代码多留一行空白，超过 480px 就内部滚动。
+// 早期固定 430px，短代码下方会空出一大片，看着像"题目区"很重。
+function fitCode() {
+  var ta = codeEl();
+  if (!ta) return;
+  var cs = window.getComputedStyle(ta);
+  var lh = parseFloat(cs.lineHeight) || 23;
+  var pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+  var bd = (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
+  var lines = String(ta.value || '').split('\n').length;
+  var rows = Math.max(lines + 1, 4);
+  ta.style.height = Math.min(Math.round(rows * lh + pad + bd), 480) + 'px';
+}
+
 function storeKey() { return 'pg_code_v3_' + state.mode; }
 
 function saveCode() {
@@ -502,6 +516,7 @@ function loadCode() {
   } catch (e) { codeEl().value = def; }
   state.cursor = 0;
   syncStep();
+  fitCode();
 }
 
 /* ---------------- 模式切换 ---------------- */
@@ -545,7 +560,7 @@ function mount() {
     var sd = el('pg-stdin');
     if (sd) sd.value = item.stdin || '';
     state.cursor = 0;
-    saveCode(); syncStep(); clearTerm(); focusTerm();
+    fitCode(); saveCode(); syncStep(); clearTerm(); focusTerm();
   });
 
   el('pg-run').addEventListener('click', runAll);
@@ -573,7 +588,7 @@ function mount() {
       ta.selectionStart = ta.selectionEnd = s + 4;
     }
   });
-  ta.addEventListener('input', function () { saveCode(); state.cursor = 0; syncStep(); });
+  ta.addEventListener('input', function () { saveCode(); state.cursor = 0; syncStep(); fitCode(); });
 
   var sd = el('pg-stdin');
   if (sd) sd.addEventListener('input', function () { state.cursor = 0; syncStep(); });
