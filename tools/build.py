@@ -290,11 +290,21 @@ def md(src, inline_only=False):
             out.append(render_code(lang, body))
             continue
         if s.startswith("#### "):
-            out.append(f"<h4>{inline(s[5:])}</h4>")
+            t = s[5:]
+            m = re.match(r"^(.+?)\s*\{#([\w-]+)\}\s*$", t)
+            if m:
+                out.append(f'<h4 id="{m.group(2)}">{inline(m.group(1))}</h4>')
+            else:
+                out.append(f"<h4>{inline(t)}</h4>")
             i += 1
             continue
         if s.startswith("### "):
-            out.append(f"<h3>{inline(s[4:])}</h3>")
+            t = s[4:]
+            m = re.match(r"^(.+?)\s*\{#([\w-]+)\}\s*$", t)
+            if m:
+                out.append(f'<h3 id="{m.group(2)}">{inline(m.group(1))}</h3>')
+            else:
+                out.append(f"<h3>{inline(t)}</h3>")
             i += 1
             continue
         if s.startswith("|") and i + 1 < len(lines) and re.match(r"^\|[\s:|-]+\|$", lines[i + 1].strip()):
@@ -576,7 +586,7 @@ HOME = HEAD + """
 </section>
 
 <footer class="foot">
-  <p>IC 后端学院 · 课表 9 阶段 113 学时 + 实战补充 · 共 {nlesson} 课 {nchapter} 章</p>
+  <p>IC 后端学院 · 课表 9 阶段 113 学时，已上线 {nhours} 学时 · 共 {nlesson} 课 {nchapter} 章</p>
 </footer>
 <script src="/assets/app.js"></script>
 </body>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SDC 时序约束：告诉工具"做到什么程度算合格" · 24 | IC 后端学院</title>
+<meta name="description" content="前面几课给的是"事实"，这一课给的是"要求"。从 DFF→组合逻辑→DFF 的基本模型讲起，一条条写出时钟、分频、虚拟时钟、抖动、时钟分组、输入输出延迟、假路径、负载三件套，说清周期与频率、占空比与 waveform 的换算，最后讲约束力度为什么直接决定优化力度，以及 SDC 由 FCT 部门负责这件事对 PR 工程师意味着什么。">
+<link rel="icon" href="/assets/logo.svg?v=1795449784" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795449784">
+</head>
+<body data-page="lesson" data-lesson="02-08-pr-sdc">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795449784" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-2">阶段二 · 后端基本概念</a><span>/</span><b>SDC 时序约束：告诉工具"做到什么程度算合格"</b></div>
+    <div class="hero">
+      <div class="hero-no">24</div>
+      <h1>SDC 时序约束：告诉工具"做到什么程度算合格"</h1>
+      <p class="hero-en">SDC Timing Constraints</p>
+      <p class="hero-sum">前面几课给的是&quot;事实&quot;，这一课给的是&quot;要求&quot;。从 DFF→组合逻辑→DFF 的基本模型讲起，一条条写出时钟、分频、虚拟时钟、抖动、时钟分组、输入输出延迟、假路径、负载三件套，说清周期与频率、占空比与 waveform 的换算，最后讲约束力度为什么直接决定优化力度，以及 SDC 由 FCT 部门负责这件事对 PR 工程师意味着什么。</p>
+      <div class="hero-meta">
+        <span class="pill">约 0 分钟</span>
+        <span class="pill">课表学时 3</span>
+        <span class="pill tag">SDC</span><span class="pill tag">create_clock</span><span class="pill tag">generated clock</span><span class="pill tag">虚拟时钟</span><span class="pill tag">uncertainty</span><span class="pill tag">jitter</span><span class="pill tag">IO delay</span><span class="pill tag">false path</span><span class="pill tag">FCT</span>
+      </div>
+    </div>
+    <article id="article"><section class="ch" id="what" data-ch="what">
+  <div class="ch-h"><span class="ch-n">01</span><h2>SDC 是什么：设计的命脉</h2></div>
+  <div class="goal"><span>本章目标</span>能画出 DFF → 组合逻辑 → DFF 的时序模型并指出起始点/结束点；能由周期算频率、由 waveform 算占空比；能写出 create_clock / create_generated_clock / 虚拟时钟 / uncertainty / clock group / io delay / false path / 负载三件套这几类约束，并说清每条在&quot;要求&quot;什么。</div>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">SDC</span><span class="term-zh">Synopsys Design Constraints</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一套用 Tcl 写的约束文件，对设计的<strong>时序、面积、功耗</strong>提出要求。工具读进来后，就按这些要求去优化——它是&quot;优化的目标函数&quot;，也是判断合格与否的标准。</p></div>
+</div>
+<p>文档对它的定位非常重：<strong>&quot;SDC 是一个设计中至关重要的文件……它是设计的命脉，决定了芯片是否满足设计要求的规范。&quot;</strong></p>
+<p>为什么说&quot;命脉&quot;？因为前面几课的文件都是&quot;事实&quot;：</p>
+<div class="tbl"><table><thead><tr><th>文件</th><th>性质</th><th>回答的问题</th></tr></thead><tbody><tr><td>netlist / def</td><td>事实</td><td>电路连成什么样</td></tr><tr><td>lef</td><td>事实</td><td>单元和工艺允许什么形状</td></tr><tr><td>lib / rc tech</td><td>事实</td><td>延迟实际是多少</td></tr><tr><td><strong>sdc</strong></td><td><strong>要求</strong></td><td><strong>必须做到多少才算合格</strong></td></tr></tbody></table></div>
+<p>事实错了工具会报错；<strong>要求错了工具不会报错，它会安静地做出一颗废芯片</strong>——这就是 SDC 危险的地方。</p>
+<p>文档里还有一句必须画重点：</p>
+<div class="tip"><div class="tip-h">小技巧</div><p><strong>&quot;对工具是否能够优化到期望的范围，设置的力度越大，优化的力度就越大。&quot;</strong></p>
+<p>周期写 15ns，工具就拼命插 buffer、换大驱动、拆逻辑去挤进 15ns；周期写 40ns，工具就躺平不管。<strong>所以约束既不能虚松（松了不干活），也不能虚紧（紧了白烧面积和功耗，还可能根本收敛不了）。</strong></p></div>
+  <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="model" data-ch="model">
+  <div class="ch-h"><span class="ch-n">02</span><h2>先建立一个时序模型</h2></div>
+  <p>SDC 里所有命令，本质都在描述这张图：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">             ┌───────┐    L1     L2     L3     L4    ┌───────┐</span><span class="ln ">  clk ──┬───▷│ DFF1  │──▷[&amp;]──▷[|]──▷[^]──▷[!]─────▷│ DFF2  │───▷</span><span class="ln ">        │    └───────┘   （组合逻辑：与/或/异或/非）  └───────┘</span><span class="ln ">        │         ↑                                      ↑</span><span class="ln ">        │      起始点                                  结束点</span><span class="ln ">        │     (launch)                                (capture)</span><span class="ln ">        └──────────────────────────────────────────────────┘</span><span class="ln ">                     同一个时钟，同一个周期</span></code></pre></div>
+<ul><li><strong>DFF</strong>：触发器。时钟沿到来时把输入值搬到输出，其余时间保持不变。它是时序分析的分界线。</li><li><strong>L1~L4</strong>：中间的组合逻辑（与非门、缓冲器等），只有延迟、不存数据。</li><li><strong>clk</strong>：时钟输入端，同时驱动起始和结束两个触发器。</li></ul>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">时序分析</span><span class="term-zh">检查数据能不能被正确接收</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>从起始触发器（launch）发出数据，经过组合逻辑，到结束触发器（capture）被采样。要求是：<br><strong>① 不能太晚</strong>——必须在下个时钟沿到来之前到达并稳定（setup，建立时间）；<br><strong>② 不能太早</strong>——不能在同一个时钟沿把上一拍的旧数据冲掉（hold，保持时间）。</p></div>
+</div>
+<p>setup 差了表现为&quot;跑不到这么高频率&quot;；hold 差了表现为&quot;芯片一上电就死，频率降到 1Hz 也没用&quot;。<strong>hold 是硬伤，必须修到零违规。</strong></p>
+  <label class="ch-done"><input type="checkbox" data-mark="model"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="write" data-ch="write">
+  <div class="ch-h"><span class="ch-n">03</span><h2>一条一条写约束</h2></div>
+  <p>下面这份脚本是一份最小可用的 sdc 骨架，每一行都有注释，建议直接从它开始改。</p>
+<h3 id="createclock">1. create_clock：定义源头时钟</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 定义一个叫 CLK 的时钟：周期 20ns，上升沿在 0ns、下降沿在 10ns</span><span class="ln ">create_clock -name CLK -period 20 -waveform {0 10} [get_ports clk]</span><span class="ln "> </span><span class="ln cmt"># 端口本身也要有驱动和负载的描述，否则第一级 delay 算不准</span><span class="ln ">set_driving_cell -lib_cell BUF_X4 [get_ports clk]</span></code></pre></div>
+<p>三个参数说清楚：</p>
+<div class="tbl"><table><thead><tr><th>参数</th><th>含义</th><th>本例</th></tr></thead><tbody><tr><td><code>-name</code></td><td>时钟名，后面所有命令都靠这个名字引用</td><td><code>CLK</code></td></tr><tr><td><code>-period</code></td><td><strong>周期</strong>，单位与 lib 的 time_unit 一致（通常 ns）</td><td><code>20</code> → 频率 = 1/20ns = <strong>50MHz</strong></td></tr><tr><td><code>-waveform {0 10}</code></td><td>上升沿时刻、下降沿时刻</td><td>0ns 起高、10ns 落低</td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><ul><li><strong>频率 = 1 / 周期</strong>。周期 20ns → 50MHz；周期 1.25ns → 800MHz。</li><li><strong>占空比 = 高电平持续时间 / 周期</strong>。<code>-waveform {0 10}</code> 高电平持续 10ns，占空比 = 10/20 = <strong>50%</strong>。</li><li>文档里&quot;周期是 20、占空比是 10&quot;这句话，那个 <strong>10 指的是波形里的第二个数（高电平持续 10ns）</strong>，换算成占空比是 50%。写约束时永远写<strong>时刻</strong>，不写百分比——这是新人最容易搞混的一处。</li><li>想要 25% 占空比：<code>-waveform {0 5}</code>（高 5ns，低 15ns）。</li></ul></div>
+<p>换算不熟就先在下面这台 Tcl 练习台上练两遍——<strong>改数字，按运行，看结果</strong>：</p>
+<div class="tsbx has-code" data-code="# 800MHz 对应的周期是多少 ns：1 / 0.8GHz = 1.25ns
+puts [expr {1.0 / 0.8}]
+
+# 周期 2.5ns 对应多少 MHz：1000 / 2.5 = 400MHz
+puts [expr {1000.0 / 2.5}]
+
+# 分频：源周期 1.25ns，8 分频后周期变 10ns，频率 = 100MHz
+set src 1.25                                  ;# 源时钟周期
+set div 8                                     ;# 分频系数
+set per [expr {$src * $div}]                  ;# 分频后周期
+puts &quot;分频后周期 $per ns，频率 [expr {1000.0 / $per}] MHz&quot;
+
+# 倍频：周期除以倍数
+set mul 2                                     ;# 倍频系数
+puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625ns → 1600MHz">
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="tcl-code"><pre># 800MHz 对应的周期是多少 ns：1 / 0.8GHz = 1.25ns
+puts [expr {1.0 / 0.8}]
+
+# 周期 2.5ns 对应多少 MHz：1000 / 2.5 = 400MHz
+puts [expr {1000.0 / 2.5}]
+
+# 分频：源周期 1.25ns，8 分频后周期变 10ns，频率 = 100MHz
+set src 1.25                                  ;# 源时钟周期
+set div 8                                     ;# 分频系数
+set per [expr {$src * $div}]                  ;# 分频后周期
+puts &quot;分频后周期 $per ns，频率 [expr {1000.0 / $per}] MHz&quot;
+
+# 倍频：周期除以倍数
+set mul 2                                     ;# 倍频系数
+puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625ns → 1600MHz</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div>
+    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  </div>
+  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+</div>
+<h3 id="genclock">2. create_generated_clock：分频与倍频</h3>
+<p>芯片内部几乎不可能所有模块都跑同一个频率。文档举的例子非常典型：</p>
+<blockquote><p>进入的时钟是 800M，模块内只能接受 100M 或者 200M，需要进行降频——分成 8 个，每个 100M；分成 4 个，就是每个 200M。</p></blockquote>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 8 分频：800MHz 进来，分出 100MHz，源是端口 clk，产生在分频器的 Q 端</span><span class="ln ">create_generated_clock -name CLK_DIV8 \</span><span class="ln ">    -source [get_ports clk] \</span><span class="ln ">    -divide_by 8 \</span><span class="ln ">    [get_pins u_div/Q]</span><span class="ln "> </span><span class="ln cmt"># 倍频：100MHz 倍到 200MHz，源是 PLL 的参考输入，产生在 PLL 输出</span><span class="ln ">create_generated_clock -name CLK_MUL2 \</span><span class="ln ">    -source [get_pins u_pll/REFCLK] \</span><span class="ln ">    -multiply_by 2 \</span><span class="ln ">    [get_pins u_pll/CLKOUT]</span></code></pre></div>
+<p><strong>为什么必须显式声明？</strong> 因为工具不知道分频器的 Q 端和输入时钟是什么关系。你不声明，它就认为那是一根普通的信号线——于是<strong>整条时钟路径上的时序全都不分析</strong>，报告一片绿。</p>
+<p>文档里&quot;倍频 = 加快时钟频率，例如 100MHz → 200MHz&quot;就是这个意思。倍频通常来自 PLL，分频来自计数器/分频器。</p>
+<h3 id="virtual">3. Virtual Clock：虚拟时钟</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">虚拟时钟</span><span class="term-zh">virtual clock</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>一个<strong>没有物理端口</strong>的时钟。它只存在于约束里，用来描述&quot;芯片外部那颗器件&quot;的时钟。</p></div>
+</div>
+<p>典型场景：芯片的数据从外面一颗 DDR 或另一个芯片送进来，那个器件有自己的时钟，你在芯片内部找不到它的端口。这时你要建一个虚拟时钟，作为 <code>set_input_delay</code> 的参考：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 建一个虚拟时钟：代表板上另一颗芯片的 100MHz 时钟（周期 10ns）</span><span class="ln ">create_clock -name VCLK -period 10</span><span class="ln "> </span><span class="ln cmt"># 用虚拟时钟约束输入延迟：外部器件在这个时钟下，已经用掉了 3ns</span><span class="ln ">set_input_delay -clock VCLK -max 3.0 [get_ports din*]</span></code></pre></div>
+<p><strong>判断标准很简单</strong>：如果参考时钟在芯片内部找不到对应的物理端口，就用虚拟时钟。</p>
+<h3 id="uncertainty">4. clock_uncertainty：抖动与余量</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">clock_uncertainty</span><span class="term-zh">时钟不确定性</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>在时序分析里预扣的一笔&quot;安全余量&quot;，主要覆盖 <strong>jitter（时钟抖动）</strong> 和 skew 的建模误差。它不来自任何一根具体的线，而是人为设定的保险。</p></div>
+</div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># setup 分析预扣 0.15ns：假设时钟沿可能提前/推迟这么多</span><span class="ln ">set_clock_uncertainty -setup 0.15 [get_clocks CLK]</span><span class="ln "> </span><span class="ln cmt"># hold 分析预扣 0.08ns：hold 通常留的余量小一些</span><span class="ln ">set_clock_uncertainty -hold 0.08 [get_clocks CLK]</span></code></pre></div>
+<p>这笔余量怎么定？看时钟源的质量：</p>
+<ul><li>来自 PLL 且 PLL 抖动指标好 → 可以小（0.05~0.1ns）；</li><li>来自外部晶振、经过长走线 → 要大；</li><li><strong>写 0 是绝对错误</strong>——等于假设时钟沿完美无抖动，流片回来必然挂掉一批。</li></ul>
+<p>文档把它和&quot;时钟抖动 jitter&quot;并列，实际工作中你说的&quot;uncertainty 给多少&quot;就是问这个数。</p>
+<h3 id="group">5. Clock Group：时钟分组</h3>
+<p>芯片里常有多组时钟（功能时钟、测试时钟、接口时钟）。<strong>异步的时钟之间，路径根本不需要做时序分析</strong>——它们的相位关系不确定，分析出来的数没有意义。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 声明 CLK 与 CLK_DIV8 是同步关系（有固定分频关系，需要分析）</span><span class="ln cmt"># 而 CLK 与 TEST_CLK 是异步的，两者之间的路径不分析</span><span class="ln ">set_clock_groups -asynchronous \</span><span class="ln ">    -group {CLK CLK_DIV8} \</span><span class="ln ">    -group {TEST_CLK}</span><span class="ln "> </span><span class="ln cmt"># 完全互斥的时钟（用 MUX 二选一，不可能同时存在）</span><span class="ln ">set_clock_groups -logically_exclusive \</span><span class="ln ">    -group {CLK} -group {CLK_ALT}</span></code></pre></div>
+<p><code>-asynchronous</code> 和 <code>-logically_exclusive</code> 的区别值得记一下：</p>
+<ul><li><strong>asynchronous</strong>：两个时钟都在跳，但没有固定相位关系（比如两个独立晶振）；</li><li><strong>logically_exclusive</strong>：物理上不可能同时有效（MUX 选了 A 就不会选 B）。</li></ul>
+<h3 id="iodelay">6. input_delay / output_delay：给外部留时间</h3>
+<p>这是新人最常写错的一类约束。它<strong>不是</strong>&quot;我这根线有多长&quot;，而是&quot;<strong>外部世界已经占用了多少时间</strong>&quot;。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 输入侧：外面那颗器件从时钟沿到数据稳定，用掉了 3.0ns</span><span class="ln cmt"># 意思是：内部只剩 周期 - 3.0 - 触发器建立时间 可用</span><span class="ln ">set_input_delay -clock VCLK -max 3.0 [get_ports din*]</span><span class="ln ">set_input_delay -clock VCLK -min 0.5 [get_ports din*]</span><span class="ln "> </span><span class="ln cmt"># 输出侧：芯片出去的数据，要在下个时钟沿前 2.5ns 就稳定，留给板级走线</span><span class="ln ">set_output_delay -clock VCLK -max 2.5 [get_ports dout*]</span><span class="ln ">set_output_delay -clock VCLK -min 0.3 [get_ports dout*]</span></code></pre></div>
+<p><code>-max</code> 管 setup（最晚什么时候到），<code>-min</code> 管 hold（最早什么时候到）。<strong>四个数一个都不能少</strong>，少写一半，另一方向的检查就等于没做。</p>
+<h3 id="falsepath">7. false_path：这些路径别修</h3>
+<div class="term" tabindex="0">
+  <div class="term-h"><span class="term-en">false path</span><span class="term-zh">假路径</span><i class="term-ico">点击看解释</i></div>
+  <div class="term-b"><p>物理上存在，但<strong>功能上永远不会在指定时序关系下工作</strong>的路径。声明之后工具就不去优化它。</p></div>
+</div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 测试时钟到功能时钟：两者永不同时工作，跨域路径不分析</span><span class="ln ">set_false_path -from [get_clocks TEST_CLK] -to [get_clocks CLK]</span><span class="ln "> </span><span class="ln cmt"># 经过某个 MUX 选择端的配置路径：慢一点没关系，不占用时序预算</span><span class="ln ">set_false_path -through [get_pins u_cfg_mux/SEL]</span><span class="ln "> </span><span class="ln cmt"># 复位/配置寄存器这类静态信号，只需要约束&quot;别太慢&quot;，不需要按周期卡</span><span class="ln ">set_false_path -from [get_ports rst_n]</span></code></pre></div>
+<p><strong>不写 false path 的后果很实在</strong>：工具会拼尽全力去修一条根本不需要修的路径，插一堆 buffer、换超大驱动单元——<strong>白烧面积、白烧功耗，还拖慢运行时间</strong>，甚至把本来能收敛的地方挤到收敛不了。</p>
+<p>反过来，<strong>false path 写多了更危险</strong>：把真路径标成假路径，等于关掉了检查，问题会一路瞒到流片。</p>
+<h3 id="load">8. 负载三件套：fanout / capacitance / transition</h3>
+<p>文档把&quot;时序约束的分类&quot;归到这三个量，它们是端口的<strong>电气约束</strong>：</p>
+<div class="tbl"><table><thead><tr><th>约束对象</th><th>物理含义</th><th>命令</th></tr></thead><tbody><tr><td><strong>fanout</strong> 负载个数</td><td>一个输出最多能带几个输入（带太多驱动不动）</td><td><code>set_max_fanout 32 [current_design]</code></td></tr><tr><td><strong>capacitance</strong> 负载电容</td><td>一个输出最多能带多大电容</td><td><code>set_max_capacitance 0.15 [get_ports dout*]</code></td></tr><tr><td><strong>transition</strong> 翻转时间</td><td>信号从 0 到 1 最多允许多久（太&quot;软&quot;会被当成毛刺）</td><td><code>set_max_transition 0.2 [current_design]</code></td></tr></tbody></table></div>
+<p>端口上还要给出<strong>驱动能力与实际负载</strong>，否则第一级和最后一级算不准：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 输入端口：用一个真实单元来代表外部驱动能力（比 set_input_transition 更准）</span><span class="ln ">set_driving_cell -lib_cell BUF_X4 -pin Z [get_ports din*]</span><span class="ln "> </span><span class="ln cmt"># 输入端口：直接给一个 transition 值（简单但粗糙）</span><span class="ln ">set_input_transition 0.15 [get_ports din*]</span><span class="ln "> </span><span class="ln cmt"># 输出端口：外部挂了多大电容（板级走线 + 接收端引脚）</span><span class="ln ">set_load 0.05 [get_ports dout*]</span></code></pre></div>
+<p>回想上一课：<strong>cell delay 由 input transition 和 output load 决定</strong>。这三条命令就是在给这两端&quot;喂数据&quot;——喂错了，所有延迟数字都是编的。</p>
+  <label class="ch-done"><input type="checkbox" data-mark="write"><span>这一章我学完了</span></label>
+</section>
+<section class="ch" id="fct" data-ch="fct">
+  <div class="ch-h"><span class="ch-n">04</span><h2>谁写 SDC：FCT 部门</h2></div>
+  <p>文档明确：<strong>SDC 由 FCT（Full Chip Timing，全芯片时序）部门负责编写。</strong></p>
+<p>这对 PR 工程师意味着什么，很值得说清楚：</p>
+<ol><li><strong>你不是 sdc 的作者，你是使用者和反馈者</strong>。sdc 是&quot;需求文档&quot;，PR 是&quot;施工方&quot;。</li><li><strong>发现约束不合理（比如某条路径根本不可能在两周期内收敛），要提给 FCT 改</strong>，不能自己偷偷在本地改一份跑——本地改完报告好看了，回到正式约束立刻崩，白干两周。</li><li><strong>debug 的第一件事往往是核对 sdc 版本</strong>。项目里 sdc 会不断更新（v1.0 → v1.3），跑出来的结果和同事对不上，八成是拿了不同版本的 sdc。</li><li><strong>要能读懂每一条约束在要求什么</strong>。哪怕不写，也要能判断&quot;这条路径为什么要求这么紧&quot;。</li></ol>
+<div class="pit"><div class="pit-h">常见坑 · 抄别人的 sdc，只改周期</div><div class="pit-b"><p><strong>现象</strong>：约束能读进去，工具也跑了，但时序怎么都收敛不了，或者收敛了但报告里有一堆奇怪的违例。</p>
+<p><strong>原因</strong>：sdc 和设计是<strong>一一对应</strong>的。时钟名、端口名、层次名、生成时钟的 pin 位置，全都跟具体设计绑定。抄过来只改周期，等于给另一个人的设计下命令——工具找不到 <code>[get_ports clk]</code> 就静默忽略，找不到 <code>[get_pins u_div/Q]</code> 就报 warning。</p>
+<p><strong>怎么查</strong>：</p>
+<ol><li>读 sdc 后先看 warning，<code>Can't find port/pin/clock</code> 这类一条都不能留；</li><li><code>report_clocks</code> 确认时钟真的建上了（数量、周期对不对）；</li><li><code>report_timing</code> 看路径的起点是不是你预期的触发器，不是就说明约束没生效。</li></ol></div></div>
+<div class="pit"><div class="pit-h">常见坑 · uncertainty 设成 0，或者 false path 满天飞</div><div class="pit-b"><p><strong>现象 A</strong>：为了让报告好看，把 <code>set_clock_uncertainty</code> 改成 0、把难修的路径全标 false path。报告全绿，流片回来一半芯片点不亮。 <strong>现象 B</strong>：反过来，uncertainty 给 0.5ns（周期才 2ns），工具怎么都收不敛，最后靠狂插 buffer 硬凑，面积功耗爆炸。</p>
+<p><strong>正确做法</strong>：uncertainty 按时钟源质量给（PLL 好就 0.05~0.1ns，外部时钟给大些）；false path 只用于<strong>功能上真的不存在</strong>的路径，且要有依据（跨异步时钟、配置寄存器、测试逻辑）。</p></div></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>审一份真 sdc</div><div class="lab-b"><p>在练习终端里执行下面几条，边跑边记：</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 看有几个时钟，名字和周期分别是什么</span><span class="ln ">grep -n &quot;create_clock&quot; func.sdc</span><span class="ln "> </span><span class="ln cmt"># 2. 看有没有生成时钟（分频/倍频）——没有的话多半是漏了</span><span class="ln ">grep -n &quot;create_generated_clock&quot; func.sdc</span><span class="ln "> </span><span class="ln cmt"># 3. 看不确定性给了多少（给 0 就是埋雷）</span><span class="ln ">grep -n &quot;set_clock_uncertainty&quot; func.sdc</span><span class="ln "> </span><span class="ln cmt"># 4. 统计假路径条数，太多要问清楚依据</span><span class="ln ">grep -c &quot;set_false_path&quot; func.sdc</span><span class="ln "> </span><span class="ln cmt"># 5. 检查输入输出延迟是否 max/min 都给了</span><span class="ln ">grep -n &quot;set_input_delay\|set_output_delay&quot; func.sdc</span></code></pre></div>
+<p>验收标准：能报出这份 sdc 的主时钟周期与对应频率、有几个生成时钟、uncertainty 是 setup/hold 各多少、假路径几条，以及 input/output delay 有没有缺 <code>-min</code>。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>SDC 全称是什么？它对设计的哪三个方面做约束？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">Synopsys Design Constraints；对时序、面积、功耗做约束。它是优化的目标，决定芯片是否满足规范。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span><code>create_clock -period 20 -waveform {0 10}</code> 对应多少频率、多少占空比？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">周期 20ns → 频率 1/20ns = 50MHz；高电平持续 10ns，占空比 10/20 = 50%。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>文档说&quot;周期 20、占空比 10&quot;，那个 10 到底指什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">指 waveform 里的第二个数，即下降沿时刻/高电平持续时间 10ns，换算成占空比是 50%。写约束永远写时刻，不写百分比。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>为什么分频时钟必须用 create_generated_clock 声明？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">工具不知道分频器输出与输入时钟的关系，不声明就当成普通信号，整条时钟路径不做时序分析，报告全绿但全是漏检。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>什么情况下用虚拟时钟？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">参考时钟在芯片内部找不到对应物理端口时（比如板上另一颗器件的时钟），用来做 set_input_delay 的参考。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>set_input_delay 的含义是什么？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">不是线长，而是&quot;外部世界已经占用了多少时间&quot;；内部可用的时间 = 周期 - input_delay - 建立时间。max 管 setup、min 管 hold，四个数都不能少。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>set_false_path 写多了会怎样？写少了会怎样？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">写多了等于关掉真路径的检查，问题瞒到流片；写少了工具会去修根本不需要修的路径，白烧面积功耗、拖慢收敛。</div>
+</div><div class="q-item">
+  <div class="q-q"><span class="q-no"></span>uncertainty 为什么不能设 0？</div>
+  <button class="q-show" type="button">看答案</button>
+  <div class="q-a">它代表 jitter 与建模误差的安全余量，设 0 等于假设时钟沿完美无抖动，流片后必然因抖动挂掉一批芯片。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能画出 DFF → 组合逻辑 → DFF 的模型，并指出起始点、结束点</li><li>能由周期算出频率、由 waveform 算出占空比，反过来也会</li><li>能写出 create_clock / create_generated_clock / create_clock 虚拟时钟三条命令并解释参数</li><li>能说清 set_input_delay / set_output_delay 的 -max 与 -min 各管什么</li><li>能举出两类该写 false path 的场景，并说出乱写的后果</li><li>能说出 fanout / capacitance / transition 三个电气约束各自限制什么</li><li>能说出&quot;约束力度 = 优化力度&quot;的含义，以及为什么 sdc 由 FCT 部门负责</li></ul></div>
+  <label class="ch-done"><input type="checkbox" data-mark="fct"><span>这一章我学完了</span></label>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>这一课学完了吗？</h3>
+        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <button id="btn-done" class="pri">标记本课完成</button>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-07-pr-mmmc/">← MMMC：多模式多端角，工具到底在几种世界里跑时序</a><a class="nav-btn" href="/lesson/03-01-innovus-plan/">阶段三导读：40nm Innovus 项目实操路线 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=1795449784"></script>
+<script src="/assets/tcl.js?v=1795449784"></script>
+<script src="/assets/app.js?v=1795449784"></script>
+</body>
+</html>

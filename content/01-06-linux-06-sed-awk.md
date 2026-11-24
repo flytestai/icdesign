@@ -1,6 +1,6 @@
 ---
 id: 01-06-linux-06-sed-awk
-no: 6
+no: 06
 stage: 1
 title: Linux 第 6 课 · 文本三剑客：sed / awk / gvim
 en: Linux 6 - sed, awk & gvim

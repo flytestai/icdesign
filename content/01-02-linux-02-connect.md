@@ -1,6 +1,6 @@
 ---
 id: 01-02-linux-02-connect
-no: 2
+no: 02
 stage: 1
 title: Linux 第 2 课 · 连接服务器与目录结构
 en: Linux 2 - Connect & Directory Tree

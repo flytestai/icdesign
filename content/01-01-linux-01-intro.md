@@ -1,6 +1,6 @@
 ---
 id: 01-01-linux-01-intro
-no: 1
+no: 01
 stage: 1
 title: Linux 第 1 课 · 认识 Linux 与行业工具
 en: Linux 1 - Intro & Industry Tools

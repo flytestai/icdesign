@@ -1,6 +1,6 @@
 ---
 id: 01-04-linux-04-view-vi
-no: 4
+no: 04
 stage: 1
 title: Linux 第 4 课 · 查看与编辑文件（vi 全套）
 en: Linux 4 - View Files & vi/vim

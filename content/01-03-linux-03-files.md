@@ -1,6 +1,6 @@
 ---
 id: 01-03-linux-03-files
-no: 3
+no: 03
 stage: 1
 title: Linux 第 3 课 · 目录与文件操作
 en: Linux 3 - Files & Directories

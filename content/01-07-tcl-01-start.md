@@ -1,6 +1,6 @@
 ---
 id: 01-07-tcl-01-start
-no: 7
+no: 07
 stage: 1
 title: TCL 第 1 讲 · 开工准备：环境与第一个命令
 en: Tcl 1 - Environment & First Command

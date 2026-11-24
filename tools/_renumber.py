@@ -24,7 +24,7 @@ def main():
     for i, (stage, fn) in enumerate(rows):
         p = os.path.join(CONTENT, fn)
         s = io.open(p, encoding="utf-8").read()
-        new = "%02d" % i
+        new = "%02d" % (i + 1)
         s2 = re.sub(r"(?m)^no:\s*.+$", "no: " + new, s, count=1)
         if s2 == s and not re.search(r"(?m)^no:", s):
             # 没有 no 字段就补一个（放在 id 后面）

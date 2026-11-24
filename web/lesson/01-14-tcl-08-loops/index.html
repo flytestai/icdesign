@@ -85,7 +85,7 @@ while {$i &lt; 5} {
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-<h3>示例 1：列表倒序复制（文档示例） {#reverse}</h3>
+<h3 id="reverse">示例 1：列表倒序复制（文档示例）</h3>
 <div class="tsbx has-code" data-code="set source_list {100 200 300 400 500} ;# 原列表
 set target_list &quot;&quot;                    ;# 目标列表（存储倒序结果）
 set i [expr {[llength $source_list] - 1}]  ;# 初始索引=列表长度-1（最后一个元素）
@@ -110,7 +110,7 @@ puts &quot;倒序列表：$target_list&quot;   ;# 输出：倒序列表：500 40
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-<h3>示例 2：遍历列表执行操作（EDA 场景：倒序处理单元格） {#cells}</h3>
+<h3 id="cells">示例 2：遍历列表执行操作（EDA 场景：倒序处理单元格）</h3>
 <p>课件原文的正序遍历写法（while + lindex + incr i）：</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/tcl-03.png" data-fig="tcl-03"><img src="/fig/tcl-03.png" alt="while 正序遍历 cell_list（课件截图）" loading="lazy" decoding="async"></a><figcaption>while 正序遍历 cell_list（课件截图）</figcaption></figure>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">;# 方法2：倒序遍历（更简洁，无需额外 i 变量）</span><span class="ln ">set cell_count [expr [llength $cell_list] - 1]</span><span class="ln ">while {$cell_count &gt;= 0} {</span><span class="ln ">    set current_cell [lindex $cell_list $cell_count]</span><span class="ln ">    puts &quot;倒序处理单元格：$current_cell&quot;   ;# puts 放循环里，因为在循环外没列表接收</span><span class="ln ">    incr cell_count -1</span><span class="ln ">}</span></code></pre></div>
@@ -183,7 +183,7 @@ puts &quot;倒序列表：$target_list&quot;   ;# 输出：倒序列表：500 40
   <div class="ch-h"><span class="ch-n">02</span><h2>循环 2：foreach 循环（遍历列表元素）——首选</h2></div>
   <p>直接遍历列表中的每个元素，无需手动控制索引，语法简洁，是列表遍历的首选（类似 C 和 Python 中 for 循环的 for-in 写法）。</p>
 <p><strong>语法</strong>：<code>foreach 变量名 列表 { 代码块 }</code>（变量名会依次赋值为列表的每个元素）</p>
-<h3>示例 1：移动对象（文档示例，EDA 真实场景） {#move}</h3>
+<h3 id="move">示例 1：移动对象（文档示例，EDA 真实场景）</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">;# 定义内存单元列表</span><span class="ln ">set mem_list {</span><span class="ln ">    I_CONTEXT_MEM/I_CONTEXT_RAM_0_4</span><span class="ln ">    I_CONTEXT_MEM/I_CONTEXT_RAM_0_3</span><span class="ln ">    I_CONTEXT_MEM/I_CONTEXT_RAM_0_2</span><span class="ln ">    I_CONTEXT_MEM/I_CONTEXT_RAM_0_1</span><span class="ln ">}</span><span class="ln cmt">;# 遍历每个内存单元，执行选中和移动操作</span><span class="ln ">foreach mem $mem_list {</span><span class="ln ">    puts &quot;正在处理：$mem&quot;</span><span class="ln ">    change_selection [get_cells $mem]     ;# 选中当前内存单元</span><span class="ln ">    move_objects -delta {-50 0}           ;# 向左移动50个单位</span><span class="ln ">}</span></code></pre></div>
 <p>这就是后端工程师每天写的 TCL：<code>get_cells</code>、<code>change_selection</code>、<code>move_objects</code> 都是工具提供的命令，TCL 负责把流程串起来。练习台内置了这些 EDA 命令桩，可以直接跑：</p>
 <div class="tsbx has-code" data-code="set mem_list {
@@ -214,7 +214,7 @@ foreach mem $mem_list {
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-<h3>示例 2：计算列表元素总和 {#sum}</h3>
+<h3 id="sum">示例 2：计算列表元素总和</h3>
 <div class="tsbx has-code" data-code="set num_list {1 2 3 4 5}
 set sum 0
 foreach num $num_list {

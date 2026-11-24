@@ -1,6 +1,6 @@
 ---
 id: 01-05-linux-05-search-perm
-no: 5
+no: 05
 stage: 1
 title: Linux 第 5 课 · 搜索、权限、打包与正则表达式
 en: Linux 5 - grep, chmod, tar & Regex

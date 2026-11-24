@@ -66,7 +66,7 @@
   <div class="ch-h"><span class="ch-n">01</span><h2>列表是什么、两种核心定义方法</h2></div>
   <div class="goal"><span>本章目标</span>会用 {} 和 list 两种方法定义列表；会用 lindex / llength 读取；会取嵌套列表里的值（两种写法都熟）。</div>
 <p>列表是 TCL 中<strong>最常用</strong>的数据结构，用于存储<strong>有序</strong>的多个元素（元素可以是字符串、数字、甚至另一个列表），支持增删改查、排序、拼接等操作。对应 Python 的 list。</p>
-<h3>方法 1：大括号 {} 定义（适合多行元素） {#brace}</h3>
+<h3 id="brace">方法 1：大括号 {} 定义（适合多行元素）</h3>
 <p>大括号会保留元素的原始格式（如换行、空格），无需转义，<strong>空格和换行都是元素分隔符</strong>：</p>
 <div class="tsbx has-code" data-code="set fruit_list {apple banana orange}
 puts $fruit_list
@@ -111,7 +111,7 @@ puts &quot;共 [llength $cell_list] 个元素&quot;</pre><button class="tcl-go" 
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-<h3>方法 2：list 命令定义（适合单行 / 嵌套列表） {#listcmd}</h3>
+<h3 id="listcmd">方法 2：list 命令定义（适合单行 / 嵌套列表）</h3>
 <p>list 命令会自动处理元素的分隔，嵌套列表时更清晰：</p>
 <div class="tsbx has-code" data-code=";# 普通列表
 set num_list [list 1 2 3 4 5]
