@@ -62,7 +62,10 @@
     ".icl-btns .cancel{background:#fff;color:#55677d;border:1px solid #c9d6e4;border-radius:8px;",
     "padding:9px 16px;font-size:13px;cursor:pointer}",
     ".icl-msg{margin-left:auto;font-size:13px;color:#2c9a6a;min-width:80px;text-align:right}",
-    ".icl-msg.err{color:#c2453e}"
+    ".icl-msg.err{color:#c2453e}",
+    ".icl-up{display:inline-block;background:#fff7e0;border:1px dashed #d8a72a;color:#8a6a1a;",
+    "border-radius:6px;padding:2px 10px;font-size:12px}",
+    ".icl-up.err{background:#fdeeee;border-color:#c2453e;color:#c2453e}"
   ].join("");
   var st = document.createElement("style");
   st.textContent = css;
@@ -110,6 +113,88 @@
     var bodyEl = mask.querySelector("#icl-body");
     bodyEl.innerHTML = currentBody(sec);
     var msg = mask.querySelector("#icl-msg");
+
+    /* ---- 粘贴图片：默认插到本节正文最前面；光标在正文里则按光标位置插入 ---- */
+    function pickImageFile(dt) {
+      if (!dt) return null;
+      var i, f = null;
+      if (dt.files && dt.files.length) {
+        for (i = 0; i < dt.files.length; i++) {
+          if (/^image\//.test(dt.files[i].type)) return dt.files[i];
+        }
+      }
+      if (dt.items) {
+        for (i = 0; i < dt.items.length; i++) {
+          if (dt.items[i].kind === "file" && /^image\//.test(dt.items[i].type)) {
+            f = dt.items[i].getAsFile();
+            if (f) return f;
+          }
+        }
+      }
+      return null;
+    }
+    function dataUrlToFile(dataUrl) {
+      return fetch(dataUrl).then(function (r) { return r.blob(); }).then(function (b) {
+        var ext = (dataUrl.match(/^data:image\/([a-z0-9+]+)/i) || [])[1] || "png";
+        try { return new File([b], "paste." + ext.replace("jpeg", "jpg"), { type: b.type }); }
+        catch (e) { b.name = "paste." + ext.replace("jpeg", "jpg"); return b; }
+      });
+    }
+    function caretRangeInBody() {
+      var sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return null;
+      var r = sel.getRangeAt(0);
+      return bodyEl.contains(r.startContainer) ? r : null;
+    }
+    function insertPastedImage(file) {
+      var ext = (file.name || "").split(".").pop().toLowerCase();
+      if (!/^(png|jpg|jpeg|webp|svg)$/.test(ext)) ext = (file.type.split("/")[1] || "png").replace("jpeg", "jpg");
+      var ph = document.createElement("span");
+      ph.className = "icl-up";
+      ph.textContent = "⏳ 图片上传中…";
+      var range = caretRangeInBody();
+      if (range) { range.deleteContents(); range.insertNode(ph); }
+      else { bodyEl.insertBefore(ph, bodyEl.firstChild); }
+      var rel = "fig/custom/" + lesson + "-" + ch + "-" + Date.now() + "." + ext;
+      fetch("/api/admin/fig?path=" + encodeURIComponent(rel), {
+        method: "POST",
+        body: file,
+        credentials: "same-origin",
+      })
+        .then(function (r) {
+          if (!r.ok) return r.json().then(function (j) { throw new Error(j.detail || r.status); });
+          return r.json();
+        })
+        .then(function () {
+          var img = document.createElement("img");
+          img.src = "/" + rel + "?t=" + Date.now();
+          img.alt = "";
+          ph.parentNode.insertBefore(img, ph);
+          ph.remove();
+        })
+        .catch(function (ex) {
+          ph.className = "icl-up err";
+          ph.textContent = "✗ 图片上传失败：" + String(ex.message || ex).slice(0, 40);
+        });
+    }
+    bodyEl.addEventListener("paste", function (e) {
+      var dt = e.clipboardData;
+      var file = pickImageFile(dt);
+      if (!file && dt && dt.getData) {
+        var html = dt.getData("text/html") || "";
+        var m = html.match(/<img[^>]*src="(data:image\/[a-z0-9+.;=]+\/[^"]+)"/i);
+        if (m) {
+          try { file = dataUrlToFile(m[1]); } catch (err) { file = null; }
+        }
+      }
+      if (file) {
+        e.preventDefault();
+        say("检测到粘贴图片，上传中…");
+        Promise.resolve(file).then(insertPastedImage).catch(function (ex) {
+          say("粘贴图片失败：" + String(ex.message || ex).slice(0, 60), true);
+        });
+      }
+    });
 
     function say(t, err) {
       msg.textContent = t;
