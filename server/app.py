@@ -446,12 +446,7 @@ PUBLIC_PREFIX = ("/assets/", "/api/auth/")
 async def access_control(request: Request, call_next):
     path = request.url.path
     if path in PUBLIC_EXACT or path.startswith(PUBLIC_PREFIX):
-        resp = await call_next(request)
-        if path.startswith("/assets/"):
-            # 静态资源给短缓存并要求校验：以前没有 Cache-Control，浏览器按启发式缓存
-            # 几小时甚至几天，换了 logo 也不重新取，登录页就一直是旧图标。
-            resp.headers["Cache-Control"] = "public, max-age=300, must-revalidate"
-        return resp
+        return await call_next(request)
 
     user = current_user(request)
     is_api = path.startswith("/api/")
@@ -471,6 +466,22 @@ async def access_control(request: Request, call_next):
             return JSONResponse({"detail": "pending review"}, status_code=403)
         return RedirectResponse("/pending", status_code=302)
     return await call_next(request)
+
+
+@app.middleware("http")
+async def cache_control(request: Request, call_next):
+    """HTML 一律 no-cache：页面里带着 /assets/xxx?v=版本号，只要 HTML 是新的，
+    静态资源自然换新；反之 HTML 被浏览器启发式缓存，改了样式也看不到。
+    静态资源反过来要长缓存——URL 里已有版本号，内容变了 URL 一定变。"""
+    resp = await call_next(request)
+    path = request.url.path
+    if resp.status_code < 400:
+        ctype = resp.headers.get("content-type", "")
+        if path.startswith("/assets/"):
+            resp.headers["Cache-Control"] = "public, max-age=604800"
+        elif ctype.startswith("text/html"):
+            resp.headers["Cache-Control"] = "no-cache"
+    return resp
 
 
 if __name__ == "__main__":
