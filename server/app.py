@@ -9,6 +9,7 @@ IC 后端学院 · 后端服务
 """
 import base64
 import hashlib
+import io
 import json
 import os
 import re
@@ -27,6 +28,11 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+
+try:
+    from PIL import Image
+except ImportError:          # 服务器没装 Pillow 时图片压缩自动降级为原样存储
+    Image = None
 
 BASE = Path(os.environ.get("ICL_BASE", Path(__file__).resolve().parent))
 WEB = BASE / "web"
@@ -394,10 +400,43 @@ PRIV_HOST_RE = re.compile(
 IMG_SRC_ATTR_RE = re.compile(r'(<img\b[^>]*?\bsrc=")([^"]+)(")', re.I)
 CT_EXT = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/svg+xml": "svg"}
 
+# 图片压缩：PNG/大图 → WebP，屏幕宽上限 1400px。目标：贴图从 MB 级降到 ~100KB 级
+MAX_IMG_W = 1400
+COMPRESS_Q = 82
+
+
+def _compress_image(data: bytes, ext: str) -> tuple:
+    """压缩图片，返回 (bytes, ext)。SVG 原样返回；压缩失败原样返回。"""
+    if ext == "svg" or Image is None:
+        return data, ext
+    try:
+        im = Image.open(io.BytesIO(data))
+        # 已经足够小且不是臃肿的 PNG → 原样
+        if ext in ("jpg", "jpeg", "webp") and im.width <= MAX_IMG_W and len(data) < 300_000:
+            return data, ext
+        if im.mode in ("RGBA", "LA", "P"):
+            im = im.convert("RGBA")
+            bg = Image.new("RGB", im.size, (255, 255, 255))
+            bg.paste(im, mask=im.split()[-1])
+            im = bg
+        elif im.mode != "RGB":
+            im = im.convert("RGB")
+        if im.width > MAX_IMG_W:
+            im = im.resize((MAX_IMG_W, round(im.height * MAX_IMG_W / im.width)), Image.LANCZOS)
+        buf = io.BytesIO()
+        im.save(buf, "WEBP", quality=COMPRESS_Q, method=6)
+        out = buf.getvalue()
+        if len(out) < len(data):
+            return out, "webp"
+        return data, ext
+    except Exception:
+        return data, ext
+
 
 def _store_fig(data: bytes, ext: str, prefix: str = "paste") -> str:
-    """按内容哈希落盘到持久镜像 fig_mirror/custom/（部署切换 web 不受影响）。
+    """压缩后按内容哈希落盘到持久镜像 fig_mirror/custom/（部署切换 web 不受影响）。
     重复图片自动复用同一文件。返回相对路径 fig/custom/xxx。"""
+    data, ext = _compress_image(data, ext)
     h = hashlib.sha1(data).hexdigest()[:12]
     name = "%s-%s.%s" % (prefix, h, ext)
     target = MIRROR / "custom" / name
@@ -480,6 +519,31 @@ def admin_fig_fetch(r: FigFetchIn, request: Request):
         raise HTTPException(400, str(e))
     except Exception as e:
         raise HTTPException(400, "下载失败：%s" % str(e)[:80])
+    rel = _store_fig(data, ext, "paste")
+    return {"ok": True, "path": rel}
+
+
+@app.post("/api/admin/fig-upload")
+async def admin_fig_upload(request: Request):
+    """粘贴图上传：服务端压缩（PNG→WebP、限宽 1400px）后按内容哈希落盘，
+    返回本地路径。前端不用再指定文件名，保存的正文天然引用压缩后的小图。"""
+    require_admin(request)
+    data = await request.body()
+    if not data:
+        raise HTTPException(400, "图片内容为空")
+    if len(data) > MAX_FIG_BYTES:
+        raise HTTPException(400, "图片超过 12MB")
+    head = data[:16]
+    if head.startswith(b"\x89PNG"):
+        ext = "png"
+    elif head.startswith(b"\xff\xd8"):
+        ext = "jpg"
+    elif head[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        ext = "webp"
+    elif b"<svg" in data[:1024].lower():
+        ext = "svg"
+    else:
+        raise HTTPException(400, "不是可识别的图片格式")
     rel = _store_fig(data, ext, "paste")
     return {"ok": True, "path": rel}
 
@@ -662,6 +726,9 @@ APPLY_JS = """<script>
       [].slice.call(tpl.content.childNodes).forEach(function(n){
         label?sec.insertBefore(n,label):sec.appendChild(n);
       });
+      [].slice.call(sec.querySelectorAll('img')).forEach(function(im){
+        if(!im.getAttribute('loading'))im.setAttribute('loading','lazy');
+      });
     }
   });
 })();
@@ -714,7 +781,10 @@ def fig_file(fig_path: str):
         p = WEB / "fig" / fig_path
     if not p.exists():
         raise HTTPException(404, "fig not found")
-    return FileResponse(p, headers={"Cache-Control": "no-cache"})
+    # 内容哈希命名的转存图内容不变 → 浏览器可长缓存；其余同名可替换 → 每次校验
+    cc = ("public, max-age=31536000, immutable"
+          if fig_path.startswith("custom/") else "no-cache")
+    return FileResponse(p, headers={"Cache-Control": cc})
 
 
 app.mount("/", StaticFiles(directory=str(WEB), html=True), name="web")
@@ -765,9 +835,9 @@ async def cache_control(request: Request, call_next):
         ctype = resp.headers.get("content-type", "")
         if path.startswith("/assets/"):
             resp.headers["Cache-Control"] = "public, max-age=604800"
-        elif path.startswith("/fig/"):
+        elif path.startswith("/fig/") and not path.startswith("/fig/custom/"):
             # 配图路径里没有版本号，同名换图必须立刻能看到；no-cache 只是"每次校验"，
-            # 文件没变走 304，不重复传字节。
+            # 文件没变走 304，不重复传字节。fig/custom/ 是内容哈希命名，走长缓存。
             resp.headers["Cache-Control"] = "no-cache"
         elif ctype.startswith("text/html"):
             resp.headers["Cache-Control"] = "no-cache"

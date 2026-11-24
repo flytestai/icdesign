@@ -143,20 +143,19 @@
       var img = document.createElement("img");
       img.src = "/" + rel + "?t=" + Date.now();
       img.alt = "";
+      img.loading = "lazy";
       ph.parentNode.insertBefore(img, ph);
       ph.remove();
     }
     function insertPastedImage(file) {
-      var ext = (file.name || "").split(".").pop().toLowerCase();
-      if (!/^(png|jpg|jpeg|webp|svg)$/.test(ext)) ext = (file.type.split("/")[1] || "png").replace("jpeg", "jpg");
       var ph = document.createElement("span");
       ph.className = "icl-up";
       ph.textContent = "⏳ 图片上传中…";
       var range = caretRangeInBody();
       if (range) { range.deleteContents(); range.insertNode(ph); }
       else { bodyEl.insertBefore(ph, bodyEl.firstChild); }
-      var rel = "fig/custom/" + lesson + "-" + ch + "-" + Date.now() + "." + ext;
-      fetch("/api/admin/fig?path=" + encodeURIComponent(rel), {
+      // 服务端压缩（PNG→WebP）+ 内容哈希命名，返回本机路径
+      fetch("/api/admin/fig-upload", {
         method: "POST",
         body: file,
         credentials: "same-origin",
@@ -165,7 +164,7 @@
           if (!r.ok) return r.json().then(function (j) { throw new Error(j.detail || r.status); });
           return r.json();
         })
-        .then(function () { insertLocalImage(rel, ph); })
+        .then(function (j) { insertLocalImage(j.path, ph); })
         .catch(function (ex) {
           ph.className = "icl-up err";
           ph.textContent = "✗ 图片上传失败：" + String(ex.message || ex).slice(0, 40);
