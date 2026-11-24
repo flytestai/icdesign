@@ -86,6 +86,10 @@ def init_db():
             token TEXT PRIMARY KEY,
             user_id INTEGER NOT NULL,
             expires INTEGER NOT NULL)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS section_overrides(
+            lesson TEXT NOT NULL, chapter TEXT NOT NULL,
+            title TEXT, body TEXT, updated_at INTEGER NOT NULL,
+            PRIMARY KEY(lesson, chapter))""")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_uid ON progress(uid)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_lesson ON progress(lesson)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
@@ -275,6 +279,92 @@ def admin_review(r: ReviewIn, request: Request):
     return {"ok": True, "uid": r.uid, "status": status, "by": admin["name"]}
 
 
+# ================================================================ 管理员·课程内容编辑
+# 设计：课程页是构建产物，编辑走"覆盖层"——管理员改的内容存进 section_overrides，
+# lesson_page 出页时动态注入覆盖，所有人立即看到；重建/重新部署不会丢覆盖。
+CH_RE = re.compile(r"^[\w-]{1,64}$")
+FIG_RE = re.compile(r"^fig/[\w][\w\-./ ]*$")
+FIG_EXT_OK = {".png", ".jpg", ".jpeg", ".webp", ".svg"}
+MAX_SECTION_HTML = 300_000
+MAX_FIG_BYTES = 12 * 1024 * 1024
+
+
+class SectionIn(BaseModel):
+    title: Optional[str] = Field(None, max_length=200)
+    body: Optional[str] = None
+
+
+@app.get("/api/admin/sections/{lesson}")
+def admin_get_sections(lesson: str, request: Request):
+    require_admin(request)
+    if not KEY_RE.match(lesson):
+        raise HTTPException(400, "invalid lesson")
+    with closing(db()) as c:
+        rows = c.execute(
+            "SELECT chapter,title,body,updated_at FROM section_overrides WHERE lesson=?",
+            (lesson,)).fetchall()
+    return {"overrides": {r["chapter"]: {"title": r["title"], "body": r["body"], "ts": r["updated_at"]}
+                          for r in rows}}
+
+
+@app.post("/api/admin/section/{lesson}/{chapter}")
+def admin_set_section(lesson: str, chapter: str, r: SectionIn, request: Request):
+    require_admin(request)
+    if not KEY_RE.match(lesson) or not CH_RE.match(chapter):
+        raise HTTPException(400, "invalid lesson/chapter")
+    if not (WEB / "lesson" / lesson / "index.html").exists():
+        raise HTTPException(404, "lesson not found")
+    if r.body is not None and len(r.body) > MAX_SECTION_HTML:
+        raise HTTPException(400, "小节内容过大（上限 30 万字符）")
+    title = (r.title or "").strip() or None
+    body = r.body if (r.body is not None and r.body.strip()) else None
+    with closing(db()) as c:
+        c.execute(
+            """INSERT INTO section_overrides(lesson,chapter,title,body,updated_at) VALUES(?,?,?,?,?)
+               ON CONFLICT(lesson,chapter) DO UPDATE
+               SET title=excluded.title, body=excluded.body, updated_at=excluded.updated_at""",
+            (lesson, chapter, title, body, int(time.time())))
+        c.commit()
+    return {"ok": True, "lesson": lesson, "chapter": chapter}
+
+
+@app.delete("/api/admin/section/{lesson}/{chapter}")
+def admin_del_section(lesson: str, chapter: str, request: Request):
+    require_admin(request)
+    if not KEY_RE.match(lesson) or not CH_RE.match(chapter):
+        raise HTTPException(400, "invalid lesson/chapter")
+    with closing(db()) as c:
+        c.execute("DELETE FROM section_overrides WHERE lesson=? AND chapter=?", (lesson, chapter))
+        c.commit()
+    return {"ok": True}
+
+
+@app.post("/api/admin/fig")
+async def admin_fig(request: Request):
+    """替换/新增 web/fig/ 下的图片：路径放 query（?path=fig/xxx.png），body 为图片原始字节。
+    同名覆写 → 页面引用不变，/fig/ 本就是 no-cache，保存后刷新即见。"""
+    require_admin(request)
+    rel = request.query_params.get("path", "").strip().lstrip("/")
+    if ".." in rel or not FIG_RE.match(rel):
+        raise HTTPException(400, "非法图片路径")
+    ext = os.path.splitext(rel)[1].lower()
+    if ext not in FIG_EXT_OK:
+        raise HTTPException(400, "不支持的图片格式（png/jpg/jpeg/webp/svg）")
+    data = await request.body()
+    if not data:
+        raise HTTPException(400, "图片内容为空")
+    if len(data) > MAX_FIG_BYTES:
+        raise HTTPException(400, "图片超过 12MB")
+    target = WEB / rel
+    fig_root = os.path.realpath(WEB / "fig")
+    real = os.path.realpath(target)
+    if not real.startswith(fig_root + os.sep):
+        raise HTTPException(400, "路径必须位于 fig/ 目录下")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(data)
+    return {"ok": True, "path": rel, "size": len(data)}
+
+
 # ================================================================ 原有 API
 class Item(BaseModel):
     lesson: str = Field(..., max_length=48)
@@ -391,13 +481,72 @@ def index():
 
 
 @app.get("/lesson/{lesson_id}/")
-def lesson_page(lesson_id: str):
+def lesson_page(lesson_id: str, request: Request):
     if not KEY_RE.match(lesson_id):
         raise HTTPException(404, "not found")
     p = WEB / "lesson" / lesson_id / "index.html"
     if not p.exists():
         raise HTTPException(404, "lesson not found")
-    return FileResponse(p, headers={"Cache-Control": "no-cache"})
+    html = p.read_text(encoding="utf-8")
+
+    # ---- 覆盖层与管理员编辑器：插在 app.js 之前，先应用覆盖，再让 app.js 绑定交互 ----
+    user = current_user(request)
+    is_admin = bool(user and user["role"] == "admin")
+    inject = ""
+    with closing(db()) as c:
+        rows = c.execute(
+            "SELECT chapter,title,body FROM section_overrides WHERE lesson=?", (lesson_id,)
+        ).fetchall()
+    ovs = {r["chapter"]: {"title": r["title"], "body": r["body"]}
+           for r in rows if r["body"] or r["title"]}
+    if ovs:
+        inject += ("<script>window.ICL_OVERRIDES=" +
+                   json.dumps(ovs, ensure_ascii=False) + ";</script>\n" + APPLY_JS + "\n")
+    if is_admin:
+        try:
+            ver = int((WEB / "assets" / "editor.js").stat().st_mtime)
+        except OSError:
+            ver = 1
+        inject += ('<script>window.ICL_ADMIN=true;</script>\n'
+                   '<script src="/assets/editor.js?v=%d" defer></script>\n' % ver)
+    if inject:
+        marker = '<script src="/assets/app.js'
+        if marker in html:
+            html = html.replace(marker, inject + marker, 1)
+        else:
+            html = html.replace("</body>", inject + "</body>", 1)
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
+
+
+# 覆盖层应用脚本（所有用户都会执行）：按 data-ch 找到小节，
+# 换标题、把正文节点（跳过 :::{fig,svg} 展示块与"已学完"勾选框）替换成覆盖 HTML。
+APPLY_JS = """<script>
+(function(){
+  var O=window.ICL_OVERRIDES||{};
+  function bodyNodes(sec){
+    return [].slice.call(sec.children).filter(function(n){
+      if(n.classList.contains('ch-h'))return false;
+      if(n.classList.contains('ch-done'))return false;
+      if(n.matches('.fig-gallery,figure.fig-ai,figure.fig'))return false;
+      return true;
+    });
+  }
+  Object.keys(O).forEach(function(ch){
+    var sec=document.querySelector('section.ch[data-ch="'+ch+'"]');
+    if(!sec)return;
+    var ov=O[ch];
+    if(ov.title){var h=sec.querySelector('.ch-h h2');if(h)h.textContent=ov.title;}
+    if(ov.body!=null){
+      var label=sec.querySelector('label.ch-done');
+      bodyNodes(sec).forEach(function(n){n.remove();});
+      var tpl=document.createElement('template');tpl.innerHTML=ov.body;
+      [].slice.call(tpl.content.childNodes).forEach(function(n){
+        label?sec.insertBefore(n,label):sec.appendChild(n);
+      });
+    }
+  });
+})();
+</script>"""
 
 
 def _asset_ver() -> str:
