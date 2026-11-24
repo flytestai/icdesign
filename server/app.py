@@ -21,7 +21,7 @@ from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -400,11 +400,28 @@ def lesson_page(lesson_id: str):
     return FileResponse(p, headers={"Cache-Control": "no-cache"})
 
 
+def _asset_ver() -> str:
+    """assets 目录最新的 mtime 作为版本号，与 tools/build.py 的 bust() 同一口径：
+    构建产物里写 logo.svg?v=xxx，登录/注册页由服务端注入同一个值，两边必须一致，
+    否则改了 logo 之后首页刷新了、登录页还吃旧缓存。"""
+    d = WEB / "assets"
+    try:
+        return str(int(max(p.stat().st_mtime for p in d.iterdir())))
+    except (OSError, ValueError):
+        return "1"
+
+
+_ASSET_RE = re.compile(r"/assets/(logo\.svg|app\.css|app\.js|page\.js|shell\.js)(?:\?v=\d+)?")
+
+
 def _auth_page(name: str):
     p = WEB / name
     if not p.exists():
         raise HTTPException(404, "page not found")
-    return FileResponse(p, headers={"Cache-Control": "no-cache"})
+    html = p.read_text(encoding="utf-8")
+    v = _asset_ver()
+    html = _ASSET_RE.sub(lambda m: "/assets/%s?v=%s" % (m.group(1), v), html)
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
 
 
 for _path, _file in AUTH_PAGES.items():
@@ -429,7 +446,12 @@ PUBLIC_PREFIX = ("/assets/", "/api/auth/")
 async def access_control(request: Request, call_next):
     path = request.url.path
     if path in PUBLIC_EXACT or path.startswith(PUBLIC_PREFIX):
-        return await call_next(request)
+        resp = await call_next(request)
+        if path.startswith("/assets/"):
+            # 静态资源给短缓存并要求校验：以前没有 Cache-Control，浏览器按启发式缓存
+            # 几小时甚至几天，换了 logo 也不重新取，登录页就一直是旧图标。
+            resp.headers["Cache-Control"] = "public, max-age=300, must-revalidate"
+        return resp
 
     user = current_user(request)
     is_api = path.startswith("/api/")
