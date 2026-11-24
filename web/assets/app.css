@@ -71,6 +71,7 @@ strong{color:var(--ink);font-weight:650}
 .ch p{margin:12px 0;color:#2b3947}
 .ch ul,.ch ol{margin:12px 0;padding-left:24px;color:#2b3947}
 .ch li{margin:6px 0}
+.ch img{max-width:100%;height:auto;border-radius:8px}
 .ch blockquote{margin:14px 0;padding:10px 16px;border-left:3px solid #cfe1f4;background:#f7fafd;color:var(--ink2);border-radius:0 8px 8px 0}
 .ch blockquote p{margin:4px 0}
 
