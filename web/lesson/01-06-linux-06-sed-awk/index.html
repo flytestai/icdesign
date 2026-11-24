@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 6 课 · 文本三剑客：sed / awk / gvim · 06 | IC 后端学院</title>
 <meta name="description" content="sed 打印/新增/删除/替换（含 -i 注意事项）；awk 完整语法框架、内置变量、常用函数与 10 条实操；gvim 常用命令全套（设置/光标移动/编辑/可视/分屏/.vimrc 配置）；课后 awk 练习。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="01-06-linux-06-sed-awk">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -140,8 +140,10 @@
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练：awk 练习</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-06-linux-06-sed-awk-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-06-linux-06-sed-awk-lab-1.jpg" alt="把复杂的文本数据想象成工厂的快递传送带，蓝色小电子站在旁边，用剪刀精准切开不同格式的分隔符，挑出需要的列。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>把复杂的文本数据想象成工厂的快递传送带，蓝色小电子站在旁边，用剪刀精准切开不同格式的分隔符，挑出需要的列。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-06-linux-06-sed-awk-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-06-linux-06-sed-awk-lab-2.jpg" alt="就像在抽屉里精确寻找特定编号的物品，蓝色小电子根据设定的条件，只把符合要求的整行或特定数字挑出来。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>就像在抽屉里精确寻找特定编号的物品，蓝色小电子根据设定的条件，只把符合要求的整行或特定数字挑出来。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-06-linux-06-sed-awk-lab-p1.jpg" data-fig="ai"><img src="/fig/ai/01-06-linux-06-sed-awk-lab-p1.jpg" alt="第 1/2 页 · awk 取列与条件：awk 是按列切开文本的小助手。（awk 帮我们精准切开文本挑出数据！）" loading="lazy" decoding="async" width="1199" height="1312"></a><figcaption>第 1/2 页 · awk 取列与条件：awk 是按列切开文本的小助手。（awk 帮我们精准切开文本挑出数据！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-06-linux-06-sed-awk-lab-p2.jpg" data-fig="ai"><img src="/fig/ai/01-06-linux-06-sed-awk-lab-p2.jpg" alt="第 2/2 页 · gvim 分屏与复制：gvim 是写代码的魔法记事本。（gvim 分屏和复制让写代码超快！）" loading="lazy" decoding="async" width="1200" height="1215"></a><figcaption>第 2/2 页 · gvim 分屏与复制：gvim 是写代码的魔法记事本。（gvim 分屏和复制让写代码超快！）</figcaption></figure>
+</div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>awk 练习（10 题）</div><div class="lab-b"><p>1、回到家目录 2、创建文件 demo_awk.txt 3、在 demo_awk.txt 中输入以下内容： demo  111  222  333 clock 444  555  666 test:777:888:999 run;1;2;3 icc/4/5/6 4、取出第五行的 6 5、取出 222 6、取出 999 7、根据冒号分割，取出第 2 列大于 400 且第 4 列小于 1000 的行的第 2 列 8、根据空格分割，取出第 2 列大于 100 小于 200 的行的第 3 列 9、根据冒号分割，取出第 2 列等于 777 的第 3 列 10、根据空格分割，取出第 3 列不等于 222 的整行</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>sed 怎么才真正修改文件？</div>
@@ -189,8 +191,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>

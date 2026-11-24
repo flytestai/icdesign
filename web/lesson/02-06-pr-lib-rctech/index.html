@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>lib 与 rc tech：延迟到底是怎么算出来的 · 27 | IC 后端学院</title>
 <meta name="description" content="时序数据只有两份文件：lib 负责单元延迟，rc tech 负责线延迟。这一课打开 lib 看它到底存了什么、工具怎么用查表的方式算出一个 cell 的 delay，讲清 input transition 与 output load 这两个决定性变量，再把 lib 文件名的每一段（台积电/lvt/ssg/0p81v/125c）拆开读，最后讲 PVT 与先进工艺的温度反转效应。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="02-06-pr-lib-rctech">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,8 +64,10 @@
     </div>
     <article id="article"><section class="ch" id="why" data-ch="why">
   <div class="ch-h"><span class="ch-n">01</span><h2>两种延迟，两份文件</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-why-1.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-why-1.jpg" alt="蓝色小电子钻过一个带门的房间，这是信号穿过标准单元内部花的时间，由 lib 文件记录。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>蓝色小电子钻过一个带门的房间，这是信号穿过标准单元内部花的时间，由 lib 文件记录。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-why-2.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-why-2.jpg" alt="蓝色小电子在长长的管道里滑行，这是信号沿着导线传递花的时间，由 rc tech 文件提供的数据计算得出。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子在长长的管道里滑行，这是信号沿着导线传递花的时间，由 rc tech 文件提供的数据计算得出。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-why-1.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-why-1.jpg" alt="第 1/2 页 · 蓝色小电子钻过一个带门的房间，这是信号穿过标准单元内部花的时间，由 lib 文件记录。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/2 页 · 蓝色小电子钻过一个带门的房间，这是信号穿过标准单元内部花的时间，由 lib 文件记录。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-why-2.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-why-2.jpg" alt="第 2/2 页 · 蓝色小电子在长长的管道里滑行，这是信号沿着导线传递花的时间，由 rc tech 文件提供的数据计算得出。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 蓝色小电子在长长的管道里滑行，这是信号沿着导线传递花的时间，由 rc tech 文件提供的数据计算得出。</figcaption></figure>
+</div>
   <div class="goal"><span>本章目标</span>能说出&quot;路径延迟 = Σ cell delay + Σ net delay&quot;并指出两部分各由 lib 还是 rc tech 提供；能解释查表的两个索引、index 从 0 开始这件事；能逐段读出 lib 文件名里的工艺、阈值电压、快慢组、电压与温度；能说出温度反转效应的成因与后果。</div>
 <p>一条路径的延迟由两部分组成，缺一不可：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">路径延迟 = Σ 单元延迟（cell delay） + Σ 线延迟（net delay）</span><span class="ln ">                ↑                        ↑</span><span class="ln ">            由 lib 提供             由 rc tech 提供</span></code></pre></div>
@@ -75,8 +77,10 @@
 </section>
 <section class="ch" id="lib" data-ch="lib">
   <div class="ch-h"><span class="ch-n">02</span><h2>lib：单元延迟与功耗的字典</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-lib-1.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-lib-1.jpg" alt="图书馆管理员正忙着翻阅厚厚的字典，查找每个标准单元的功能和延迟数据，这就是工具计算延迟的依据。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>图书馆管理员正忙着翻阅厚厚的字典，查找每个标准单元的功能和延迟数据，这就是工具计算延迟的依据。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-lib-2.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-lib-2.jpg" alt="蓝色小电子推着沉重的货物在坡道上前行，输入信号越软、输出负载越重，前进的速度就越慢，延迟也越大。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子推着沉重的货物在坡道上前行，输入信号越软、输出负载越重，前进的速度就越慢，延迟也越大。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-lib-1.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-lib-1.jpg" alt="第 1/2 页 · 图书馆管理员正忙着翻阅厚厚的字典，查找每个标准单元的功能和延迟数据，这就是工具计算延迟的依据。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 图书馆管理员正忙着翻阅厚厚的字典，查找每个标准单元的功能和延迟数据，这就是工具计算延迟的依据。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-lib-2.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-lib-2.jpg" alt="第 2/2 页 · 蓝色小电子推着沉重的货物在坡道上前行，输入信号越软、输出负载越重，前进的速度就越慢，延迟也越大。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 蓝色小电子推着沉重的货物在坡道上前行，输入信号越软、输出负载越重，前进的速度就越慢，延迟也越大。</figcaption></figure>
+</div>
   <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">lib</span><span class="term-zh">单元库时序功耗文件</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>Liberty 格式的库文件，描述每个标准单元的：物理属性（面积、引脚电容）、功能（是 and 还是 or）、时序信息（延迟查表）、功耗信息（漏电、内部功耗）。<strong>一个 PVT 组合一份 lib</strong>，所以一个工艺往往有几十份 lib。</p></div>
@@ -141,8 +145,10 @@
 </section>
 <section class="ch" id="rctech" data-ch="rctech">
   <div class="ch-h"><span class="ch-n">05</span><h2>rc tech file：线延迟从哪来</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-rctech-1.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-rctech-1.jpg" alt="工具拿着金属尺子，把版图上的几何形状换算成实际的电阻和电容，算出线延迟。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>工具拿着金属尺子，把版图上的几何形状换算成实际的电阻和电容，算出线延迟。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-rctech-2.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-rctech-2.jpg" alt="同一根导线在不同温度下，金属电阻大小会发生变化，导致信号跑得或快或慢。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>同一根导线在不同温度下，金属电阻大小会发生变化，导致信号跑得或快或慢。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-rctech-1.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-rctech-1.jpg" alt="第 1/2 页 · 工具拿着金属尺子，把版图上的几何形状换算成实际的电阻和电容，算出线延迟。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 工具拿着金属尺子，把版图上的几何形状换算成实际的电阻和电容，算出线延迟。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-rctech-2.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-rctech-2.jpg" alt="第 2/2 页 · 同一根导线在不同温度下，金属电阻大小会发生变化，导致信号跑得或快或慢。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 同一根导线在不同温度下，金属电阻大小会发生变化，导致信号跑得或快或慢。</figcaption></figure>
+</div>
   <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">rc tech file</span><span class="term-zh">寄生参数工艺文件</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>描述金属层与通孔的<strong>单位长度电阻、单位长度电容</strong>等寄生参数模型，工具用它把版图上的几何形状（多长、多宽、周围有什么）换算成实际的寄生 R 和 C，进而算出线延迟。</p></div>
@@ -169,8 +175,10 @@
 </section>
 <section class="ch" id="summary-table" data-ch="summary-table">
   <div class="ch-h"><span class="ch-n">06</span><h2>三份文件的分工，一张表看完</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-summary-table-1.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-summary-table-1.jpg" alt="把芯片设计比作盖房子，lib文件提供标准砖块的时序账本，rc tech提供连接水泥的寄生参数，sdc则是建筑图纸给出的工期要求。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>把芯片设计比作盖房子，lib文件提供标准砖块的时序账本，rc tech提供连接水泥的寄生参数，sdc则是建筑图纸给出的工期要求。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-summary-table-2.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-summary-table-2.jpg" alt="计算单元延迟就像查阅快递运费表，工具根据输入的包裹重量和电容负载，通过查表和线性插值计算出准确的延迟时间。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>计算单元延迟就像查阅快递运费表，工具根据输入的包裹重量和电容负载，通过查表和线性插值计算出准确的延迟时间。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-summary-table-1.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-summary-table-1.jpg" alt="第 1/2 页 · 把芯片设计比作盖房子，lib文件提供标准砖块的时序账本，rc tech提供连接水泥的寄生参数，sdc则是建筑图纸给出的工期要求。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 把芯片设计比作盖房子，lib文件提供标准砖块的时序账本，rc tech提供连接水泥的寄生参数，sdc则是建筑图纸给出的工期要求。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06-pr-lib-rctech-summary-table-2.jpg" data-fig="ai"><img src="/fig/ai/02-06-pr-lib-rctech-summary-table-2.jpg" alt="第 2/2 页 · 计算单元延迟就像查阅快递运费表，工具根据输入的包裹重量和电容负载，通过查表和线性插值计算出准确的延迟时间。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 计算单元延迟就像查阅快递运费表，工具根据输入的包裹重量和电容负载，通过查表和线性插值计算出准确的延迟时间。</figcaption></figure>
+</div>
   <div class="tbl"><table><thead><tr><th>文件</th><th>管什么</th><th>决定什么</th><th>谁提供</th></tr></thead><tbody><tr><td><strong>lib</strong></td><td>每个 cell 的时序/功耗/功能</td><td>cell delay</td><td>库组 / 晶圆厂</td></tr><tr><td><strong>rc tech</strong></td><td>线上的寄生 R、C 模型</td><td>net delay</td><td>工艺厂 / 库组</td></tr><tr><td><strong>sdc</strong></td><td>时钟、输入输出延迟、假路径</td><td>优化的<strong>目标</strong></td><td>FCT 部门（下一课）</td></tr></tbody></table></div>
 <p>前三者提供&quot;事实&quot;，sdc 提供&quot;要求&quot;。<strong>没有 lib 和 rc tech，工具算不出时间；没有 sdc，工具不知道该往哪优化。</strong></p>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>在 lib 里查三样东西</div><div class="lab-b"><p>用课程页的练习终端（或真机）跑下面几条，边跑边看输出：</p>
@@ -225,8 +233,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>什么是布局布线（PR）：把网表变成能送去生产的版图 · 21 | IC 后端学院</title>
 <meta name="description" content="用一间毛坯房讲清 PR 到底在做什么：综合给的 netlist 只是逻辑连接，PR 把每个单元放到真实坐标上、用真实的金属线连起来，最后吐出 GDSII。顺带把 PD/DE/ME、block 与 top、三种线、芯片分类这些面试必问的名词一次说清。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="02-02-pr-what">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -87,8 +87,10 @@
 </section>
 <section class="ch" id="logic-vs-physical" data-ch="logic-vs-physical">
   <div class="ch-h"><span class="ch-n">02</span><h2>综合给的是逻辑连接，PR 才给出物理连接</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-logic-vs-physical-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-logic-vs-physical-1.jpg" alt="综合阶段只管元件之间怎么连线，就像网购时画好的电路原理图，还没有确定在芯片上的真实位置。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>综合阶段只管元件之间怎么连线，就像网购时画好的电路原理图，还没有确定在芯片上的真实位置。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-logic-vs-physical-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-logic-vs-physical-2.jpg" alt="布局布线阶段把元件真正摆到芯片地图的精确坐标上，连线也变成有长短宽窄的真实铜线。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>布局布线阶段把元件真正摆到芯片地图的精确坐标上，连线也变成有长短宽窄的真实铜线。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-02-pr-what-logic-vs-physical-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-logic-vs-physical-1.jpg" alt="第 1/2 页 · 综合阶段只管元件之间怎么连线，就像网购时画好的电路原理图，还没有确定在芯片上的真实位置。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 综合阶段只管元件之间怎么连线，就像网购时画好的电路原理图，还没有确定在芯片上的真实位置。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-logic-vs-physical-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-logic-vs-physical-2.jpg" alt="第 2/2 页 · 布局布线阶段把元件真正摆到芯片地图的精确坐标上，连线也变成有长短宽窄的真实铜线。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 布局布线阶段把元件真正摆到芯片地图的精确坐标上，连线也变成有长短宽窄的真实铜线。</figcaption></figure>
+</div>
   <p>完整链条上有三个关键节点，别混：</p>
 <div class="tbl"><table><thead><tr><th>阶段</th><th>谁做</th><th>产物</th><th>关键特征</th></tr></thead><tbody><tr><td>综合（RTL → 电路）</td><td>前端</td><td>netlist（.v.gz）</td><td>器件按功能连起来，<strong>只有逻辑关系</strong></td></tr><tr><td>布局布线（PR）</td><td>后端</td><td>GDSII + def + 报告</td><td>器件有坐标，线有层与宽度，<strong>物理可实现</strong></td></tr><tr><td>签核（STA / PV / PA）</td><td>后端/签核组</td><td>通过的数据库</td><td>证明它在各种 corner 下都能工作</td></tr></tbody></table></div>
 <p>举个具体例子理解&quot;逻辑 → 物理&quot;：</p>
@@ -98,8 +100,10 @@
 </section>
 <section class="ch" id="roles" data-ch="roles">
   <div class="ch-h"><span class="ch-n">03</span><h2>三个岗位缩写：PD / DE / ME</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-roles-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-roles-1.jpg" alt="DE 负责设计架构，蓝色小电子像建筑师一样在画纸上勾勒出房间的逻辑结构。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>DE 负责设计架构，蓝色小电子像建筑师一样在画纸上勾勒出房间的逻辑结构。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-roles-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-roles-2.jpg" alt="ME 负责在中间加固结构，蓝色小电子像质检员一样给房间装上管道和骨架。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>ME 负责在中间加固结构，蓝色小电子像质检员一样给房间装上管道和骨架。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-02-pr-what-roles-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-roles-1.jpg" alt="第 1/2 页 · DE 负责设计架构，蓝色小电子像建筑师一样在画纸上勾勒出房间的逻辑结构。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · DE 负责设计架构，蓝色小电子像建筑师一样在画纸上勾勒出房间的逻辑结构。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-roles-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-roles-2.jpg" alt="第 2/2 页 · ME 负责在中间加固结构，蓝色小电子像质检员一样给房间装上管道和骨架。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · ME 负责在中间加固结构，蓝色小电子像质检员一样给房间装上管道和骨架。</figcaption></figure>
+</div>
   <p>看招聘 JD 时最先撞上的三个词：</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">PD</span><span class="term-zh">物理设计工程师</span><i class="term-ico">点击看解释</i></div>
@@ -126,8 +130,10 @@
 </section>
 <section class="ch" id="block-top" data-ch="block-top">
   <div class="ch-h"><span class="ch-n">05</span><h2>block 级和 top 级：你接到的活是哪一种</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-block-top-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-block-top-1.jpg" alt="块级设计就像在别人划好的地块里盖房子，边界和门的位置都是定好的，只需要专心把里面装好。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>块级设计就像在别人划好的地块里盖房子，边界和门的位置都是定好的，只需要专心把里面装好。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-block-top-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-block-top-2.jpg" alt="顶层设计就像在小区里做总规划，要决定每栋房子的位置、马路怎么走以及总电源从哪里接进来。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>顶层设计就像在小区里做总规划，要决定每栋房子的位置、马路怎么走以及总电源从哪里接进来。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-02-pr-what-block-top-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-block-top-1.jpg" alt="第 1/2 页 · 块级设计就像在别人划好的地块里盖房子，边界和门的位置都是定好的，只需要专心把里面装好。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/2 页 · 块级设计就像在别人划好的地块里盖房子，边界和门的位置都是定好的，只需要专心把里面装好。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-block-top-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-block-top-2.jpg" alt="第 2/2 页 · 顶层设计就像在小区里做总规划，要决定每栋房子的位置、马路怎么走以及总电源从哪里接进来。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 顶层设计就像在小区里做总规划，要决定每栋房子的位置、马路怎么走以及总电源从哪里接进来。</figcaption></figure>
+</div>
   <p>后端设计按层级分两类，<strong>决定了你每天要操心的东西完全不同</strong>：</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">block / tile</span><span class="term-zh">模块（块级设计）</span><i class="term-ico">点击看解释</i></div>
@@ -143,8 +149,10 @@
 </section>
 <section class="ch" id="place" data-ch="place">
   <div class="ch-h"><span class="ch-n">06</span><h2>布局：什么必须人摆，什么能自动摆</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-place-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-place-1.jpg" alt="体积庞大且引脚固定的内存模块就像大衣柜，必须由人工精心挑选位置摆放，否则会堵塞整个房间的通道。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>体积庞大且引脚固定的内存模块就像大衣柜，必须由人工精心挑选位置摆放，否则会堵塞整个房间的通道。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-place-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-place-2.jpg" alt="标准逻辑门就像标准尺寸的书籍，可以由工具自动且整齐地排列在书架上，省时又高效。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>标准逻辑门就像标准尺寸的书籍，可以由工具自动且整齐地排列在书架上，省时又高效。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-02-pr-what-place-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-place-1.jpg" alt="第 1/2 页 · 体积庞大且引脚固定的内存模块就像大衣柜，必须由人工精心挑选位置摆放，否则会堵塞整个房间的通道。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 体积庞大且引脚固定的内存模块就像大衣柜，必须由人工精心挑选位置摆放，否则会堵塞整个房间的通道。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-place-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-place-2.jpg" alt="第 2/2 页 · 标准逻辑门就像标准尺寸的书籍，可以由工具自动且整齐地排列在书架上，省时又高效。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 标准逻辑门就像标准尺寸的书籍，可以由工具自动且整齐地排列在书架上，省时又高效。</figcaption></figure>
+</div>
   <p>&quot;布局&quot;听着像全部自动，其实分三类器件，待遇完全不同：</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">macro / mem / sram</span><span class="term-zh">宏单元、存储器</span><i class="term-ico">点击看解释</i></div>
@@ -174,8 +182,10 @@
 </section>
 <section class="ch" id="scale" data-ch="scale">
   <div class="ch-h"><span class="ch-n">08</span><h2>模块分级与芯片分类：面试的&quot;广度题&quot;</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-scale-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-scale-1.jpg" alt="一颗芯片像一座大厦，分成顶层的一级大厅和底层的各个独立房间，蓝色小电子正站在属于自己的二级房间里忙碌。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>一颗芯片像一座大厦，分成顶层的一级大厅和底层的各个独立房间，蓝色小电子正站在属于自己的二级房间里忙碌。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-scale-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-scale-2.jpg" alt="在一颗集成多种功能的SOC大芯片里，蓝色小电子正像快递员一样在CPU、GPU和高速接口等不同房间之间运送数据。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>在一颗集成多种功能的SOC大芯片里，蓝色小电子正像快递员一样在CPU、GPU和高速接口等不同房间之间运送数据。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-02-pr-what-scale-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-scale-1.jpg" alt="第 1/2 页 · 一颗芯片像一座大厦，分成顶层的一级大厅和底层的各个独立房间，蓝色小电子正站在属于自己的二级房间里忙碌。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 一颗芯片像一座大厦，分成顶层的一级大厅和底层的各个独立房间，蓝色小电子正站在属于自己的二级房间里忙碌。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-scale-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-scale-2.jpg" alt="第 2/2 页 · 在一颗集成多种功能的SOC大芯片里，蓝色小电子正像快递员一样在CPU、GPU和高速接口等不同房间之间运送数据。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 在一颗集成多种功能的SOC大芯片里，蓝色小电子正像快递员一样在CPU、GPU和高速接口等不同房间之间运送数据。</figcaption></figure>
+</div>
   <p><strong>模块分级</strong>：一颗芯片按层级切成一级模块、二级模块、三级模块。越往上（一级）越大越接近顶层，越往下越像&quot;一个具体功能块&quot;。分给你的活通常落在二级或三级模块上——这也解释了为什么招聘会写&quot;负责 XX 模块的 PR&quot;。</p>
 <p><strong>芯片分类</strong>（知道各自算什么就行，面试常拿来探你的知识面）：</p>
 <div class="tbl"><table><thead><tr><th>类型</th><th>是什么</th><th>典型厂商/场景</th></tr></thead><tbody><tr><td>SOC</td><td>片上系统，把 CPU、总线、外设、存储接口集成到一颗</td><td>手机主芯片、车规芯片</td></tr><tr><td>CPU</td><td>通用处理器，看核心数、主频</td><td>Intel、AMD</td></tr><tr><td>GPU</td><td>图形处理器，大量并行计算</td><td>NVIDIA、AMD</td></tr><tr><td>NPU</td><td>神经网络加速单元</td><td>手机/服务器 AI 芯片</td></tr><tr><td>DSP</td><td>数字信号处理，音频、图像、通信基带</td><td>音频/基带芯片</td></tr><tr><td>DDR</td><td>缓存/内存接口控制器</td><td>内存条、SoC 的存储接口</td></tr><tr><td>USB / PCIE</td><td>高速串行传输接口</td><td>外设、板级互连</td></tr><tr><td>VCN</td><td>视频/音频编解码处理</td><td>多媒体芯片</td></tr></tbody></table></div>
@@ -198,8 +208,10 @@
 </section>
 <section class="ch" id="in-project" data-ch="in-project">
   <div class="ch-h"><span class="ch-n">09</span><h2>这一课在项目里的位置</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-in-project-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-in-project-1.jpg" alt="后端工程师接手项目时，首先要把前道工序送来的蓝图设计图纸与物理尺寸材料规整好，确认边界与大小。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>后端工程师接手项目时，首先要把前道工序送来的蓝图设计图纸与物理尺寸材料规整好，确认边界与大小。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-in-project-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-in-project-2.jpg" alt="经历九个紧凑工序的流水线打磨后，蓝图最终变为了带有精确坐标和制造尺寸的立体工厂版图。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>经历九个紧凑工序的流水线打磨后，蓝图最终变为了带有精确坐标和制造尺寸的立体工厂版图。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-02-pr-what-in-project-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-in-project-1.jpg" alt="第 1/2 页 · 后端工程师接手项目时，首先要把前道工序送来的蓝图设计图纸与物理尺寸材料规整好，确认边界与大小。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 后端工程师接手项目时，首先要把前道工序送来的蓝图设计图纸与物理尺寸材料规整好，确认边界与大小。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-in-project-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-in-project-2.jpg" alt="第 2/2 页 · 经历九个紧凑工序的流水线打磨后，蓝图最终变为了带有精确坐标和制造尺寸的立体工厂版图。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 经历九个紧凑工序的流水线打磨后，蓝图最终变为了带有精确坐标和制造尺寸的立体工厂版图。</figcaption></figure>
+</div>
   <p>把这一课放回真实时间线：</p>
 <ol><li>DE 交来 netlist（第 N 版），ME 补好 DFT 和 MMMC 环境；</li><li>你作为 PD 接手，先搞清楚<strong>这块活的边界</strong>（block 还是 top、面积多大、port 在哪）；</li><li>导入数据（netlist + lef + lib + sdc + MMMC）；</li><li>走完 init → floorplan → powerplan → place → cts → optcts → route → optroute → chipfinish；</li><li>交出 GDSII + def + 报告，交给签核组做 STA / PV / PA。</li></ol>
 <p>下一课就把第 4 步这九个阶段一个一个拆开讲，并且告诉你每个阶段&quot;做完怎么看它做得好不好&quot;。</p>
@@ -258,8 +270,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>

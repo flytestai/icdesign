@@ -408,10 +408,23 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .fig-img .fig-a{display:block;cursor:zoom-in;background:#f7fafd;line-height:0}
 .fig-img img{display:block;width:100%;height:auto}
 .fig-img figcaption{padding:9px 14px;font-size:12.5px;line-height:1.72;color:var(--muted);border-top:1px solid var(--line);background:#fbfcfe}
-/* 小节首图（AI 生成）：紧跟标题，间距压到和标题一体，别和正文第一段之间空一大块 */
+/* 小节首图（AI 知识海报）：紧跟标题，间距压到和标题一体 */
 .fig-ai{margin:0 0 18px}
 .ch-h + .fig-ai{margin-top:-2px}
 .fig-ai figcaption{padding:8px 13px;font-size:12px;line-height:1.68}
+/* 多页海报：首图全宽，其余两列并排。
+   一张一屏地竖着堆会把正文挤出屏幕，看图的人以为"这课没字"。细节交给点击放大。 */
+.fig-gallery{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 20px}
+.ch-h + .fig-gallery{margin-top:-2px}
+.fig-gallery .fig-ai{margin:0}
+.fig-gallery .fig-ai.lead{grid-column:1/-1}
+.fig-gallery .fig-ai .fig-a{display:flex;align-items:center;justify-content:center}
+.fig-gallery .fig-ai img{max-height:340px;width:100%;object-fit:contain}
+.fig-gallery .fig-ai.lead img{max-height:430px}
+.fig-gallery figcaption{font-size:11.5px;padding:6px 10px;line-height:1.6}
+@media (max-width:760px){
+  .fig-gallery{grid-template-columns:1fr;gap:10px}
+}
 #lb{position:fixed;inset:0;z-index:300;background:rgba(11,20,29,.94);display:none;align-items:center;justify-content:center;padding:22px}
 #lb.on{display:flex}
 #lb img{max-width:100%;max-height:86vh;border-radius:8px;box-shadow:0 24px 70px rgba(0,0,0,.55);background:#fff}

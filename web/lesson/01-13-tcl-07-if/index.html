@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 7 讲 · 流程控制（上）：if 条件判断与用户输入 · 13 | IC 后端学院</title>
 <meta name="description" content="if-elseif-else 语法与四大语法铁律（文档强调的初学者大坑）、比较与逻辑运算符、gets stdin 用户输入、rand() 随机数、成绩等级判断与猜数字游戏（文档原题）。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="01-13-tcl-07-if">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -142,8 +142,10 @@ if {$score &gt;= 90} {
 </section>
 <section class="ch" id="rand" data-ch="rand">
   <div class="ch-h"><span class="ch-n">04</span><h2>rand()：获取随机数</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-13-tcl-07-if-rand-1.jpg" data-fig="ai"><img src="/fig/ai/01-13-tcl-07-if-rand-1.jpg" alt="蓝色小电子正在摇晃一台彩色扭蛋机，每一次转动都会随机掉出一个介于零到一之间的小球，生动比喻rand()获取随机数的过程。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>蓝色小电子正在摇晃一台彩色扭蛋机，每一次转动都会随机掉出一个介于零到一之间的小球，生动比喻rand()获取随机数的过程。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-13-tcl-07-if-rand-2.jpg" data-fig="ai"><img src="/fig/ai/01-13-tcl-07-if-rand-2.jpg" alt="蓝色小电子把刚才掉出的随机小数塞进一个放大镜工厂，出来变成了零到九十九的整数，展示了随机数的进阶用法。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子把刚才掉出的随机小数塞进一个放大镜工厂，出来变成了零到九十九的整数，展示了随机数的进阶用法。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-13-tcl-07-if-rand-1.jpg" data-fig="ai"><img src="/fig/ai/01-13-tcl-07-if-rand-1.jpg" alt="第 1/2 页 · 蓝色小电子正在摇晃一台彩色扭蛋机，每一次转动都会随机掉出一个介于零到一之间的小球，生动比喻rand()获取随机数的过程。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/2 页 · 蓝色小电子正在摇晃一台彩色扭蛋机，每一次转动都会随机掉出一个介于零到一之间的小球，生动比喻rand()获取随机数的过程。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-13-tcl-07-if-rand-2.jpg" data-fig="ai"><img src="/fig/ai/01-13-tcl-07-if-rand-2.jpg" alt="第 2/2 页 · 蓝色小电子把刚才掉出的随机小数塞进一个放大镜工厂，出来变成了零到九十九的整数，展示了随机数的进阶用法。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 蓝色小电子把刚才掉出的随机小数塞进一个放大镜工厂，出来变成了零到九十九的整数，展示了随机数的进阶用法。</figcaption></figure>
+</div>
   <p><code>rand()</code> 获取 0-1 的随机数（<strong>不可以等于 1</strong>）。可以输入 <code>expr {rand()}</code> 进行查看获取的随机数：</p>
 <div class="tsbx has-code" data-code="puts [expr {rand()}]
 puts [expr {int(rand()*100)}]   ;# 0-99 的整数随机数（多跑几次看变化）">
@@ -207,8 +209,10 @@ if {$com_num == $ply_ch} {
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-13-tcl-07-if-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-13-tcl-07-if-lab-1.jpg" alt="蓝色小电子站在盲盒仓库前，手里拿着写有猜测数字的纸条，准备和系统随机生成的神秘数字比大小。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子站在盲盒仓库前，手里拿着写有猜测数字的纸条，准备和系统随机生成的神秘数字比大小。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-13-tcl-07-if-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-13-tcl-07-if-lab-2.jpg" alt="蓝色小电子像质检员一样严格遵守规则，把括号和空格摆放在正确的位置，绝不让语法出错。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子像质检员一样严格遵守规则，把括号和空格摆放在正确的位置，绝不让语法出错。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-13-tcl-07-if-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-13-tcl-07-if-lab-1.jpg" alt="第 1/2 页 · 蓝色小电子站在盲盒仓库前，手里拿着写有猜测数字的纸条，准备和系统随机生成的神秘数字比大小。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 蓝色小电子站在盲盒仓库前，手里拿着写有猜测数字的纸条，准备和系统随机生成的神秘数字比大小。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-13-tcl-07-if-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-13-tcl-07-if-lab-2.jpg" alt="第 2/2 页 · 蓝色小电子像质检员一样严格遵守规则，把括号和空格摆放在正确的位置，绝不让语法出错。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 蓝色小电子像质检员一样严格遵守规则，把括号和空格摆放在正确的位置，绝不让语法出错。</figcaption></figure>
+</div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>文档原题：猜数字游戏</div><div class="lab-b"><p>思路：用 <code>expr {int(rand()*100)}</code> 生成一个 0-99 的随机数，<code>gets stdin</code> 循环读用户猜的数，<code>if</code> 判断大了/小了/对了。（第 8 讲学了 while 再回来做，参考答案见下。）</p></div></div>
 <div class="tsbx has-code" data-code=";# 猜数字参考实现：练习台里把每次猜测依次敲进输入行（如 50 回车 75 回车……）
 set answer [expr {int(rand()*100)}]
@@ -293,8 +297,8 @@ while {1} {
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>

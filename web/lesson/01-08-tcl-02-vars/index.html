@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 2 讲 · 变量与替换规则（TCL 的灵魂） · 08 | IC 后端学院</title>
 <meta name="description" content="set 定义变量、$ 取变量、[ ] 执行命令、{} 和 "" 分组——三种替换是全课程最重要的一讲。还有特殊变量名的 ${} 包裹写法、set 一次只能定义一个变量的字典解法。掌握这一讲，后面所有语法都豁然开朗。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="01-08-tcl-02-vars">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,7 +64,12 @@
     </div>
     <article id="article"><section class="ch" id="set" data-ch="set">
   <div class="ch-h"><span class="ch-n">01</span><h2>定义变量：set 命令</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-set.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-set.jpg" alt="变量就像一个贴着标签的储物盒，左边的标签是给人看的名字，右边盒子里装的是机器要用的数值。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>变量就像一个贴着标签的储物盒，左边的标签是给人看的名字，右边盒子里装的是机器要用的数值。</figcaption></figure>
+  <div class="fig-gallery" data-n="4">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-set-p1.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-set-p1.jpg" alt="第 1/4 页 · 总览：这一节要弄明白的 3 件事——什么是变量、定义变量的命令、变量的命名规则。" loading="lazy" decoding="async" width="1400" height="788"></a><figcaption>第 1/4 页 · 总览：这一节要弄明白的 3 件事——什么是变量、定义变量的命令、变量的命名规则。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-set-p2.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-set-p2.jpg" alt="第 2/4 页 · 什么是变量：变量是一个名字绑一个值的小盒子。（变量就是贴了标签的数据小盒子。）" loading="lazy" decoding="async" width="1217" height="1292"></a><figcaption>第 2/4 页 · 什么是变量：变量是一个名字绑一个值的小盒子。（变量就是贴了标签的数据小盒子。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-set-p3.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-set-p3.jpg" alt="第 3/4 页 · 定义变量的命令：用 set 命令来创建和赋值。（用 set 命令，造出属于你的变量。）" loading="lazy" decoding="async" width="1217" height="1292"></a><figcaption>第 3/4 页 · 定义变量的命令：用 set 命令来创建和赋值。（用 set 命令，造出属于你的变量。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-set-p4.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-set-p4.jpg" alt="第 4/4 页 · 变量的命名规则：变量名只能用字母数字下划线。（起名字守规矩，字母数字下划线。）" loading="lazy" decoding="async" width="1235" height="1274"></a><figcaption>第 4/4 页 · 变量的命名规则：变量名只能用字母数字下划线。（起名字守规矩，字母数字下划线。）</figcaption></figure>
+</div>
   <div class="goal"><span>本章目标</span>会用 set 定义三种类型变量；建立&quot;名字绑一个值&quot;的心智模型；说清 {} &quot;&quot; [] 三种符号各自做什么；会用 ${} 调用特殊变量名；会用字典写法装多份信息。</div>
 <p><strong>语法：<code>set 变量名 变量值</code></strong></p>
 <div class="note"><div class="note-h">心智模型（文档原话）</div><p>变量就是一个名字绑一个值——<strong>名字给你看，值给机器用</strong>。比如定义一个人 person，名字叫张三：<code>person</code> 是我们（人）用的名字，&quot;张三&quot;是机器存的值。</p></div>
@@ -92,8 +97,13 @@ puts &quot;age=$age , name=$name&quot;</pre><button class="tcl-go" type="button"
 </section>
 <section class="ch" id="substitution" data-ch="substitution">
   <div class="ch-h"><span class="ch-n">02</span><h2>TCL 的三种&quot;替换&quot;——一句话原理（文档原文）</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-substitution-1.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-substitution-1.jpg" alt="双引号和小括号就像会变魔术的快递盒，双引号会把里面的暗号变成真实物品，而大括号则把所有东西死死封印成原样。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>双引号和小括号就像会变魔术的快递盒，双引号会把里面的暗号变成真实物品，而大括号则把所有东西死死封印成原样。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-substitution-2.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-substitution-2.jpg" alt="方括号就像一个弹簧发射器，先把自己里面的任务做完，再用产出的结果把整个装置瞬间顶替掉。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>方括号就像一个弹簧发射器，先把自己里面的任务做完，再用产出的结果把整个装置瞬间顶替掉。</figcaption></figure>
+  <div class="fig-gallery" data-n="5">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-substitution-p1.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-substitution-p1.jpg" alt="第 1/5 页 · 总览：这一节要弄明白的 4 件事——大括号打包、双引号打包、方括号命令、美元符取值。" loading="lazy" decoding="async" width="1200" height="614"></a><figcaption>第 1/5 页 · 总览：这一节要弄明白的 4 件事——大括号打包、双引号打包、方括号命令、美元符取值。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-substitution-p2.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-substitution-p2.jpg" alt="第 2/5 页 · 大括号打包：把一堆文字原样打包的符号。（大括号像个保险箱，原封不动不偷看。）" loading="lazy" decoding="async" width="1200" height="1219"></a><figcaption>第 2/5 页 · 大括号打包：把一堆文字原样打包的符号。（大括号像个保险箱，原封不动不偷看。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-substitution-p3.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-substitution-p3.jpg" alt="第 3/5 页 · 双引号打包：允许变魔术的打包符号。（双引号很神奇，粘成词还能变变量。）" loading="lazy" decoding="async" width="1200" height="1247"></a><figcaption>第 3/5 页 · 双引号打包：允许变魔术的打包符号。（双引号很神奇，粘成词还能变变量。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-substitution-p4.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-substitution-p4.jpg" alt="第 4/5 页 · 方括号命令：先干活再替换自己的符号。（方括号先算完，用结果把自己顶掉。）" loading="lazy" decoding="async" width="1200" height="1216"></a><figcaption>第 4/5 页 · 方括号命令：先干活再替换自己的符号。（方括号先算完，用结果把自己顶掉。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-substitution-p5.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-substitution-p5.jpg" alt="第 5/5 页 · 美元符取值：把名字换成真实数值的符号。（美元符一闪光，名字变成真宝贝。）" loading="lazy" decoding="async" width="1200" height="1216"></a><figcaption>第 5/5 页 · 美元符取值：把名字换成真实数值的符号。（美元符一闪光，名字变成真宝贝。）</figcaption></figure>
+</div>
   <div class="note"><div class="note-h">一句话原理</div><p><code>{}</code>（不读变量）和 <code>&quot;&quot;</code>（读变量）是同一类——<strong>分组</strong>（把空格/换行粘成一个词），区别只在于&quot;里面做不做替换&quot;；<code>[]</code> 完全是另一类——<strong>替换</strong>（先跑命令，用结果把自己顶掉）。</p></div>
 <div class="tbl"><table><thead><tr><th>符号</th><th>叫什么</th><th>干什么</th><th>Python 类比</th></tr></thead><tbody><tr><td><code>$变量名</code></td><td>变量替换</td><td>把变量的值取出来放进去</td><td>直接写变量名</td></tr><tr><td><code>[命令]</code></td><td>命令替换</td><td>先执行命令，用结果替换整个 <code>[...]</code></td><td>表达式的返回值</td></tr><tr><td><code>{...}</code></td><td>分组</td><td>把一段内容&quot;原样打包&quot;，不读变量</td><td>原始字符串 <code>r&quot;...&quot;</code></td></tr><tr><td><code>&quot;...&quot;</code></td><td>分组</td><td>打包，但<strong>会</strong>做变量替换</td><td>f-string</td></tr></tbody></table></div>
 <p><strong>例子感受一下</strong>：</p>
@@ -118,13 +128,16 @@ puts $x</pre><button class="tcl-go" type="button">▶ 运行这段代码</button
 </section>
 <section class="ch" id="dollar" data-ch="dollar">
   <div class="ch-h"><span class="ch-n">03</span><h2>调用变量：$变量名</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-dollar.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-dollar.jpg" alt="在变量名前面加上美元符号，就能像打开快递箱一样取出里面藏着的宝贝。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>在变量名前面加上美元符号，就能像打开快递箱一样取出里面藏着的宝贝。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-dollar-p1.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-dollar-p1.jpg" alt="美元符号取值：它是取出变量里面宝贝的魔法符号。（前面加个美元符号，就能把变量拿出来用！）" loading="lazy" decoding="async" width="1200" height="1213"></a><figcaption>美元符号取值：它是取出变量里面宝贝的魔法符号。（前面加个美元符号，就能把变量拿出来用！）</figcaption></figure>
   <p>在字符串或命令里写 <code>$name</code> 就能取到变量的值。</p>
   <label class="ch-done"><input type="checkbox" data-mark="dollar"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="special" data-ch="special">
   <div class="ch-h"><span class="ch-n">04</span><h2>特殊变量名：用 ${} 包裹（很少用，但要会）</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-special.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-special.jpg" alt="当变量名含有特殊字符时，用花括号把名字紧紧裹起来，就像给淘气的钥匙穿上防护衣。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>当变量名含有特殊字符时，用花括号把名字紧紧裹起来，就像给淘气的钥匙穿上防护衣。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-special-p1.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-special-p1.jpg" alt="第 1/2 页 · 特殊变量名：带小数点或减号的奇怪变量名（名字有特殊符号，记得加个${}包起来！）" loading="lazy" decoding="async" width="1200" height="1213"></a><figcaption>第 1/2 页 · 特殊变量名：带小数点或减号的奇怪变量名（名字有特殊符号，记得加个${}包起来！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-special-p2.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-special-p2.jpg" alt="第 2/2 页 · 报错大魔王：漏掉大括号引发的报错（报错看不懂，先查变量有没有加包裹！）" loading="lazy" decoding="async" width="1200" height="1223"></a><figcaption>第 2/2 页 · 报错大魔王：漏掉大括号引发的报错（报错看不懂，先查变量有没有加包裹！）</figcaption></figure>
+</div>
   <p>当变量名里含特殊字符（如 <code>.</code>、<code>-</code>）时，定义照常，<strong>调用必须用 <code>${变量名}</code> 包裹</strong>，否则 TCL 解析失败：</p>
 <div class="tsbx has-code" data-code="set a.1 100      ;# 变量名含小数点，特殊定义
 set b-2 &quot;test&quot;   ;# 变量名含减号，特殊定义
@@ -147,7 +160,10 @@ puts ${b-2}      ;# 正确调用，输出：test</pre><button class="tcl-go" typ
 </section>
 <section class="ch" id="multi" data-ch="multi">
   <div class="ch-h"><span class="ch-n">05</span><h2>set 一次只能定义一个变量（想定义&quot;多个&quot;用字典）</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-multi.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-multi.jpg" alt="普通的箱子只能装一件东西，如果想同时装年龄和名字，就需要换成一个格挡分明的收纳盒，这就是字典。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>普通的箱子只能装一件东西，如果想同时装年龄和名字，就需要换成一个格挡分明的收纳盒，这就是字典。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-multi-p1.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-multi-p1.jpg" alt="第 1/2 页 · 单变量限制：set 一次只能定义一个变量（set 一次只能装一个哦）" loading="lazy" decoding="async" width="1200" height="1215"></a><figcaption>第 1/2 页 · 单变量限制：set 一次只能定义一个变量（set 一次只能装一个哦）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-multi-p2.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-multi-p2.jpg" alt="第 2/2 页 · 字典存多个信息：一个名字装多份信息的字典（多份信息用字典来打包）" loading="lazy" decoding="async" width="1200" height="1226"></a><figcaption>第 2/2 页 · 字典存多个信息：一个名字装多份信息的字典（多份信息用字典来打包）</figcaption></figure>
+</div>
   <p>TCL 的 <code>set</code> <strong>不支持一次定义多个变量</strong>。如果想要&quot;一个名字装多份信息&quot;，可以借助字典写法：</p>
 <div class="tsbx has-code" data-code="set info {age 20 name zhangsan}
 puts [dict get $info age]     ;# 取出 20
@@ -166,8 +182,10 @@ puts [dict get $info name]    ;# 取出 zhangsan</pre><button class="tcl-go" typ
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-lab-1.jpg" alt="花括号像全封闭的保险箱，里面的小电子和符号原样不动；双引号像透明玻璃柜，里面的小电子会直接变身成数字。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>花括号像全封闭的保险箱，里面的小电子和符号原样不动；双引号像透明玻璃柜，里面的小电子会直接变身成数字。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-lab-2.jpg" alt="方括号像一个神秘的魔法黑盒子，先把里面加法算式的得数算出来，再把结果替换掉盒子本身。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>方括号像一个神秘的魔法黑盒子，先把里面加法算式的得数算出来，再把结果替换掉盒子本身。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-lab-p1.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-lab-p1.jpg" alt="第 1/2 页 · 双引号与大括号：包裹变量的不同符号（双引号能读变量大括号不能）" loading="lazy" decoding="async" width="1200" height="1213"></a><figcaption>第 1/2 页 · 双引号与大括号：包裹变量的不同符号（双引号能读变量大括号不能）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-08-tcl-02-vars-lab-p2.jpg" data-fig="ai"><img src="/fig/ai/01-08-tcl-02-vars-lab-p2.jpg" alt="第 2/2 页 · 方括号命令替换：藏在方括号里的计算小助手（方括号先算术再替换）" loading="lazy" decoding="async" width="1200" height="1275"></a><figcaption>第 2/2 页 · 方括号命令替换：藏在方括号里的计算小助手（方括号先算术再替换）</figcaption></figure>
+</div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（2 题）</div><div class="lab-b"><ol><li>定义变量 <code>user_name</code>、<code>age</code>，用一条 <code>puts</code> 同时打印它们。</li><li>解释为什么 <code>puts {age=$age}</code> 不会输出变量值。</li></ol></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>练习 1 的写法？</div>
@@ -202,8 +220,8 @@ puts [dict get $info name]    ;# 取出 zhangsan</pre><button class="tcl-go" typ
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>

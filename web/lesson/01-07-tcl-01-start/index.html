@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 1 讲 · 开工准备：环境与第一个命令 · 07 | IC 后端学院</title>
 <meta name="description" content="TCL 平时不是独立运行的，而是"寄生"在 EDA 工具里。这一课搞定 innovus 打不开的排查、写出第一个 puts、弄清两种注释写法，并在网页练习台上跑出第一行输出。全程 Python 对照。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="01-07-tcl-01-start">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,8 +64,10 @@
     </div>
     <article id="article"><section class="ch" id="env" data-ch="env">
   <div class="ch-h"><span class="ch-n">01</span><h2>为什么第一讲讲环境</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-env-1.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-env-1.jpg" alt="蓝色小电子站在一座上锁的工具仓库大门前，手里拿着一把写着脚本的钥匙，正准备打开大门取出EDA工具。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子站在一座上锁的工具仓库大门前，手里拿着一把写着脚本的钥匙，正准备打开大门取出EDA工具。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-env-2.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-env-2.jpg" alt="蓝色小电子在魔法书桌前按下一个发光按钮，将写有咒语的纸条投入机器，瞬间激活了整个工作台。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子在魔法书桌前按下一个发光按钮，将写有咒语的纸条投入机器，瞬间激活了整个工作台。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-env-p1.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-env-p1.jpg" alt="第 1/2 页 · EDA环境：控制芯片设计的专业工具箱（用软件前先配好环境，工具才能开工）" loading="lazy" decoding="async" width="1200" height="1260"></a><figcaption>第 1/2 页 · EDA环境：控制芯片设计的专业工具箱（用软件前先配好环境，工具才能开工）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-env-p2.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-env-p2.jpg" alt="第 2/2 页 · source命令：立刻执行脚本的刷新开关（改完配置别忘source，否则白改）" loading="lazy" decoding="async" width="1200" height="1226"></a><figcaption>第 2/2 页 · source命令：立刻执行脚本的刷新开关（改完配置别忘source，否则白改）</figcaption></figure>
+</div>
   <div class="goal"><span>本章目标</span>知道 TCL 与 EDA 工具的关系；能排查 innovus 打不开；会 source 加载环境；能用 puts 输出一句话；会用 <code>#</code> 和 <code>;#</code> 两种注释。</div>
 <p>TCL 是 EDA 工具（Cadence Innovus、Synopsys DC 等）的标准脚本语言，所以第一步是把 EDA 环境配好——这是实际工作里天天打交道的部分。</p>
 <p><strong>问题场景</strong>：运行 <code>innovus -cpus 2</code> 打不开（命令找不到）。</p>
@@ -81,7 +83,12 @@
 </section>
 <section class="ch" id="puts" data-ch="puts">
   <div class="ch-h"><span class="ch-n">02</span><h2>第一个命令：puts</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-puts.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-puts.jpg" alt="TCL 的 puts 命令就像一个传话筒，蓝色小电子把双引号里的文字喊出来并换行，完成内容输出。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>TCL 的 puts 命令就像一个传话筒，蓝色小电子把双引号里的文字喊出来并换行，完成内容输出。</figcaption></figure>
+  <div class="fig-gallery" data-n="4">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-puts-p1.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-puts-p1.jpg" alt="第 1/4 页 · 总览：这一节要弄明白的 3 件事——打招呼命令、存东西的口袋、一切皆命令。" loading="lazy" decoding="async" width="1200" height="614"></a><figcaption>第 1/4 页 · 总览：这一节要弄明白的 3 件事——打招呼命令、存东西的口袋、一切皆命令。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-puts-p2.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-puts-p2.jpg" alt="第 2/4 页 · 打招呼命令：puts是输出文字并换行的命令（用puts命令，就能把字打印出来）" loading="lazy" decoding="async" width="1200" height="1241"></a><figcaption>第 2/4 页 · 打招呼命令：puts是输出文字并换行的命令（用puts命令，就能把字打印出来）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-puts-p3.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-puts-p3.jpg" alt="第 3/4 页 · 存东西的口袋：set是用来存数据的命令（用set命令，随时随地存宝贝）" loading="lazy" decoding="async" width="1200" height="1247"></a><figcaption>第 3/4 页 · 存东西的口袋：set是用来存数据的命令（用set命令，随时随地存宝贝）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-puts-p4.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-puts-p4.jpg" alt="第 4/4 页 · 一切皆命令：TCL语言的核心指挥逻辑（所有操作，都是命令加上参数）" loading="lazy" decoding="async" width="1200" height="1238"></a><figcaption>第 4/4 页 · 一切皆命令：TCL语言的核心指挥逻辑（所有操作，都是命令加上参数）</figcaption></figure>
+</div>
   <p><code>puts</code> = put string，作用和 Python 的 <code>print()</code> 一样：输出内容并换行。字符串用双引号 <code>&quot;...&quot;</code> 包起来（也可以用花括号 <code>{...}</code>，第 2 讲讲区别）。</p>
 <div class="tsbx has-code" data-code="puts &quot;Hello, TCL!&quot;">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
@@ -102,8 +109,10 @@
 </section>
 <section class="ch" id="comment" data-ch="comment">
   <div class="ch-h"><span class="ch-n">03</span><h2>注释怎么写</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-comment-1.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-comment-1.jpg" alt="蓝色小电子举着一把大锁，在命令队伍最前面挡住后面的话，告诉计算机这里是注释不用执行。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子举着一把大锁，在命令队伍最前面挡住后面的话，告诉计算机这里是注释不用执行。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-comment-2.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-comment-2.jpg" alt="蓝色小电子先竖起一面墙结束当前任务，再举起锁牌子写注释，展示行中注释的正确写法。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子先竖起一面墙结束当前任务，再举起锁牌子写注释，展示行中注释的正确写法。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-comment-p1.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-comment-p1.jpg" alt="第 1/2 页 · 行首注释：在代码最前面加个井号的说明文字。（行首加个井号，悄悄写下备注。）" loading="lazy" decoding="async" width="1200" height="1274"></a><figcaption>第 1/2 页 · 行首注释：在代码最前面加个井号的说明文字。（行首加个井号，悄悄写下备注。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-comment-p2.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-comment-p2.jpg" alt="第 2/2 页 · 行中注释：写在命令后面的说明文字。（命令后面加分号井号，才能安全写备注。）" loading="lazy" decoding="async" width="1200" height="1213"></a><figcaption>第 2/2 页 · 行中注释：写在命令后面的说明文字。（命令后面加分号井号，才能安全写备注。）</figcaption></figure>
+</div>
   <ul><li><strong>行首注释</strong>：用 <code>#</code>（和 Python 一样）。</li><li><strong>行中注释</strong>：命令后面接 <code>;#</code>——分号表示&quot;这一行命令到此结束&quot;，然后 <code>#</code> 开始注释。</li></ul>
 <div class="tsbx has-code" data-code="set age 25   ;# 这是注释">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
@@ -118,8 +127,10 @@
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-lab-1.jpg" alt="蓝色小电子像喊话机器一样，把想说的话通过喇叭大声广播出来，对应用 puts 命令输出文字。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子像喊话机器一样，把想说的话通过喇叭大声广播出来，对应用 puts 命令输出文字。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-lab-2.jpg" alt="蓝色小电子手里拿着一把贴着工具标签的钥匙，正准备打开一扇紧闭的大门，对应配置环境变量和打开工具。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子手里拿着一把贴着工具标签的钥匙，正准备打开一扇紧闭的大门，对应配置环境变量和打开工具。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-lab-p1.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-lab-p1.jpg" alt="第 1/2 页 · 打招呼命令：puts是让电脑说话的命令。（用puts命令，电脑就能帮咱们大声喊出来！）" loading="lazy" decoding="async" width="1200" height="1275"></a><figcaption>第 1/2 页 · 打招呼命令：puts是让电脑说话的命令。（用puts命令，电脑就能帮咱们大声喊出来！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-07-tcl-01-start-lab-p2.jpg" data-fig="ai"><img src="/fig/ai/01-07-tcl-01-start-lab-p2.jpg" alt="第 2/2 页 · TCL的核心规矩：TCL规定一切都是命令加参数。（TCL很简单，命令后面加参数就行！）" loading="lazy" decoding="async" width="1200" height="1260"></a><figcaption>第 2/2 页 · TCL的核心规矩：TCL规定一切都是命令加参数。（TCL很简单，命令后面加参数就行！）</figcaption></figure>
+</div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（2 题）</div><div class="lab-b"><ol><li>配好环境，打开并关闭一次 Innovus 窗口。</li><li>用 <code>puts</code> 输出&quot;我要学 TCL 了&quot;。</li></ol></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>练习 2 怎么写？</div>
@@ -158,8 +169,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>

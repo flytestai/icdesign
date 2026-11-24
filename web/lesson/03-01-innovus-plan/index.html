@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>阶段三导读：40nm Innovus 项目实操路线 · 31 | IC 后端学院</title>
 <meta name="description" content="阶段三是全课程的重头戏（课表 41 学时）。本页给出完整的工序清单与学时分配，标出已上线与在建的部分，并说明每一道工序在动手前必须先想清楚什么——避免"照抄步骤跑完一遍，却不知道自己在干什么"。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="03-01-innovus-plan">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -75,16 +75,20 @@
 </section>
 <section class="ch" id="output" data-ch="output">
   <div class="ch-h"><span class="ch-n">02</span><h2>九道工序的产出物</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-01-innovus-plan-output-1.jpg" data-fig="ai"><img src="/fig/ai/03-01-innovus-plan-output-1.jpg" alt="就像盖房子要看每一步的毛坯、水电和精装验收，芯片制造的每一道工序也必须检查对应的产出物对不对。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>就像盖房子要看每一步的毛坯、水电和精装验收，芯片制造的每一道工序也必须检查对应的产出物对不对。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-01-innovus-plan-output-2.jpg" data-fig="ai"><img src="/fig/ai/03-01-innovus-plan-output-2.jpg" alt="跑通项目不能只看电脑有没有报错，关键要检查每一步产出的文件和指标是否合格。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>跑通项目不能只看电脑有没有报错，关键要检查每一步产出的文件和指标是否合格。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/03-01-innovus-plan-output-1.jpg" data-fig="ai"><img src="/fig/ai/03-01-innovus-plan-output-1.jpg" alt="第 1/2 页 · 就像盖房子要看每一步的毛坯、水电和精装验收，芯片制造的每一道工序也必须检查对应的产出物对不对。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/2 页 · 就像盖房子要看每一步的毛坯、水电和精装验收，芯片制造的每一道工序也必须检查对应的产出物对不对。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-01-innovus-plan-output-2.jpg" data-fig="ai"><img src="/fig/ai/03-01-innovus-plan-output-2.jpg" alt="第 2/2 页 · 跑通项目不能只看电脑有没有报错，关键要检查每一步产出的文件和指标是否合格。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 跑通项目不能只看电脑有没有报错，关键要检查每一步产出的文件和指标是否合格。</figcaption></figure>
+</div>
   <p><strong>判断自己有没有真跑通，看的不是&quot;没报错&quot;，而是&quot;这一步该有的产出物有没有、对不对&quot;。</strong></p>
 <div class="tbl"><table><thead><tr><th>工序</th><th>产出物</th><th>判断指标</th></tr></thead><tbody><tr><td>init</td><td>数据库（<code>.enc</code>）</td><td>instance 数、时钟数、unconstrained 端点为 0</td></tr><tr><td>floorplan</td><td>带尺寸与 macro 的 def</td><td>利用率、长宽比、通道宽度、pin 位置</td></tr><tr><td>powerplan</td><td>power mesh</td><td>IR drop、EM、电源连通性（无孤立单元）</td></tr><tr><td>place</td><td>摆好 stdcell 的 def</td><td>拥塞（congestion）、setup WNS、密度</td></tr><tr><td>CTS</td><td>时钟树</td><td>skew、insertion delay、时钟 latency</td></tr><tr><td>OptCTS</td><td>优化后的时钟树</td><td>setup/hold 双修后的 WNS、时钟 DRC</td></tr><tr><td>route</td><td>全绕通的版图</td><td>DRC 数、short/open 数、via 数</td></tr><tr><td>OptRoute</td><td>修完时序的版图</td><td>最终 WNS/TNS、DRC 归零</td></tr><tr><td>chipfinish</td><td>GDSII / DEF / SPEF / 报告</td><td>交给签核（PT/PV/PA）的文件齐全</td></tr></tbody></table></div>
   <label class="ch-done"><input type="checkbox" data-mark="output"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="tips" data-ch="tips">
   <div class="ch-h"><span class="ch-n">03</span><h2>上手前的三个提醒</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-01-innovus-plan-tips-1.jpg" data-fig="ai"><img src="/fig/ai/03-01-innovus-plan-tips-1.jpg" alt="每道工序必须严格经历配置、执行、报告和判断四步，切忌只跑完命令而不读报告检查结果。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>每道工序必须严格经历配置、执行、报告和判断四步，切忌只跑完命令而不读报告检查结果。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-01-innovus-plan-tips-2.jpg" data-fig="ai"><img src="/fig/ai/03-01-innovus-plan-tips-2.jpg" alt="所有的操作都必须通过写好的脚本文件输入给工具，这样才能方便地保存、对比和复现。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>所有的操作都必须通过写好的脚本文件输入给工具，这样才能方便地保存、对比和复现。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/03-01-innovus-plan-tips-1.jpg" data-fig="ai"><img src="/fig/ai/03-01-innovus-plan-tips-1.jpg" alt="第 1/2 页 · 每道工序必须严格经历配置、执行、报告和判断四步，切忌只跑完命令而不读报告检查结果。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 每道工序必须严格经历配置、执行、报告和判断四步，切忌只跑完命令而不读报告检查结果。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-01-innovus-plan-tips-2.jpg" data-fig="ai"><img src="/fig/ai/03-01-innovus-plan-tips-2.jpg" alt="第 2/2 页 · 所有的操作都必须通过写好的脚本文件输入给工具，这样才能方便地保存、对比和复现。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 所有的操作都必须通过写好的脚本文件输入给工具，这样才能方便地保存、对比和复现。</figcaption></figure>
+</div>
   <ol><li><strong>每道工序都是&quot;配置 → 执行 → 报告 → 判断&quot;四步</strong>。新人常只做前两步（敲了命令、跑完了），不读报告就往下走，错误一路累积到 route 才发现，重跑代价是几小时到几天。</li><li><strong>一定要写脚本，不要在界面里点</strong>。界面操作无法复现、无法 diff、无法交给同事。阶段二讲的每一份数据文件，最后都要通过脚本喂给工具。</li><li><strong>时序报告要看&quot;前提&quot;</strong>。同一个 design 在不同 corner 下结论可能完全相反——报告第一行写的那个 view 名字，决定你看到的数字意味着什么（见 <a href="/lesson/02-07-pr-mmmc/">MMMC</a>）。</li></ol>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>阶段三课表总学时是多少？九道工序里学时最多的是哪一道？</div>
@@ -119,8 +123,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>

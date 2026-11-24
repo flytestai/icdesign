@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 3 课 · 目录与文件操作 · 03 | IC 后端学院</title>
 <meta name="description" content="ls / ll 全部常用选项与输出解析；cd / realpath / pwd / history；mkdir / rmdir / rm；touch 创建文件与通配符；课后练习一（19 题）。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="01-03-linux-03-files">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -82,8 +82,12 @@
 </section>
 <section class="ch" id="cd" data-ch="cd">
   <div class="ch-h"><span class="ch-n">02</span><h2>2. 切换目录：cd</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-cd-1.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-cd-1.jpg" alt="就像在迷宫或大厦里走动，cd 命令就像是输入房间号或者按电梯，带你瞬间传送到不同的房间或楼层。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>就像在迷宫或大厦里走动，cd 命令就像是输入房间号或者按电梯，带你瞬间传送到不同的房间或楼层。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-cd-2.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-cd-2.jpg" alt="绝对路径从一楼大厅的根目录出发，不管你在哪都能一步到位；相对路径则像是在当前门口说『往左走两步』。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>绝对路径从一楼大厅的根目录出发，不管你在哪都能一步到位；相对路径则像是在当前门口说『往左走两步』。</figcaption></figure>
+  <div class="fig-gallery" data-n="4">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-cd-p1.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-cd-p1.jpg" alt="第 1/4 页 · 总览：这一节要弄明白的 3 件事——认识 cd 命令、神奇的快捷回城、相对路径和绝对路径。" loading="lazy" decoding="async" width="1400" height="788"></a><figcaption>第 1/4 页 · 总览：这一节要弄明白的 3 件事——认识 cd 命令、神奇的快捷回城、相对路径和绝对路径。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-cd-p2.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-cd-p2.jpg" alt="第 2/4 页 · 认识 cd 命令：cd 是带你切换文件夹的魔法传送门（用 cd 命令，想去哪就去哪！）" loading="lazy" decoding="async" width="1247" height="1261"></a><figcaption>第 2/4 页 · 认识 cd 命令：cd 是带你切换文件夹的魔法传送门（用 cd 命令，想去哪就去哪！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-cd-p3.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-cd-p3.jpg" alt="第 3/4 页 · 神奇的快捷回城：cd 后面加特殊符号能快速回家（记住小暗号，回家不迷路！）" loading="lazy" decoding="async" width="1221" height="1288"></a><figcaption>第 3/4 页 · 神奇的快捷回城：cd 后面加特殊符号能快速回家（记住小暗号，回家不迷路！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-cd-p4.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-cd-p4.jpg" alt="第 4/4 页 · 相对路径和绝对路径：找路有两种不同的带路方法（分清两条路，去哪都不迷路！）" loading="lazy" decoding="async" width="1247" height="1261"></a><figcaption>第 4/4 页 · 相对路径和绝对路径：找路有两种不同的带路方法（分清两条路，去哪都不迷路！）</figcaption></figure>
+</div>
   <div class="tbl"><table><thead><tr><th>写法</th><th>作用</th></tr></thead><tbody><tr><td><code>cd 路径</code></td><td>进入指定目录</td></tr><tr><td><code>cd</code> 或 <code>cd ~</code></td><td>回到当前用户的<strong>家目录</strong></td></tr><tr><td><code>cd ..</code></td><td>切换到<strong>上一级</strong>目录</td></tr><tr><td><code>cd .</code></td><td>当前位置（原地不动）</td></tr><tr><td><code>cd -</code></td><td>回到<strong>上一次</strong>打开的目录</td></tr></tbody></table></div>
 <p><strong>相对路径 vs 绝对路径</strong>：</p>
 <ul><li>相对路径：不以 <code>/</code> 开头的路径（从当前位置出发）；</li><li>绝对路径：以 <code>/</code> 开头就是绝对路径（从根出发）。</li></ul>
@@ -101,8 +105,12 @@
 </section>
 <section class="ch" id="mkdir" data-ch="mkdir">
   <div class="ch-h"><span class="ch-n">04</span><h2>4. 目录管理</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-mkdir-1.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-mkdir-1.jpg" alt="就像在空地上盖房子或者拆空房间，mkdir 用来新建文件夹，rmdir 用来拆掉没有东西的空房间。" loading="lazy" decoding="async" width="1200" height="614"></a><figcaption>就像在空地上盖房子或者拆空房间，mkdir 用来新建文件夹，rmdir 用来拆掉没有东西的空房间。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-mkdir-2.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-mkdir-2.jpg" alt="rm -rf 命令就像一台强力的推土机，不管里面有没有装满东西都会直接铲平，而且没有回收站可以找回。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>rm -rf 命令就像一台强力的推土机，不管里面有没有装满东西都会直接铲平，而且没有回收站可以找回。</figcaption></figure>
+  <div class="fig-gallery" data-n="4">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-mkdir-p1.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-mkdir-p1.jpg" alt="第 1/4 页 · 总览：这一节要弄明白的 3 件事——新建文件夹、删除空房子、强力大扫除。" loading="lazy" decoding="async" width="1400" height="788"></a><figcaption>第 1/4 页 · 总览：这一节要弄明白的 3 件事——新建文件夹、删除空房子、强力大扫除。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-mkdir-p2.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-mkdir-p2.jpg" alt="第 2/4 页 · 新建文件夹：用来建新目录的命令（用 mkdir 新建目录）" loading="lazy" decoding="async" width="1246" height="1263"></a><figcaption>第 2/4 页 · 新建文件夹：用来建新目录的命令（用 mkdir 新建目录）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-mkdir-p3.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-mkdir-p3.jpg" alt="第 3/4 页 · 删除空房子：用来删掉空目录的命令（用 rmdir 删空目录）" loading="lazy" decoding="async" width="1199" height="1312"></a><figcaption>第 3/4 页 · 删除空房子：用来删掉空目录的命令（用 rmdir 删空目录）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-mkdir-p4.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-mkdir-p4.jpg" alt="第 4/4 页 · 强力大扫除：能删非空目录和文件的命令（用 rm -rf 强力删除）" loading="lazy" decoding="async" width="1246" height="1263"></a><figcaption>第 4/4 页 · 强力大扫除：能删非空目录和文件的命令（用 rm -rf 强力删除）</figcaption></figure>
+</div>
   <p><strong>mkdir 创建目录</strong>，语法：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">mkdir  目录名字</span><span class="ln ">mkdir  目录1  目录2       # 创建多个目录</span><span class="ln ">mkdir  A1/{a,b}          # 同时在 A1 目录下创建 a 和 b 目录</span><span class="ln ">mkdir  -p  a/b/c/d/e     # -p 按照层级创建目录</span></code></pre></div>
 <p><strong>rmdir 删除空目录</strong>：</p>
@@ -126,7 +134,14 @@
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练：练习一</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-lab.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-lab.jpg" alt="就像在杂物间里掏出钥匙开门、在柜子里找文件夹一样，我们在电脑里穿梭目录、新建文件夹和删除文件。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>就像在杂物间里掏出钥匙开门、在柜子里找文件夹一样，我们在电脑里穿梭目录、新建文件夹和删除文件。</figcaption></figure>
+  <div class="fig-gallery" data-n="6">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-lab-p1.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-lab-p1.jpg" alt="第 1/6 页 · 总览：这一节要弄明白的 5 件事——目录传送门、查户口指令、文件夹造房子、魔法删除术、神奇通配符。" loading="lazy" decoding="async" width="1200" height="614"></a><figcaption>第 1/6 页 · 总览：这一节要弄明白的 5 件事——目录传送门、查户口指令、文件夹造房子、魔法删除术、神奇通配符。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-lab-p2.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-lab-p2.jpg" alt="第 2/6 页 · 目录传送门：用来在不同文件夹之间跳跃的指令。（用 cd 切换目录，想去哪就去哪。）" loading="lazy" decoding="async" width="1200" height="1274"></a><figcaption>第 2/6 页 · 目录传送门：用来在不同文件夹之间跳跃的指令。（用 cd 切换目录，想去哪就去哪。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-lab-p3.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-lab-p3.jpg" alt="第 3/6 页 · 查户口指令：查看文件夹里藏着什么东西。（用 ls 查文件，一秒看清有什么。）" loading="lazy" decoding="async" width="1200" height="1213"></a><figcaption>第 3/6 页 · 查户口指令：查看文件夹里藏着什么东西。（用 ls 查文件，一秒看清有什么。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-lab-p4.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-lab-p4.jpg" alt="第 4/6 页 · 文件夹造房子：在电脑里新建文件夹的技能。（用 mkdir 建新目录，分类放好。）" loading="lazy" decoding="async" width="1200" height="1223"></a><figcaption>第 4/6 页 · 文件夹造房子：在电脑里新建文件夹的技能。（用 mkdir 建新目录，分类放好。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-lab-p5.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-lab-p5.jpg" alt="第 5/6 页 · 魔法删除术：精准清理不要的文件和文件夹。（用 rm 删文件，记得看清名字。）" loading="lazy" decoding="async" width="1200" height="1247"></a><figcaption>第 5/6 页 · 魔法删除术：精准清理不要的文件和文件夹。（用 rm 删文件，记得看清名字。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-03-linux-03-files-lab-p6.jpg" data-fig="ai"><img src="/fig/ai/01-03-linux-03-files-lab-p6.jpg" alt="第 6/6 页 · 神奇通配符：能代替一堆名字的符号。（用通配符帮忙，找东西更省力。）" loading="lazy" decoding="async" width="1200" height="1276"></a><figcaption>第 6/6 页 · 神奇通配符：能代替一堆名字的符号。（用通配符帮忙，找东西更省力。）</figcaption></figure>
+</div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>练习一（19 题，全部在终端完成）</div><div class="lab-b"><p>1、进入到家目录 2、查看家目录下的内容 3、查看家目录下的详细信息 4、进入到根目录下的 etc 目录 5、回到上一级目录 6、回到家目录 7、回到刚才打开的目录 8、在家目录下创建目录 PT 9、在 PT 目录下创建多个目录 P1、D2、K3 10、在 P1 目录下创建文件 txt1、在 D2 目录下创建文件 txt2 11、在 K3 目录下创建目录 P4 12、在 PT 目录下创建文件 asd111、qwe222、zxc333、asd444、asd555 13、在 PT 目录下创建目录 poi111、lkjs222、mnb333、psaik61 14、ls 查看 PT 目录下所有 P 开头的目录内容 15、删除 PT 目录下以 m 开头的目录或文件 16、删除 PT 目录下以 2 结尾的目录或文件 17、删除 PT 目录下包含 asd 的目录或文件 18、删除 PT 目录下 p 开头 1 结尾、且中间包含 i 的目录或文件 19、删除 K3 目录下所有内容</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>ll -rth 是什么组合？</div>
@@ -165,8 +180,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>

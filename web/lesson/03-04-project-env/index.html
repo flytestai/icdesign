@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>项目环境：目录规范、Run 与 Queue · 34 | IC 后端学院</title>
 <meta name="description" content="上机第一件事不是敲 innovus，而是搞清楚自己在哪个目录、该把东西放哪。这一课给出标准的项目目录结构（work/scripts/data/library/report/logs 各放什么）、终端多窗口与命名习惯、Run 的命名规范，以及真实项目里怎么把多版 floorplan 丢进集群 Queue、在等待的三四天里做什么。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="03-04-project-env">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,8 +64,10 @@
     </div>
     <article id="article"><section class="ch" id="why" data-ch="why">
   <div class="ch-h"><span class="ch-n">01</span><h2>先有环境，再谈操作</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-why-1.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-why-1.jpg" alt="就像去图书馆先找对书架一样，干活前必须先用终端命令登录并精准找到属于自己的项目目录。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>就像去图书馆先找对书架一样，干活前必须先用终端命令登录并精准找到属于自己的项目目录。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-why-2.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-why-2.jpg" alt="动工前要在自己的专属工位上整理好工具和材料，确认好资料位置，后面的工作才能顺利进行。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>动工前要在自己的专属工位上整理好工具和材料，确认好资料位置，后面的工作才能顺利进行。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/03-04-project-env-why-1.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-why-1.jpg" alt="第 1/2 页 · 就像去图书馆先找对书架一样，干活前必须先用终端命令登录并精准找到属于自己的项目目录。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 就像去图书馆先找对书架一样，干活前必须先用终端命令登录并精准找到属于自己的项目目录。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-why-2.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-why-2.jpg" alt="第 2/2 页 · 动工前要在自己的专属工位上整理好工具和材料，确认好资料位置，后面的工作才能顺利进行。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 动工前要在自己的专属工位上整理好工具和材料，确认好资料位置，后面的工作才能顺利进行。</figcaption></figure>
+</div>
   <div class="goal"><span>本章目标</span>能说出 work / scripts / data / library / report / logs 六个目录各放什么；能在服务器上建出这套结构并说出为什么脚本必须进 scripts；能说出 Run 命名的三要素；能解释 Queue 集群解决了什么问题、一个 run 为什么可能跑三四天、等待期间该干什么。</div>
 <p>课上有一句提醒很实在：<strong>实际工作几乎不用图形化桌面，全是开终端进目录干活。</strong> 所以你入职后第一批动作往往不是&quot;跑工具&quot;，而是：</p>
 <ol><li>登录（VNC / ssh）；</li><li>找到项目目录；</li><li>建自己的 work 目录；</li><li>确认 scripts / data / library 在哪。</li></ol>
@@ -74,8 +76,10 @@
 </section>
 <section class="ch" id="dirs" data-ch="dirs">
   <div class="ch-h"><span class="ch-n">02</span><h2>六个目录，各管一件事</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-dirs-1.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-dirs-1.jpg" alt="芯片项目的六个目录就像办公室里的六个抽屉，分别用来放临时文件、脚本、原始数据、工艺库、报告和日志，各司其职不乱套。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>芯片项目的六个目录就像办公室里的六个抽屉，分别用来放临时文件、脚本、原始数据、工艺库、报告和日志，各司其职不乱套。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-dirs-2.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-dirs-2.jpg" alt="临时工地 work 目录会被随时清空，千万不能把重要的脚本资产直接放在这里，否则就像把图纸丢在会被推平的工地上。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>临时工地 work 目录会被随时清空，千万不能把重要的脚本资产直接放在这里，否则就像把图纸丢在会被推平的工地上。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/03-04-project-env-dirs-1.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-dirs-1.jpg" alt="第 1/2 页 · 芯片项目的六个目录就像办公室里的六个抽屉，分别用来放临时文件、脚本、原始数据、工艺库、报告和日志，各司其职不乱套。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 芯片项目的六个目录就像办公室里的六个抽屉，分别用来放临时文件、脚本、原始数据、工艺库、报告和日志，各司其职不乱套。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-dirs-2.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-dirs-2.jpg" alt="第 2/2 页 · 临时工地 work 目录会被随时清空，千万不能把重要的脚本资产直接放在这里，否则就像把图纸丢在会被推平的工地上。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 临时工地 work 目录会被随时清空，千万不能把重要的脚本资产直接放在这里，否则就像把图纸丢在会被推平的工地上。</figcaption></figure>
+</div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">/proj/&lt;项目名&gt;/          ← 也可能在 ~/work/&lt;项目名&gt;/</span><span class="ln ">├── work/               ← 你的工作目录：跑工具、放 run 的现场</span><span class="ln ">├── scripts/            ← 脚本（Flow）：所有 tcl、makefile、配置文件</span><span class="ln ">├── data/               ← 数据：网表、def、sdc 等输入</span><span class="ln ">├── library/            ← 库：lef / lib / rc tech / 内部库</span><span class="ln ">├── report/             ← 报告：每个阶段吐出的时序、面积、DRC 报告</span><span class="ln ">└── logs/               ← 日志：工具跑批的输出</span></code></pre></div>
 <div class="tbl"><table><thead><tr><th>目录</th><th>放什么</th><th>谁产生</th></tr></thead><tbody><tr><td><strong>work</strong></td><td>run 目录、临时文件、调试现场</td><td>你</td></tr><tr><td><strong>scripts</strong></td><td>所有脚本（<strong>也叫 Flow</strong>）</td><td>你 / 团队</td></tr><tr><td><strong>data</strong></td><td>netlist、def、io file、sdc</td><td>上游 release</td></tr><tr><td><strong>library</strong></td><td>tech lef / cell lef / lib / rc tech / 内部库</td><td>库组 / 工艺厂</td></tr><tr><td><strong>report</strong></td><td>时序报告、面积报告、DRC/LVS 报告</td><td>工具</td></tr><tr><td><strong>logs</strong></td><td>运行日志</td><td>工具</td></tr></tbody></table></div>
 <div class="term" tabindex="0">
@@ -92,8 +96,10 @@
 </section>
 <section class="ch" id="terminal" data-ch="terminal">
   <div class="ch-h"><span class="ch-n">03</span><h2>终端：多窗口 + 改名，效率差一倍</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-terminal-1.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-terminal-1.jpg" alt="蓝色小电子坐在同一个驾驶舱里，通过按快捷键同时打开多个标签页，不用手忙脚乱地到处切换窗口。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子坐在同一个驾驶舱里，通过按快捷键同时打开多个标签页，不用手忙脚乱地到处切换窗口。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-terminal-2.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-terminal-2.jpg" alt="蓝色小电子拿起油漆刷，给不同房间的门牌认真改名，一个写着运行，另一个写着调试，再也不会走错门。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子拿起油漆刷，给不同房间的门牌认真改名，一个写着运行，另一个写着调试，再也不会走错门。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/03-04-project-env-terminal-1.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-terminal-1.jpg" alt="第 1/2 页 · 蓝色小电子坐在同一个驾驶舱里，通过按快捷键同时打开多个标签页，不用手忙脚乱地到处切换窗口。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 蓝色小电子坐在同一个驾驶舱里，通过按快捷键同时打开多个标签页，不用手忙脚乱地到处切换窗口。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-terminal-2.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-terminal-2.jpg" alt="第 2/2 页 · 蓝色小电子拿起油漆刷，给不同房间的门牌认真改名，一个写着运行，另一个写着调试，再也不会走错门。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 蓝色小电子拿起油漆刷，给不同房间的门牌认真改名，一个写着运行，另一个写着调试，再也不会走错门。</figcaption></figure>
+</div>
   <p>文档给的两个技巧，看着小，实际天天用：</p>
 <div class="tbl"><table><thead><tr><th>操作</th><th>作用</th></tr></thead><tbody><tr><td><strong><code>Ctrl+Shift+T</code></strong></td><td>新开一个终端标签页（同一个窗口里多任务）</td></tr><tr><td><strong>双击终端标题栏</strong></td><td>给这个终端改名（如 <code>Run1</code>、<code>Debug-ALU</code>）</td></tr></tbody></table></div>
 <p>为什么要改名？因为你可能同时开着：</p>
@@ -128,8 +134,10 @@
 </section>
 <section class="ch" id="try" data-ch="try">
   <div class="ch-h"><span class="ch-n">06</span><h2>多版本并行：Try 机制</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-try-1.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-try-1.jpg" alt="多版本 Try 机制就像同时烤几盘不同配方的饼干，看哪盘最好吃。等待烤箱运行的时候，不能干站着，要趁机调整下一盘的配方。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>多版本 Try 机制就像同时烤几盘不同配方的饼干，看哪盘最好吃。等待烤箱运行的时候，不能干站着，要趁机调整下一盘的配方。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-try-2.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-try-2.jpg" alt="提交任务后必须盯紧状态与日志，就像放飞风筝后要随时拽一拽线，防止风筝半路挂树上而你还傻傻站在原地等。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>提交任务后必须盯紧状态与日志，就像放飞风筝后要随时拽一拽线，防止风筝半路挂树上而你还傻傻站在原地等。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/03-04-project-env-try-1.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-try-1.jpg" alt="第 1/2 页 · 多版本 Try 机制就像同时烤几盘不同配方的饼干，看哪盘最好吃。等待烤箱运行的时候，不能干站着，要趁机调整下一盘的配方。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 多版本 Try 机制就像同时烤几盘不同配方的饼干，看哪盘最好吃。等待烤箱运行的时候，不能干站着，要趁机调整下一盘的配方。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-04-project-env-try-2.jpg" data-fig="ai"><img src="/fig/ai/03-04-project-env-try-2.jpg" alt="第 2/2 页 · 提交任务后必须盯紧状态与日志，就像放飞风筝后要随时拽一拽线，防止风筝半路挂树上而你还傻傻站在原地等。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 提交任务后必须盯紧状态与日志，就像放飞风筝后要随时拽一拽线，防止风筝半路挂树上而你还傻傻站在原地等。</figcaption></figure>
+</div>
   <p>Memory 摆哪儿没有唯一答案（取决于数据流、通道、时序），所以标准做法是<strong>同时试几版</strong>：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">FLP1（memory 靠左）   ┐</span><span class="ln ">FLP2（memory 分两排）  ├─→ 依次/并行提交 Queue → 比较结果 → 选最好的一版做 Final</span><span class="ln ">FLP3（memory 靠上）   ┘</span></code></pre></div>
 <div class="tip"><div class="tip-h">小技巧</div><p>run 要跑三天，这三天你该干什么？文档的答案是：<strong>分析上一批 run 的结果，加新约束，再提交一批。</strong></p>
@@ -196,8 +204,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>

@@ -684,19 +684,31 @@ HOME = HEAD + """
 
 
 def ai_figs_html(lesson_id, anchor):
-    """小节标题下面那组 AI 配图。宽高写进 img 属性，图没加载完也不会把版面顶跳。"""
+    """小节标题下面那组 AI 知识海报。
+
+    多页时不要一张一屏地竖着堆——一节课四五页海报、每页 600px 高，正文会被挤到
+    屏幕外，看着像"只有图没有字"。所以第一页（总览）给全宽，其余页两列并排，
+    细节靠点击放大。单页时保持全宽。
+
+    宽高写进 img 属性，图没加载完也不会把版面顶跳。"""
     figs = AI_FIGS.get("%s#%s" % (lesson_id, anchor))
     if not figs:
         return ""
-    out = []
-    for f in figs:
+    total = len(figs)
+    items = []
+    for i, f in enumerate(figs, 1):
         src = "/" + f["file"].lstrip("/")
         cap = esc(f.get("caption", ""))
+        if total > 1:
+            cap = "第 %d/%d 页 · %s" % (i, total, cap)
         dim = (' width="%d" height="%d"' % (f["w"], f["h"])) if f.get("w") and f.get("h") else ""
-        out.append(f'<figure class="fig-img fig-ai"><a class="fig-a" href="{src}" data-fig="ai">'
-                   f'<img src="{src}" alt="{cap}" loading="lazy" decoding="async"{dim}></a>'
-                   f'<figcaption>{cap}</figcaption></figure>')
-    return "\n  ".join(out)
+        lead = " lead" if (total > 1 and i == 1) else ""
+        items.append(f'<figure class="fig-img fig-ai{lead}"><a class="fig-a" href="{src}" data-fig="ai">'
+                     f'<img src="{src}" alt="{cap}" loading="lazy" decoding="async"{dim}></a>'
+                     f'<figcaption>{cap}</figcaption></figure>')
+    if total == 1:
+        return items[0]
+    return ('<div class="fig-gallery" data-n="%d">\n  ' % total) + "\n  ".join(items) + "\n</div>"
 
 
 def build_lesson(L, idx, all_lessons):

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 10 讲 · 综合实战 + 结课自测 · 16 | IC 后端学院</title>
 <meta name="description" content="EDA 风格综合脚本（列表+proc+foreach+命令替换串起全部知识点）、结课自测 10 题（覆盖全部知识点）、知识点全覆盖清单（31 条对照表）、后续学习路线。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="01-16-tcl-10-final">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,8 +64,10 @@
     </div>
     <article id="article"><section class="ch" id="final" data-ch="final">
   <div class="ch-h"><span class="ch-n">01</span><h2>10.1 EDA 风格综合脚本（文档场景）</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-16-tcl-10-final-final-1.jpg" data-fig="ai"><img src="/fig/ai/01-16-tcl-10-final-final-1.jpg" alt="把要处理的内存零件排成整齐的列表，蓝色小电子手里拿着一份清单准备逐个清点。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>把要处理的内存零件排成整齐的列表，蓝色小电子手里拿着一份清单准备逐个清点。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-16-tcl-10-final-final-2.jpg" data-fig="ai"><img src="/fig/ai/01-16-tcl-10-final-final-2.jpg" alt="小电子启动了一个自动循环机械臂，把排好的零件依次抓起来向左推移搬运。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>小电子启动了一个自动循环机械臂，把排好的零件依次抓起来向左推移搬运。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-16-tcl-10-final-final-1.jpg" data-fig="ai"><img src="/fig/ai/01-16-tcl-10-final-final-1.jpg" alt="第 1/2 页 · 把要处理的内存零件排成整齐的列表，蓝色小电子手里拿着一份清单准备逐个清点。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/2 页 · 把要处理的内存零件排成整齐的列表，蓝色小电子手里拿着一份清单准备逐个清点。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-16-tcl-10-final-final-2.jpg" data-fig="ai"><img src="/fig/ai/01-16-tcl-10-final-final-2.jpg" alt="第 2/2 页 · 小电子启动了一个自动循环机械臂，把排好的零件依次抓起来向左推移搬运。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 小电子启动了一个自动循环机械臂，把排好的零件依次抓起来向左推移搬运。</figcaption></figure>
+</div>
   <p>把变量、列表、循环、函数、命令替换<strong>全部用上</strong>——模拟版图工具里批量处理内存单元：</p>
 <div class="goal"><span>本章目标</span>读懂并跑通 EDA 综合脚本；通过结课自测 10 题验证全部知识点掌握；对照知识点清单查漏补缺。</div>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">;# 1. 定义数据（列表 + 嵌套）</span><span class="ln ">set mem_list {</span><span class="ln ">    I_CONTEXT_MEM/I_CONTEXT_RAM_0_4</span><span class="ln ">    I_CONTEXT_MEM/I_CONTEXT_RAM_0_3</span><span class="ln ">    I_CONTEXT_MEM/I_CONTEXT_RAM_0_2</span><span class="ln ">    I_CONTEXT_MEM/I_CONTEXT_RAM_0_1</span><span class="ln ">}</span><span class="ln "> </span><span class="ln cmt">;# 2. 定义函数（proc + 参数 + return）</span><span class="ln ">proc report {mem idx total} {</span><span class="ln ">    puts &quot;进度：$idx / $total —— 正在处理：$mem&quot;</span><span class="ln ">    return 0</span><span class="ln ">}</span><span class="ln "> </span><span class="ln cmt">;# 3. 循环处理（foreach + llength + 命令替换）</span><span class="ln ">set total [llength $mem_list]</span><span class="ln ">set idx 0</span><span class="ln ">foreach mem $mem_list {</span><span class="ln ">    incr idx</span><span class="ln ">    report $mem $idx $total</span><span class="ln ">    change_selection [get_cells $mem]   ;# 选中当前内存单元</span><span class="ln ">    move_objects -delta {-50 0}         ;# 向左移动50个单位</span><span class="ln ">}</span><span class="ln "> </span><span class="ln cmt">;# 4. 结果统计</span><span class="ln ">puts &quot;全部 $total 个单元处理完毕&quot;</span></code></pre></div>
@@ -187,8 +189,10 @@ puts &quot;全部 $total 个单元处理完毕&quot;</pre><button class="tcl-go"
 </section>
 <section class="ch" id="next" data-ch="next">
   <div class="ch-h"><span class="ch-n">04</span><h2>10.4 从这里继续走</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-16-tcl-10-final-next-1.jpg" data-fig="ai"><img src="/fig/ai/01-16-tcl-10-final-next-1.jpg" alt="学完TCL脚本就像拿到了工具箱的钥匙，接下来可以直接去真实的芯片工厂里大显身手了。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>学完TCL脚本就像拿到了工具箱的钥匙，接下来可以直接去真实的芯片工厂里大显身手了。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-16-tcl-10-final-next-2.jpg" data-fig="ai"><img src="/fig/ai/01-16-tcl-10-final-next-2.jpg" alt="完成本课程后继续学习阶段二的后端实操，就能用学到的TCL知识指挥整个芯片制造流程。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>完成本课程后继续学习阶段二的后端实操，就能用学到的TCL知识指挥整个芯片制造流程。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-16-tcl-10-final-next-1.jpg" data-fig="ai"><img src="/fig/ai/01-16-tcl-10-final-next-1.jpg" alt="第 1/2 页 · 学完TCL脚本就像拿到了工具箱的钥匙，接下来可以直接去真实的芯片工厂里大显身手了。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 学完TCL脚本就像拿到了工具箱的钥匙，接下来可以直接去真实的芯片工厂里大显身手了。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-16-tcl-10-final-next-2.jpg" data-fig="ai"><img src="/fig/ai/01-16-tcl-10-final-next-2.jpg" alt="第 2/2 页 · 完成本课程后继续学习阶段二的后端实操，就能用学到的TCL知识指挥整个芯片制造流程。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 完成本课程后继续学习阶段二的后端实操，就能用学到的TCL知识指挥整个芯片制造流程。</figcaption></figure>
+</div>
   <p>学完本课程，你就具备读/写 EDA 工具（Innovus、DC、PT）TCL 脚本的<strong>核心语法</strong>了。</p>
 <p>下一步建议：</p>
 <ol><li><strong>直接上手真实项目脚本</strong>——遇到不认识的命令查工具手册（<code>man</code> 命令）。</li><li><strong>语法层面你已经是&quot;全科医生&quot;</strong>——剩下的是熟练度和工程习惯。</li><li>继续本站课程：阶段二的数字 IC 后端概念 → Innovus / ICC2 实操，那里大量用到本课程语法。</li></ol>
@@ -212,8 +216,8 @@ puts &quot;全部 $total 个单元处理完毕&quot;</pre><button class="tcl-go"
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>

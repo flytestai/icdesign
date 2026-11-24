@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PR 全流程九步：从 init 到 chipfinish，以及一个项目怎么排期 · 22 | IC 后端学院</title>
 <meta name="description" content="把 init → floorplan → powerplan → place → cts → optcts → route → optroute → chipfinish 九个阶段逐个拆开，说清每步在干什么、产出什么、做完看哪个指标判断好坏；再讲清楚 run 是什么、PR → FINALPR → ECO → BTO/MTO 的项目时间线，以及 log 里 pre/post 命名的含义。">
-<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795502567">
+<link rel="icon" href="/assets/logo.svg?v=1795510349" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795510349">
 </head>
 <body data-page="lesson" data-lesson="02-03-pr-flow">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795510349" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -85,8 +85,10 @@
 </section>
 <section class="ch" id="floorplan" data-ch="floorplan">
   <div class="ch-h"><span class="ch-n">03</span><h2>2. floorplan：定面积、摆 mem、加物理约束</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-floorplan-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-floorplan-1.jpg" alt="芯片布局规划就像画房间户型图，蓝色小电子正在量尺寸并留出走廊，确保家具不会把通道堵死。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>芯片布局规划就像画房间户型图，蓝色小电子正在量尺寸并留出走廊，确保家具不会把通道堵死。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-floorplan-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-floorplan-2.jpg" alt="在布局规划里给大箱子周围画上安全线，蓝色小电子正在贴上禁止占用的警示标签。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>在布局规划里给大箱子周围画上安全线，蓝色小电子正在贴上禁止占用的警示标签。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-03-pr-flow-floorplan-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-floorplan-1.jpg" alt="第 1/2 页 · 芯片布局规划就像画房间户型图，蓝色小电子正在量尺寸并留出走廊，确保家具不会把通道堵死。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 芯片布局规划就像画房间户型图，蓝色小电子正在量尺寸并留出走廊，确保家具不会把通道堵死。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-floorplan-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-floorplan-2.jpg" alt="第 2/2 页 · 在布局规划里给大箱子周围画上安全线，蓝色小电子正在贴上禁止占用的警示标签。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 在布局规划里给大箱子周围画上安全线，蓝色小电子正在贴上禁止占用的警示标签。</figcaption></figure>
+</div>
   <p>floorplan（布局规划）是整个 PR 里<strong>最像&quot;设计&quot;的一步</strong>，因为它决定了后面所有阶段的天花板。</p>
 <p>要做四件事：</p>
 <ol><li><strong>定芯片面积</strong>（die size）：面积给大了浪费成本，给小了后面绕不开。核心指标是 <strong>utilization（利用率）</strong>＝单元总面积 ÷ 可用面积，通常从 60%~70% 起步，太高的留给布线的地方就不够了。</li><li><strong>摆 mem/macro</strong>：上一课讲过，这些第三方 IP 必须人工确定位置与朝向，还要留 halo、加 routing blockage。</li><li><strong>定物理约束</strong>：哪些区域禁止放单元、哪些层禁止走线、port（引脚）放在哪条边上。</li><li><strong>加物理单元</strong>：tap cell、endcap 这些&quot;没有逻辑但必须存在&quot;的单元，floorplan 阶段就按规则铺好。</li></ol>
@@ -118,8 +120,10 @@
 </section>
 <section class="ch" id="placement" data-ch="placement">
   <div class="ch-h"><span class="ch-n">05</span><h2>4. placement：自动摆 stdcell</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-placement-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-placement-1.jpg" alt="自动摆放工具像整理仓库货架一样，把成千上万个零件精准分配到每一排格子里，确保整体道路通畅。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>自动摆放工具像整理仓库货架一样，把成千上万个零件精准分配到每一排格子里，确保整体道路通畅。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-placement-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-placement-2.jpg" alt="摆放完成后，工具会像提前规划送货路线一样进行全局布线试算，提前找出哪里会发生交通大堵车。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>摆放完成后，工具会像提前规划送货路线一样进行全局布线试算，提前找出哪里会发生交通大堵车。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-03-pr-flow-placement-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-placement-1.jpg" alt="第 1/2 页 · 自动摆放工具像整理仓库货架一样，把成千上万个零件精准分配到每一排格子里，确保整体道路通畅。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 自动摆放工具像整理仓库货架一样，把成千上万个零件精准分配到每一排格子里，确保整体道路通畅。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-placement-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-placement-2.jpg" alt="第 2/2 页 · 摆放完成后，工具会像提前规划送货路线一样进行全局布线试算，提前找出哪里会发生交通大堵车。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 摆放完成后，工具会像提前规划送货路线一样进行全局布线试算，提前找出哪里会发生交通大堵车。</figcaption></figure>
+</div>
   <p>placement 把网表里成千上万个 stdcell 摆到 row 上，目标是<strong>线短、拥塞低、时序好</strong>。这一步工具会自动做，但同时会做一次 <strong>global route（全局布线）试算</strong>——不是真的绕线，而是估算&quot;这些连接大概要走哪、会不会堵&quot;。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">global route</span><span class="term-zh">全局布线（试算）</span><i class="term-ico">点击看解释</i></div>
@@ -130,8 +134,10 @@
 </section>
 <section class="ch" id="cts" data-ch="cts">
   <div class="ch-h"><span class="ch-n">06</span><h2>5. cts：时钟树综合</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-cts-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-cts-1.jpg" alt="时钟树综合就像是在操场上给所有人同时发口令，必须让声音精准地在同一瞬间传到每个人耳朵里。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>时钟树综合就像是在操场上给所有人同时发口令，必须让声音精准地在同一瞬间传到每个人耳朵里。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-cts-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-cts-2.jpg" alt="如果大家听到口令有先有后，队伍就会乱套。cts 的工作就是搭建一条条接力管道，把时间差降到最小。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>如果大家听到口令有先有后，队伍就会乱套。cts 的工作就是搭建一条条接力管道，把时间差降到最小。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-03-pr-flow-cts-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-cts-1.jpg" alt="第 1/2 页 · 时钟树综合就像是在操场上给所有人同时发口令，必须让声音精准地在同一瞬间传到每个人耳朵里。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 时钟树综合就像是在操场上给所有人同时发口令，必须让声音精准地在同一瞬间传到每个人耳朵里。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-cts-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-cts-2.jpg" alt="第 2/2 页 · 如果大家听到口令有先有后，队伍就会乱套。cts 的工作就是搭建一条条接力管道，把时间差降到最小。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 如果大家听到口令有先有后，队伍就会乱套。cts 的工作就是搭建一条条接力管道，把时间差降到最小。</figcaption></figure>
+</div>
   <p>cts（Clock Tree Synthesis，时钟树综合）专门解决一件事：<strong>让时钟同时到达所有触发器</strong>。</p>
 <p>理想情况下，时钟到每个触发器的延迟应该完全一样；现实中不会，这个偏差叫 <strong>skew（偏斜）</strong>：</p>
 <div class="term" tabindex="0">
@@ -147,15 +153,19 @@
 </section>
 <section class="ch" id="optcts" data-ch="optcts">
   <div class="ch-h"><span class="ch-n">07</span><h2>6. optcts：给时钟树擦屁股</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-optcts-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-optcts-1.jpg" alt="时钟树刚种好时乱糟糟的，蓝色笑脸小电子拿着修剪工具，正在修剪多余的树枝和疏通道路，对应优化时钟树结果。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>时钟树刚种好时乱糟糟的，蓝色笑脸小电子拿着修剪工具，正在修剪多余的树枝和疏通道路，对应优化时钟树结果。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-optcts-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-optcts-2.jpg" alt="蓝色笑脸小电子化身修理工，正在拧紧管道、擦拭污渍，把因为时钟树变粗糙而产生的问题全部修好，对应修复时序与电气违例。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色笑脸小电子化身修理工，正在拧紧管道、擦拭污渍，把因为时钟树变粗糙而产生的问题全部修好，对应修复时序与电气违例。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-03-pr-flow-optcts-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-optcts-1.jpg" alt="第 1/2 页 · 时钟树刚种好时乱糟糟的，蓝色笑脸小电子拿着修剪工具，正在修剪多余的树枝和疏通道路，对应优化时钟树结果。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 时钟树刚种好时乱糟糟的，蓝色笑脸小电子拿着修剪工具，正在修剪多余的树枝和疏通道路，对应优化时钟树结果。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-optcts-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-optcts-2.jpg" alt="第 2/2 页 · 蓝色笑脸小电子化身修理工，正在拧紧管道、擦拭污渍，把因为时钟树变粗糙而产生的问题全部修好，对应修复时序与电气违例。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 蓝色笑脸小电子化身修理工，正在拧紧管道、擦拭污渍，把因为时钟树变粗糙而产生的问题全部修好，对应修复时序与电气违例。</figcaption></figure>
+</div>
   <p>cts 做完，时序通常会更差（多了 buffer、多了延迟）。optcts 就是<strong>针对 cts 的结果做优化</strong>：修 setup/hold 违例、修 DRV（max transition / max capacitance / max fanout 这类电气规则违例），同时尽量不把时钟树搞乱。</p>
   <label class="ch-done"><input type="checkbox" data-mark="optcts"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="route" data-ch="route">
   <div class="ch-h"><span class="ch-n">08</span><h2>7. route：信号线正式绕线</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-route-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-route-1.jpg" alt="蓝色小电子化身快递分拣员，正在复杂的迷宫管道里把信号线正式绕通，就像把四通八达的水管精准连好。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子化身快递分拣员，正在复杂的迷宫管道里把信号线正式绕通，就像把四通八达的水管精准连好。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-route-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-route-2.jpg" alt="绕线时必须严格避免断路和短路，就像修水管时绝对不能出现没接上或者两根水管不小心戳在一起的情况。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>绕线时必须严格避免断路和短路，就像修水管时绝对不能出现没接上或者两根水管不小心戳在一起的情况。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-03-pr-flow-route-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-route-1.jpg" alt="第 1/2 页 · 蓝色小电子化身快递分拣员，正在复杂的迷宫管道里把信号线正式绕通，就像把四通八达的水管精准连好。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 蓝色小电子化身快递分拣员，正在复杂的迷宫管道里把信号线正式绕通，就像把四通八达的水管精准连好。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-route-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-route-2.jpg" alt="第 2/2 页 · 绕线时必须严格避免断路和短路，就像修水管时绝对不能出现没接上或者两根水管不小心戳在一起的情况。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 2/2 页 · 绕线时必须严格避免断路和短路，就像修水管时绝对不能出现没接上或者两根水管不小心戳在一起的情况。</figcaption></figure>
+</div>
   <p>route 阶段把剩下所有信号连接真正绕出来（detail route），落到具体的金属层和 track 上。这是计算量最大的一步，也是 DRC 的主要来源。</p>
 <p>判断标准就三条：<strong>绕通率</strong>、<strong>DRC 数量</strong>、<strong>时序是否还活着</strong>。</p>
 <p>绕线的两类硬错误，必须分清：</p>
@@ -165,8 +175,10 @@
 </section>
 <section class="ch" id="optroute" data-ch="optroute">
   <div class="ch-h"><span class="ch-n">09</span><h2>8. optroute：收敛与 reroute</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-optroute-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-optroute-1.jpg" alt="小蓝电子在积木迷宫里拆掉弯弯曲曲的旧路线，重新铺设更直更顺畅的新道路，这就是反复调整的reroute。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>小蓝电子在积木迷宫里拆掉弯弯曲曲的旧路线，重新铺设更直更顺畅的新道路，这就是反复调整的reroute。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-optroute-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-optroute-2.jpg" alt="两个小蓝电子互相配合，一个修正时序错误，另一个清理连线冲突，在反复拉扯中把所有违例全部清零达到签核标准。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>两个小蓝电子互相配合，一个修正时序错误，另一个清理连线冲突，在反复拉扯中把所有违例全部清零达到签核标准。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-03-pr-flow-optroute-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-optroute-1.jpg" alt="第 1/2 页 · 小蓝电子在积木迷宫里拆掉弯弯曲曲的旧路线，重新铺设更直更顺畅的新道路，这就是反复调整的reroute。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 小蓝电子在积木迷宫里拆掉弯弯曲曲的旧路线，重新铺设更直更顺畅的新道路，这就是反复调整的reroute。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-optroute-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-optroute-2.jpg" alt="第 2/2 页 · 两个小蓝电子互相配合，一个修正时序错误，另一个清理连线冲突，在反复拉扯中把所有违例全部清零达到签核标准。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 两个小蓝电子互相配合，一个修正时序错误，另一个清理连线冲突，在反复拉扯中把所有违例全部清零达到签核标准。</figcaption></figure>
+</div>
   <p>optroute 针对 route 的结果做优化：修时序、修 DRC、减少绕线长度。如果优化过程中把线拆了重绕，就叫 <strong>reroute</strong>。</p>
 <div class="note"><div class="note-h">这一步的另一个名字：OBT</div><p>有的公司/文档把&quot;布线之后的这轮优化&quot;叫 <strong>OBT</strong>（<strong>O</strong>ptimization <strong>B</strong>efore <strong>T</strong>apeout，流片前优化），有的叫 <strong>postRoute opt</strong>，说的都是同一件事：<strong>在真实 RC 下把最后的时序和 DRC 修干净。</strong></p>
 <p>听到 OBT 别以为是新阶段——它就是我们这张表里的第 8 步。</p></div>
@@ -189,8 +201,10 @@
 </section>
 <section class="ch" id="run" data-ch="run">
   <div class="ch-h"><span class="ch-n">11</span><h2>run 是什么：一句行话</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-run-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-run-1.jpg" alt="把设计文件打包投递到排队机器里，等待几小时甚至几天出结果，这就叫跑一个 run。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>把设计文件打包投递到排队机器里，等待几小时甚至几天出结果，这就叫跑一个 run。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-run-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-run-2.jpg" alt="中间环节报错或者最终结果不合格，这一轮跑动就宣告失败，需要重新调整参数再来一版。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>中间环节报错或者最终结果不合格，这一轮跑动就宣告失败，需要重新调整参数再来一版。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-03-pr-flow-run-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-run-1.jpg" alt="第 1/2 页 · 把设计文件打包投递到排队机器里，等待几小时甚至几天出结果，这就叫跑一个 run。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 把设计文件打包投递到排队机器里，等待几小时甚至几天出结果，这就叫跑一个 run。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-run-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-run-2.jpg" alt="第 2/2 页 · 中间环节报错或者最终结果不合格，这一轮跑动就宣告失败，需要重新调整参数再来一版。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 中间环节报错或者最终结果不合格，这一轮跑动就宣告失败，需要重新调整参数再来一版。</figcaption></figure>
+</div>
   <p>面试和日常沟通里高频出现的词：</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">run</span><span class="term-zh">一轮完整跑</span><i class="term-ico">点击看解释</i></div>
@@ -204,8 +218,10 @@
 </section>
 <section class="ch" id="project" data-ch="project">
   <div class="ch-h"><span class="ch-n">12</span><h2>一个真实项目的时间线</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-project-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-project-1.jpg" alt="挑选最终版 PR 时，要在拥塞、密度和时序这三个指标里反复权衡，挑出一版没有明显短板的作为最终版本。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>挑选最终版 PR 时，要在拥塞、密度和时序这三个指标里反复权衡，挑出一版没有明显短板的作为最终版本。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-project-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-project-2.jpg" alt="在长达两个月的 ECO 阶段，因为整体布局已经被锁死，蓝色小电子只能在固定的格子间里精准修补时序和物理规则。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>在长达两个月的 ECO 阶段，因为整体布局已经被锁死，蓝色小电子只能在固定的格子间里精准修补时序和物理规则。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-03-pr-flow-project-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-project-1.jpg" alt="第 1/2 页 · 挑选最终版 PR 时，要在拥塞、密度和时序这三个指标里反复权衡，挑出一版没有明显短板的作为最终版本。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 挑选最终版 PR 时，要在拥塞、密度和时序这三个指标里反复权衡，挑出一版没有明显短板的作为最终版本。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-project-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-project-2.jpg" alt="第 2/2 页 · 在长达两个月的 ECO 阶段，因为整体布局已经被锁死，蓝色小电子只能在固定的格子间里精准修补时序和物理规则。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 在长达两个月的 ECO 阶段，因为整体布局已经被锁死，蓝色小电子只能在固定的格子间里精准修补时序和物理规则。</figcaption></figure>
+</div>
   <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">ECO</span><span class="term-zh">工程变更单（改版）</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>Engineering Change Order。芯片流片前（甚至流片后）发现要改的地方，用最小的改动去打补丁：只动几个单元、几条线，而不是重跑全流程。</p></div>
@@ -240,8 +256,10 @@
 </section>
 <section class="ch" id="eda" data-ch="eda">
   <div class="ch-h"><span class="ch-n">14</span><h2>EDA 公司与其工具：一张对照表</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-eda-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-eda-1.jpg" alt="各大 EDA 厂商的工具就像不同牌子的汽车，虽然长相和按键不同，但驾驶方法是一样的，内核都是芯片设计的标准流程。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>各大 EDA 厂商的工具就像不同牌子的汽车，虽然长相和按键不同，但驾驶方法是一样的，内核都是芯片设计的标准流程。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-eda-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-eda-2.jpg" alt="当工具报错或者卡住时，去找技术支持（AE）就像在游乐园里迷路时问管理员，能瞬间帮你找到正确的出口。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>当工具报错或者卡住时，去找技术支持（AE）就像在游乐园里迷路时问管理员，能瞬间帮你找到正确的出口。</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/02-03-pr-flow-eda-1.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-eda-1.jpg" alt="第 1/2 页 · 各大 EDA 厂商的工具就像不同牌子的汽车，虽然长相和按键不同，但驾驶方法是一样的，内核都是芯片设计的标准流程。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 各大 EDA 厂商的工具就像不同牌子的汽车，虽然长相和按键不同，但驾驶方法是一样的，内核都是芯片设计的标准流程。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-03-pr-flow-eda-2.jpg" data-fig="ai"><img src="/fig/ai/02-03-pr-flow-eda-2.jpg" alt="第 2/2 页 · 当工具报错或者卡住时，去找技术支持（AE）就像在游乐园里迷路时问管理员，能瞬间帮你找到正确的出口。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 当工具报错或者卡住时，去找技术支持（AE）就像在游乐园里迷路时问管理员，能瞬间帮你找到正确的出口。</figcaption></figure>
+</div>
   <div class="tbl"><table><thead><tr><th>公司</th><th>布局布线</th><th>综合</th><th>时序</th><th>寄生提取</th><th>功耗</th></tr></thead><tbody><tr><td>Cadence</td><td><strong>Encounter</strong>（老）、<strong>Innovus</strong>（主流）</td><td>Genus</td><td>Tempus</td><td>QRC</td><td>Voltus</td></tr><tr><td>Synopsys</td><td><strong>ICC</strong>（老）、<strong>ICC2</strong>（主流）、Fusion Compiler</td><td>Design Compiler（DC）</td><td><strong>PrimeTime</strong></td><td><strong>StarRC</strong></td><td>RedHawk（Ansyst 系）</td></tr></tbody></table></div>
 <p>记两条就够用：</p>
 <ol><li><strong>90nm 以上工艺</strong>常见 Encounter / ICC；<strong>先进工艺</strong>是 Innovus / ICC2 的天下——工艺越先进，老架构越跑不动（最直观的差别是运行时间）。</li><li>本站阶段三用 <strong>Innovus + 40nm</strong>，阶段四用 <strong>ICC2 + 32nm</strong>：同一套方法论，换工具再走一遍，这是最快建立&quot;工具只是壳、方法是内核&quot;认知的方式。</li></ol>
@@ -321,8 +339,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795502567"></script>
-<script src="/assets/tcl.js?v=1795502567"></script>
-<script src="/assets/app.js?v=1795502567"></script>
+<script src="/assets/shell.js?v=1795510349"></script>
+<script src="/assets/tcl.js?v=1795510349"></script>
+<script src="/assets/app.js?v=1795510349"></script>
 </body>
 </html>
