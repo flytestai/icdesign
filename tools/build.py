@@ -355,6 +355,9 @@ def md(src, inline_only=False):
             rows = []
             while i < len(lines) and lines[i].strip().startswith("|"):
                 cells = split_row(lines[i])
+                if len(cells) != len(head):
+                    print(f"WARN 表格列数不齐（表头 {len(head)} 列，本行 {len(cells)} 列）："
+                          f"{lines[i].strip()[:80]}")
                 if len(cells) < len(head):
                     cells += [""] * (len(head) - len(cells))
                 rows.append(cells[:len(head)])

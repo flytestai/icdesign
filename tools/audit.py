@@ -74,6 +74,70 @@ def parse(path):
     }
 
 
+def _cells(line):
+    """切表格行，跳过反引号代码段内的 |（与 build.split_row 同规则，独立实现做交叉验证）"""
+    s = line.strip()
+    if s.startswith("|"):
+        s = s[1:]
+    if s.endswith("|"):
+        s = s[:-1]
+    out, buf, code, i = [], "", False, 0
+    while i < len(s):
+        ch = s[i]
+        if ch == "\\" and i + 1 < len(s) and s[i + 1] == "|":
+            buf += "|"
+            i += 2
+            continue
+        if ch == "`":
+            code = not code
+            buf += ch
+            i += 1
+            continue
+        if ch == "|" and not code:
+            out.append(buf.strip())
+            buf = ""
+            i += 1
+            continue
+        buf += ch
+        i += 1
+    out.append(buf.strip())
+    return out
+
+
+def check_tables(path):
+    """表格体检：行/分隔行列数与表头一致、反引号成对。
+    这两类错误会让 md 表格错位或吞字，是纯文本层面看不出来的。"""
+    lines = open(path, encoding="utf-8").read().replace("\r\n", "\n").split("\n")
+    issues, ntable, i, fence = [], 0, 0, False
+    while i < len(lines):
+        s = lines[i].strip()
+        if s.startswith("```"):
+            fence = not fence
+            i += 1
+            continue
+        if fence or not s.startswith("|"):
+            i += 1
+            continue
+        if i + 1 < len(lines) and re.match(r"^\|[\s:|-]+\|$", lines[i + 1].strip()):
+            ntable += 1
+            head, sep = _cells(s), _cells(lines[i + 1])
+            if len(sep) != len(head):
+                issues.append((i + 2, f"分隔行 {len(sep)} 列 / 表头 {len(head)} 列"))
+            j = i + 2
+            while j < len(lines) and lines[j].strip().startswith("|"):
+                row = lines[j].strip()
+                if row.count("`") % 2:
+                    issues.append((j + 1, "反引号个数为奇数，会吞掉后面的 |"))
+                n = len(_cells(row))
+                if n != len(head):
+                    issues.append((j + 1, f"{n} 列 / 表头 {len(head)} 列：{row[:50]}"))
+                j += 1
+            i = j
+            continue
+        i += 1
+    return ntable, issues
+
+
 def main():
     rows = []
     for name in sorted(os.listdir(CONTENT)):
@@ -110,6 +174,18 @@ def main():
     print(f"不达标课程：{len(bad)} / {len(rows)}")
     for r, p in bad:
         print(f"  - {r['no']:>3} {r['id']:<22} {'; '.join(p)}")
+
+    # 表格体检覆盖所有 md（含 _ 开头的静态页）
+    ntable, tbl_issues = 0, []
+    for name in sorted(os.listdir(CONTENT)):
+        if not name.endswith(".md"):
+            continue
+        n, iss = check_tables(os.path.join(CONTENT, name))
+        ntable += n
+        tbl_issues += [(name, ln, msg) for ln, msg in iss]
+    print(f"\n表格体检：{ntable} 张表，问题 {len(tbl_issues)} 处")
+    for name, ln, msg in tbl_issues:
+        print(f"  - {name}:{ln} {msg}")
 
 
 if __name__ == "__main__":
