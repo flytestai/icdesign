@@ -43,3 +43,7 @@ tools/figs/.cache/
 /m2-*.png
 /m3-*.png
 /pg*.png
+
+# 本地截图临时文件
+chk-*.png
+*.log
