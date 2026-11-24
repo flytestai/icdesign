@@ -257,6 +257,37 @@ def render_code(lang, body):
             f'<pre><code>{"".join(lines)}</code></pre></div>')
 
 
+def split_row(line):
+    """按 | 切表格行，但跳过反引号代码段内的 |（例如 `a | b`、`ps -ef | grep x`）。
+    也支持 \\| 转义。单元格里写管道符是 Tcl / shell 的日常需求，不切会整行错位。"""
+    s = line.strip()
+    if s.startswith("|"):
+        s = s[1:]
+    if s.endswith("|"):
+        s = s[:-1]
+    cells, buf, in_code, i = [], "", False, 0
+    while i < len(s):
+        ch = s[i]
+        if ch == "\\" and i + 1 < len(s) and s[i + 1] == "|":
+            buf += "|"
+            i += 2
+            continue
+        if ch == "`":
+            in_code = not in_code
+            buf += ch
+            i += 1
+            continue
+        if ch == "|" and not in_code:
+            cells.append(buf.strip())
+            buf = ""
+            i += 1
+            continue
+        buf += ch
+        i += 1
+    cells.append(buf.strip())
+    return cells
+
+
 def md(src, inline_only=False):
     if inline_only:
         return "<p>" + "<br>".join(inline(l) for l in src.split("\n") if l.strip()) + "</p>"
@@ -319,11 +350,14 @@ def md(src, inline_only=False):
             i += 1
             continue
         if s.startswith("|") and i + 1 < len(lines) and re.match(r"^\|[\s:|-]+\|$", lines[i + 1].strip()):
-            head = [c.strip() for c in s.strip("|").split("|")]
+            head = split_row(s)
             i += 2
             rows = []
             while i < len(lines) and lines[i].strip().startswith("|"):
-                rows.append([c.strip() for c in lines[i].strip().strip("|").split("|")])
+                cells = split_row(lines[i])
+                if len(cells) < len(head):
+                    cells += [""] * (len(head) - len(cells))
+                rows.append(cells[:len(head)])
                 i += 1
             th = "".join(f"<th>{inline(c)}</th>" for c in head)
             tb = "".join("<tr>" + "".join(f"<td>{inline(c)}</td>" for c in r) + "</tr>" for r in rows)
@@ -562,7 +596,7 @@ SUB = HEAD + """
 HOME = HEAD + """
 <section class="home-hero">
   <div class="hh-in">
-    <div class="hh-k">Digital Backend · 9 个阶段 · {nhours} 学时</div>
+    <div class="hh-k">Digital Backend · 9 个阶段 · 课表 113 学时</div>
     <h1>把一块芯片<br>从代码变成版图</h1>
     <p>这门课写给<strong>完全没接触过芯片后端</strong>的人。每个概念先讲"它解决什么问题"，再讲工具怎么按；每个英文术语都给中文；每一行命令都写了注释和"删掉会怎样"。</p>
     <div class="hh-btns"><a class="pri" href="/lesson/{first}/">从第一课开始 →</a><a class="ghost" href="#plan">先看学习路线</a></div>
@@ -662,7 +696,6 @@ def build_home(lessons, nquiz, nterm):
   <div class="stage-r"><h3>{esc(name)}</h3><p>{esc(desc)}</p>
   <div class="lrows">{rows}</div></div>
 </div>""")
-    total_min = sum(int(L.get("minutes", 0)) for L in lessons)
     total_h = 0
     for L in lessons:
         try:
@@ -673,7 +706,7 @@ def build_home(lessons, nquiz, nterm):
     nch = sum(len(L["chapters"]) for L in lessons)
     stats = (f'<div><b>{len(lessons)}</b><span>课程</span></div>'
              f'<div><b>{nch}</b><span>章节</span></div>'
-             f'<div><b>{total_min//60}h{total_min%60:02d}</b><span>预计时长</span></div>')
+             f'<div><b>{nhours}</b><span>已上线学时</span></div>')
     html = HOME.format(
         doctitle="IC 后端学院 · 零基础到能上手做项目", title="IC 后端学院",
         desc="面向零基础的 IC 数字后端课程：113 学时、9 个阶段，概念讲到能听懂，命令逐行注释，每一课都有可验收的实战。",
