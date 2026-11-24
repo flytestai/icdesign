@@ -21,13 +21,22 @@ TAR = "/home/weizhen/icl_site.tar.gz"
 CHUNK = 8192
 
 
-def connect():
-    c = paramiko.SSHClient()
-    c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    c.connect(HOST, 22, USER, PWD, timeout=30, banner_timeout=40, auth_timeout=40,
-              look_for_keys=False, allow_agent=False)
-    c.get_transport().set_keepalive(10)
-    return c
+def connect(retries=3):
+    """连不上就重试：偶尔会出现连接刚建好就被服务器重置（WinError 10054）。"""
+    last = None
+    for k in range(retries):
+        try:
+            c = paramiko.SSHClient()
+            c.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            c.connect(HOST, 22, USER, PWD, timeout=30, banner_timeout=40, auth_timeout=40,
+                      look_for_keys=False, allow_agent=False)
+            c.get_transport().set_keepalive(15)
+            return c
+        except Exception as e:
+            last = e
+            print("连接失败（%d/%d）：%s" % (k + 1, retries, str(e)[:120]))
+            time.sleep(3 * (k + 1))
+    raise SystemExit("连不上服务器：%s" % last)
 
 
 def sh(c, cmd, timeout=300):
@@ -92,6 +101,19 @@ def restart_service(c):
     return rc == 0 and "active" in out
 
 
+def upload_package(c, data, remote):
+    """整包一次写入（一条通道）。
+
+    老办法是 8KB 一片、每片开一个 exec_command 通道：站点小的时候没事，
+    图库涨到 40MB 后要开 5000 多个通道，传到 1MB 服务器就把连接重置了。
+    实测单通道一次写 43MB / 150 秒完全稳定，就照这个来。"""
+    i, o, e = c.exec_command("cat > " + remote, timeout=900)
+    i.write(data)
+    i.flush()
+    i.channel.shutdown_write()
+    return o.channel.recv_exit_status() == 0
+
+
 def main():
     if "--no-build" not in sys.argv:
         rc = subprocess.call([sys.executable, os.path.join(ROOT, "tools", "build.py")])
@@ -106,18 +128,8 @@ def main():
     c = connect()
     try:
         sh(c, "rm -f " + TAR)
-        chunks = (len(data) + CHUNK - 1) // CHUNK
-        for k in range(chunks):
-            part = data[k * CHUNK:(k + 1) * CHUNK]
-            i, o, e = c.exec_command("cat >> " + TAR, timeout=60)
-            i.write(part)
-            i.flush()
-            i.channel.shutdown_write()
-            rc = o.channel.recv_exit_status()
-            if rc != 0:
-                print("chunk %d failed rc=%d" % (k, rc), e.read().decode()[:200])
-                return 1
-        print("uploaded %d chunks" % chunks)
+        print("uploading %.1f MB …" % (len(data) / 1048576.0))
+        upload_package(c, data, TAR)
 
         rc, out, _ = sh(c, "stat -c %s " + TAR + "; md5sum " + TAR + " | cut -d' ' -f1")
         lines = [x for x in out.strip().split("\n") if x]

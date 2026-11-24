@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 5 讲 · 列表（上）：定义与读取 · 11 | IC 后端学院</title>
 <meta name="description" content="列表是 TCL 最常用的数据结构。两种定义方法（大括号 {} 适合多行 / list 命令适合单行嵌套）、lindex 取元素、llength 求长度、嵌套列表的两种访问写法（双层 lindex 与多级连写）。">
-<link rel="icon" href="/assets/logo.svg?v=1795499490" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795499490">
+<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795502567">
 </head>
 <body data-page="lesson" data-lesson="01-11-tcl-05-list-a">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795499490" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,6 +64,8 @@
     </div>
     <article id="article"><section class="ch" id="define" data-ch="define">
   <div class="ch-h"><span class="ch-n">01</span><h2>列表是什么、两种核心定义方法</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-11-tcl-05-list-a-define-1.jpg" data-fig="ai"><img src="/fig/ai/01-11-tcl-05-list-a-define-1.jpg" alt="蓝色小电子把几个水果整齐地放进一个大号的透明收纳盒里，代表用大括号把多个元素装在一起。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子把几个水果整齐地放进一个大号的透明收纳盒里，代表用大括号把多个元素装在一起。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-11-tcl-05-list-a-define-2.jpg" data-fig="ai"><img src="/fig/ai/01-11-tcl-05-list-a-define-2.jpg" alt="蓝色小电子像魔术师一样从帽子里拉出一串连环彩球，代表用 list 命令把不同的小盒子串联成一个嵌套列表。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>蓝色小电子像魔术师一样从帽子里拉出一串连环彩球，代表用 list 命令把不同的小盒子串联成一个嵌套列表。</figcaption></figure>
   <div class="goal"><span>本章目标</span>会用 {} 和 list 两种方法定义列表；会用 lindex / llength 读取；会取嵌套列表里的值（两种写法都熟）。</div>
 <p>列表是 TCL 中<strong>最常用</strong>的数据结构，用于存储<strong>有序</strong>的多个元素（元素可以是字符串、数字、甚至另一个列表），支持增删改查、排序、拼接等操作。对应 Python 的 list。</p>
 <h3 id="brace">方法 1：大括号 {} 定义（适合多行元素）</h3>
@@ -137,6 +139,8 @@ puts $nested_list   ;# 输出：10 {20 30} {40 50 60}</pre><button class="tcl-go
 </section>
 <section class="ch" id="read" data-ch="read">
   <div class="ch-h"><span class="ch-n">02</span><h2>读取：lindex（索引从 0 开始）与 llength</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-11-tcl-05-list-a-read-1.jpg" data-fig="ai"><img src="/fig/ai/01-11-tcl-05-list-a-read-1.jpg" alt="就像酒店房间从零开始编房号一样，列表里的蓝色小电子们也从第零个开始排队点名。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>就像酒店房间从零开始编房号一样，列表里的蓝色小电子们也从第零个开始排队点名。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-11-tcl-05-list-a-read-2.jpg" data-fig="ai"><img src="/fig/ai/01-11-tcl-05-list-a-read-2.jpg" alt="数一数整排队伍一共站了多少个蓝色小电子，就知道这个列表的长度是多少啦。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>数一数整排队伍一共站了多少个蓝色小电子，就知道这个列表的长度是多少啦。</figcaption></figure>
   <p><strong>索引从 0 开始</strong>（和 Python 一样）：</p>
 <div class="tsbx has-code" data-code="set num_list [list 1 2 3 4 5]
 puts [lindex $num_list 2]    ;# 根据索引取元素：取第 3 个元素 → 3
@@ -155,6 +159,7 @@ puts [llength $num_list]     ;# 获取列表长度（元素个数）→ 5</pre><
 </section>
 <section class="ch" id="nested" data-ch="nested">
   <div class="ch-h"><span class="ch-n">03</span><h2>列表实操示例：嵌套列表访问</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-11-tcl-05-list-a-nested.jpg" data-fig="ai"><img src="/fig/ai/01-11-tcl-05-list-a-nested.jpg" alt="双层抽屉柜里套着小盒子。蓝色小电子先打开第2层大抽屉，再打开里面的第2个小纸盒，拿出了里面的名字纸条。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>双层抽屉柜里套着小盒子。蓝色小电子先打开第2层大抽屉，再打开里面的第2个小纸盒，拿出了里面的名字纸条。</figcaption></figure>
   <p>一个班级名单：每个学生是&quot;编号 姓名 成绩&quot;的子列表：</p>
 <div class="tsbx has-code" data-code="set class_list {
     {001 &quot;Xiao Ming&quot; 95}
@@ -211,6 +216,8 @@ puts $name</pre><button class="tcl-go" type="button">▶ 运行这段代码</but
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-11-tcl-05-list-a-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-11-tcl-05-list-a-lab-1.jpg" alt="蓝色小电子站在大抽屉柜前，把四个写有城市名的纸盒整齐地放进带大括号的抽屉里，演示多行列表的定义。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>蓝色小电子站在大抽屉柜前，把四个写有城市名的纸盒整齐地放进带大括号的抽屉里，演示多行列表的定义。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-11-tcl-05-list-a-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-11-tcl-05-list-a-lab-2.jpg" alt="蓝色小电子像在传送带上数快递一样，用手指着一排长得像糖葫芦的嵌套盒子，展示如何用 lindex 一层层取出里面的东西。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>蓝色小电子像在传送带上数快递一样，用手指着一排长得像糖葫芦的嵌套盒子，展示如何用 lindex 一层层取出里面的东西。</figcaption></figure>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习</div><div class="lab-b"><p>用 <code>{}</code> 定义一个多行列表，装 4 个城市名，其中一个城市名带空格；用 lindex 取第 2 个、用 llength 求长度；再用多级连写法取一个嵌套子列表的值。</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>列表的索引从几开始？</div>
@@ -245,8 +252,8 @@ puts $name</pre><button class="tcl-go" type="button">▶ 运行这段代码</but
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795499490"></script>
-<script src="/assets/tcl.js?v=1795499490"></script>
-<script src="/assets/app.js?v=1795499490"></script>
+<script src="/assets/shell.js?v=1795502567"></script>
+<script src="/assets/tcl.js?v=1795502567"></script>
+<script src="/assets/app.js?v=1795502567"></script>
 </body>
 </html>

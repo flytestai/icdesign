@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 3 讲 · 变量操作三剑客：append / incr / expr · 09 | IC 后端学院</title>
 <meta name="description" content="字符串拼接用 append（两种方法 + 与普通拼接对比）、整数加减用 incr（默认 1 / 正负步长）、一切数学运算交给 expr（含整数除法陷阱）。三剑客是写任何 TCL 脚本都绕不开的三个命令。">
-<link rel="icon" href="/assets/logo.svg?v=1795499490" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795499490">
+<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795502567">
 </head>
 <body data-page="lesson" data-lesson="01-09-tcl-03-tools">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795499490" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,6 +64,7 @@
     </div>
     <article id="article"><section class="ch" id="append" data-ch="append">
   <div class="ch-h"><span class="ch-n">01</span><h2>append：追加内容（字符串拼接）</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-append.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-append.jpg" alt="蓝色小电子像挤牙膏一样，把新木块直接粘在旧木块后面，不需要重新测量长度。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子像挤牙膏一样，把新木块直接粘在旧木块后面，不需要重新测量长度。</figcaption></figure>
   <div class="goal"><span>本章目标</span>会用 append 一次追加多个内容；知道 append 后面写变量名不带 $；会用 incr 做整数加减；会用 expr 做所有数学运算并躲开整数除法的坑。</div>
 <p>在原有变量值<strong>末尾</strong>添加新内容，无需重新赋值，效率更高。</p>
 <p><strong>语法：<code>append 变量名 追加内容</code></strong>（注意：append 后面直接写变量名，<strong>不带 $</strong>）</p>
@@ -111,6 +112,8 @@ puts $str2                ;# 输出：Hello World!</pre><button class="tcl-go" t
 </section>
 <section class="ch" id="incr" data-ch="incr">
   <div class="ch-h"><span class="ch-n">02</span><h2>incr：数值递增 / 递减</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-incr-1.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-incr-1.jpg" alt="蓝色小电子站在标有数字的电梯按钮前，按下向上的箭头，让原本的数字往上跳了一格。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>蓝色小电子站在标有数字的电梯按钮前，按下向上的箭头，让原本的数字往上跳了一格。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-incr-2.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-incr-2.jpg" alt="蓝色小电子调整滑轮上的减号把手，让计数器往回倒转，把数字变小。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>蓝色小电子调整滑轮上的减号把手，让计数器往回倒转，把数字变小。</figcaption></figure>
   <p>incr 是 increment 的缩写（读音：/ˈɪŋkrəmənt/）。<strong>仅用于整数变量</strong>，默认递增 1，可指定递增/递减数值（负数为递减）。</p>
 <p><strong>语法：<code>incr 变量名 [递增数值]</code></strong>（中括号内为可选，默认 1）</p>
 <div class="tsbx has-code" data-code="set num1 10
@@ -142,6 +145,7 @@ puts &quot;num2：$num2&quot;   ;# 输出：num2：-1</pre><button class="tcl-go
 </section>
 <section class="ch" id="expr" data-ch="expr">
   <div class="ch-h"><span class="ch-n">03</span><h2>expr：计算（数值运算专用）</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-expr.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-expr.jpg" alt="蓝色小电子站在一台复古计算器前，正专心敲击按键进行加减乘除的数学计算，代表expr命令专门负责数值运算。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>蓝色小电子站在一台复古计算器前，正专心敲击按键进行加减乘除的数学计算，代表expr命令专门负责数值运算。</figcaption></figure>
   <p>expr 是 expression（/ɪkˈspreʃn/）的缩写。所有数学运算都要交给 <code>expr</code> 命令做。</p>
 <div class="tsbx has-code" data-code="set a 3
 set b 5
@@ -167,6 +171,8 @@ expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数<
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-lab-1.jpg" alt="蓝色小电子像拼积木一样，用 append 把两截短木条严丝合缝地拼接成一整根长木条。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>蓝色小电子像拼积木一样，用 append 把两截短木条严丝合缝地拼接成一整根长木条。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-lab-2.jpg" alt="蓝色小电子站在刻度尺前切蛋糕，整数除法切出来总是整块，带小数点的除法则切得精细。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子站在刻度尺前切蛋糕，整数除法切出来总是整块，带小数点的除法则切得精细。</figcaption></figure>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（3 题）</div><div class="lab-b"><ol><li><code>set s hi</code>，用 append 拼出 <code>hi tcl!</code>。</li><li>用 incr 从 10 递减到 0（循环还没学，先手动写三行）。</li><li>算一算 <code>expr {7 / 2}</code> 和 <code>expr {7.0 / 2}</code> 分别是多少。</li></ol></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>练习 1 参考写法？</div>
@@ -201,8 +207,8 @@ expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数<
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795499490"></script>
-<script src="/assets/tcl.js?v=1795499490"></script>
-<script src="/assets/app.js?v=1795499490"></script>
+<script src="/assets/shell.js?v=1795502567"></script>
+<script src="/assets/tcl.js?v=1795502567"></script>
+<script src="/assets/app.js?v=1795502567"></script>
 </body>
 </html>

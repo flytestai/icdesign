@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Setup 与 Hold：两条红线与四种 Corner · 28 | IC 后端学院</title>
 <meta name="description" content="时序检查只有两件事：数据不能太晚（setup），也不能太早（hold）。这一课把这两条红线的判据写清楚，然后讲清它们各自该在什么条件下检查——corner 为什么分 FF/SS/TT、RC corner 的 Cmax/Cmin/RCmax/RCmin 由线宽 W、厚度 T、介质厚 H、间距 S 怎么决定、为什么 setup 看 SS+RCmax 而 hold 看 FF+RCmin，最后讲 OCV 与 POCV 这两种片上偏差建模。">
-<link rel="icon" href="/assets/logo.svg?v=1795499490" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795499490">
+<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795502567">
 </head>
 <body data-page="lesson" data-lesson="02-06a-setup-hold">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795499490" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,6 +64,7 @@
     </div>
     <article id="article"><section class="ch" id="why" data-ch="why">
   <div class="ch-h"><span class="ch-n">01</span><h2>时序检查只有两件事</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-why.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-why.jpg" alt="数据就像按时投递的信件，必须落在指定的窗口期内，早到或迟到都会导致错误。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>数据就像按时投递的信件，必须落在指定的窗口期内，早到或迟到都会导致错误。</figcaption></figure>
   <div class="goal"><span>本章目标</span>能写出 setup 与 hold 的 slack 判据；能说出 setup 查最慢、hold 查最快的理由；能解释 FF/SS/TT 与 PVT 的对应关系；能说出 Cmax/Cmin/RCmax/RCmin 分别由 W/T/H/S 怎么组合出来；能说清 WCS 与 BCF 各是什么组合；知道 OCV 与 POCV 的区别。</div>
 <p>上一课（SDC）给的是&quot;要求&quot;：周期多长、外部给多少延迟。这一课讲的是<strong>怎么判合格</strong>——工具算出到达时间（arrival）和需求时间（required），两者一比，就是 slack。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">setup:  slack = required(下一个时钟沿) - arrival(数据最晚到)     必须 ≥ 0</span><span class="ln ">hold:   slack = arrival(数据最早到)   - required(当前时钟沿之后)  必须 ≥ 0</span></code></pre></div>
@@ -72,6 +73,8 @@
 </section>
 <section class="ch" id="setup" data-ch="setup">
   <div class="ch-h"><span class="ch-n">02</span><h2>Setup：不能太晚</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-setup-1.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-setup-1.jpg" alt="数据必须在下一个时钟指挥官喊停前稳稳到达，如果动作太慢错过时机就会漏掉，这就是 Setup 检查。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>数据必须在下一个时钟指挥官喊停前稳稳到达，如果动作太慢错过时机就会漏掉，这就是 Setup 检查。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-setup-2.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-setup-2.jpg" alt="为了应对最慢最极端的恶劣环境，必须精简路程或换上力气更大的大号推车，才能保证数据准时到达。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>为了应对最慢最极端的恶劣环境，必须精简路程或换上力气更大的大号推车，才能保证数据准时到达。</figcaption></figure>
   <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">setup</span><span class="term-zh">建立时间</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>数据必须在<strong>下一个时钟沿到来之前</strong>稳定一段时间，这段提前量要求就是 setup 检查。<strong>不满足 = 数据来不及被采到。</strong></p></div>
@@ -81,6 +84,8 @@
 </section>
 <section class="ch" id="hold" data-ch="hold">
   <div class="ch-h"><span class="ch-n">03</span><h2>Hold：不能太早</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-hold-1.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-hold-1.jpg" alt="蓝色小电子冲刺太快，撞翻了还没被收走的旧快递，对应hold违例中数据跑太快导致旧值被冲掉的现象。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子冲刺太快，撞翻了还没被收走的旧快递，对应hold违例中数据跑太快导致旧值被冲掉的现象。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-hold-2.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-hold-2.jpg" alt="蓝色小电子在路上安装了减速带，把跑得太快的数据硬生生拖慢，对应通过插入延迟缓冲器来修复hold问题。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子在路上安装了减速带，把跑得太快的数据硬生生拖慢，对应通过插入延迟缓冲器来修复hold问题。</figcaption></figure>
   <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">hold</span><span class="term-zh">保持时间</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>数据在<strong>当前时钟沿之后</strong>还必须保持一段时间不变，否则会把该采的旧值冲掉。<strong>不满足 = 数据跑太快，把上一拍冲了。</strong></p></div>
@@ -93,6 +98,7 @@
 </section>
 <section class="ch" id="corner" data-ch="corner">
   <div class="ch-h"><span class="ch-n">04</span><h2>Corner：为什么要分 FF / SS / TT</h2></div>
+  
   <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">corner</span><span class="term-zh">工艺角</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>制造偏差导致晶体管有快有慢。<strong>FF / SS / TT</strong> 是三种典型组合：取决于 NMOS 和 PMOS 各自偏快还是偏慢。</p></div>
@@ -106,6 +112,7 @@
 </section>
 <section class="ch" id="rc" data-ch="rc">
   <div class="ch-h"><span class="ch-n">05</span><h2>RC corner：线也有四种极端</h2></div>
+  
   <p>线延迟不只看工艺，还要看<strong>金属的几何偏差</strong>。四个几何量决定一切：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">        ← W（线宽）→  ← S（线间距）→</span><span class="ln ">    ┌────────────────┐  ┌──────────┐</span><span class="ln ">    │   metal  ▔▔▔▔  │  │  metal   │   ↕ T（金属厚度）</span><span class="ln ">    └────────────────┘  └──────────┘</span><span class="ln ">    ─────────────────────────────────  ↕ H（层间介质厚度）</span></code></pre></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/pr-rc-corner.png" data-fig="pr-rc-corner"><img src="/fig/pr-rc-corner.png" alt="各种不同的 RC 环境：Cmax / Cmin / RCmax / RCmin 由 W、T、H、S 决定" loading="lazy" decoding="async"></a><figcaption>各种不同的 RC 环境：Cmax / Cmin / RCmax / RCmin 由 W、T、H、S 决定</figcaption></figure>
@@ -116,6 +123,8 @@
 </section>
 <section class="ch" id="pvt" data-ch="pvt">
   <div class="ch-h"><span class="ch-n">06</span><h2>PVT：三个字母锁死一个 corner</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-pvt-1.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-pvt-1.jpg" alt="PVT 三个环境因素叠加在一起，就像给芯片穿上了厚棉袄还是短袖，直接决定了芯片运行的最慢极限。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>PVT 三个环境因素叠加在一起，就像给芯片穿上了厚棉袄还是短袖，直接决定了芯片运行的最慢极限。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-pvt-2.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-pvt-2.jpg" alt="当电压、温度和制造工艺组合到最极端时，就会形成用来检查电路安全的两条红线：查最慢和查最快。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>当电压、温度和制造工艺组合到最极端时，就会形成用来检查电路安全的两条红线：查最慢和查最快。</figcaption></figure>
   <div class="tbl"><table><thead><tr><th>字母</th><th>含义</th><th>极端取值</th></tr></thead><tbody><tr><td><strong>P</strong></td><td>Process 工艺</td><td>FF（快）/ SS（慢）/ TT（典型）</td></tr><tr><td><strong>V</strong></td><td>Voltage 电压</td><td>高压（快）/ 低压（慢）</td></tr><tr><td><strong>T</strong></td><td>Temperature 温度</td><td>低温（快）/ 高温（慢，先进工艺可能反转）</td></tr></tbody></table></div>
 <p>组合出来的两条&quot;最坏线&quot;：</p>
 <div class="term" tabindex="0">
@@ -134,6 +143,8 @@
 </section>
 <section class="ch" id="mmc" data-ch="mmc">
   <div class="ch-h"><span class="ch-n">07</span><h2>MMC：为什么还要乘上&quot;模式&quot;</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-mmc-1.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-mmc-1.jpg" alt="同一颗芯片在不同工作模式下，时钟结构与频率完全不同，就像变装秀一样需要应对多种场景。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>同一颗芯片在不同工作模式下，时钟结构与频率完全不同，就像变装秀一样需要应对多种场景。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-mmc-2.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-mmc-2.jpg" alt="为了确保万无一失，芯片必须在所有模式和角落组合下全部通过考验，不能只盯着一个地方看。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>为了确保万无一失，芯片必须在所有模式和角落组合下全部通过考验，不能只盯着一个地方看。</figcaption></figure>
   <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">MMC / MMMC</span><span class="term-zh">Multi-Mode Multi-Corner</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>多模式多角。<strong>光有工艺角还不够</strong>——同一颗芯片在不同工作模式下（功能 / 扫描测试 / 超频），时钟结构与频率都不一样，所以 corner 还要再乘上 mode，得到一组 analysis view。</p></div>
@@ -144,6 +155,7 @@
 </section>
 <section class="ch" id="ocv" data-ch="ocv">
   <div class="ch-h"><span class="ch-n">08</span><h2>OCV 与 POCV：同一颗芯片内部也有快慢</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-ocv.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-ocv.jpg" alt="传统OCV方法采用一刀切的固定余量，虽然安全但过于保守；先进的POCV则根据统计规律精确计算，避免浪费面积。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>传统OCV方法采用一刀切的固定余量，虽然安全但过于保守；先进的POCV则根据统计规律精确计算，避免浪费面积。</figcaption></figure>
   <p>前面讲的 corner 是&quot;<strong>芯片之间</strong>的偏差&quot;（这颗快那颗慢）。但<strong>同一颗芯片内部</strong>，不同位置的器件也会有快慢差——比如靠近时钟源的和角落里的。</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">OCV</span><span class="term-zh">On-Chip Variation 片上偏差</span><i class="term-ico">点击看解释</i></div>
@@ -161,6 +173,7 @@
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">09</span><h2>动手：算一次 slack</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-06a-setup-hold-lab.jpg" data-fig="ai"><img src="/fig/ai/02-06a-setup-hold-lab.jpg" alt="动手计算时间余量时，就像在终点线前用尺子测量数据到达的时刻与最后期限之间的差值，确保余量大于零。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>动手计算时间余量时，就像在终点线前用尺子测量数据到达的时刻与最后期限之间的差值，确保余量大于零。</figcaption></figure>
   <p>把下面几个数改掉，体会&quot;晚一点 / 早一点&quot;对两条红线的影响。<strong>注意这里全部用 ps 的整数</strong>——真实签核数据也常以 ps 为单位，避免浮点误差（0.35 + 1.2 在浮点里会变成 1.5499999…）：</p>
 <div class="tsbx has-code" data-code="# ---- setup 检查：数据最晚到达 vs 下一个时钟沿（单位：ps）----
 set period 2000                               ;# 时钟周期 2000ps = 2ns
@@ -265,8 +278,8 @@ puts &quot;逻辑慢 300ps 后 setup slack=[expr {$required - $arrival2}] ps&quo
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795499490"></script>
-<script src="/assets/tcl.js?v=1795499490"></script>
-<script src="/assets/app.js?v=1795499490"></script>
+<script src="/assets/shell.js?v=1795502567"></script>
+<script src="/assets/tcl.js?v=1795502567"></script>
+<script src="/assets/app.js?v=1795502567"></script>
 </body>
 </html>

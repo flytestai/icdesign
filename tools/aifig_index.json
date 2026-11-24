@@ -1,0 +1,5378 @@
+{
+ "items": {
+  "01-01-linux-01-intro#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "就像大厨做菜前要拿到菜谱，芯片后端工程师拿到的是前端团队给的网表，也就是电路连接蓝图。",
+     "file": "fig/ai/01-01-linux-01-intro-lab-1.jpg",
+     "h": 675,
+     "w": 1200
+    },
+    {
+     "caption": "布局布线就像在房间里摆家具，既要把线接通不短路，还要保证走路速度快不耽误时间。",
+     "file": "fig/ai/01-01-linux-01-intro-lab-2.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "bdd22a9f78ce",
+   "index": 6,
+   "lesson": "01-01-linux-01-intro",
+   "model": "gpt-image-2.5",
+   "no": "01",
+   "title": "动手练",
+   "ts": "2026-11-24T14:44:43"
+  },
+  "01-01-linux-01-intro#skills": {
+   "anchor": "skills",
+   "figs": [
+    {
+     "caption": "就像学开挖掘机前必须先练好方向盘，掌握 Linux 命令是玩转所有芯片设计软件的第一块基石。",
+     "file": "fig/ai/01-01-linux-01-intro-skills-1.jpg",
+     "h": 675,
+     "w": 1200
+    },
+    {
+     "caption": "后面的 PR 和 PT 软件就像是芯片工厂里的不同车间，需要靠熟练的命令行工具去精准操控。",
+     "file": "fig/ai/01-01-linux-01-intro-skills-2.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "40f2b678ba53",
+   "index": 5,
+   "lesson": "01-01-linux-01-intro",
+   "model": "gpt-image-2.5",
+   "no": "01",
+   "title": "5. 工作技能地图",
+   "ts": "2026-11-24T14:44:36"
+  },
+  "01-01-linux-01-intro#what": {
+   "anchor": "what",
+   "figs": [
+    {
+     "caption": "Windows 像是带各种按钮的家用电器，而 Linux 则是全靠打字控制的精密工作台，芯片设计工程师每天都要用它来工作。",
+     "file": "fig/ai/01-01-linux-01-intro-what.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "ae3a66d5ba0a",
+   "index": 1,
+   "lesson": "01-01-linux-01-intro",
+   "model": "gpt-image-2.5",
+   "no": "01",
+   "title": "1. 什么是 Linux",
+   "ts": "2026-11-24T14:44:20"
+  },
+  "01-02-linux-02-connect#color": {
+   "anchor": "color",
+   "figs": [
+    {
+     "caption": "电脑屏幕里的文件列表就像超市货架，通过不同颜色一眼就能分出文件夹、普通文件和压缩包。",
+     "file": "fig/ai/01-02-linux-02-connect-color.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "7394dbbc34b6",
+   "index": 3,
+   "lesson": "01-02-linux-02-connect",
+   "model": "gpt-image-2.5",
+   "no": "02",
+   "title": "3. 通过颜色区分文件类型",
+   "ts": "2026-11-24T14:45:06"
+  },
+  "01-02-linux-02-connect#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "就像大楼里不同的储物间，Linux 系统用不同的文件夹来存放家目录、系统配置和软件。",
+     "file": "fig/ai/01-02-linux-02-connect-lab-1.jpg",
+     "h": 800,
+     "w": 1200
+    },
+    {
+     "caption": "终端里的文件名就像穿着不同制服的人，蓝色代表文件夹，绿色代表能跑起来的机器人，红色是打包的包裹。",
+     "file": "fig/ai/01-02-linux-02-connect-lab-2.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "a1daf4e8a7a1",
+   "index": 4,
+   "lesson": "01-02-linux-02-connect",
+   "model": "gpt-image-2.5",
+   "no": "02",
+   "title": "动手练",
+   "ts": "2026-11-24T14:46:59"
+  },
+  "01-02-linux-02-connect#tree": {
+   "anchor": "tree",
+   "figs": [
+    {
+     "caption": "Linux的目录结构就像一栋大楼的楼梯间，根目录是稳固的大厅（/），下面分出放工具的杂物间、住户的家（/home）和管理室（/root）。",
+     "file": "fig/ai/01-02-linux-02-connect-tree-1.jpg",
+     "h": 675,
+     "w": 1200
+    },
+    {
+     "caption": "工作级目录就像公司里每个人都有自己带锁的抽屉，大家各自干活、互不干扰，保证文件不会乱套。",
+     "file": "fig/ai/01-02-linux-02-connect-tree-2.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "92245b02701d",
+   "index": 2,
+   "lesson": "01-02-linux-02-connect",
+   "model": "gpt-image-2.5",
+   "no": "02",
+   "title": "2. 目录的结构",
+   "ts": "2026-11-24T14:45:15"
+  },
+  "01-03-linux-03-files#cd": {
+   "anchor": "cd",
+   "figs": [
+    {
+     "caption": "就像在迷宫或大厦里走动，cd 命令就像是输入房间号或者按电梯，带你瞬间传送到不同的房间或楼层。",
+     "file": "fig/ai/01-03-linux-03-files-cd-1.jpg",
+     "h": 675,
+     "w": 1200
+    },
+    {
+     "caption": "绝对路径从一楼大厅的根目录出发，不管你在哪都能一步到位；相对路径则像是在当前门口说『往左走两步』。",
+     "file": "fig/ai/01-03-linux-03-files-cd-2.jpg",
+     "h": 800,
+     "w": 1200
+    }
+   ],
+   "hash": "e3eb38829907",
+   "index": 2,
+   "lesson": "01-03-linux-03-files",
+   "model": "gpt-image-2.5",
+   "no": "03",
+   "title": "2. 切换目录：cd",
+   "ts": "2026-11-24T14:47:09"
+  },
+  "01-03-linux-03-files#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "就像在杂物间里掏出钥匙开门、在柜子里找文件夹一样，我们在电脑里穿梭目录、新建文件夹和删除文件。",
+     "file": "fig/ai/01-03-linux-03-files-lab.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "50c942744126",
+   "index": 6,
+   "lesson": "01-03-linux-03-files",
+   "model": "gpt-image-2.5",
+   "no": "03",
+   "title": "动手练：练习一",
+   "ts": "2026-11-24T14:46:29"
+  },
+  "01-03-linux-03-files#mkdir": {
+   "anchor": "mkdir",
+   "figs": [
+    {
+     "caption": "就像在空地上盖房子或者拆空房间，mkdir 用来新建文件夹，rmdir 用来拆掉没有东西的空房间。",
+     "file": "fig/ai/01-03-linux-03-files-mkdir-1.jpg",
+     "h": 614,
+     "w": 1200
+    },
+    {
+     "caption": "rm -rf 命令就像一台强力的推土机，不管里面有没有装满东西都会直接铲平，而且没有回收站可以找回。",
+     "file": "fig/ai/01-03-linux-03-files-mkdir-2.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "55fc3ef9eeed",
+   "index": 4,
+   "lesson": "01-03-linux-03-files",
+   "model": "gpt-image-2.5",
+   "no": "03",
+   "title": "4. 目录管理",
+   "ts": "2026-11-24T14:46:49"
+  },
+  "01-04-linux-04-view-vi#hotkeys": {
+   "anchor": "hotkeys",
+   "figs": [
+    {
+     "caption": "键盘快捷键就像电视机的遥控器快捷键，按下特定组合就能瞬间清屏或让光标在行首行尾快速瞬移。",
+     "file": "fig/ai/01-04-linux-04-view-vi-hotkeys-1.jpg",
+     "h": 675,
+     "w": 1200
+    },
+    {
+     "caption": "文件内的快捷跳转就像翻阅一本魔法书，按gg或G就能瞬间飞到书的第一页或最后一页。",
+     "file": "fig/ai/01-04-linux-04-view-vi-hotkeys-2.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "69ec6dcb05da",
+   "index": 4,
+   "lesson": "01-04-linux-04-view-vi",
+   "model": "gpt-image-2.5",
+   "no": "04",
+   "title": "4. Linux 的快捷键",
+   "ts": "2026-11-24T14:47:47"
+  },
+  "01-04-linux-04-view-vi#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子像整理房间一样，把文件和文件夹分门别类地装进不同的抽屉里。",
+     "checked": true,
+     "file": "fig/ai/01-04-linux-04-view-vi-lab-1.jpg",
+     "h": 675,
+     "labels": [
+      "建目录",
+      "写文件"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子拿着放大镜仔细对比两张纸条的不同之处，旁边还有一个箭头指向输出结果。",
+     "checked": true,
+     "file": "fig/ai/01-04-linux-04-view-vi-lab-2.jpg",
+     "h": 675,
+     "labels": [
+      "比不同",
+      "重定向"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "6009c463fe22",
+   "index": 5,
+   "lesson": "01-04-linux-04-view-vi",
+   "model": "gpt-image-2.5",
+   "no": "04",
+   "title": "动手练：练习二",
+   "ts": "2026-11-24T14:58:03"
+  },
+  "01-04-linux-04-view-vi#symbols": {
+   "anchor": "symbols",
+   "figs": [
+    {
+     "caption": "重定向符号就像一个漏斗，把原本倒向空地的水流精准引导并装进瓶子里。",
+     "file": "fig/ai/01-04-linux-04-view-vi-symbols-1.jpg",
+     "h": 800,
+     "w": 1200
+    },
+    {
+     "caption": "管道符就像工厂里的传送带，把前一个机器做好的零件直接运送到下一个机器继续加工。",
+     "file": "fig/ai/01-04-linux-04-view-vi-symbols-2.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "7914f23ae650",
+   "index": 3,
+   "lesson": "01-04-linux-04-view-vi",
+   "model": "gpt-image-2.5",
+   "no": "04",
+   "title": "3. 特殊符号",
+   "ts": "2026-11-24T14:47:44"
+  },
+  "01-04-linux-04-view-vi#vi": {
+   "anchor": "vi",
+   "figs": [
+    {
+     "caption": "就像普通笔记本和带自动排版的高级智能笔记本一样，vi、vim 和带独立界面的 gvim 是不同形态的文字工具。",
+     "file": "fig/ai/01-04-linux-04-view-vi-vi-1.jpg",
+     "h": 614,
+     "w": 1200
+    },
+    {
+     "caption": "进入编辑模式就像打开钢笔盖开始写字，而按下 Esc 键则像是合上笔盖锁定内容，随时切换状态。",
+     "file": "fig/ai/01-04-linux-04-view-vi-vi-2.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "d0c355224726",
+   "index": 2,
+   "lesson": "01-04-linux-04-view-vi",
+   "model": "gpt-image-2.5",
+   "no": "04",
+   "title": "2. vi / vim / gvim 编辑文件",
+   "ts": "2026-11-24T14:47:25"
+  },
+  "01-04-linux-04-view-vi#view": {
+   "anchor": "view",
+   "figs": [
+    {
+     "caption": "使用 more 或 less 命令查看长文件时，就像在翻阅一本卷轴，按特定字母或键位上下滚动，阅读完毕或按 q 键即可收起。",
+     "file": "fig/ai/01-04-linux-04-view-vi-view-1.jpg",
+     "h": 675,
+     "w": 1200
+    },
+    {
+     "caption": "使用 tail 命令查看日志结尾时，就像在长长的打印纸堆最下方，直接扯出最后最新的一截来检查最新情况。",
+     "file": "fig/ai/01-04-linux-04-view-vi-view-2.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "03156d6db617",
+   "index": 1,
+   "lesson": "01-04-linux-04-view-vi",
+   "model": "gpt-image-2.5",
+   "no": "04",
+   "title": "1. 查看文件",
+   "ts": "2026-11-24T14:46:54"
+  },
+  "01-05-linux-05-search-perm#grep": {
+   "anchor": "grep",
+   "figs": [
+    {
+     "caption": "蓝色小电子化身侦探，在成堆的文件信封里翻找带有关键标记的信件，比喻在文件中精准搜索关键字。",
+     "checked": true,
+     "file": "fig/ai/01-05-linux-05-search-perm-grep-1.jpg",
+     "h": 675,
+     "labels": [
+      "搜索",
+      "关键字"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子像快递分拣员一样，钻进层层叠叠的抽屉柜深处，把藏在各个角落的包裹逐个翻找出来，比喻递归搜索目录下所有子文件的操作。",
+     "checked": true,
+     "file": "fig/ai/01-05-linux-05-search-perm-grep-2.jpg",
+     "h": 800,
+     "labels": [
+      "递归",
+      "目录"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "d34b26159523",
+   "index": 1,
+   "lesson": "01-05-linux-05-search-perm",
+   "model": "gpt-image-2.5",
+   "no": "05",
+   "title": "1. grep：搜索关键字",
+   "ts": "2026-11-24T14:58:12"
+  },
+  "01-05-linux-05-search-perm#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在文件外部，拿着放大镜在一排排档案盒里仔细寻找写着特定关键词的文件。",
+     "checked": true,
+     "file": "fig/ai/01-05-linux-05-search-perm-lab-1.jpg",
+     "h": 675,
+     "labels": [
+      "外部搜索",
+      "放大镜"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子坐在打开的档案盒内部，挥舞着小工具在每一页纸的开头和结尾添加新的标记。",
+     "checked": true,
+     "file": "fig/ai/01-05-linux-05-search-perm-lab-2.jpg",
+     "h": 800,
+     "labels": [
+      "内部修改",
+      "加标记"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "d4fcf66807cc",
+   "index": 8,
+   "lesson": "01-05-linux-05-search-perm",
+   "model": "gpt-image-2.5",
+   "no": "05",
+   "title": "动手练：练习三",
+   "ts": "2026-11-24T14:59:45"
+  },
+  "01-05-linux-05-search-perm#misc": {
+   "anchor": "misc",
+   "figs": [
+    {
+     "caption": "就像给快递箱贴上防伪指纹封条，md5sum 会检查文件有没有被偷偷改动过。",
+     "checked": true,
+     "file": "fig/ai/01-05-linux-05-search-perm-misc-1.jpg",
+     "h": 675,
+     "labels": [
+      "验货指纹",
+      "防伪封条"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "就像在迷宫里按路标快速找到工具箱的位置，which 能瞬间找出命令藏在电脑的哪个角落。",
+     "checked": true,
+     "file": "fig/ai/01-05-linux-05-search-perm-misc-2.jpg",
+     "h": 675,
+     "labels": [
+      "藏身位置",
+      "快速搜寻"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "481e829b9272",
+   "index": 4,
+   "lesson": "01-05-linux-05-search-perm",
+   "model": "gpt-image-2.5",
+   "no": "05",
+   "title": "4. md5sum / which",
+   "ts": "2026-11-24T14:59:46"
+  },
+  "01-05-linux-05-search-perm#move": {
+   "anchor": "move",
+   "figs": [
+    {
+     "caption": "蓝色小电子化身搬家工人和复印机，把箱子搬到新房间，或者用复印机复制出一模一样的新箱子，对应文件移动与复制命令。",
+     "checked": true,
+     "file": "fig/ai/01-05-linux-05-search-perm-move-1.jpg",
+     "h": 614,
+     "labels": [
+      "移动",
+      "复制"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子拿着放大镜在杂乱的抽屉里仔细翻找，对应文件搜索命令，精准找出藏起来的目标文件。",
+     "checked": true,
+     "file": "fig/ai/01-05-linux-05-search-perm-move-2.jpg",
+     "h": 675,
+     "labels": [
+      "搜索",
+      "空间"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "c877421a5f9d",
+   "index": 2,
+   "lesson": "01-05-linux-05-search-perm",
+   "model": "gpt-image-2.5",
+   "no": "05",
+   "title": "2. 文件处理：移动 / 复制 / 搜索",
+   "ts": "2026-11-24T14:58:00"
+  },
+  "01-06-linux-06-sed-awk#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "把复杂的文本数据想象成工厂的快递传送带，蓝色小电子站在旁边，用剪刀精准切开不同格式的分隔符，挑出需要的列。",
+     "checked": true,
+     "file": "fig/ai/01-06-linux-06-sed-awk-lab-1.jpg",
+     "h": 675,
+     "labels": [
+      "切开冒号",
+      "选出第几列"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "就像在抽屉里精确寻找特定编号的物品，蓝色小电子根据设定的条件，只把符合要求的整行或特定数字挑出来。",
+     "checked": true,
+     "file": "fig/ai/01-06-linux-06-sed-awk-lab-2.jpg",
+     "h": 675,
+     "labels": [
+      "按条件挑",
+      "最后一位"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "a3414b2b1fd6",
+   "index": 4,
+   "lesson": "01-06-linux-06-sed-awk",
+   "model": "gpt-image-2.5",
+   "no": "06",
+   "title": "动手练：awk 练习",
+   "ts": "2026-11-24T15:00:02"
+  },
+  "01-07-tcl-01-start#comment": {
+   "anchor": "comment",
+   "figs": [
+    {
+     "caption": "蓝色小电子举着一把大锁，在命令队伍最前面挡住后面的话，告诉计算机这里是注释不用执行。",
+     "checked": true,
+     "file": "fig/ai/01-07-tcl-01-start-comment-1.jpg",
+     "h": 675,
+     "labels": [
+      "行首注释",
+      "井号开头"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子先竖起一面墙结束当前任务，再举起锁牌子写注释，展示行中注释的正确写法。",
+     "checked": true,
+     "file": "fig/ai/01-07-tcl-01-start-comment-2.jpg",
+     "h": 675,
+     "labels": [
+      "先加分号",
+      "再写注释"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "f6232305583e",
+   "index": 3,
+   "lesson": "01-07-tcl-01-start",
+   "model": "gpt-image-2.5",
+   "no": "07",
+   "title": "注释怎么写",
+   "ts": "2026-11-24T15:00:05"
+  },
+  "01-07-tcl-01-start#env": {
+   "anchor": "env",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在一座上锁的工具仓库大门前，手里拿着一把写着脚本的钥匙，正准备打开大门取出EDA工具。",
+     "checked": true,
+     "file": "fig/ai/01-07-tcl-01-start-env-1.jpg",
+     "h": 675,
+     "labels": [
+      "配置环境",
+      "EDA工具"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子在魔法书桌前按下一个发光按钮，将写有咒语的纸条投入机器，瞬间激活了整个工作台。",
+     "checked": true,
+     "file": "fig/ai/01-07-tcl-01-start-env-2.jpg",
+     "h": 675,
+     "labels": [
+      "加载配置",
+      "立即生效"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "8d0231c632dd",
+   "index": 1,
+   "lesson": "01-07-tcl-01-start",
+   "model": "gpt-image-2.5",
+   "no": "07",
+   "title": "为什么第一讲讲环境",
+   "ts": "2026-11-24T14:59:49"
+  },
+  "01-07-tcl-01-start#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子像喊话机器一样，把想说的话通过喇叭大声广播出来，对应用 puts 命令输出文字。",
+     "checked": true,
+     "file": "fig/ai/01-07-tcl-01-start-lab-1.jpg",
+     "h": 675,
+     "labels": [
+      "喊话喇叭",
+      "输出文字"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子手里拿着一把贴着工具标签的钥匙，正准备打开一扇紧闭的大门，对应配置环境变量和打开工具。",
+     "checked": true,
+     "file": "fig/ai/01-07-tcl-01-start-lab-2.jpg",
+     "h": 675,
+     "labels": [
+      "工具钥匙",
+      "打开大门"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "f0317911e792",
+   "index": 4,
+   "lesson": "01-07-tcl-01-start",
+   "model": "gpt-image-2.5",
+   "no": "07",
+   "title": "动手练",
+   "ts": "2026-11-24T15:00:42"
+  },
+  "01-07-tcl-01-start#puts": {
+   "anchor": "puts",
+   "figs": [
+    {
+     "caption": "TCL 的 puts 命令就像一个传话筒，蓝色小电子把双引号里的文字喊出来并换行，完成内容输出。",
+     "checked": true,
+     "file": "fig/ai/01-07-tcl-01-start-puts.jpg",
+     "h": 675,
+     "labels": [
+      "传话筒",
+      "输出文字"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "368965f3bc35",
+   "index": 2,
+   "lesson": "01-07-tcl-01-start",
+   "model": "gpt-image-2.5",
+   "no": "07",
+   "title": "第一个命令：puts",
+   "ts": "2026-11-24T14:59:14"
+  },
+  "01-08-tcl-02-vars#dollar": {
+   "anchor": "dollar",
+   "figs": [
+    {
+     "caption": "在变量名前面加上美元符号，就能像打开快递箱一样取出里面藏着的宝贝。",
+     "checked": true,
+     "file": "fig/ai/01-08-tcl-02-vars-dollar.jpg",
+     "h": 675,
+     "labels": [
+      "变量名",
+      "取数值"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "0959dd356569",
+   "index": 3,
+   "lesson": "01-08-tcl-02-vars",
+   "model": "gpt-image-2.5",
+   "no": "08",
+   "title": "调用变量：$变量名",
+   "ts": "2026-11-24T15:00:28"
+  },
+  "01-08-tcl-02-vars#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "花括号像全封闭的保险箱，里面的小电子和符号原样不动；双引号像透明玻璃柜，里面的小电子会直接变身成数字。",
+     "checked": true,
+     "file": "fig/ai/01-08-tcl-02-vars-lab-1.jpg",
+     "h": 800,
+     "labels": [
+      "花括号",
+      "双引号"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "方括号像一个神秘的魔法黑盒子，先把里面加法算式的得数算出来，再把结果替换掉盒子本身。",
+     "checked": true,
+     "file": "fig/ai/01-08-tcl-02-vars-lab-2.jpg",
+     "h": 800,
+     "labels": [
+      "方括号",
+      "算结果"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "b14ed1a727a5",
+   "index": 6,
+   "lesson": "01-08-tcl-02-vars",
+   "model": "gpt-image-2.5",
+   "no": "08",
+   "title": "动手练",
+   "ts": "2026-11-24T15:01:27"
+  },
+  "01-08-tcl-02-vars#multi": {
+   "anchor": "multi",
+   "figs": [
+    {
+     "caption": "普通的箱子只能装一件东西，如果想同时装年龄和名字，就需要换成一个格挡分明的收纳盒，这就是字典。",
+     "checked": true,
+     "file": "fig/ai/01-08-tcl-02-vars-multi.jpg",
+     "h": 800,
+     "labels": [
+      "普通",
+      "字典"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "a8ec39646890",
+   "index": 5,
+   "lesson": "01-08-tcl-02-vars",
+   "model": "gpt-image-2.5",
+   "no": "08",
+   "title": "set 一次只能定义一个变量（想定义\"多个\"用字典）",
+   "ts": "2026-11-24T15:00:52"
+  },
+  "01-08-tcl-02-vars#set": {
+   "anchor": "set",
+   "figs": [
+    {
+     "caption": "变量就像一个贴着标签的储物盒，左边的标签是给人看的名字，右边盒子里装的是机器要用的数值。",
+     "checked": true,
+     "file": "fig/ai/01-08-tcl-02-vars-set.jpg",
+     "h": 675,
+     "labels": [
+      "变量名",
+      "存数值"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "889e1acd0f0c",
+   "index": 1,
+   "lesson": "01-08-tcl-02-vars",
+   "model": "gpt-image-2.5",
+   "no": "08",
+   "title": "定义变量：set 命令",
+   "ts": "2026-11-24T15:00:19"
+  },
+  "01-08-tcl-02-vars#special": {
+   "anchor": "special",
+   "figs": [
+    {
+     "caption": "当变量名含有特殊字符时，用花括号把名字紧紧裹起来，就像给淘气的钥匙穿上防护衣。",
+     "checked": true,
+     "file": "fig/ai/01-08-tcl-02-vars-special.jpg",
+     "h": 675,
+     "labels": [
+      "变量包裹",
+      "特殊字符"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "429d2cda77f3",
+   "index": 4,
+   "lesson": "01-08-tcl-02-vars",
+   "model": "gpt-image-2.5",
+   "no": "08",
+   "title": "特殊变量名：用 ${} 包裹（很少用，但要会）",
+   "ts": "2026-11-24T15:00:47"
+  },
+  "01-08-tcl-02-vars#substitution": {
+   "anchor": "substitution",
+   "figs": [
+    {
+     "caption": "双引号和小括号就像会变魔术的快递盒，双引号会把里面的暗号变成真实物品，而大括号则把所有东西死死封印成原样。",
+     "checked": true,
+     "file": "fig/ai/01-08-tcl-02-vars-substitution-1.jpg",
+     "h": 675,
+     "labels": [
+      "双引号",
+      "大括号"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "方括号就像一个弹簧发射器，先把自己里面的任务做完，再用产出的结果把整个装置瞬间顶替掉。",
+     "checked": true,
+     "file": "fig/ai/01-08-tcl-02-vars-substitution-2.jpg",
+     "h": 675,
+     "labels": [
+      "方括号",
+      "命令替换"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "2e2a086371e1",
+   "index": 2,
+   "lesson": "01-08-tcl-02-vars",
+   "model": "gpt-image-2.5",
+   "no": "08",
+   "title": "TCL 的三种\"替换\"——一句话原理（文档原文）",
+   "ts": "2026-11-24T15:00:48"
+  },
+  "01-09-tcl-03-tools#append": {
+   "anchor": "append",
+   "figs": [
+    {
+     "caption": "蓝色小电子像挤牙膏一样，把新木块直接粘在旧木块后面，不需要重新测量长度。",
+     "checked": true,
+     "file": "fig/ai/01-09-tcl-03-tools-append.jpg",
+     "h": 675,
+     "labels": [
+      "旧内容",
+      "加新料"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "efdecd8539a2",
+   "index": 1,
+   "lesson": "01-09-tcl-03-tools",
+   "model": "gpt-image-2.5",
+   "no": "09",
+   "title": "append：追加内容（字符串拼接）",
+   "ts": "2026-11-24T15:01:11"
+  },
+  "01-09-tcl-03-tools#expr": {
+   "anchor": "expr",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在一台复古计算器前，正专心敲击按键进行加减乘除的数学计算，代表expr命令专门负责数值运算。",
+     "checked": true,
+     "file": "fig/ai/01-09-tcl-03-tools-expr.jpg",
+     "h": 800,
+     "labels": [
+      "计算器",
+      "数学运算"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "bd235bb2db1b",
+   "index": 3,
+   "lesson": "01-09-tcl-03-tools",
+   "model": "gpt-image-2.5",
+   "no": "09",
+   "title": "expr：计算（数值运算专用）",
+   "ts": "2026-11-24T15:01:19"
+  },
+  "01-09-tcl-03-tools#incr": {
+   "anchor": "incr",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在标有数字的电梯按钮前，按下向上的箭头，让原本的数字往上跳了一格。",
+     "checked": true,
+     "file": "fig/ai/01-09-tcl-03-tools-incr-1.jpg",
+     "h": 800,
+     "labels": [
+      "当前数值",
+      "加一操作"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子调整滑轮上的减号把手，让计数器往回倒转，把数字变小。",
+     "checked": true,
+     "file": "fig/ai/01-09-tcl-03-tools-incr-2.jpg",
+     "h": 800,
+     "labels": [
+      "指定数值",
+      "数值减小"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "666fe77aaa21",
+   "index": 2,
+   "lesson": "01-09-tcl-03-tools",
+   "model": "gpt-image-2.5",
+   "no": "09",
+   "title": "incr：数值递增 / 递减",
+   "ts": "2026-11-24T15:01:46"
+  },
+  "01-09-tcl-03-tools#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子像拼积木一样，用 append 把两截短木条严丝合缝地拼接成一整根长木条。",
+     "checked": true,
+     "file": "fig/ai/01-09-tcl-03-tools-lab-1.jpg",
+     "h": 800,
+     "labels": [
+      "拼积木",
+      "连起来"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子站在刻度尺前切蛋糕，整数除法切出来总是整块，带小数点的除法则切得精细。",
+     "checked": true,
+     "file": "fig/ai/01-09-tcl-03-tools-lab-2.jpg",
+     "h": 675,
+     "labels": [
+      "整数块",
+      "切碎碎"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "7e79f1dd2186",
+   "index": 4,
+   "lesson": "01-09-tcl-03-tools",
+   "model": "gpt-image-2.5",
+   "no": "09",
+   "title": "动手练",
+   "ts": "2026-11-24T15:01:45"
+  },
+  "01-10-tcl-04-array#arrayset": {
+   "anchor": "arrayset",
+   "figs": [
+    {
+     "caption": "蓝色小电子正把多对贴着名字和年龄的标签，一口气贴进一个大抽屉里，代表用一条命令批量存入多个键值对。",
+     "checked": true,
+     "file": "fig/ai/01-10-tcl-04-array-arrayset-1.jpg",
+     "h": 675,
+     "labels": [
+      "批量赋值",
+      "大抽屉"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子站在标有名字的大箱子前，手里只拿出一张写着名字的纸条，代表只提取数组中所有的键名。",
+     "checked": true,
+     "file": "fig/ai/01-10-tcl-04-array-arrayset-2.jpg",
+     "h": 675,
+     "labels": [
+      "取键名",
+      "查货架"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "bd5141d899e2",
+   "index": 2,
+   "lesson": "01-10-tcl-04-array",
+   "model": "gpt-image-2.5",
+   "no": "10",
+   "title": "批量赋值：array set（标准写法）",
+   "ts": "2026-11-24T15:02:21"
+  },
+  "01-10-tcl-04-array#change": {
+   "anchor": "change",
+   "figs": [
+    {
+     "caption": "蓝色小电子正在往写着键名的小柜子里塞入新物品，代表给数组增加或修改数据。",
+     "checked": true,
+     "file": "fig/ai/01-10-tcl-04-array-change.jpg",
+     "h": 675,
+     "labels": [
+      "键",
+      "值"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "f6a0d1d70f3c",
+   "index": 3,
+   "lesson": "01-10-tcl-04-array",
+   "model": "gpt-image-2.5",
+   "no": "10",
+   "title": "数组增加 / 修改",
+   "ts": "2026-11-24T15:01:58"
+  },
+  "01-10-tcl-04-array#define": {
+   "anchor": "define",
+   "figs": [
+    {
+     "caption": "数组就像带有标签的储物柜，每个格子都有一个名字作为钥匙，里面装着对应的数据，存取非常方便。",
+     "checked": true,
+     "file": "fig/ai/01-10-tcl-04-array-define.jpg",
+     "h": 800,
+     "labels": [
+      "储物柜",
+      "标签"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "3d95ca6f6abd",
+   "index": 1,
+   "lesson": "01-10-tcl-04-array",
+   "model": "gpt-image-2.5",
+   "no": "10",
+   "title": "数组是什么、怎么定义",
+   "ts": "2026-11-24T15:01:43"
+  },
+  "01-10-tcl-04-array#iterate": {
+   "anchor": "iterate",
+   "figs": [
+    {
+     "caption": "快递仓库管理员拿着名册点名，先找到货架编号，再按编号去拿对应的商品，这就是先获取键名再取值的遍历方法。",
+     "checked": true,
+     "file": "fig/ai/01-10-tcl-04-array-iterate-1.jpg",
+     "h": 675,
+     "labels": [
+      "查键名",
+      "取对应值"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "快递传送带上一对一对地运出货物，一个蓝色小电子双手同时抱住编号和商品，一轮循环直接拿走一对键值对。",
+     "checked": true,
+     "file": "fig/ai/01-10-tcl-04-array-iterate-2.jpg",
+     "h": 675,
+     "labels": [
+      "键",
+      "值"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "0b4d4c6eb62b",
+   "index": 5,
+   "lesson": "01-10-tcl-04-array",
+   "model": "gpt-image-2.5",
+   "no": "10",
+   "title": "数组遍历（foreach + array names / array get）",
+   "ts": "2026-11-24T15:04:18"
+  },
+  "01-10-tcl-04-array#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子像在超市货架上贴标签一样，给每个储物格编好门牌号并放进水果，这就是用键和值存东西。",
+     "checked": true,
+     "file": "fig/ai/01-10-tcl-04-array-lab-1.jpg",
+     "h": 675,
+     "labels": [
+      "门牌号",
+      "抽屉里的水果"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子拿着两把钥匙，分别用来单独打开某个小抽屉拿走水果，或者一把火清空整个大柜子。",
+     "checked": true,
+     "file": "fig/ai/01-10-tcl-04-array-lab-2.jpg",
+     "h": 675,
+     "labels": [
+      "单间钥匙",
+      "清空柜子"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "16f4154fe231",
+   "index": 6,
+   "lesson": "01-10-tcl-04-array",
+   "model": "gpt-image-2.5",
+   "no": "10",
+   "title": "动手练",
+   "ts": "2026-11-24T15:04:11"
+  },
+  "01-10-tcl-04-array#unset": {
+   "anchor": "unset",
+   "figs": [
+    {
+     "caption": "就像从抽屉里抽走一张标签纸，箱子还在，但里面的名字不见了，对应删除单个键的情况。",
+     "checked": true,
+     "file": "fig/ai/01-10-tcl-04-array-unset-1.jpg",
+     "h": 675,
+     "labels": [
+      "抽走名字",
+      "柜子还在"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "就像直接把整个大柜子搬走砸碎，连放东西的地方都没有了，对应删除整个数组的情况。",
+     "checked": true,
+     "file": "fig/ai/01-10-tcl-04-array-unset-2.jpg",
+     "h": 675,
+     "labels": [
+      "搬走柜子",
+      "空空如也"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "84974b5362d8",
+   "index": 4,
+   "lesson": "01-10-tcl-04-array",
+   "model": "gpt-image-2.5",
+   "no": "10",
+   "title": "数组删除（unset）",
+   "ts": "2026-11-24T15:04:11"
+  },
+  "01-11-tcl-05-list-a#define": {
+   "anchor": "define",
+   "figs": [
+    {
+     "caption": "蓝色小电子把几个水果整齐地放进一个大号的透明收纳盒里，代表用大括号把多个元素装在一起。",
+     "checked": true,
+     "file": "fig/ai/01-11-tcl-05-list-a-define-1.jpg",
+     "h": 675,
+     "labels": [
+      "大括号",
+      "水果清单"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子像魔术师一样从帽子里拉出一串连环彩球，代表用 list 命令把不同的小盒子串联成一个嵌套列表。",
+     "checked": true,
+     "file": "fig/ai/01-11-tcl-05-list-a-define-2.jpg",
+     "h": 800,
+     "labels": [
+      "list命令",
+      "嵌套列表"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "8fc42f93c901",
+   "index": 1,
+   "lesson": "01-11-tcl-05-list-a",
+   "model": "gpt-image-2.5",
+   "no": "11",
+   "title": "列表是什么、两种核心定义方法",
+   "ts": "2026-11-24T15:04:08"
+  },
+  "01-11-tcl-05-list-a#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在大抽屉柜前，把四个写有城市名的纸盒整齐地放进带大括号的抽屉里，演示多行列表的定义。",
+     "checked": true,
+     "file": "fig/ai/01-11-tcl-05-list-a-lab-1.jpg",
+     "h": 800,
+     "labels": [
+      "大括号",
+      "城市列表"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子像在传送带上数快递一样，用手指着一排长得像糖葫芦的嵌套盒子，展示如何用 lindex 一层层取出里面的东西。",
+     "checked": true,
+     "file": "fig/ai/01-11-tcl-05-list-a-lab-2.jpg",
+     "h": 800,
+     "labels": [
+      "从零开始",
+      "嵌套取值"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "4a36378e3881",
+   "index": 4,
+   "lesson": "01-11-tcl-05-list-a",
+   "model": "gpt-image-2.5",
+   "no": "11",
+   "title": "动手练",
+   "ts": "2026-11-24T15:05:17"
+  },
+  "01-11-tcl-05-list-a#nested": {
+   "anchor": "nested",
+   "figs": [
+    {
+     "caption": "双层抽屉柜里套着小盒子。蓝色小电子先打开第2层大抽屉，再打开里面的第2个小纸盒，拿出了里面的名字纸条。",
+     "checked": true,
+     "file": "fig/ai/01-11-tcl-05-list-a-nested.jpg",
+     "h": 800,
+     "labels": [
+      "大抽屉",
+      "小纸盒"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "de67739bbd34",
+   "index": 3,
+   "lesson": "01-11-tcl-05-list-a",
+   "model": "gpt-image-2.5",
+   "no": "11",
+   "title": "列表实操示例：嵌套列表访问",
+   "ts": "2026-11-24T15:04:37"
+  },
+  "01-11-tcl-05-list-a#read": {
+   "anchor": "read",
+   "figs": [
+    {
+     "caption": "就像酒店房间从零开始编房号一样，列表里的蓝色小电子们也从第零个开始排队点名。",
+     "checked": true,
+     "file": "fig/ai/01-11-tcl-05-list-a-read-1.jpg",
+     "h": 675,
+     "labels": [
+      "第零个",
+      "数到二"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "数一数整排队伍一共站了多少个蓝色小电子，就知道这个列表的长度是多少啦。",
+     "checked": true,
+     "file": "fig/ai/01-11-tcl-05-list-a-read-2.jpg",
+     "h": 800,
+     "labels": [
+      "总长度",
+      "点清人数"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "e2c2509fcc7b",
+   "index": 2,
+   "lesson": "01-11-tcl-05-list-a",
+   "model": "gpt-image-2.5",
+   "no": "11",
+   "title": "读取：lindex（索引从 0 开始）与 llength",
+   "ts": "2026-11-24T15:04:15"
+  },
+  "01-12-tcl-06-list-b#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子正在往盒子里直接塞新玩具代表原地修改，而用复印机复制并替换则产生新盒子，原盒子保持不变。",
+     "checked": true,
+     "file": "fig/ai/01-12-tcl-06-list-b-lab-1.jpg",
+     "h": 675,
+     "labels": [
+      "直接修改",
+      "返回新抽屉"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "数字按大小排队时，如果不戴眼镜就会按字典首字母把100排在2前面，戴上整数眼镜后才按实际大小正确排队。",
+     "checked": true,
+     "file": "fig/ai/01-12-tcl-06-list-b-lab-2.jpg",
+     "h": 675,
+     "labels": [
+      "按字母排",
+      "按数字排"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "2e0809596f31",
+   "index": 3,
+   "lesson": "01-12-tcl-06-list-b",
+   "model": "gpt-image-2.5",
+   "no": "12",
+   "title": "动手练",
+   "ts": "2026-11-24T15:05:17"
+  },
+  "01-12-tcl-06-list-b#splitjoin": {
+   "anchor": "splitjoin",
+   "figs": [
+    {
+     "caption": "split 命令就像用剪刀把一根长长的彩色纸条按特定符号剪开，变成一盘独立的碎纸片列表。",
+     "checked": true,
+     "file": "fig/ai/01-12-tcl-06-list-b-splitjoin-1.jpg",
+     "h": 675,
+     "labels": [
+      "剪开",
+      "列表"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "join 命令则是反过来，用胶水把一盘散落的碎片纸片粘合起来，中间连上指定的连接符，拼成一条完整的字符串。",
+     "checked": true,
+     "file": "fig/ai/01-12-tcl-06-list-b-splitjoin-2.jpg",
+     "h": 675,
+     "labels": [
+      "粘好",
+      "字符串"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "903c6cff7f96",
+   "index": 2,
+   "lesson": "01-12-tcl-06-list-b",
+   "model": "gpt-image-2.5",
+   "no": "12",
+   "title": "split 与 join：字符串 ↔ 列表互转",
+   "ts": "2026-11-24T15:05:20"
+  },
+  "01-12-tcl-06-list-b#table": {
+   "anchor": "table",
+   "figs": [
+    {
+     "caption": "蓝色小电子像在传送带上拼接货物一样，把两个小箱子拼成一长串，或者用尺子测量队伍长度。",
+     "checked": true,
+     "file": "fig/ai/01-12-tcl-06-list-b-table-1.jpg",
+     "h": 675,
+     "labels": [
+      "拼箱子",
+      "数个数"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子在货架前替换错位的货物，或者拿着放大镜在杂乱的数字里按大小重新排队。",
+     "checked": true,
+     "file": "fig/ai/01-12-tcl-06-list-b-table-2.jpg",
+     "h": 675,
+     "labels": [
+      "换箱子",
+      "排大小"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "61af694df247",
+   "index": 1,
+   "lesson": "01-12-tcl-06-list-b",
+   "model": "gpt-image-2.5",
+   "no": "12",
+   "title": "列表核心操作函数（含示例）",
+   "ts": "2026-11-24T15:05:23"
+  },
+  "01-13-tcl-07-if#gets": {
+   "anchor": "gets",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在收件窗口前，拿着写有分数的纸条，等待把外部输入的数据放进箱子里，形象地展示了从标准输入读取数据的过程。",
+     "checked": true,
+     "file": "fig/ai/01-13-tcl-07-if-gets.jpg",
+     "h": 675,
+     "labels": [
+      "收件窗口",
+      "输入纸条"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "cd094d56d965",
+   "index": 3,
+   "lesson": "01-13-tcl-07-if",
+   "model": "gpt-image-2.5",
+   "no": "13",
+   "title": "输入（gets stdin）",
+   "ts": "2026-11-24T15:05:51"
+  },
+  "01-13-tcl-07-if#if": {
+   "anchor": "if",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在分岔路口，面对三个方向的智能分流闸门，根据分数牌子精准走向对应通道，形象展示多重条件判断的执行过程。",
+     "checked": true,
+     "file": "fig/ai/01-13-tcl-07-if-if.jpg",
+     "h": 675,
+     "labels": [
+      "分数判断",
+      "走对通道"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "0b1d916cc17a",
+   "index": 1,
+   "lesson": "01-13-tcl-07-if",
+   "model": "gpt-image-2.5",
+   "no": "13",
+   "title": "if-elseif-else 语法",
+   "ts": "2026-11-24T15:05:10"
+  },
+  "01-13-tcl-07-if#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在盲盒仓库前，手里拿着写有猜测数字的纸条，准备和系统随机生成的神秘数字比大小。",
+     "checked": true,
+     "file": "fig/ai/01-13-tcl-07-if-lab-1.jpg",
+     "h": 675,
+     "labels": [
+      "猜数字",
+      "随机数"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子像质检员一样严格遵守规则，把括号和空格摆放在正确的位置，绝不让语法出错。",
+     "checked": true,
+     "file": "fig/ai/01-13-tcl-07-if-lab-2.jpg",
+     "h": 675,
+     "labels": [
+      "大括号",
+      "不换行"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "f25ef6d40450",
+   "index": 6,
+   "lesson": "01-13-tcl-07-if",
+   "model": "gpt-image-2.5",
+   "no": "13",
+   "title": "动手练",
+   "ts": "2026-11-24T15:06:13"
+  },
+  "01-13-tcl-07-if#rand": {
+   "anchor": "rand",
+   "figs": [
+    {
+     "caption": "蓝色小电子正在摇晃一台彩色扭蛋机，每一次转动都会随机掉出一个介于零到一之间的小球，生动比喻rand()获取随机数的过程。",
+     "checked": true,
+     "file": "fig/ai/01-13-tcl-07-if-rand-1.jpg",
+     "h": 800,
+     "labels": [
+      "随机数",
+      "扭蛋机"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子把刚才掉出的随机小数塞进一个放大镜工厂，出来变成了零到九十九的整数，展示了随机数的进阶用法。",
+     "checked": true,
+     "file": "fig/ai/01-13-tcl-07-if-rand-2.jpg",
+     "h": 675,
+     "labels": [
+      "放大镜",
+      "整数箱"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "ee677a914f74",
+   "index": 4,
+   "lesson": "01-13-tcl-07-if",
+   "model": "gpt-image-2.5",
+   "no": "13",
+   "title": "rand()：获取随机数",
+   "ts": "2026-11-24T15:06:22"
+  },
+  "01-13-tcl-07-if#rules": {
+   "anchor": "rules",
+   "figs": [
+    {
+     "caption": "TCL语法铁律严格要求大括号和关键字必须手拉手待在同一行，不能擅自换行或使用中文符号，否则机器会误解命令提前结束。",
+     "checked": true,
+     "file": "fig/ai/01-13-tcl-07-if-rules.jpg",
+     "h": 675,
+     "labels": [
+      "同一行",
+      "英文半角"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "4c02da83d085",
+   "index": 2,
+   "lesson": "01-13-tcl-07-if",
+   "model": "gpt-image-2.5",
+   "no": "13",
+   "title": "四大语法铁律（文档强调，初学者最常踩坑）",
+   "ts": "2026-11-24T15:05:43"
+  },
+  "01-14-tcl-08-loops#for": {
+   "anchor": "for",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在标有数字零的起点，手里拿着闹钟和加一扳手，准备精确重复跑五圈。",
+     "checked": true,
+     "file": "fig/ai/01-14-tcl-08-loops-for.jpg",
+     "h": 675,
+     "labels": [
+      "起点",
+      "步进"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "2bc4a5a5b8aa",
+   "index": 3,
+   "lesson": "01-14-tcl-08-loops",
+   "model": "gpt-image-2.5",
+   "no": "14",
+   "title": "循环 3：for 循环（知道次数时用）",
+   "ts": "2026-11-24T15:06:11"
+  },
+  "01-14-tcl-08-loops#foreach": {
+   "anchor": "foreach",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在传送带前，挨个把传送带上的四个小方块快递盒往左边推，就像用foreach循环依次处理列表里的每个元素。",
+     "checked": true,
+     "file": "fig/ai/01-14-tcl-08-loops-foreach.jpg",
+     "h": 675,
+     "labels": [
+      "小电子",
+      "传送带"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "866afb869cf5",
+   "index": 2,
+   "lesson": "01-14-tcl-08-loops",
+   "model": "gpt-image-2.5",
+   "no": "14",
+   "title": "循环 2：foreach 循环（遍历列表元素）——首选",
+   "ts": "2026-11-24T15:05:53"
+  },
+  "01-14-tcl-08-loops#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在工厂传送带前，根据数字的单双数，分别把货物放进加法箱或减法箱，体验循环计算的过程。",
+     "checked": true,
+     "file": "fig/ai/01-14-tcl-08-loops-lab-1.jpg",
+     "h": 675,
+     "labels": [
+      "偶数加",
+      "奇数减"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子转动机器的齿轮，如果忘记给计数器加油更新，机器就会卡在原地无限空转，模拟循环中的死循环陷阱。",
+     "checked": true,
+     "file": "fig/ai/01-14-tcl-08-loops-lab-2.jpg",
+     "h": 800,
+     "labels": [
+      "三要素",
+      "死循环"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "60d864041ae6",
+   "index": 5,
+   "lesson": "01-14-tcl-08-loops",
+   "model": "gpt-image-2.5",
+   "no": "14",
+   "title": "动手练",
+   "ts": "2026-11-24T15:07:02"
+  },
+  "01-14-tcl-08-loops#source": {
+   "anchor": "source",
+   "figs": [
+    {
+     "caption": "蓝色小电子手拿一份写好指令的菜单，兴奋地走进厨房，把菜单交给了正在准备大餐的主厨。",
+     "checked": true,
+     "file": "fig/ai/01-14-tcl-08-loops-source.jpg",
+     "h": 675,
+     "labels": [
+      "外部脚本",
+      "开始执行"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "4ac78e125099",
+   "index": 4,
+   "lesson": "01-14-tcl-08-loops",
+   "model": "gpt-image-2.5",
+   "no": "14",
+   "title": "source：加载并执行脚本文件",
+   "ts": "2026-11-24T15:06:25"
+  },
+  "01-15-tcl-09-proc#args": {
+   "anchor": "args",
+   "figs": [
+    {
+     "caption": "蓝色小电子坐在一个大号魔法礼品盒前，双手正把撒落满地的各种彩色数字玩具一股脑往盒子里塞，代表把任意数量的参数统统打包收纳起来。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-args.jpg",
+     "h": 800,
+     "labels": [
+      "参数打包",
+      "全部收进"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "653f97c67388",
+   "index": 4,
+   "lesson": "01-15-tcl-09-proc",
+   "model": "gpt-image-2.5",
+   "no": "15",
+   "title": "4. 可变参数函数（任意个数参数）",
+   "ts": "2026-11-24T15:07:01"
+  },
+  "01-15-tcl-09-proc#default": {
+   "anchor": "default",
+   "figs": [
+    {
+     "caption": "就像餐厅套餐自带免费饮料一样，当没有指定第二个参数时，函数会自动套用预设好的默认值。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-default.jpg",
+     "h": 675,
+     "labels": [
+      "输入 3",
+      "默认 5"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "648ce206fd64",
+   "index": 3,
+   "lesson": "01-15-tcl-09-proc",
+   "model": "gpt-image-2.5",
+   "no": "15",
+   "title": "3. 带默认参数的函数",
+   "ts": "2026-11-24T15:06:54"
+  },
+  "01-15-tcl-09-proc#global": {
+   "anchor": "global",
+   "figs": [
+    {
+     "caption": "函数内部就像一个上了锁的小房间，默认情况下拿不到外面的任何东西，里面的东西外面也看不见。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-global-1.jpg",
+     "h": 675,
+     "labels": [
+      "局部变量",
+      "全局变量"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "如果要在小房间里使用外面的大宝箱，必须先用一根专用的魔法管道连通外面，才能伸手把全局变量拿进来。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-global-2.jpg",
+     "h": 675,
+     "labels": [
+      "global声明",
+      "使用全局"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "2af629de623c",
+   "index": 5,
+   "lesson": "01-15-tcl-09-proc",
+   "model": "gpt-image-2.5",
+   "no": "15",
+   "title": "5. 函数内使用局部变量 / 全局变量",
+   "ts": "2026-11-24T15:07:38"
+  },
+  "01-15-tcl-09-proc#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子把各种长宽木块放进多功能模具里，演示自定义函数批量计算长方形面积的过程。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-lab-1.jpg",
+     "h": 675,
+     "labels": [
+      "输入长宽",
+      "计算面积"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子把一堆大小不一的数字气球塞进一个透明打包袋，演示任意多参数打包求平均值的操作。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-lab-2.jpg",
+     "h": 675,
+     "labels": [
+      "打包数字",
+      "求平均值"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "aba381e13106",
+   "index": 8,
+   "lesson": "01-15-tcl-09-proc",
+   "model": "gpt-image-2.5",
+   "no": "15",
+   "title": "动手练",
+   "ts": "2026-11-24T15:08:04"
+  },
+  "01-15-tcl-09-proc#max": {
+   "anchor": "max",
+   "figs": [
+    {
+     "caption": "蓝色小电子把两个数字同时放到天平上，自动比比谁更重，挑出最大的那个。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-max.jpg",
+     "h": 675,
+     "labels": [
+      "数字x",
+      "数字y"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "d175f773f73a",
+   "index": 6,
+   "lesson": "01-15-tcl-09-proc",
+   "model": "gpt-image-2.5",
+   "no": "15",
+   "title": "6. 完整实用示例：计算两数最大值",
+   "ts": "2026-11-24T15:07:22"
+  },
+  "01-15-tcl-09-proc#noparam": {
+   "anchor": "noparam",
+   "figs": [
+    {
+     "caption": "把打招呼的动作打包进一个红色的魔法盒子里，只要按下外面的按钮，里面的动作就会重复上演。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-noparam.jpg",
+     "h": 675,
+     "labels": [
+      "魔法盒子",
+      "点一下"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "e8534df839a6",
+   "index": 1,
+   "lesson": "01-15-tcl-09-proc",
+   "model": "gpt-image-2.5",
+   "no": "15",
+   "title": "1. 最简单的无参函数",
+   "ts": "2026-11-24T15:06:38"
+  },
+  "01-15-tcl-09-proc#param": {
+   "anchor": "param",
+   "figs": [
+    {
+     "caption": "函数就像一台神奇的小机器，你往里面塞进两个数字参数，它就帮你加工并吐出计算好的结果。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-param.jpg",
+     "h": 675,
+     "labels": [
+      "输入参数",
+      "输出结果"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "59d5f2934d60",
+   "index": 2,
+   "lesson": "01-15-tcl-09-proc",
+   "model": "gpt-image-2.5",
+   "no": "15",
+   "title": "2. 带参数的函数（最常用）",
+   "ts": "2026-11-24T15:06:52"
+  },
+  "01-15-tcl-09-proc#summary": {
+   "anchor": "summary",
+   "figs": [
+    {
+     "caption": "定义函数就像做专属工具模具，用花括号把需要的原料格子圈起来，随时准备加工。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-summary-1.jpg",
+     "h": 675,
+     "labels": [
+      "定义函数",
+      "参数列表"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "调用函数就像把材料塞进机器，按下按钮就能吐出加工好的成品结果。",
+     "checked": true,
+     "file": "fig/ai/01-15-tcl-09-proc-summary-2.jpg",
+     "h": 675,
+     "labels": [
+      "函数调用",
+      "返回值"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "5759dc392f44",
+   "index": 7,
+   "lesson": "01-15-tcl-09-proc",
+   "model": "gpt-image-2.5",
+   "no": "15",
+   "title": "proc 核心语法总结（文档原文）",
+   "ts": "2026-11-24T15:07:51"
+  },
+  "01-16-tcl-10-final#checklist": {
+   "anchor": "checklist",
+   "figs": [
+    {
+     "caption": "把厚厚的知识点清单铺开，蓝色的可爱小电子正拿着小红旗，逐条核对每一项内容，确保全部学会不漏掉。",
+     "checked": true,
+     "file": "fig/ai/01-16-tcl-10-final-checklist.jpg",
+     "h": 800,
+     "labels": [
+      "知识点",
+      "全对照"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "c286f67564cd",
+   "index": 3,
+   "lesson": "01-16-tcl-10-final",
+   "model": "gpt-image-2.5",
+   "no": "16",
+   "title": "10.3 知识点全覆盖清单（文档 → 课程对照）",
+   "ts": "2026-11-24T15:08:07"
+  },
+  "01-16-tcl-10-final#final": {
+   "anchor": "final",
+   "figs": [
+    {
+     "caption": "把要处理的内存零件排成整齐的列表，蓝色小电子手里拿着一份清单准备逐个清点。",
+     "checked": true,
+     "file": "fig/ai/01-16-tcl-10-final-final-1.jpg",
+     "h": 800,
+     "labels": [
+      "内存列表",
+      "清点零件"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "小电子启动了一个自动循环机械臂，把排好的零件依次抓起来向左推移搬运。",
+     "checked": true,
+     "file": "fig/ai/01-16-tcl-10-final-final-2.jpg",
+     "h": 675,
+     "labels": [
+      "循环搬运",
+      "向左移动"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "546d58d7c146",
+   "index": 1,
+   "lesson": "01-16-tcl-10-final",
+   "model": "gpt-image-2.5",
+   "no": "16",
+   "title": "10.1 EDA 风格综合脚本（文档场景）",
+   "ts": "2026-11-24T15:08:03"
+  },
+  "01-16-tcl-10-final#next": {
+   "anchor": "next",
+   "figs": [
+    {
+     "caption": "学完TCL脚本就像拿到了工具箱的钥匙，接下来可以直接去真实的芯片工厂里大显身手了。",
+     "checked": true,
+     "file": "fig/ai/01-16-tcl-10-final-next-1.jpg",
+     "h": 675,
+     "labels": [
+      "真实项目",
+      "开启大门"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "完成本课程后继续学习阶段二的后端实操，就能用学到的TCL知识指挥整个芯片制造流程。",
+     "checked": true,
+     "file": "fig/ai/01-16-tcl-10-final-next-2.jpg",
+     "h": 675,
+     "labels": [
+      "阶段二",
+      "继续前行"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "bb7d61de183f",
+   "index": 4,
+   "lesson": "01-16-tcl-10-final",
+   "model": "gpt-image-2.5",
+   "no": "16",
+   "title": "10.4 从这里继续走",
+   "ts": "2026-11-24T15:08:51"
+  },
+  "01-16-tcl-10-final#quiz10": {
+   "anchor": "quiz10",
+   "figs": [
+    {
+     "caption": "通过开卷自测的闯关游戏，蓝色圆形笑脸小电子在检查自己掌握的各项技能，巩固所学的全部知识点。",
+     "checked": true,
+     "file": "fig/ai/01-16-tcl-10-final-quiz10.jpg",
+     "h": 675,
+     "labels": [
+      "闯关自测",
+      "全盘复习"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "21d91f6916df",
+   "index": 2,
+   "lesson": "01-16-tcl-10-final",
+   "model": "gpt-image-2.5",
+   "no": "16",
+   "title": "10.2 结课自测（覆盖全部知识点）",
+   "ts": "2026-11-24T15:08:00"
+  },
+  "02-01-concepts-plan#ability": {
+   "anchor": "ability",
+   "figs": [
+    {
+     "caption": "芯片后端知识就像一座完整的七层大仓库，学完这一阶段的同学们就能清晰说出每层货架上存放的具体文件和生产步骤。",
+     "checked": true,
+     "file": "fig/ai/02-01-concepts-plan-ability-1.jpg",
+     "h": 675,
+     "labels": [
+      "文件清单",
+      "七步流程"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "学习完本阶段后，大家就能看懂复杂的时序约束与工艺文件，把抽象的逻辑连接变成真正的物理芯片版图。",
+     "checked": true,
+     "file": "fig/ai/02-01-concepts-plan-ability-2.jpg",
+     "h": 675,
+     "labels": [
+      "逻辑连接",
+      "物理版图"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "16629464cb2d",
+   "index": 4,
+   "lesson": "02-01-concepts-plan",
+   "model": "gpt-image-2.5",
+   "no": "17",
+   "title": "学完应该能回答的问题",
+   "ts": "2026-11-24T15:09:19"
+  },
+  "02-01-concepts-plan#map": {
+   "anchor": "map",
+   "figs": [
+    {
+     "caption": "课程地图如同游乐园导览图，把整个后端学习之旅划分为基础篇和PR篇两个闯关板块，带你一步步看清芯片诞生的全貌。",
+     "checked": true,
+     "file": "fig/ai/02-01-concepts-plan-map.jpg",
+     "h": 675,
+     "labels": [
+      "基础篇",
+      "PR篇"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "4824508f9b61",
+   "index": 2,
+   "lesson": "02-01-concepts-plan",
+   "model": "gpt-image-2.5",
+   "no": "17",
+   "title": "十三讲地图",
+   "ts": "2026-11-24T15:08:43"
+  },
+  "02-01-concepts-plan#order": {
+   "anchor": "order",
+   "figs": [
+    {
+     "caption": "学习芯片后端就像建房子，必须先打好地牢基础，读懂库文件和时间单位，后面看复杂的约束代码才不会像看天书。",
+     "checked": true,
+     "file": "fig/ai/02-01-concepts-plan-order-1.jpg",
+     "h": 675,
+     "labels": [
+      "打地牢",
+      "看说明"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "学习路线必须先看全景地图再抠细节，连续走通时序关卡，避免中间断层变成死记硬背的抄参数。",
+     "checked": true,
+     "file": "fig/ai/02-01-concepts-plan-order-2.jpg",
+     "h": 675,
+     "labels": [
+      "看地图",
+      "顺着走"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "a37d763f0ffd",
+   "index": 3,
+   "lesson": "02-01-concepts-plan",
+   "model": "gpt-image-2.5",
+   "no": "17",
+   "title": "为什么是这个顺序",
+   "ts": "2026-11-24T15:09:11"
+  },
+  "02-01-concepts-plan#plan": {
+   "anchor": "plan",
+   "figs": [
+    {
+     "caption": "不了解内部概念盲目操作工具，就像不看地图就在迷宫里盲目乱撞，极易迷失方向。",
+     "checked": true,
+     "file": "fig/ai/02-01-concepts-plan-plan-1.jpg",
+     "h": 675,
+     "labels": [
+      "盲目操作",
+      "缺少概念"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "先打好数据与概念的地基，后续的实操才能像盖房子一样稳固顺畅，不再踩坑。",
+     "checked": true,
+     "file": "fig/ai/02-01-concepts-plan-plan-2.jpg",
+     "h": 800,
+     "labels": [
+      "打牢地基",
+      "稳固实操"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "71d572ed78dc",
+   "index": 1,
+   "lesson": "02-01-concepts-plan",
+   "model": "gpt-image-2.5",
+   "no": "17",
+   "title": "这一阶段解决什么问题",
+   "ts": "2026-11-24T15:08:58"
+  },
+  "02-01a-chip-basics#binary": {
+   "anchor": "binary",
+   "figs": [
+    {
+     "caption": "两个蓝色小电子并肩站立，手里各拿一个写着数字的骰子，正把它们合在一起计算，像是在玩凑数进位的游戏，形象地展示了二进制加法的基本原理。",
+     "checked": true,
+     "file": "fig/ai/02-01a-chip-basics-binary-1.jpg",
+     "h": 800,
+     "labels": [
+      "输入",
+      "进位"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "多个蓝色小电子排成一排，每个人把手里的进位礼盒接力传给旁边的人，生动地解释了多个全加器串联起来进行多位加法的过程。",
+     "checked": true,
+     "file": "fig/ai/02-01a-chip-basics-binary-2.jpg",
+     "h": 614,
+     "labels": [
+      "低位",
+      "串联"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "232af574f405",
+   "index": 6,
+   "lesson": "02-01a-chip-basics",
+   "model": "gpt-image-2.5",
+   "no": "18",
+   "title": "二进制与加法器：0 和 1 怎么算加法",
+   "ts": "2026-11-24T15:09:54"
+  },
+  "02-01a-chip-basics#cpu": {
+   "anchor": "cpu",
+   "figs": [
+    {
+     "caption": "CPU 就像一座由不同车间组成的工厂，计算、存数据、发指令的各个模块各司其职，共同完成复杂任务。",
+     "checked": true,
+     "file": "fig/ai/02-01a-chip-basics-cpu-1.jpg",
+     "h": 675,
+     "labels": [
+      "计算车间",
+      "存储车间"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "数字后端设计中，几千万门的庞大芯片被拆分成一个个独立的小模块，每个人只负责其中一小块区域。",
+     "checked": true,
+     "file": "fig/ai/02-01a-chip-basics-cpu-2.jpg",
+     "h": 674,
+     "labels": [
+      "独立模块",
+      "出入口"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "233406584b28",
+   "index": 7,
+   "lesson": "02-01a-chip-basics",
+   "model": "gpt-image-2.5",
+   "no": "18",
+   "title": "从加法器到 CPU：模块级视角",
+   "ts": "2026-11-24T15:10:17"
+  },
+  "02-01a-chip-basics#gate": {
+   "anchor": "gate",
+   "figs": [
+    {
+     "caption": "逻辑门就像自动安检门，蓝色小电子只有满足特定条件才能通过，比如与门需要所有条件同时达成。",
+     "checked": true,
+     "file": "fig/ai/02-01a-chip-basics-gate-1.jpg",
+     "h": 675,
+     "labels": [
+      "输入",
+      "输出"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "虽然功能相似，但与非门比与门更省空间，就像更聪明的传送带，是芯片世界里最受欢迎的小帮手。",
+     "checked": true,
+     "file": "fig/ai/02-01a-chip-basics-gate-2.jpg",
+     "h": 614,
+     "labels": [
+      "传统与门",
+      "与非门"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "b3d7035228d6",
+   "index": 5,
+   "lesson": "02-01a-chip-basics",
+   "model": "gpt-image-2.5",
+   "no": "18",
+   "title": "逻辑门：几个晶体管搭出一个功能",
+   "ts": "2026-11-24T15:09:47"
+  },
+  "02-01a-chip-basics#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "把逻辑门和二进制转换想象成红绿灯和密码箱，输入不同的开关组合就能看到不同的亮灯结果。",
+     "checked": true,
+     "file": "fig/ai/02-01a-chip-basics-lab.jpg",
+     "h": 675,
+     "labels": [
+      "输入",
+      "输出"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "2737b8237fb5",
+   "index": 9,
+   "lesson": "02-01a-chip-basics",
+   "model": "gpt-image-2.5",
+   "no": "18",
+   "title": "动手：把逻辑门和二进制跑一遍",
+   "ts": "2026-11-24T15:11:11"
+  },
+  "02-01a-chip-basics#terms": {
+   "anchor": "terms",
+   "figs": [
+    {
+     "caption": "芯片里的英文缩写就像各种专业工具箱，必须先把名字和全称对上号，才能看懂后面的电路图纸。",
+     "checked": true,
+     "file": "fig/ai/02-01a-chip-basics-terms-1.jpg",
+     "h": 675,
+     "labels": [
+      "英文缩写",
+      "专业术语"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "芯片尺寸的数字只是一个代号，就像衣服的\"均码\"并不代表具体腰围，实际大小必须去查阅设计规则文件。",
+     "checked": true,
+     "file": "fig/ai/02-01a-chip-basics-terms-2.jpg",
+     "h": 675,
+     "labels": [
+      "代际代号",
+      "真实尺寸"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "660ed9557615",
+   "index": 8,
+   "lesson": "02-01a-chip-basics",
+   "model": "gpt-image-2.5",
+   "no": "18",
+   "title": "术语与英文名：这是硬门槛",
+   "ts": "2026-11-24T15:10:16"
+  },
+  "02-01a-chip-basics#why": {
+   "anchor": "why",
+   "figs": [
+    {
+     "caption": "把晦涩的代码符号和真实的电路元件对应起来，就像认出乐高积木的形状一样自然。",
+     "checked": true,
+     "file": "fig/ai/02-01a-chip-basics-why.jpg",
+     "h": 675,
+     "labels": [
+      "代码符号",
+      "真实元件"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "65db15fa54c7",
+   "index": 1,
+   "lesson": "02-01a-chip-basics",
+   "model": "gpt-image-2.5",
+   "no": "18",
+   "title": "为什么后端也要懂电路",
+   "ts": "2026-11-24T15:09:16"
+  },
+  "02-01b-design-flow#backend": {
+   "anchor": "backend",
+   "figs": [
+    {
+     "caption": "把芯片大仓库划分区域，规划大房间和出入口，决定了以后东西能不能顺畅进出。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-backend-1.jpg",
+     "h": 675,
+     "labels": [
+      "画地图",
+      "人工摆"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "几百万个小零件靠工具自动摆放整齐，人则在旁边调整间距和密度参数。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-backend-2.jpg",
+     "h": 675,
+     "labels": [
+      "自动贴",
+      "密麻麻"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "3849deab858b",
+   "index": 5,
+   "lesson": "02-01b-design-flow",
+   "model": "gpt-image-2.5",
+   "no": "19",
+   "title": "第四段：后端物理实现（你的战场）",
+   "ts": "2026-11-24T15:12:20"
+  },
+  "02-01b-design-flow#boundary": {
+   "anchor": "boundary",
+   "figs": [
+    {
+     "caption": "芯片制造是一场接力赛。从前端写代码到中端翻译，再到后端拼积木和工厂制造，每个角色都有明确的交付物。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-boundary-1.jpg",
+     "h": 640,
+     "labels": [
+      "前端交付",
+      "后端交付"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "后端和前端各司其职。前端只管逻辑功能是否正确，而时序、摆放和物理实现是后端的活。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-boundary-2.jpg",
+     "h": 675,
+     "labels": [
+      "前端功能",
+      "后端物理"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "6fe3cf3f552b",
+   "index": 7,
+   "lesson": "02-01b-design-flow",
+   "model": "gpt-image-2.5",
+   "no": "19",
+   "title": "分工边界：一张表记住谁管什么",
+   "ts": "2026-11-24T15:12:57"
+  },
+  "02-01b-design-flow#fab": {
+   "anchor": "fab",
+   "figs": [
+    {
+     "caption": "代工厂像印厂一样，把图纸用光刻工艺层层印在大圆盘硅晶圆上，并切成独立小芯片。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-fab-1.jpg",
+     "h": 675,
+     "labels": [
+      "硅晶圆",
+      "切独立片"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "做好的芯片要穿上带针脚的外壳并经过严格测试，才能打包出货交到买家手中。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-fab-2.jpg",
+     "h": 675,
+     "labels": [
+      "装外壳",
+      "测成品"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "fd6c1cb2b21a",
+   "index": 6,
+   "lesson": "02-01b-design-flow",
+   "model": "gpt-image-2.5",
+   "no": "19",
+   "title": "第五段：流片、制造与封装",
+   "ts": "2026-11-24T15:12:24"
+  },
+  "02-01b-design-flow#frontend": {
+   "anchor": "frontend",
+   "figs": [
+    {
+     "caption": "前端工程师把想法用代码写成电路逻辑，蓝色笑脸小电子在电脑前敲击键盘搭建积木图纸。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-frontend-1.jpg",
+     "h": 675,
+     "labels": [
+      "RTL代码",
+      "逻辑结构"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "仿真验证就像在纸上推演电路功能，蓝色笑脸小电子在黑板前用粉笔测试输入和输出是否对得上。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-frontend-2.jpg",
+     "h": 674,
+     "labels": [
+      "输入激励",
+      "功能验证"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "58da2db91a5c",
+   "index": 3,
+   "lesson": "02-01b-design-flow",
+   "model": "gpt-image-2.5",
+   "no": "19",
+   "title": "第二段：前端 RTL 编码与仿真",
+   "ts": "2026-11-24T15:11:44"
+  },
+  "02-01b-design-flow#spec": {
+   "anchor": "spec",
+   "figs": [
+    {
+     "caption": "汽车厂商提出芯片功能需求，顶层架构师挑选工艺制程，在成本、功耗和性能之间精打细算。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-spec-1.jpg",
+     "h": 675,
+     "labels": [
+      "汽车需求",
+      "工艺选择"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "底层架构师规划芯片内部各个功能模块的连接方式，输出指导后续编写代码的设计规格书。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-spec-2.jpg",
+     "h": 675,
+     "labels": [
+      "模块连线",
+      "设计规格"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "453cc631d164",
+   "index": 2,
+   "lesson": "02-01b-design-flow",
+   "model": "gpt-image-2.5",
+   "no": "19",
+   "title": "第一段：需求与架构",
+   "ts": "2026-11-24T15:11:54"
+  },
+  "02-01b-design-flow#synthesis": {
+   "anchor": "synthesis",
+   "figs": [
+    {
+     "caption": "逻辑综合就像把设计图纸翻译成乐高积木，挑选真实的标准单元搭出电路网表。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-synthesis-1.jpg",
+     "h": 675,
+     "labels": [
+      "设计图纸",
+      "乐高积木"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "形式验证利用数学方法进行穷举证明，确保综合后的网表与原始代码功能完全等价。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-synthesis-2.jpg",
+     "h": 675,
+     "labels": [
+      "原始蓝图",
+      "网表验证"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "59871999583a",
+   "index": 4,
+   "lesson": "02-01b-design-flow",
+   "model": "gpt-image-2.5",
+   "no": "19",
+   "title": "第三段：中端综合",
+   "ts": "2026-11-24T15:11:48"
+  },
+  "02-01b-design-flow#why": {
+   "anchor": "why",
+   "figs": [
+    {
+     "caption": "芯片制造就像一条长长的工厂流水线，PR只是中间的一段，前后都有紧密相连的上下游工序。",
+     "checked": true,
+     "file": "fig/ai/02-01b-design-flow-why.jpg",
+     "h": 675,
+     "labels": [
+      "上一道",
+      "下一道"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "fdd3831c88c0",
+   "index": 1,
+   "lesson": "02-01b-design-flow",
+   "model": "gpt-image-2.5",
+   "no": "19",
+   "title": "一条线看全局",
+   "ts": "2026-11-24T15:11:11"
+  },
+  "02-01c-units#basics": {
+   "anchor": "basics",
+   "figs": [
+    {
+     "caption": "电压就像水库的水位差，水位越高水流越急；在芯片里，VDD 是高水位代表 1，VSS 是低水位代表 0。",
+     "checked": true,
+     "file": "fig/ai/02-01c-units-basics-1.jpg",
+     "h": 675,
+     "labels": [
+      "VDD",
+      "VSS"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "电阻和电容就像狭窄拥挤的小路和储水罐，走线越细长电阻越大，电容越大则需要越多时间充放电。",
+     "checked": true,
+     "file": "fig/ai/02-01c-units-basics-2.jpg",
+     "h": 675,
+     "labels": [
+      "电阻",
+      "电容"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "f8b0acaaaec9",
+   "index": 2,
+   "lesson": "02-01c-units",
+   "model": "gpt-image-2.5",
+   "no": "20",
+   "title": "五个基本量：物理含义比公式重要",
+   "ts": "2026-11-24T15:13:00"
+  },
+  "02-01c-units#convert": {
+   "anchor": "convert",
+   "figs": [
+    {
+     "caption": "时间单位换算如同大钟表和小秒表，1纳秒等于1000皮秒，看时序报告时一定要先确认表头的单位，避免把皮秒误看成纳秒。",
+     "checked": true,
+     "file": "fig/ai/02-01c-units-convert-1.jpg",
+     "h": 675,
+     "labels": [
+      "1纳秒",
+      "1000皮秒"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "长度单位换算就像放大镜，工艺库里常用的微米和我们常说的纳米之间相差1000倍，看设计文件时必须搞懂当前的默认单位。",
+     "checked": true,
+     "file": "fig/ai/02-01c-units-convert-2.jpg",
+     "h": 675,
+     "labels": [
+      "微米",
+      "纳米"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "f5d78c25de6e",
+   "index": 3,
+   "lesson": "02-01c-units",
+   "model": "gpt-image-2.5",
+   "no": "20",
+   "title": "两套必须背下来的换算",
+   "ts": "2026-11-24T15:13:15"
+  },
+  "02-01c-units#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在工厂的换算机器前，把长度从微米乘以一千变成纳米，就像把大尺子换成小刻度尺。",
+     "checked": true,
+     "file": "fig/ai/02-01c-units-lab-1.jpg",
+     "h": 675,
+     "labels": [
+      "微米",
+      "纳米"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子在看文件上的单位牌子，确认是纳秒还是皮秒后，才开始拨动计算开关。",
+     "checked": true,
+     "file": "fig/ai/02-01c-units-lab-2.jpg",
+     "h": 675,
+     "labels": [
+      "看单位",
+      "算数字"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "32e55778fd65",
+   "index": 4,
+   "lesson": "02-01c-units",
+   "model": "gpt-image-2.5",
+   "no": "20",
+   "title": "动手：把换算练成条件反射",
+   "ts": "2026-11-24T15:13:23"
+  },
+  "02-01c-units#why": {
+   "anchor": "why",
+   "figs": [
+    {
+     "caption": "数字后面漏写了单位就像价格标错，差一千倍的后果是天壤之别，必须在动手前先过关。",
+     "checked": true,
+     "file": "fig/ai/02-01c-units-why.jpg",
+     "h": 675,
+     "labels": [
+      "看错单位",
+      "结果翻倍"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "b378001e5e40",
+   "index": 1,
+   "lesson": "02-01c-units",
+   "model": "gpt-image-2.5",
+   "no": "20",
+   "title": "为什么单位要先讲",
+   "ts": "2026-11-24T15:12:14"
+  },
+  "02-02-pr-what#block-top": {
+   "anchor": "block-top",
+   "figs": [
+    {
+     "caption": "块级设计就像在别人划好的地块里盖房子，边界和门的位置都是定好的，只需要专心把里面装好。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-block-top-1.jpg",
+     "h": 800,
+     "labels": [
+      "规定边界",
+      "块内部"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "顶层设计就像在小区里做总规划，要决定每栋房子的位置、马路怎么走以及总电源从哪里接进来。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-block-top-2.jpg",
+     "h": 675,
+     "labels": [
+      "总规划",
+      "顶层全貌"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "0f30606663b5",
+   "index": 5,
+   "lesson": "02-02-pr-what",
+   "model": "gpt-image-2.5",
+   "no": "21",
+   "title": "block 级和 top 级：你接到的活是哪一种",
+   "ts": "2026-11-24T15:14:32"
+  },
+  "02-02-pr-what#in-project": {
+   "anchor": "in-project",
+   "figs": [
+    {
+     "caption": "后端工程师接手项目时，首先要把前道工序送来的蓝图设计图纸与物理尺寸材料规整好，确认边界与大小。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-in-project-1.jpg",
+     "h": 675,
+     "labels": [
+      "输入图纸",
+      "物理边界"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "经历九个紧凑工序的流水线打磨后，蓝图最终变为了带有精确坐标和制造尺寸的立体工厂版图。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-in-project-2.jpg",
+     "h": 675,
+     "labels": [
+      "网表输入",
+      "最终版图"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "2311d8236168",
+   "index": 9,
+   "lesson": "02-02-pr-what",
+   "model": "gpt-image-2.5",
+   "no": "21",
+   "title": "这一课在项目里的位置",
+   "ts": "2026-11-24T15:15:27"
+  },
+  "02-02-pr-what#logic-vs-physical": {
+   "anchor": "logic-vs-physical",
+   "figs": [
+    {
+     "caption": "综合阶段只管元件之间怎么连线，就像网购时画好的电路原理图，还没有确定在芯片上的真实位置。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-logic-vs-physical-1.jpg",
+     "h": 675,
+     "labels": [
+      "逻辑连接",
+      "综合阶段"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "布局布线阶段把元件真正摆到芯片地图的精确坐标上，连线也变成有长短宽窄的真实铜线。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-logic-vs-physical-2.jpg",
+     "h": 675,
+     "labels": [
+      "物理坐标",
+      "布局布线"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "05ac519b5e2d",
+   "index": 2,
+   "lesson": "02-02-pr-what",
+   "model": "gpt-image-2.5",
+   "no": "21",
+   "title": "综合给的是逻辑连接，PR 才给出物理连接",
+   "ts": "2026-11-24T15:13:44"
+  },
+  "02-02-pr-what#place": {
+   "anchor": "place",
+   "figs": [
+    {
+     "caption": "体积庞大且引脚固定的内存模块就像大衣柜，必须由人工精心挑选位置摆放，否则会堵塞整个房间的通道。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-place-1.jpg",
+     "h": 675,
+     "labels": [
+      "内存模块",
+      "人工摆放"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "标准逻辑门就像标准尺寸的书籍，可以由工具自动且整齐地排列在书架上，省时又高效。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-place-2.jpg",
+     "h": 675,
+     "labels": [
+      "标准逻辑",
+      "自动摆放"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "1201ac60a73e",
+   "index": 6,
+   "lesson": "02-02-pr-what",
+   "model": "gpt-image-2.5",
+   "no": "21",
+   "title": "布局：什么必须人摆，什么能自动摆",
+   "ts": "2026-11-24T15:14:23"
+  },
+  "02-02-pr-what#roles": {
+   "anchor": "roles",
+   "figs": [
+    {
+     "caption": "DE 负责设计架构，蓝色小电子像建筑师一样在画纸上勾勒出房间的逻辑结构。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-roles-1.jpg",
+     "h": 675,
+     "labels": [
+      "写逻辑",
+      "建筑蓝图"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "ME 负责在中间加固结构，蓝色小电子像质检员一样给房间装上管道和骨架。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-roles-2.jpg",
+     "h": 675,
+     "labels": [
+      "加结构",
+      "中间管道"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "992285cb14a4",
+   "index": 3,
+   "lesson": "02-02-pr-what",
+   "model": "gpt-image-2.5",
+   "no": "21",
+   "title": "三个岗位缩写：PD / DE / ME",
+   "ts": "2026-11-24T15:14:05"
+  },
+  "02-02-pr-what#route": {
+   "anchor": "route",
+   "figs": [
+    {
+     "caption": "芯片里的线分三种命，供电线像粗壮的主水管，时钟线像整齐的节拍器，信号线像密密麻麻的小路。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-route.jpg",
+     "h": 675,
+     "labels": [
+      "供电线",
+      "时钟线"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "a0f46df7cd44",
+   "index": 7,
+   "lesson": "02-02-pr-what",
+   "model": "gpt-image-2.5",
+   "no": "21",
+   "title": "布线：三种线，三种命",
+   "ts": "2026-11-24T15:14:08"
+  },
+  "02-02-pr-what#scale": {
+   "anchor": "scale",
+   "figs": [
+    {
+     "caption": "一颗芯片像一座大厦，分成顶层的一级大厅和底层的各个独立房间，蓝色小电子正站在属于自己的二级房间里忙碌。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-scale-1.jpg",
+     "h": 675,
+     "labels": [
+      "一级模块",
+      "二级模块"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "在一颗集成多种功能的SOC大芯片里，蓝色小电子正像快递员一样在CPU、GPU和高速接口等不同房间之间运送数据。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-scale-2.jpg",
+     "h": 675,
+     "labels": [
+      "SOC集成",
+      "高速接口"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "2b5c612d258f",
+   "index": 8,
+   "lesson": "02-02-pr-what",
+   "model": "gpt-image-2.5",
+   "no": "21",
+   "title": "模块分级与芯片分类：面试的\"广度题\"",
+   "ts": "2026-11-24T15:14:53"
+  },
+  "02-02-pr-what#two-tracks": {
+   "anchor": "two-tracks",
+   "figs": [
+    {
+     "caption": "物理设计和时序设计像是一场拔河比赛，两者互相拉扯，必须互相配合才能让芯片完美出厂。",
+     "checked": true,
+     "file": "fig/ai/02-02-pr-what-two-tracks.jpg",
+     "h": 675,
+     "labels": [
+      "连线长短",
+      "信号快慢"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "fbd20f978360",
+   "index": 4,
+   "lesson": "02-02-pr-what",
+   "model": "gpt-image-2.5",
+   "no": "21",
+   "title": "后端的两个方向：物理设计与时序设计",
+   "ts": "2026-11-24T15:13:28"
+  },
+  "02-03-pr-flow#cts": {
+   "anchor": "cts",
+   "figs": [
+    {
+     "caption": "时钟树综合就像是在操场上给所有人同时发口令，必须让声音精准地在同一瞬间传到每个人耳朵里。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-cts-1.jpg",
+     "h": 675,
+     "labels": [
+      "时钟源",
+      "触发器"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "如果大家听到口令有先有后，队伍就会乱套。cts 的工作就是搭建一条条接力管道，把时间差降到最小。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-cts-2.jpg",
+     "h": 675,
+     "labels": [
+      "时钟树",
+      "偏斜"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "1213f76cb9b1",
+   "index": 6,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "5. cts：时钟树综合",
+   "ts": "2026-11-24T15:15:56"
+  },
+  "02-03-pr-flow#eda": {
+   "anchor": "eda",
+   "figs": [
+    {
+     "caption": "各大 EDA 厂商的工具就像不同牌子的汽车，虽然长相和按键不同，但驾驶方法是一样的，内核都是芯片设计的标准流程。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-eda-1.jpg",
+     "h": 675,
+     "labels": [
+      "老工具",
+      "主流"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "当工具报错或者卡住时，去找技术支持（AE）就像在游乐园里迷路时问管理员，能瞬间帮你找到正确的出口。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-eda-2.jpg",
+     "h": 675,
+     "labels": [
+      "报错",
+      "找AE"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "e74757d405b2",
+   "index": 14,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "EDA 公司与其工具：一张对照表",
+   "ts": "2026-11-24T15:17:27"
+  },
+  "02-03-pr-flow#floorplan": {
+   "anchor": "floorplan",
+   "figs": [
+    {
+     "caption": "芯片布局规划就像画房间户型图，蓝色小电子正在量尺寸并留出走廊，确保家具不会把通道堵死。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-floorplan-1.jpg",
+     "h": 675,
+     "labels": [
+      "定面积",
+      "留通道"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "在布局规划里给大箱子周围画上安全线，蓝色小电子正在贴上禁止占用的警示标签。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-floorplan-2.jpg",
+     "h": 675,
+     "labels": [
+      "摆宏块",
+      "加约束"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "f7dbed52aa99",
+   "index": 3,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "2. floorplan：定面积、摆 mem、加物理约束",
+   "ts": "2026-11-24T15:15:48"
+  },
+  "02-03-pr-flow#init": {
+   "anchor": "init",
+   "figs": [
+    {
+     "caption": "蓝色小电子把代表各种规则和数据的包裹搬进仓库，让工具全面认识这个芯片设计。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-init.jpg",
+     "h": 675,
+     "labels": [
+      "喂入数据",
+      "认识设计"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "4e0f3d20b82e",
+   "index": 2,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "1. init：把数据喂进去",
+   "ts": "2026-11-24T15:14:42"
+  },
+  "02-03-pr-flow#optcts": {
+   "anchor": "optcts",
+   "figs": [
+    {
+     "caption": "时钟树刚种好时乱糟糟的，蓝色笑脸小电子拿着修剪工具，正在修剪多余的树枝和疏通道路，对应优化时钟树结果。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-optcts-1.jpg",
+     "h": 675,
+     "labels": [
+      "修剪",
+      "时钟树"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色笑脸小电子化身修理工，正在拧紧管道、擦拭污渍，把因为时钟树变粗糙而产生的问题全部修好，对应修复时序与电气违例。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-optcts-2.jpg",
+     "h": 675,
+     "labels": [
+      "修时序",
+      "消违例"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "0e983ff19187",
+   "index": 7,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "6. optcts：给时钟树擦屁股",
+   "ts": "2026-11-24T15:16:14"
+  },
+  "02-03-pr-flow#optroute": {
+   "anchor": "optroute",
+   "figs": [
+    {
+     "caption": "小蓝电子在积木迷宫里拆掉弯弯曲曲的旧路线，重新铺设更直更顺畅的新道路，这就是反复调整的reroute。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-optroute-1.jpg",
+     "h": 675,
+     "labels": [
+      "拆旧线",
+      "重新连"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "两个小蓝电子互相配合，一个修正时序错误，另一个清理连线冲突，在反复拉扯中把所有违例全部清零达到签核标准。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-optroute-2.jpg",
+     "h": 675,
+     "labels": [
+      "修时序",
+      "清违例"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "70567c74538e",
+   "index": 9,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "8. optroute：收敛与 reroute",
+   "ts": "2026-11-24T15:16:48"
+  },
+  "02-03-pr-flow#placement": {
+   "anchor": "placement",
+   "figs": [
+    {
+     "caption": "自动摆放工具像整理仓库货架一样，把成千上万个零件精准分配到每一排格子里，确保整体道路通畅。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-placement-1.jpg",
+     "h": 675,
+     "labels": [
+      "排道",
+      "零件"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "摆放完成后，工具会像提前规划送货路线一样进行全局布线试算，提前找出哪里会发生交通大堵车。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-placement-2.jpg",
+     "h": 675,
+     "labels": [
+      "网格",
+      "堵车"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "7d319b6371bb",
+   "index": 5,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "4. placement：自动摆 stdcell",
+   "ts": "2026-11-24T15:15:50"
+  },
+  "02-03-pr-flow#powerplan": {
+   "anchor": "powerplan",
+   "figs": [
+    {
+     "caption": "电源规划就像在毛坯房里提前铺好粗水管，让信号线知道剩下的空间在哪里。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-powerplan.jpg",
+     "h": 675,
+     "labels": [
+      "电源网格",
+      "留出通道"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "653304598039",
+   "index": 4,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "3. powerplan：先把电送到每个单元",
+   "ts": "2026-11-24T15:15:10"
+  },
+  "02-03-pr-flow#prepost": {
+   "anchor": "prepost",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在时间轴的门槛前，通过前后两扇门分清装箱前后的状态，避免看错报告。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-prepost.jpg",
+     "h": 675,
+     "labels": [
+      "装箱前",
+      "装箱后"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "d3abd39b93f6",
+   "index": 13,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "pre / post：log 和报告名里的位置标记",
+   "ts": "2026-11-24T15:16:40"
+  },
+  "02-03-pr-flow#project": {
+   "anchor": "project",
+   "figs": [
+    {
+     "caption": "挑选最终版 PR 时，要在拥塞、密度和时序这三个指标里反复权衡，挑出一版没有明显短板的作为最终版本。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-project-1.jpg",
+     "h": 675,
+     "labels": [
+      "指标达标",
+      "最终定版"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "在长达两个月的 ECO 阶段，因为整体布局已经被锁死，蓝色小电子只能在固定的格子间里精准修补时序和物理规则。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-project-2.jpg",
+     "h": 675,
+     "labels": [
+      "布局锁死",
+      "精准打补"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "f60ef26b9d50",
+   "index": 12,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "一个真实项目的时间线",
+   "ts": "2026-11-24T15:17:03"
+  },
+  "02-03-pr-flow#route": {
+   "anchor": "route",
+   "figs": [
+    {
+     "caption": "蓝色小电子化身快递分拣员，正在复杂的迷宫管道里把信号线正式绕通，就像把四通八达的水管精准连好。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-route-1.jpg",
+     "h": 675,
+     "labels": [
+      "正式绕线",
+      "金属层"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "绕线时必须严格避免断路和短路，就像修水管时绝对不能出现没接上或者两根水管不小心戳在一起的情况。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-route-2.jpg",
+     "h": 800,
+     "labels": [
+      "断路",
+      "短路"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "4f3eef275b8c",
+   "index": 8,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "7. route：信号线正式绕线",
+   "ts": "2026-11-24T15:16:33"
+  },
+  "02-03-pr-flow#run": {
+   "anchor": "run",
+   "figs": [
+    {
+     "caption": "把设计文件打包投递到排队机器里，等待几小时甚至几天出结果，这就叫跑一个 run。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-run-1.jpg",
+     "h": 675,
+     "labels": [
+      "投递纸箱",
+      "排队等待"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "中间环节报错或者最终结果不合格，这一轮跑动就宣告失败，需要重新调整参数再来一版。",
+     "checked": true,
+     "file": "fig/ai/02-03-pr-flow-run-2.jpg",
+     "h": 675,
+     "labels": [
+      "中途报错",
+      "调整参数"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "80491efa29be",
+   "index": 11,
+   "lesson": "02-03-pr-flow",
+   "model": "gpt-image-2.5",
+   "no": "22",
+   "title": "run 是什么：一句行话",
+   "ts": "2026-11-24T15:16:52"
+  },
+  "02-04-pr-data#def": {
+   "anchor": "def",
+   "figs": [
+    {
+     "caption": "DEF 文件就像一张标注了精确坐标和方向的房间家具布置图，让不同的装修队能无缝交接同一套房子。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-def-1.jpg",
+     "h": 675,
+     "labels": [
+      "实际位置",
+      "房间布局"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "在顶层和子模块之间，大家用轻便的 DEF 文件来回传递位置清单，而不是笨重的最终成品。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-def-2.jpg",
+     "h": 675,
+     "labels": [
+      "位置清单",
+      "最终成品"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "19eeadfe57b5",
+   "index": 4,
+   "lesson": "02-04-pr-data",
+   "model": "gpt-image-2.5",
+   "no": "23",
+   "title": "def：这一版设计的\"实际位置\"",
+   "ts": "2026-11-24T15:17:58"
+  },
+  "02-04-pr-data#errors": {
+   "anchor": "errors",
+   "figs": [
+    {
+     "caption": "当工具在仓库里找不到对应的零件模型时，就会像管理员大喊找不到零件，提醒你核对文件名或搜索路径。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-errors-1.jpg",
+     "h": 675,
+     "labels": [
+      "找不到库",
+      "零件缺失"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "当设计图纸和实际摆放的积木版本对不上时，蓝色小电子就会找不到积木的插孔，提醒大家交接时一定要核对好版本号。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-errors-2.jpg",
+     "h": 675,
+     "labels": [
+      "图纸版本",
+      "引脚对不上"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "5e98a21dfd26",
+   "index": 8,
+   "lesson": "02-04-pr-data",
+   "model": "gpt-image-2.5",
+   "no": "23",
+   "title": "缺文件的真实报错对照",
+   "ts": "2026-11-24T15:18:36"
+  },
+  "02-04-pr-data#lef": {
+   "anchor": "lef",
+   "figs": [
+    {
+     "caption": "第一种LEF文件像是城市总规划图，规定了所有道路的宽度和铺设规则，适用于整个工艺制程。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-lef-1.jpg",
+     "h": 675,
+     "labels": [
+      "工艺规则",
+      "城市地图"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "第二种LEF文件则是每个标准零件的说明书，精确记录了零件的尺寸以及针脚的位置。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-lef-2.jpg",
+     "h": 675,
+     "labels": [
+      "单元尺寸",
+      "零件说明"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "c89512b0f39e",
+   "index": 5,
+   "lesson": "02-04-pr-data",
+   "model": "gpt-image-2.5",
+   "no": "23",
+   "title": "lef：两个文件，两种信息",
+   "ts": "2026-11-24T15:18:03"
+  },
+  "02-04-pr-data#list": {
+   "anchor": "list",
+   "figs": [
+    {
+     "caption": "做芯片就像盖房子前备齐各种蓝图和建材，少一样都不行，先得把这份大清单核对清楚。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-list.jpg",
+     "h": 675,
+     "labels": [
+      "物理形状",
+      "时序约束"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "e59eb9c4c33e",
+   "index": 1,
+   "lesson": "02-04-pr-data",
+   "model": "gpt-image-2.5",
+   "no": "23",
+   "title": "先把清单摆出来",
+   "ts": "2026-11-24T15:17:13"
+  },
+  "02-04-pr-data#netlist": {
+   "anchor": "netlist",
+   "figs": [
+    {
+     "caption": "网表就像装修用的家具清单，只写了有哪些柜子以及它们之间怎么连，不再包含怎么做家具的说明书。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-netlist.jpg",
+     "h": 675,
+     "labels": [
+      "家具清单",
+      "连线"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "4617a4f0c2ca",
+   "index": 2,
+   "lesson": "02-04-pr-data",
+   "model": "gpt-image-2.5",
+   "no": "23",
+   "title": "netlist：逻辑连接的文字描述",
+   "ts": "2026-11-24T15:17:18"
+  },
+  "02-04-pr-data#order": {
+   "anchor": "order",
+   "figs": [
+    {
+     "caption": "盖房子先打地基再装修。芯片后端工具读取设计文件时，必须先读入LEF物理尺寸，再读入网表和时序库，顺序不能错。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-order-1.jpg",
+     "h": 675,
+     "labels": [
+      "先读LEF",
+      "再连网表"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "组装好所有材料后，点击init_design命令，工具就像拼图高手一样把物理尺寸、逻辑连接和时序规则完美组合在一起。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-order-2.jpg",
+     "h": 675,
+     "labels": [
+      "时序规则",
+      "一键组装"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "a0c6c4a168e7",
+   "index": 7,
+   "lesson": "02-04-pr-data",
+   "model": "gpt-image-2.5",
+   "no": "23",
+   "title": "init 的顺序感：为什么先物理后时序",
+   "ts": "2026-11-24T15:18:24"
+  },
+  "02-04-pr-data#timing-files": {
+   "anchor": "timing-files",
+   "figs": [
+    {
+     "caption": "lib文件就像标准零件的说明书，记录了各种输入和负载下零件的延迟数据，让工具能查表算出内部延迟。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-timing-files-1.jpg",
+     "h": 675,
+     "labels": [
+      "零件说明",
+      "查表算延迟"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "rc tech文件提供导线阻抗标准，sdc文件设定目标时钟，一个管物理阻力，一个管冲刺目标。",
+     "checked": true,
+     "file": "fig/ai/02-04-pr-data-timing-files-2.jpg",
+     "h": 675,
+     "labels": [
+      "导线阻抗",
+      "冲刺目标"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "8fcb11b63856",
+   "index": 6,
+   "lesson": "02-04-pr-data",
+   "model": "gpt-image-2.5",
+   "no": "23",
+   "title": "lib / rc tech / sdc：三个\"算延迟和定目标\"的文件",
+   "ts": "2026-11-24T15:18:34"
+  },
+  "02-04a-netlist-release#delay": {
+   "anchor": "delay",
+   "figs": [
+    {
+     "caption": "信号在电线里跑步需要时间，这是芯片设计里的技术延迟，就像赛跑计时一样。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-delay-1.jpg",
+     "h": 675,
+     "labels": [
+      "起点",
+      "终点"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "团队开会时大家互相等待、沟通不畅耽误的时间，就是让人头疼的协作延迟。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-delay-2.jpg",
+     "h": 800,
+     "labels": [
+      "等人",
+      "卡住"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "601361c1211f",
+   "index": 7,
+   "lesson": "02-04a-netlist-release",
+   "model": "gpt-image-2.5",
+   "no": "24",
+   "title": "Delay 的两层意思",
+   "ts": "2026-11-24T15:20:39"
+  },
+  "02-04a-netlist-release#instance": {
+   "anchor": "instance",
+   "figs": [
+    {
+     "caption": "芯片里的蓝色小电子代表一个个单元，数量越多面积越大。当数量超标时硬扛会导致后期绕线失败。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-instance-1.jpg",
+     "h": 675,
+     "labels": [
+      "数数",
+      "装不下"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "当芯片网表数量异常激增时，不能盲目硬扛，必须及时向上游反馈，让前端和DFT团队共同优化解决。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-instance-2.jpg",
+     "h": 675,
+     "labels": [
+      "超预算",
+      "找上游"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "40b401fa8e9a",
+   "index": 5,
+   "lesson": "02-04a-netlist-release",
+   "model": "gpt-image-2.5",
+   "no": "24",
+   "title": "数量波动：200 万 → 400 万 → 300 万",
+   "ts": "2026-11-24T15:20:21"
+  },
+  "02-04a-netlist-release#naming": {
+   "anchor": "naming",
+   "figs": [
+    {
+     "caption": "蓝色小电子给网表文件贴上标准标签，名字用小写字母，这样自动脚本寻找时就不会在深夜报错。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-naming.jpg",
+     "h": 675,
+     "labels": [
+      "小写字母",
+      "标准名字"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "3207e0e2e48f",
+   "index": 2,
+   "lesson": "02-04a-netlist-release",
+   "model": "gpt-image-2.5",
+   "no": "24",
+   "title": "命名规则：模块名 + 后缀",
+   "ts": "2026-11-24T15:19:52"
+  },
+  "02-04a-netlist-release#release": {
+   "anchor": "release",
+   "figs": [
+    {
+     "caption": "发布动作就像把做好的模型放进公共收纳柜，让下游的小伙伴直接来取，不用发邮件传文件。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-release-1.jpg",
+     "h": 675,
+     "labels": [
+      "公共目录",
+      "放模型"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "服务器上的路径就像一排排整齐的仓库货架，ME放网表，DE放前端代码，找东西先问路径。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-release-2.jpg",
+     "h": 675,
+     "labels": [
+      "找路径",
+      "分模块"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "ba3680b646d1",
+   "index": 3,
+   "lesson": "02-04a-netlist-release",
+   "model": "gpt-image-2.5",
+   "no": "24",
+   "title": "Release：一个动作，也是一个路径",
+   "ts": "2026-11-24T15:20:22"
+  },
+  "02-04a-netlist-release#responsibility": {
+   "anchor": "responsibility",
+   "figs": [
+    {
+     "caption": "网表冻结前必须把所有设计问题和数据摆上台面彻底讲清楚，避免后期无法修改时独自承担责任。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-responsibility-1.jpg",
+     "h": 675,
+     "labels": [
+      "最后期限",
+      "抛出问题"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "网表冻结后如果遇到时序或面积不达标，只能靠微调来硬凑，说空话无法解决任何实际问题。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-responsibility-2.jpg",
+     "h": 675,
+     "labels": [
+      "死守网表",
+      "独自背锅"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "cebe472c074c",
+   "index": 8,
+   "lesson": "02-04a-netlist-release",
+   "model": "gpt-image-2.5",
+   "no": "24",
+   "title": "定责：最后一版网表之前，把问题全抛出去",
+   "ts": "2026-11-24T15:21:01"
+  },
+  "02-04a-netlist-release#rhythm": {
+   "anchor": "rhythm",
+   "figs": [
+    {
+     "caption": "项目前期像是在悠闲地拼积木，有充足的时间把每个零件检查干净，绝不把隐患留到最后。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-rhythm-1.jpg",
+     "h": 675,
+     "labels": [
+      "前期松",
+      "打好基础"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "项目后期则像是在疯狂冲刺的传送带前，如果前期没做好，后期就会被成堆的快递压得喘不过气。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-rhythm-2.jpg",
+     "h": 675,
+     "labels": [
+      "后期紧",
+      "加班地狱"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "921729d44c84",
+   "index": 9,
+   "lesson": "02-04a-netlist-release",
+   "model": "gpt-image-2.5",
+   "no": "24",
+   "title": "工作节奏：前期松、后期紧",
+   "ts": "2026-11-24T15:21:23"
+  },
+  "02-04a-netlist-release#s1s2": {
+   "anchor": "s1s2",
+   "figs": [
+    {
+     "caption": "S1版本是没有串联测试结构的纯功能网表，只用来摸清整体面积和逻辑增长情况。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-s1s2-1.jpg",
+     "h": 675,
+     "labels": [
+      "纯功能",
+      "测面积"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "S2版本是插入了测试链的最终网表，后续的所有综合和布线分析都基于这个版本。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-s1s2-2.jpg",
+     "h": 675,
+     "labels": [
+      "加链条",
+      "最终版"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "ff51755e8b7c",
+   "index": 4,
+   "lesson": "02-04a-netlist-release",
+   "model": "gpt-image-2.5",
+   "no": "24",
+   "title": "S1 与 S2：两版网表，两种用途",
+   "ts": "2026-11-24T15:20:24"
+  },
+  "02-04a-netlist-release#shape": {
+   "anchor": "shape",
+   "figs": [
+    {
+     "caption": "顶层规划时，蓝色小电子被强制塞进 L 形的房间里，原本顺手的摆设全得推倒重来。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-shape.jpg",
+     "h": 675,
+     "labels": [
+      "L型房间",
+      "重新摆放"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "0fb0692cb1d9",
+   "index": 6,
+   "lesson": "02-04a-netlist-release",
+   "model": "gpt-image-2.5",
+   "no": "24",
+   "title": "形状变更：为什么两个月的工作会重做",
+   "ts": "2026-11-24T15:19:46"
+  },
+  "02-04a-netlist-release#why": {
+   "anchor": "why",
+   "figs": [
+    {
+     "caption": "芯片网表在项目迭代中会经历多次修改，从V1.0一直演变到V9.0，每一步都必须用对最新版本。",
+     "checked": true,
+     "file": "fig/ai/02-04a-netlist-release-why.jpg",
+     "h": 675,
+     "labels": [
+      "旧版本",
+      "新版本"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "321986eda974",
+   "index": 1,
+   "lesson": "02-04a-netlist-release",
+   "model": "gpt-image-2.5",
+   "no": "24",
+   "title": "网表不是一份，是一串",
+   "ts": "2026-11-24T15:18:32"
+  },
+  "02-05-pr-lef#advanced": {
+   "anchor": "advanced",
+   "figs": [
+    {
+     "caption": "随着工艺从40nm演进到3nm，LEF里的规则像不断加码的迷宫，层数变多且约束极度复杂。",
+     "checked": true,
+     "file": "fig/ai/02-05-pr-lef-advanced-1.jpg",
+     "h": 675,
+     "labels": [
+      "简单规则",
+      "复杂约束"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "旧引擎就像老旧的手推车，面对先进工艺繁杂多变的新规则组合已经彻底拉不动了。",
+     "checked": true,
+     "file": "fig/ai/02-05-pr-lef-advanced-2.jpg",
+     "h": 675,
+     "labels": [
+      "老旧引擎",
+      "先进工艺"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "dd4e428365df",
+   "index": 6,
+   "lesson": "02-05-pr-lef",
+   "model": "gpt-image-2.5",
+   "no": "25",
+   "title": "工艺越先进，lef 越难缠",
+   "ts": "2026-11-24T15:22:07"
+  },
+  "02-05-pr-lef#lef-vs-def": {
+   "anchor": "lef-vs-def",
+   "figs": [
+    {
+     "caption": "LEF 规定了每个标准单元的长相和布线规则，就像查字典一样，整个工艺流程只需要一本固定不变的字典。",
+     "checked": true,
+     "file": "fig/ai/02-05-pr-lef-lef-vs-def-1.jpg",
+     "h": 800,
+     "labels": [
+      "工艺字典",
+      "形状规则"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "DEF 记录了芯片里每个元件具体摆在什么坐标位置，就像考生填写的答卷一样，每一版设计都会重新填写。",
+     "checked": true,
+     "file": "fig/ai/02-05-pr-lef-lef-vs-def-2.jpg",
+     "h": 675,
+     "labels": [
+      "设计答卷",
+      "具体坐标"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "d77fa0595394",
+   "index": 5,
+   "lesson": "02-05-pr-lef",
+   "model": "gpt-image-2.5",
+   "no": "25",
+   "title": "lef 与 def 的分工：一个是字典，一个是答卷",
+   "ts": "2026-11-24T15:21:41"
+  },
+  "02-05-pr-lef#macro": {
+   "anchor": "macro",
+   "figs": [
+    {
+     "caption": "面对复杂的内存黑盒，我们只需关注它的尺寸、引脚和内部禁布区，就像看一个不能拆开的快递柜。",
+     "checked": true,
+     "file": "fig/ai/02-05-pr-lef-macro.jpg",
+     "h": 800,
+     "labels": [
+      "尺寸大小",
+      "引脚位置"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "7f2212fc34f6",
+   "index": 4,
+   "lesson": "02-05-pr-lef",
+   "model": "gpt-image-2.5",
+   "no": "25",
+   "title": "看 Memory 时看什么",
+   "ts": "2026-11-24T15:21:00"
+  },
+  "02-05-pr-lef#why": {
+   "anchor": "why",
+   "figs": [
+    {
+     "caption": "蓝色小电子像玩积木一样被规则卡住，说明LEF文件是芯片布局时必须遵守的交通规则。",
+     "checked": true,
+     "file": "fig/ai/02-05-pr-lef-why-1.jpg",
+     "h": 675,
+     "labels": [
+      "不能过",
+      "红线"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子举着放大镜检查两根电线，对应LEF文件里用来检查间距是否违规的工艺规则。",
+     "checked": true,
+     "file": "fig/ai/02-05-pr-lef-why-2.jpg",
+     "h": 675,
+     "labels": [
+      "间距",
+      "检查"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "8d2794c93bf4",
+   "index": 1,
+   "lesson": "02-05-pr-lef",
+   "model": "gpt-image-2.5",
+   "no": "25",
+   "title": "为什么必须读懂 lef",
+   "ts": "2026-11-24T15:21:24"
+  },
+  "02-05a-pin-port#direction": {
+   "anchor": "direction",
+   "figs": [
+    {
+     "caption": "两个蓝色小电子隔空传球时，一人把球丢出去叫输出，另一人接住球叫输入。同一个动作在不同视角下方向完全相反。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-direction-1.jpg",
+     "h": 675,
+     "labels": [
+      "输出",
+      "输入"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "两个蓝色小电子同时把球往外推导致撞在一起，就像两个输出连在一起引发了驱动冲突。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-direction-2.jpg",
+     "h": 675,
+     "labels": [
+      "冲突",
+      "驱动"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "1ba017d56c8a",
+   "index": 4,
+   "lesson": "02-05a-pin-port",
+   "model": "gpt-image-2.5",
+   "no": "26",
+   "title": "方向是相对的：别人 Output 就是你的 Input",
+   "ts": "2026-11-24T15:22:35"
+  },
+  "02-05a-pin-port#macro": {
+   "anchor": "macro",
+   "figs": [
+    {
+     "caption": "存储器就像一个带固定接口的快递柜，我们不用管里面怎么运作，只需关心它的大小、接口位置和周围的通道。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-macro.jpg",
+     "h": 675,
+     "labels": [
+      "大小尺寸",
+      "接口位置"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "af588f513623",
+   "index": 7,
+   "lesson": "02-05a-pin-port",
+   "model": "gpt-image-2.5",
+   "no": "26",
+   "title": "Memory：只有 port，没有你关心的引脚",
+   "ts": "2026-11-24T15:22:39"
+  },
+  "02-05a-pin-port#orient": {
+   "anchor": "orient",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在标有方向的房间里，通过旋转和翻转身体展示八种不同的朝向，说明模块在版图上可以灵活摆放。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-orient-1.jpg",
+     "h": 800,
+     "labels": [
+      "旋转",
+      "镜像"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "两个蓝色小电子面对面站着，当其中一个翻转后，原本对齐的手臂立刻上下错位，直观展示模块翻转导致接口错位的问题。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-orient-2.jpg",
+     "h": 675,
+     "labels": [
+      "正常",
+      "错位"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "0437c1e2e5ca",
+   "index": 5,
+   "lesson": "02-05a-pin-port",
+   "model": "gpt-image-2.5",
+   "no": "26",
+   "title": "翻转与镜像：模块能转，port 顺序会变",
+   "ts": "2026-11-24T15:22:54"
+  },
+  "02-05a-pin-port#pin": {
+   "anchor": "pin",
+   "figs": [
+    {
+     "caption": "标准单元的接口 Pin 就像电子积木上的固定插孔，位置和朝向在出厂时就已经被库文件规定好了，无法随意更改。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-pin.jpg",
+     "h": 800,
+     "labels": [
+      "固定引脚",
+      "库文件"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "a79cf077c132",
+   "index": 2,
+   "lesson": "02-05a-pin-port",
+   "model": "gpt-image-2.5",
+   "no": "26",
+   "title": "Pin：单元的接口，库说了算",
+   "ts": "2026-11-24T15:21:53"
+  },
+  "02-05a-pin-port#port": {
+   "anchor": "port",
+   "figs": [
+    {
+     "caption": "模块边缘的港口就像房子的门窗，决定了内部电路和外界连线的位置、方向和排列顺序。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-port-1.jpg",
+     "h": 675,
+     "labels": [
+      "接口位置",
+      "进出方向"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "模块的接口位置可以自己设计规划，也可以完全听从上级顶层设计的硬性规定。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-port-2.jpg",
+     "h": 675,
+     "labels": [
+      "自己做主",
+      "顶层指定"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "9078827ec55a",
+   "index": 3,
+   "lesson": "02-05a-pin-port",
+   "model": "gpt-image-2.5",
+   "no": "26",
+   "title": "Port：模块的接口，你说了算",
+   "ts": "2026-11-24T15:22:31"
+  },
+  "02-05a-pin-port#wh": {
+   "anchor": "wh",
+   "figs": [
+    {
+     "caption": "芯片尺寸描述有统一规范，行业内习惯用宽和高来代替长和宽，避免跨部门沟通时产生歧义。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-wh.jpg",
+     "h": 675,
+     "labels": [
+      "宽度",
+      "高度"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "1ac9f22497e0",
+   "index": 6,
+   "lesson": "02-05a-pin-port",
+   "model": "gpt-image-2.5",
+   "no": "26",
+   "title": "宽高、长宽：说法习惯要对齐",
+   "ts": "2026-11-24T15:22:34"
+  },
+  "02-05a-pin-port#why": {
+   "anchor": "why",
+   "figs": [
+    {
+     "caption": "蓝色圆形笑脸小电子站在一间小型独立房间内，正指着自己身上门框边缘的金属小接头，代表标准单元内部的引脚。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-why-1.jpg",
+     "h": 800,
+     "labels": [
+      "单元",
+      "Pin"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色圆形笑脸小电子站在一栋大型厂房的巨大外墙大门前，正操控着巨大的对外金属大门，代表整个模块对外的接口。",
+     "checked": true,
+     "file": "fig/ai/02-05a-pin-port-why-2.jpg",
+     "h": 675,
+     "labels": [
+      "模块",
+      "Port"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "5bf54ea9fb72",
+   "index": 1,
+   "lesson": "02-05a-pin-port",
+   "model": "gpt-image-2.5",
+   "no": "26",
+   "title": "两个词，两个层级",
+   "ts": "2026-11-24T15:22:06"
+  },
+  "02-06-pr-lib-rctech#lib": {
+   "anchor": "lib",
+   "figs": [
+    {
+     "caption": "图书馆管理员正忙着翻阅厚厚的字典，查找每个标准单元的功能和延迟数据，这就是工具计算延迟的依据。",
+     "checked": true,
+     "file": "fig/ai/02-06-pr-lib-rctech-lib-1.jpg",
+     "h": 675,
+     "labels": [
+      "单元字典",
+      "查表"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子推着沉重的货物在坡道上前行，输入信号越软、输出负载越重，前进的速度就越慢，延迟也越大。",
+     "checked": true,
+     "file": "fig/ai/02-06-pr-lib-rctech-lib-2.jpg",
+     "h": 675,
+     "labels": [
+      "输入转换",
+      "输出负载"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "a2e0f2b909ad",
+   "index": 2,
+   "lesson": "02-06-pr-lib-rctech",
+   "model": "gpt-image-2.5",
+   "no": "27",
+   "title": "lib：单元延迟与功耗的字典",
+   "ts": "2026-11-24T15:23:48"
+  },
+  "02-06-pr-lib-rctech#rctech": {
+   "anchor": "rctech",
+   "figs": [
+    {
+     "caption": "工具拿着金属尺子，把版图上的几何形状换算成实际的电阻和电容，算出线延迟。",
+     "checked": true,
+     "file": "fig/ai/02-06-pr-lib-rctech-rctech-1.jpg",
+     "h": 675,
+     "labels": [
+      "金属长短",
+      "电阻电容"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "同一根导线在不同温度下，金属电阻大小会发生变化，导致信号跑得或快或慢。",
+     "checked": true,
+     "file": "fig/ai/02-06-pr-lib-rctech-rctech-2.jpg",
+     "h": 675,
+     "labels": [
+      "环境温度",
+      "信号快慢"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "4ca2e991bd0b",
+   "index": 5,
+   "lesson": "02-06-pr-lib-rctech",
+   "model": "gpt-image-2.5",
+   "no": "27",
+   "title": "rc tech file：线延迟从哪来",
+   "ts": "2026-11-24T15:23:35"
+  },
+  "02-06-pr-lib-rctech#summary-table": {
+   "anchor": "summary-table",
+   "figs": [
+    {
+     "caption": "把芯片设计比作盖房子，lib文件提供标准砖块的时序账本，rc tech提供连接水泥的寄生参数，sdc则是建筑图纸给出的工期要求。",
+     "checked": true,
+     "file": "fig/ai/02-06-pr-lib-rctech-summary-table-1.jpg",
+     "h": 675,
+     "labels": [
+      "事实库",
+      "工期要求"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "计算单元延迟就像查阅快递运费表，工具根据输入的包裹重量和电容负载，通过查表和线性插值计算出准确的延迟时间。",
+     "checked": true,
+     "file": "fig/ai/02-06-pr-lib-rctech-summary-table-2.jpg",
+     "h": 675,
+     "labels": [
+      "输入斜率",
+      "输出负载"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "33acfe1f8737",
+   "index": 6,
+   "lesson": "02-06-pr-lib-rctech",
+   "model": "gpt-image-2.5",
+   "no": "27",
+   "title": "三份文件的分工，一张表看完",
+   "ts": "2026-11-24T15:23:48"
+  },
+  "02-06-pr-lib-rctech#why": {
+   "anchor": "why",
+   "figs": [
+    {
+     "caption": "蓝色小电子钻过一个带门的房间，这是信号穿过标准单元内部花的时间，由 lib 文件记录。",
+     "checked": true,
+     "file": "fig/ai/02-06-pr-lib-rctech-why-1.jpg",
+     "h": 800,
+     "labels": [
+      "穿过门",
+      "标准单元"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子在长长的管道里滑行，这是信号沿着导线传递花的时间，由 rc tech 文件提供的数据计算得出。",
+     "checked": true,
+     "file": "fig/ai/02-06-pr-lib-rctech-why-2.jpg",
+     "h": 675,
+     "labels": [
+      "管道滑行",
+      "长导线"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "693da39b1025",
+   "index": 1,
+   "lesson": "02-06-pr-lib-rctech",
+   "model": "gpt-image-2.5",
+   "no": "27",
+   "title": "两种延迟，两份文件",
+   "ts": "2026-11-24T15:23:40"
+  },
+  "02-06a-setup-hold#hold": {
+   "anchor": "hold",
+   "figs": [
+    {
+     "caption": "蓝色小电子冲刺太快，撞翻了还没被收走的旧快递，对应hold违例中数据跑太快导致旧值被冲掉的现象。",
+     "checked": true,
+     "file": "fig/ai/02-06a-setup-hold-hold-1.jpg",
+     "h": 675,
+     "labels": [
+      "跑太快",
+      "撞旧值"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子在路上安装了减速带，把跑得太快的数据硬生生拖慢，对应通过插入延迟缓冲器来修复hold问题。",
+     "checked": true,
+     "file": "fig/ai/02-06a-setup-hold-hold-2.jpg",
+     "h": 675,
+     "labels": [
+      "插延迟",
+      "减慢速度"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "94f4a1dfdde7",
+   "index": 3,
+   "lesson": "02-06a-setup-hold",
+   "model": "gpt-image-2.5",
+   "no": "28",
+   "title": "Hold：不能太早",
+   "ts": "2026-11-24T15:24:30"
+  },
+  "02-06a-setup-hold#lab": {
+   "anchor": "lab",
+   "figs": [
+    {
+     "caption": "动手计算时间余量时，就像在终点线前用尺子测量数据到达的时刻与最后期限之间的差值，确保余量大于零。",
+     "checked": true,
+     "file": "fig/ai/02-06a-setup-hold-lab.jpg",
+     "h": 675,
+     "labels": [
+      "数据到达",
+      "时间余量"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "fc83741416ca",
+   "index": 9,
+   "lesson": "02-06a-setup-hold",
+   "model": "gpt-image-2.5",
+   "no": "28",
+   "title": "动手：算一次 slack",
+   "ts": "2026-11-24T15:24:25"
+  },
+  "02-06a-setup-hold#mmc": {
+   "anchor": "mmc",
+   "figs": [
+    {
+     "caption": "同一颗芯片在不同工作模式下，时钟结构与频率完全不同，就像变装秀一样需要应对多种场景。",
+     "checked": true,
+     "file": "fig/ai/02-06a-setup-hold-mmc-1.jpg",
+     "h": 675,
+     "labels": [
+      "正常工作",
+      "测试扫描"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "为了确保万无一失，芯片必须在所有模式和角落组合下全部通过考验，不能只盯着一个地方看。",
+     "checked": true,
+     "file": "fig/ai/02-06a-setup-hold-mmc-2.jpg",
+     "h": 675,
+     "labels": [
+      "模式组合",
+      "全部通关"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "af795aa7d6f6",
+   "index": 7,
+   "lesson": "02-06a-setup-hold",
+   "model": "gpt-image-2.5",
+   "no": "28",
+   "title": "MMC：为什么还要乘上\"模式\"",
+   "ts": "2026-11-24T15:24:44"
+  },
+  "02-06a-setup-hold#ocv": {
+   "anchor": "ocv",
+   "figs": [
+    {
+     "caption": "传统OCV方法采用一刀切的固定余量，虽然安全但过于保守；先进的POCV则根据统计规律精确计算，避免浪费面积。",
+     "checked": true,
+     "file": "fig/ai/02-06a-setup-hold-ocv.jpg",
+     "h": 675,
+     "labels": [
+      "传统OCV",
+      "精准POCV"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "e2c8ab45a77d",
+   "index": 8,
+   "lesson": "02-06a-setup-hold",
+   "model": "gpt-image-2.5",
+   "no": "28",
+   "title": "OCV 与 POCV：同一颗芯片内部也有快慢",
+   "ts": "2026-11-24T15:24:18"
+  },
+  "02-06a-setup-hold#pvt": {
+   "anchor": "pvt",
+   "figs": [
+    {
+     "caption": "PVT 三个环境因素叠加在一起，就像给芯片穿上了厚棉袄还是短袖，直接决定了芯片运行的最慢极限。",
+     "checked": true,
+     "file": "fig/ai/02-06a-setup-hold-pvt-1.jpg",
+     "h": 675,
+     "labels": [
+      "最慢极限",
+      "极端环境"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "当电压、温度和制造工艺组合到最极端时，就会形成用来检查电路安全的两条红线：查最慢和查最快。",
+     "checked": true,
+     "file": "fig/ai/02-06a-setup-hold-pvt-2.jpg",
+     "h": 675,
+     "labels": [
+      "查最慢",
+      "查最快"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "458853da7180",
+   "index": 6,
+   "lesson": "02-06a-setup-hold",
+   "model": "gpt-image-2.5",
+   "no": "28",
+   "title": "PVT：三个字母锁死一个 corner",
+   "ts": "2026-11-24T15:24:36"
+  },
+  "02-06a-setup-hold#setup": {
+   "anchor": "setup",
+   "figs": [
+    {
+     "caption": "数据必须在下一个时钟指挥官喊停前稳稳到达，如果动作太慢错过时机就会漏掉，这就是 Setup 检查。",
+     "checked": true,
+     "file": "fig/ai/02-06a-setup-hold-setup-1.jpg",
+     "h": 675,
+     "labels": [
+      "数据",
+      "时钟沿"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "为了应对最慢最极端的恶劣环境，必须精简路程或换上力气更大的大号推车，才能保证数据准时到达。",
+     "checked": true,
+     "file": "fig/ai/02-06a-setup-hold-setup-2.jpg",
+     "h": 675,
+     "labels": [
+      "大驱动",
+      "缩短走线"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "7c5e0ed27405",
+   "index": 2,
+   "lesson": "02-06a-setup-hold",
+   "model": "gpt-image-2.5",
+   "no": "28",
+   "title": "Setup：不能太晚",
+   "ts": "2026-11-24T15:23:57"
+  },
+  "02-06a-setup-hold#why": {
+   "anchor": "why",
+   "figs": [
+    {
+     "caption": "数据就像按时投递的信件，必须落在指定的窗口期内，早到或迟到都会导致错误。",
+     "file": "fig/ai/02-06a-setup-hold-why.jpg",
+     "h": 675,
+     "w": 1200
+    }
+   ],
+   "hash": "2bdf38d973ef",
+   "index": 1,
+   "lesson": "02-06a-setup-hold",
+   "model": "gpt-image-2.5",
+   "no": "28",
+   "title": "时序检查只有两件事",
+   "ts": "2026-11-24T14:41:36"
+  },
+  "02-07-pr-mmmc#corner": {
+   "anchor": "corner",
+   "figs": [
+    {
+     "caption": "芯片在工厂制造、供电电压和工作温度上都有波动，就像把小电子放在酷暑、严寒和不同风力里考验。",
+     "checked": true,
+     "file": "fig/ai/02-07-pr-mmmc-corner-1.jpg",
+     "h": 675,
+     "labels": [
+      "工艺偏差",
+      "电压温度"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "导线就像不同粗细的滑梯，有的阻力大让信号变慢，有的阻力小让信号飞奔，必须两头都测试。",
+     "checked": true,
+     "file": "fig/ai/02-07-pr-mmmc-corner-2.jpg",
+     "h": 800,
+     "labels": [
+      "最快冲刺",
+      "最慢爬行"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "b9045dcebf5e",
+   "index": 3,
+   "lesson": "02-07-pr-mmmc",
+   "model": "gpt-image-2.5",
+   "no": "29",
+   "title": "多端角 Corner：芯片在什么条件下工作",
+   "ts": "2026-11-24T15:25:45"
+  },
+  "02-07-pr-mmmc#mode": {
+   "anchor": "mode",
+   "figs": [
+    {
+     "caption": "芯片在不同生活场景中切换工作状态。功能模式就像正常跑步，超频模式则是咬牙加速冲刺，测试模式像在医院做全身X光体检。",
+     "checked": true,
+     "file": "fig/ai/02-07-pr-mmmc-mode-1.jpg",
+     "h": 675,
+     "labels": [
+      "功能模式",
+      "超频模式"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "芯片通过外部预留的物理引脚来切换不同的工作状态，就像给玩具车拨动档位开关一样直接改变内部电路。",
+     "checked": true,
+     "file": "fig/ai/02-07-pr-mmmc-mode-2.jpg",
+     "h": 675,
+     "labels": [
+      "模式引脚",
+      "切换档位"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "ac60ce44b75b",
+   "index": 2,
+   "lesson": "02-07-pr-mmmc",
+   "model": "gpt-image-2.5",
+   "no": "29",
+   "title": "多模式 Mode：芯片在干什么",
+   "ts": "2026-11-24T15:25:24"
+  },
+  "02-07-pr-mmmc#pitfall": {
+   "anchor": "pitfall",
+   "figs": [
+    {
+     "caption": "只看一种常温天气就放行，结果寒潮一来芯片全冻僵坏掉了，这就是漏掉多端角测试的严重后果。",
+     "checked": true,
+     "file": "fig/ai/02-07-pr-mmmc-pitfall-1.jpg",
+     "h": 675,
+     "labels": [
+      "常温世界",
+      "低温灾难"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "把夏天的厚棉袄套在冬天的短裤外面，温度设置张冠李戴，算出来的结果自然错得离谱。",
+     "checked": true,
+     "file": "fig/ai/02-07-pr-mmmc-pitfall-2.jpg",
+     "h": 675,
+     "labels": [
+      "温度错配",
+      "张冠李戴"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "9659e9e9fe3e",
+   "index": 5,
+   "lesson": "02-07-pr-mmmc",
+   "model": "gpt-image-2.5",
+   "no": "29",
+   "title": "配错 MMMC 会长什么样",
+   "ts": "2026-11-24T15:25:41"
+  },
+  "02-07-pr-mmmc#viewdef": {
+   "anchor": "viewdef",
+   "figs": [
+    {
+     "caption": "五层配置像是一台精密组装机，把库文件、导线电阻、约束条件和分析视角层层组合，最终拼出芯片运行的完整世界。",
+     "checked": true,
+     "file": "fig/ai/02-07-pr-mmmc-viewdef-1.jpg",
+     "h": 675,
+     "labels": [
+      "五层结构",
+      "配置组装"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "分析视角就像是给芯片挑选不同的眼镜，有的专门看慢速下的最坏阻碍，有的专门看快速下的极限冲刺。",
+     "checked": true,
+     "file": "fig/ai/02-07-pr-mmmc-viewdef-2.jpg",
+     "h": 675,
+     "labels": [
+      "Setup查慢",
+      "Hold查快"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "786db0df41f8",
+   "index": 4,
+   "lesson": "02-07-pr-mmmc",
+   "model": "gpt-image-2.5",
+   "no": "29",
+   "title": "viewDefinition.tcl：五层结构一张图",
+   "ts": "2026-11-24T15:25:42"
+  },
+  "02-07-pr-mmmc#why": {
+   "anchor": "why",
+   "figs": [
+    {
+     "caption": "芯片在不同世界里经历着高低温、电压和工作模式的组合考验，只有每个世界都通过，才能保证真实运行不出错。",
+     "checked": true,
+     "file": "fig/ai/02-07-pr-mmmc-why-1.jpg",
+     "h": 800,
+     "labels": [
+      "极寒端角",
+      "超频模式"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "就像控制室的总开关，viewDefinition.tcl 文件把各种模式和物理端角全部打包管理，指挥工具去所有世界里严格检查。",
+     "checked": true,
+     "file": "fig/ai/02-07-pr-mmmc-why-2.jpg",
+     "h": 675,
+     "labels": [
+      "工作模式",
+      "物理端角"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "90134843955a",
+   "index": 1,
+   "lesson": "02-07-pr-mmmc",
+   "model": "gpt-image-2.5",
+   "no": "29",
+   "title": "一个设计，很多种\"世界\"",
+   "ts": "2026-11-24T15:25:38"
+  },
+  "02-08-pr-sdc#fct": {
+   "anchor": "fct",
+   "figs": [
+    {
+     "caption": "SDC 是外部 FCT 部门下发的施工图纸，PR 工程师作为施工方只需照图施工并及时反馈问题，切勿私自修改。",
+     "checked": true,
+     "file": "fig/ai/02-08-pr-sdc-fct-1.jpg",
+     "h": 675,
+     "labels": [
+      "FCT图纸",
+      "施工方PR"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "核对 SDC 版本就像核对快递单号，团队成员必须使用完全一致的版本，否则跑出的结果会南辕北辙。",
+     "checked": true,
+     "file": "fig/ai/02-08-pr-sdc-fct-2.jpg",
+     "h": 675,
+     "labels": [
+      "核对版本",
+      "统一标准"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "d30170234086",
+   "index": 4,
+   "lesson": "02-08-pr-sdc",
+   "model": "gpt-image-2.5",
+   "no": "30",
+   "title": "谁写 SDC：FCT 部门",
+   "ts": "2026-11-24T15:26:45"
+  },
+  "02-08-pr-sdc#model": {
+   "anchor": "model",
+   "figs": [
+    {
+     "caption": "蓝色小电子从起点触发器出发，经过中间的积木滑梯组合逻辑，在终点触发器被时钟抓住，必须卡在对的时间窗口内。",
+     "checked": true,
+     "file": "fig/ai/02-08-pr-sdc-model-1.jpg",
+     "h": 675,
+     "labels": [
+      "起点",
+      "终点"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "三种路径就像三种接力跑：芯片内部接力、从外部大门跑进来接力、从内部送到芯片外面去，起点和终点决定了要怎么量时间。",
+     "checked": true,
+     "file": "fig/ai/02-08-pr-sdc-model-2.jpg",
+     "h": 675,
+     "labels": [
+      "芯片内部",
+      "外部端口"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "53400019b9fc",
+   "index": 2,
+   "lesson": "02-08-pr-sdc",
+   "model": "gpt-image-2.5",
+   "no": "30",
+   "title": "先建立一个时序模型",
+   "ts": "2026-11-24T15:26:47"
+  },
+  "02-08-pr-sdc#what": {
+   "anchor": "what",
+   "figs": [
+    {
+     "caption": "SDC 就像工厂里的合格标准，事实文件告诉你原材料长啥样，而 SDC 决定了做出来的产品必须达到什么标准。",
+     "checked": true,
+     "file": "fig/ai/02-08-pr-sdc-what-1.jpg",
+     "h": 675,
+     "labels": [
+      "电路事实",
+      "合格目标"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "对工具的催促力度决定了它的干活态度，要求定得越紧，蓝色小电子工具就越拼命加油去挤压时间。",
+     "checked": true,
+     "file": "fig/ai/02-08-pr-sdc-what-2.jpg",
+     "h": 675,
+     "labels": [
+      "催促力度",
+      "干活态度"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "01eb9b0448f0",
+   "index": 1,
+   "lesson": "02-08-pr-sdc",
+   "model": "gpt-image-2.5",
+   "no": "30",
+   "title": "SDC 是什么：设计的命脉",
+   "ts": "2026-11-24T15:26:25"
+  },
+  "02-08-pr-sdc#write": {
+   "anchor": "write",
+   "figs": [
+    {
+     "caption": "给芯片设定源头时钟就像在家门口安装交通信号灯，用周期和高电平时间规定好节拍，让蓝色笑脸小电子按时起跳。",
+     "checked": true,
+     "file": "fig/ai/02-08-pr-sdc-write-1.jpg",
+     "h": 675,
+     "labels": [
+      "时钟源头",
+      "起跳节拍"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "设置外部输入延迟就像在门口接快递，告诉工具外部世界已经拿走了多少时间，好算清剩下的富余量。",
+     "checked": true,
+     "file": "fig/ai/02-08-pr-sdc-write-2.jpg",
+     "h": 675,
+     "labels": [
+      "外部时间",
+      "快递交接"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "b622e6d0ec93",
+   "index": 3,
+   "lesson": "02-08-pr-sdc",
+   "model": "gpt-image-2.5",
+   "no": "30",
+   "title": "一条一条写约束",
+   "ts": "2026-11-24T15:26:55"
+  },
+  "03-01-innovus-plan#output": {
+   "anchor": "output",
+   "figs": [
+    {
+     "caption": "就像盖房子要看每一步的毛坯、水电和精装验收，芯片制造的每一道工序也必须检查对应的产出物对不对。",
+     "checked": true,
+     "file": "fig/ai/03-01-innovus-plan-output-1.jpg",
+     "h": 800,
+     "labels": [
+      "检查清单",
+      "九层柜子"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "跑通项目不能只看电脑有没有报错，关键要检查每一步产出的文件和指标是否合格。",
+     "checked": true,
+     "file": "fig/ai/03-01-innovus-plan-output-2.jpg",
+     "h": 675,
+     "labels": [
+      "产出物",
+      "合格证"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "df1c02563c35",
+   "index": 2,
+   "lesson": "03-01-innovus-plan",
+   "model": "gpt-image-2.5",
+   "no": "31",
+   "title": "九道工序的产出物",
+   "ts": "2026-11-24T15:27:34"
+  },
+  "03-01-innovus-plan#plan": {
+   "anchor": "plan",
+   "figs": [
+    {
+     "caption": "蓝色小电子站在一张长长的闯关地图前，手里拿着一把代表工具的钥匙，准备开启后面的十道大关。",
+     "checked": true,
+     "file": "fig/ai/03-01-innovus-plan-plan.jpg",
+     "h": 675,
+     "labels": [
+      "闯关地图",
+      "工具箱"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "e7e14ccf5d14",
+   "index": 1,
+   "lesson": "03-01-innovus-plan",
+   "model": "gpt-image-2.5",
+   "no": "31",
+   "title": "这一阶段要干什么",
+   "ts": "2026-11-24T15:26:32"
+  },
+  "03-01-innovus-plan#tips": {
+   "anchor": "tips",
+   "figs": [
+    {
+     "caption": "每道工序必须严格经历配置、执行、报告和判断四步，切忌只跑完命令而不读报告检查结果。",
+     "checked": true,
+     "file": "fig/ai/03-01-innovus-plan-tips-1.jpg",
+     "h": 675,
+     "labels": [
+      "执行",
+      "报告"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "所有的操作都必须通过写好的脚本文件输入给工具，这样才能方便地保存、对比和复现。",
+     "checked": true,
+     "file": "fig/ai/03-01-innovus-plan-tips-2.jpg",
+     "h": 675,
+     "labels": [
+      "写脚本",
+      "喂工具"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "1b9a57bab7e8",
+   "index": 3,
+   "lesson": "03-01-innovus-plan",
+   "model": "gpt-image-2.5",
+   "no": "31",
+   "title": "上手前的三个提醒",
+   "ts": "2026-11-24T15:29:41"
+  },
+  "03-02-innovus-start#gui": {
+   "anchor": "gui",
+   "figs": [
+    {
+     "caption": "芯片设计软件的界面就像一个带四个分区的控制室，版图区看图形，命令行敲指令，输出窗看日志，层次树找元件。",
+     "checked": true,
+     "file": "fig/ai/03-02-innovus-start-gui.jpg",
+     "h": 800,
+     "labels": [
+      "版图区",
+      "命令行"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "3ca262707f2b",
+   "index": 4,
+   "lesson": "03-02-innovus-start",
+   "model": "gpt-image-2.5",
+   "no": "32",
+   "title": "界面分四块认识",
+   "ts": "2026-11-24T15:29:06"
+  },
+  "03-02-innovus-start#options": {
+   "anchor": "options",
+   "figs": [
+    {
+     "caption": "启动工具时加上 -log 参数，蓝色小电子就像带着一个随身录音机，把所有的操作和错误日志全部记录下来，方便事后翻阅。",
+     "checked": true,
+     "file": "fig/ai/03-02-innovus-start-options-1.jpg",
+     "h": 675,
+     "labels": [
+      "-log",
+      "记账本"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "使用 -wait 选项启动时，如果遇到许可证不够，蓝色小电子就会乖乖坐在长椅上排队等候，而不是直接放弃离开。",
+     "checked": true,
+     "file": "fig/ai/03-02-innovus-start-options-2.jpg",
+     "h": 675,
+     "labels": [
+      "-wait",
+      "排队"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "29ff358c5543",
+   "index": 3,
+   "lesson": "03-02-innovus-start",
+   "model": "gpt-image-2.5",
+   "no": "32",
+   "title": "九个常用启动选项",
+   "ts": "2026-11-24T15:29:26"
+  },
+  "03-02-innovus-start#start": {
+   "anchor": "start",
+   "figs": [
+    {
+     "caption": "启动工具前先查版本号，就像开工前先对对讲机频道，确保大家用的是同一个频道才不会鸡同鸭讲。",
+     "checked": true,
+     "file": "fig/ai/03-02-innovus-start-start-1.jpg",
+     "h": 675,
+     "labels": [
+      "查版本",
+      "对频道"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "启动报错时先看是环境变量没配好还是通行证没拿到，就像进游乐园先确认门票和排队状态。",
+     "checked": true,
+     "file": "fig/ai/03-02-innovus-start-start-2.jpg",
+     "h": 675,
+     "labels": [
+      "找通行证",
+      "排队等"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "eab523c851a1",
+   "index": 2,
+   "lesson": "03-02-innovus-start",
+   "model": "gpt-image-2.5",
+   "no": "32",
+   "title": "第一步：启动与确认版本",
+   "ts": "2026-11-24T15:29:36"
+  },
+  "03-02-innovus-start#tools": {
+   "anchor": "tools",
+   "figs": [
+    {
+     "caption": "老式绿皮火车在现代高铁轨道上跑不动，正如老一代后端工具在 28nm 以下先进工艺中无法满足设计需求。",
+     "checked": true,
+     "file": "fig/ai/03-02-innovus-start-tools-1.jpg",
+     "h": 675,
+     "labels": [
+      "老一代",
+      "跑不动"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "新一代的高铁列车轻松穿梭于现代化立交桥， Innovus 和 ICC2 正是应对先进微缩工艺的主流利器。",
+     "checked": true,
+     "file": "fig/ai/03-02-innovus-start-tools-2.jpg",
+     "h": 675,
+     "labels": [
+      "新一代",
+      "大主流"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "e21d1838a4d5",
+   "index": 1,
+   "lesson": "03-02-innovus-start",
+   "model": "gpt-image-2.5",
+   "no": "32",
+   "title": "为什么是 Innovus / ICC2",
+   "ts": "2026-11-24T15:29:33"
+  },
+  "03-03-innovus-init#errors": {
+   "anchor": "errors",
+   "figs": [
+    {
+     "caption": "芯片导入就像按图拼积木，如果蓝图上的名字和积木盒里的对不上，工具就会大喊找不到。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-errors-1.jpg",
+     "h": 675,
+     "labels": [
+      "名字不对",
+      "找不到"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "导入完成后必须进行五项严格体检，就像给刚组装好的机器做全方位透视，确保没有隐藏毛病。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-errors-2.jpg",
+     "h": 675,
+     "labels": [
+      "五项体检",
+      "验证检查"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "f53f819e3489",
+   "index": 6,
+   "lesson": "03-03-innovus-init",
+   "model": "gpt-image-2.5",
+   "no": "33",
+   "title": "报错对照表：init 阶段九成的问题都在这",
+   "ts": "2026-11-24T15:31:21"
+  },
+  "03-03-innovus-init#files": {
+   "anchor": "files",
+   "figs": [
+    {
+     "caption": "就像拼乐高前必须清点零件，芯片开工前也要备齐网表、库文件和约束等全套原料，缺一不可。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-files-1.jpg",
+     "h": 800,
+     "labels": [
+      "数据清单",
+      "备齐原料"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "核对数据时，必须确保网表、布局和引脚文件的名字完全对得上号，否则工具算出的结果毫无意义。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-files-2.jpg",
+     "h": 675,
+     "labels": [
+      "核对名字",
+      "对得上号"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "44c023d48851",
+   "index": 2,
+   "lesson": "03-03-innovus-init",
+   "model": "gpt-image-2.5",
+   "no": "33",
+   "title": "数据清单：init 要喂进去什么",
+   "ts": "2026-11-24T15:30:33"
+  },
+  "03-03-innovus-init#script": {
+   "anchor": "script",
+   "figs": [
+    {
+     "caption": "就像大厨做菜前先把各种食材和菜谱登记好，在输入正式命令之前，必须先把所有配置文件和路径填好登记在册。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-script-1.jpg",
+     "h": 675,
+     "labels": [
+      "登记配置",
+      "正式开工"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "如果把配置写在正式启动命令的后面，就像菜已经炒完了才记起放盐，工具根本看不见，结果自然是白忙一场。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-script-2.jpg",
+     "h": 675,
+     "labels": [
+      "写在后面",
+      "直接失效"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "d7d25de4f30d",
+   "index": 3,
+   "lesson": "03-03-innovus-init",
+   "model": "gpt-image-2.5",
+   "no": "33",
+   "title": "一份能跑的 init 脚本",
+   "ts": "2026-11-24T15:30:36"
+  },
+  "03-03-innovus-init#two": {
+   "anchor": "two",
+   "figs": [
+    {
+     "caption": "就像全自动传送带只要按下开关就能精准重复，写脚本能让整个芯片设计过程完美复现。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-two-1.jpg",
+     "h": 675,
+     "labels": [
+      "自动传送",
+      "脚本主干"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "面对满屋子几十个密密麻麻的水龙头和阀门，纯靠手动挨个去拧不仅容易漏掉，还很难记住步骤。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-two-2.jpg",
+     "h": 675,
+     "labels": [
+      "手动乱拧",
+      "GUI拐杖"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "c535156e7b85",
+   "index": 1,
+   "lesson": "03-03-innovus-init",
+   "model": "gpt-image-2.5",
+   "no": "33",
+   "title": "两条路：脚本是主干，GUI 是拐杖",
+   "ts": "2026-11-24T15:30:28"
+  },
+  "03-03-innovus-init#verify": {
+   "anchor": "verify",
+   "figs": [
+    {
+     "caption": "就像快递刚送到时不能只看箱子没破，必须打开核对清单，用五条检查确保货物齐全且时钟没丢。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-verify.jpg",
+     "h": 675,
+     "labels": [
+      "核对清单",
+      "五条检查"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "91d75de06467",
+   "index": 5,
+   "lesson": "03-03-innovus-init",
+   "model": "gpt-image-2.5",
+   "no": "33",
+   "title": "导入成功怎么验证：五条检查",
+   "ts": "2026-11-24T15:30:19"
+  },
+  "03-03-innovus-init#what": {
+   "anchor": "what",
+   "figs": [
+    {
+     "caption": "执行初始化命令时，工具像在工厂里把五种零件图纸和材料一次性整理好，搭建起整个设计的骨架。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-what-1.jpg",
+     "h": 675,
+     "labels": [
+      "建库",
+      "连线"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "链接步骤就像核对快递单上的名字，名字写错一个字（比如少了一个下划线），小电子就找不到对应的物品而报错。",
+     "checked": true,
+     "file": "fig/ai/03-03-innovus-init-what-2.jpg",
+     "h": 614,
+     "labels": [
+      "网表名字",
+      "库里名字"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "57879fc5aa76",
+   "index": 4,
+   "lesson": "03-03-innovus-init",
+   "model": "gpt-image-2.5",
+   "no": "33",
+   "title": "init_design 那一刻，工具做了什么",
+   "ts": "2026-11-24T15:31:12"
+  },
+  "03-04-project-env#dirs": {
+   "anchor": "dirs",
+   "figs": [
+    {
+     "caption": "芯片项目的六个目录就像办公室里的六个抽屉，分别用来放临时文件、脚本、原始数据、工艺库、报告和日志，各司其职不乱套。",
+     "checked": true,
+     "file": "fig/ai/03-04-project-env-dirs-1.jpg",
+     "h": 675,
+     "labels": [
+      "临时乱放",
+      "整齐资产"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "临时工地 work 目录会被随时清空，千万不能把重要的脚本资产直接放在这里，否则就像把图纸丢在会被推平的工地上。",
+     "checked": true,
+     "file": "fig/ai/03-04-project-env-dirs-2.jpg",
+     "h": 675,
+     "labels": [
+      "清空工地",
+      "核心资产"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "30e01828351f",
+   "index": 2,
+   "lesson": "03-04-project-env",
+   "model": "gpt-image-2.5",
+   "no": "34",
+   "title": "六个目录，各管一件事",
+   "ts": "2026-11-24T15:31:42"
+  },
+  "03-04-project-env#queue": {
+   "anchor": "queue",
+   "figs": [
+    {
+     "caption": "个人电脑无法独自承载耗时数天的庞大芯片计算任务，必须交给强大的服务器集群统一排队处理。",
+     "checked": true,
+     "file": "fig/ai/03-04-project-env-queue.jpg",
+     "h": 675,
+     "labels": [
+      "个人电脑",
+      "服务器集群"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "07323922c051",
+   "index": 5,
+   "lesson": "03-04-project-env",
+   "model": "gpt-image-2.5",
+   "no": "34",
+   "title": "Queue：把耗时的事丢给集群",
+   "ts": "2026-11-24T15:32:15"
+  },
+  "03-04-project-env#run": {
+   "anchor": "run",
+   "figs": [
+    {
+     "caption": "每一次从头运行就像把蓝色小电子打包成一个专属快递盒，生成独立的编号和报告，方便日后翻找。",
+     "checked": true,
+     "file": "fig/ai/03-04-project-env-run.jpg",
+     "h": 675,
+     "labels": [
+      "日期",
+      "改动内容"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "c12c93d26574",
+   "index": 4,
+   "lesson": "03-04-project-env",
+   "model": "gpt-image-2.5",
+   "no": "34",
+   "title": "Run：一个 run 就是一个\"从头跑一遍的版本\"",
+   "ts": "2026-11-24T15:31:43"
+  },
+  "03-04-project-env#terminal": {
+   "anchor": "terminal",
+   "figs": [
+    {
+     "caption": "蓝色小电子坐在同一个驾驶舱里，通过按快捷键同时打开多个标签页，不用手忙脚乱地到处切换窗口。",
+     "checked": true,
+     "file": "fig/ai/03-04-project-env-terminal-1.jpg",
+     "h": 675,
+     "labels": [
+      "开新页",
+      "多任务"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "蓝色小电子拿起油漆刷，给不同房间的门牌认真改名，一个写着运行，另一个写着调试，再也不会走错门。",
+     "checked": true,
+     "file": "fig/ai/03-04-project-env-terminal-2.jpg",
+     "h": 675,
+     "labels": [
+      "改名字",
+      "防出错"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "3dc4c8eb5d82",
+   "index": 3,
+   "lesson": "03-04-project-env",
+   "model": "gpt-image-2.5",
+   "no": "34",
+   "title": "终端：多窗口 + 改名，效率差一倍",
+   "ts": "2026-11-24T15:31:45"
+  },
+  "03-04-project-env#try": {
+   "anchor": "try",
+   "figs": [
+    {
+     "caption": "多版本 Try 机制就像同时烤几盘不同配方的饼干，看哪盘最好吃。等待烤箱运行的时候，不能干站着，要趁机调整下一盘的配方。",
+     "checked": true,
+     "file": "fig/ai/03-04-project-env-try-1.jpg",
+     "h": 675,
+     "labels": [
+      "多版本",
+      "分析循环"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "提交任务后必须盯紧状态与日志，就像放飞风筝后要随时拽一拽线，防止风筝半路挂树上而你还傻傻站在原地等。",
+     "checked": true,
+     "file": "fig/ai/03-04-project-env-try-2.jpg",
+     "h": 675,
+     "labels": [
+      "任务状态",
+      "检查日志"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "369ecd29748b",
+   "index": 6,
+   "lesson": "03-04-project-env",
+   "model": "gpt-image-2.5",
+   "no": "34",
+   "title": "多版本并行：Try 机制",
+   "ts": "2026-11-24T15:32:54"
+  },
+  "03-04-project-env#why": {
+   "anchor": "why",
+   "figs": [
+    {
+     "caption": "就像去图书馆先找对书架一样，干活前必须先用终端命令登录并精准找到属于自己的项目目录。",
+     "checked": true,
+     "file": "fig/ai/03-04-project-env-why-1.jpg",
+     "h": 675,
+     "labels": [
+      "登录",
+      "找目录"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "动工前要在自己的专属工位上整理好工具和材料，确认好资料位置，后面的工作才能顺利进行。",
+     "checked": true,
+     "file": "fig/ai/03-04-project-env-why-2.jpg",
+     "h": 675,
+     "labels": [
+      "建工位",
+      "找工具"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "436a54fd7a54",
+   "index": 1,
+   "lesson": "03-04-project-env",
+   "model": "gpt-image-2.5",
+   "no": "34",
+   "title": "先有环境，再谈操作",
+   "ts": "2026-11-24T15:31:54"
+  },
+  "04-01-icc2-plan#plan": {
+   "anchor": "plan",
+   "figs": [
+    {
+     "caption": "学习这门16学时的芯片后端课程就像搭积木，需要按部就班地从基础的TCL脚本学起，再进阶到核心的芯片布局布线。",
+     "checked": true,
+     "file": "fig/ai/04-01-icc2-plan-plan.jpg",
+     "h": 800,
+     "labels": [
+      "打好地基",
+      "芯片课程"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "ff199f4a4930",
+   "index": 1,
+   "lesson": "04-01-icc2-plan",
+   "model": "gpt-image-2.5",
+   "no": "35",
+   "title": "这门课讲什么",
+   "ts": "2026-11-24T15:32:21"
+  },
+  "05-01-flow28-plan#plan": {
+   "anchor": "plan",
+   "figs": [
+    {
+     "caption": "课程分为PR、PT和PV三大核心模块，共计22个学时，像是一座分为三层的知识大楼。",
+     "checked": true,
+     "file": "fig/ai/05-01-flow28-plan-plan-1.jpg",
+     "h": 675,
+     "labels": [
+      "总学时",
+      "三阶段"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "学习芯片后端需要像盖房子一样打好地基，先学好TCL脚本语言才能顺利进行后面的课程。",
+     "checked": true,
+     "file": "fig/ai/05-01-flow28-plan-plan-2.jpg",
+     "h": 675,
+     "labels": [
+      "打地基",
+      "脚本语言"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "bf9fe6cdb983",
+   "index": 1,
+   "lesson": "05-01-flow28-plan",
+   "model": "gpt-image-2.5",
+   "no": "36",
+   "title": "这门课讲什么",
+   "ts": "2026-11-24T15:32:47"
+  },
+  "06-01-sta-plan#plan": {
+   "anchor": "plan",
+   "figs": [
+    {
+     "caption": "把复杂的芯片设计知识拆成六个台阶，蓝色小电子正开心地踩着台阶向上攀登，稳扎稳打。",
+     "checked": true,
+     "file": "fig/ai/06-01-sta-plan-plan.jpg",
+     "h": 675,
+     "labels": [
+      "六学时",
+      "稳打稳"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "446cee1a24c2",
+   "index": 1,
+   "lesson": "06-01-sta-plan",
+   "model": "gpt-image-2.5",
+   "no": "37",
+   "title": "这门课讲什么",
+   "ts": "2026-11-24T15:32:25"
+  },
+  "07-01-power-plan#plan": {
+   "anchor": "plan",
+   "figs": [
+    {
+     "caption": "把盖房子比作学习，前置的Linux和TCL基础是坚固的地基，只有打好地基才能稳稳盖起红鹰功耗分析工具这栋高层建筑。",
+     "checked": true,
+     "file": "fig/ai/07-01-power-plan-plan.jpg",
+     "h": 675,
+     "labels": [
+      "地基",
+      "盖楼"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "e105d5d6ac8f",
+   "index": 1,
+   "lesson": "07-01-power-plan",
+   "model": "gpt-image-2.5",
+   "no": "38",
+   "title": "这门课讲什么",
+   "ts": "2026-11-24T15:32:50"
+  },
+  "08-01-experience-plan#plan": {
+   "anchor": "plan",
+   "figs": [
+    {
+     "caption": "把前置阶段比作打地基，只有稳固了底下的积木，才能往上盖高层建筑。",
+     "checked": true,
+     "file": "fig/ai/08-01-experience-plan-plan.jpg",
+     "h": 675,
+     "labels": [
+      "打地基",
+      "盖高层"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "d9896d6f44df",
+   "index": 1,
+   "lesson": "08-01-experience-plan",
+   "model": "gpt-image-2.5",
+   "no": "39",
+   "title": "这门课讲什么",
+   "ts": "2026-11-24T15:32:54"
+  },
+  "09-01-career-plan#plan": {
+   "anchor": "plan",
+   "figs": [
+    {
+     "caption": "把求职面试的所有准备工作看作拼图的五个板块，按部就班拼好才能拿到好工作。",
+     "checked": true,
+     "file": "fig/ai/09-01-career-plan-plan-1.jpg",
+     "h": 675,
+     "labels": [
+      "求职准备",
+      "五大专题"
+     ],
+     "w": 1200
+    },
+    {
+     "caption": "学芯片后端就像盖房子，必须先打好前置阶段的基础，后面的工具课才能稳固。",
+     "checked": true,
+     "file": "fig/ai/09-01-career-plan-plan-2.jpg",
+     "h": 800,
+     "labels": [
+      "打好地基",
+      "阶梯学习"
+     ],
+     "w": 1200
+    }
+   ],
+   "hash": "b896a868b8ce",
+   "index": 1,
+   "lesson": "09-01-career-plan",
+   "model": "gpt-image-2.5",
+   "no": "40",
+   "title": "这门课讲什么",
+   "ts": "2026-11-24T15:33:34"
+  }
+ },
+ "version": 1
+}

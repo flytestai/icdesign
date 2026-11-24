@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 4 课 · 查看与编辑文件（vi 全套） · 04 | IC 后端学院</title>
 <meta name="description" content="cat / more / less / head / tail / vi 五种查看方式；vi/vim/gvim 编辑模式与命令行模式全套用法；diff 对比文件；alias 快捷指令；重定向 > 与管道 |；Linux 快捷键；课后练习二。">
-<link rel="icon" href="/assets/logo.svg?v=1795499490" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795499490">
+<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795502567">
 </head>
 <body data-page="lesson" data-lesson="01-04-linux-04-view-vi">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795499490" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,6 +64,8 @@
     </div>
     <article id="article"><section class="ch" id="view" data-ch="view">
   <div class="ch-h"><span class="ch-n">01</span><h2>1. 查看文件</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-04-linux-04-view-vi-view-1.jpg" data-fig="ai"><img src="/fig/ai/01-04-linux-04-view-vi-view-1.jpg" alt="使用 more 或 less 命令查看长文件时，就像在翻阅一本卷轴，按特定字母或键位上下滚动，阅读完毕或按 q 键即可收起。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>使用 more 或 less 命令查看长文件时，就像在翻阅一本卷轴，按特定字母或键位上下滚动，阅读完毕或按 q 键即可收起。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-04-linux-04-view-vi-view-2.jpg" data-fig="ai"><img src="/fig/ai/01-04-linux-04-view-vi-view-2.jpg" alt="使用 tail 命令查看日志结尾时，就像在长长的打印纸堆最下方，直接扯出最后最新的一截来检查最新情况。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>使用 tail 命令查看日志结尾时，就像在长长的打印纸堆最下方，直接扯出最后最新的一截来检查最新情况。</figcaption></figure>
   <div class="goal"><span>本章目标</span>七种方式查看文件；vi 的编辑模式和命令行模式全部记熟；会 diff 对比文件；会配 alias；会用重定向和管道。</div>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cat   文件名              # 直接全部输出</span><span class="ln ">cat  -n  文件名           # 查看文件，同时显示行号</span><span class="ln ">zcat  文件               # 查看压缩文本文件</span><span class="ln ">tac   文件名              # 倒着查看文件内容</span></code></pre></div>
 <p><strong>查看大型文件</strong>：</p>
@@ -75,6 +77,8 @@
 </section>
 <section class="ch" id="vi" data-ch="vi">
   <div class="ch-h"><span class="ch-n">02</span><h2>2. vi / vim / gvim 编辑文件</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-04-linux-04-view-vi-vi-1.jpg" data-fig="ai"><img src="/fig/ai/01-04-linux-04-view-vi-vi-1.jpg" alt="就像普通笔记本和带自动排版的高级智能笔记本一样，vi、vim 和带独立界面的 gvim 是不同形态的文字工具。" loading="lazy" decoding="async" width="1200" height="614"></a><figcaption>就像普通笔记本和带自动排版的高级智能笔记本一样，vi、vim 和带独立界面的 gvim 是不同形态的文字工具。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-04-linux-04-view-vi-vi-2.jpg" data-fig="ai"><img src="/fig/ai/01-04-linux-04-view-vi-vi-2.jpg" alt="进入编辑模式就像打开钢笔盖开始写字，而按下 Esc 键则像是合上笔盖锁定内容，随时切换状态。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>进入编辑模式就像打开钢笔盖开始写字，而按下 Esc 键则像是合上笔盖锁定内容，随时切换状态。</figcaption></figure>
   <ul><li><strong>vi</strong>：查看文件并且可以编辑；</li><li><strong>vim</strong>：相比 vi 可以做一些高效的配置；</li><li><strong>gvim</strong>：相比较 vim，多了 gui 界面，功能和 vim 一致（还支持打开压缩文件）。</li></ul>
 <p><strong>vi 的基本用法</strong>：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">vi  文件名</span></code></pre></div>
@@ -92,6 +96,8 @@
 </section>
 <section class="ch" id="symbols" data-ch="symbols">
   <div class="ch-h"><span class="ch-n">03</span><h2>3. 特殊符号</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-04-linux-04-view-vi-symbols-1.jpg" data-fig="ai"><img src="/fig/ai/01-04-linux-04-view-vi-symbols-1.jpg" alt="重定向符号就像一个漏斗，把原本倒向空地的水流精准引导并装进瓶子里。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>重定向符号就像一个漏斗，把原本倒向空地的水流精准引导并装进瓶子里。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-04-linux-04-view-vi-symbols-2.jpg" data-fig="ai"><img src="/fig/ai/01-04-linux-04-view-vi-symbols-2.jpg" alt="管道符就像工厂里的传送带，把前一个机器做好的零件直接运送到下一个机器继续加工。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>管道符就像工厂里的传送带，把前一个机器做好的零件直接运送到下一个机器继续加工。</figcaption></figure>
   <p><strong>1）重定向符号 <code>&gt;</code></strong>：把输出写入指定的文件。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">history  &gt;  1.t                    # 把历史命令写进 1.t</span><span class="ln ">echo 123 &gt; 2.t                     # 把 123 写进 2.t</span><span class="ln ">cat  -n  .bash_history  &gt;  1.t     # 带行号写进 1.t</span></code></pre></div>
 <p><strong>2）管道符 <code>|</code></strong>：连接两个命令，把<strong>前一个命令的输出</strong>作为<strong>后一个命令的输入</strong>。</p>
@@ -100,6 +106,8 @@
 </section>
 <section class="ch" id="hotkeys" data-ch="hotkeys">
   <div class="ch-h"><span class="ch-n">04</span><h2>4. Linux 的快捷键</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-04-linux-04-view-vi-hotkeys-1.jpg" data-fig="ai"><img src="/fig/ai/01-04-linux-04-view-vi-hotkeys-1.jpg" alt="键盘快捷键就像电视机的遥控器快捷键，按下特定组合就能瞬间清屏或让光标在行首行尾快速瞬移。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>键盘快捷键就像电视机的遥控器快捷键，按下特定组合就能瞬间清屏或让光标在行首行尾快速瞬移。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-04-linux-04-view-vi-hotkeys-2.jpg" data-fig="ai"><img src="/fig/ai/01-04-linux-04-view-vi-hotkeys-2.jpg" alt="文件内的快捷跳转就像翻阅一本魔法书，按gg或G就能瞬间飞到书的第一页或最后一页。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>文件内的快捷跳转就像翻阅一本魔法书，按gg或G就能瞬间飞到书的第一页或最后一页。</figcaption></figure>
   <div class="tbl"><table><thead><tr><th>快捷键</th><th>作用</th></tr></thead><tbody><tr><td><code>ctrl + L</code></td><td>清屏（clear 也可以）</td></tr><tr><td>方向键 ⬆️⬇️</td><td>翻之前/之后的命令</td></tr><tr><td><code>ctrl + a</code></td><td>光标移动到<strong>开头</strong></td></tr><tr><td><code>ctrl + e</code></td><td>光标移动到<strong>结尾</strong></td></tr><tr><td>命令前加 <code>#</code></td><td>不想执行某个命令时，ctrl+a 回到开头加个 # 就变成注释</td></tr></tbody></table></div>
 <p><strong>打开文件后</strong>：</p>
 <div class="tbl"><table><thead><tr><th>按键</th><th>作用</th></tr></thead><tbody><tr><td><code>G</code></td><td>跳转到文件<strong>最后一行</strong></td></tr><tr><td><code>gg</code></td><td>跳转到文件<strong>第一行</strong></td></tr><tr><td><code>g + f</code></td><td>直接在文件内跳转另一个文件</td></tr><tr><td><code>ctrl + o</code></td><td>返回原文件</td></tr><tr><td><code>!100</code></td><td>history 之后，直接执行第 100 行执行过的命令</td></tr></tbody></table></div>
@@ -108,6 +116,8 @@
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">05</span><h2>动手练：练习二</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-04-linux-04-view-vi-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-04-linux-04-view-vi-lab-1.jpg" alt="蓝色小电子像整理房间一样，把文件和文件夹分门别类地装进不同的抽屉里。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子像整理房间一样，把文件和文件夹分门别类地装进不同的抽屉里。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-04-linux-04-view-vi-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-04-linux-04-view-vi-lab-2.jpg" alt="蓝色小电子拿着放大镜仔细对比两张纸条的不同之处，旁边还有一个箭头指向输出结果。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子拿着放大镜仔细对比两张纸条的不同之处，旁边还有一个箭头指向输出结果。</figcaption></figure>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>练习二（17 题）</div><div class="lab-b"><p>1、进入家目录 2、创建目录 D1（如果有了，先删除） 3、在 D1 目录下创建文件 test01.txt，输入以下内容并保存退出： aaa bbb ccc 4、在 D1 目录下创建目录 D2 5、在 D2 目录下创建文件 test02.txt，输入以下内容并保存退出： aaa ddd ccc 6、对比 test01 和 test02 文件的不同 7、使用 7 种方式查看 test01 文件 8、回到家目录，执行下面的命令，作用是查看 history 执行过的命令然后写入到 1.t： cat .bash_history &gt; 1.t 9、查看 1.t 最后一行 10、在文件中设置行号 11、跳转到文件开头 12、跳转到第 15 行 13、跳转到第 20 行 14、搜索关键字 cd 15、搜索关键字 mkdir 16、编辑 1.t，在最后一行输入： this is test input++++++++++ 17、不保存退出 1.t</p></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">
   <div class="q-q"><span class="q-no"></span>more 和 less 退出方式的区别？</div>
@@ -146,8 +156,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795499490"></script>
-<script src="/assets/tcl.js?v=1795499490"></script>
-<script src="/assets/app.js?v=1795499490"></script>
+<script src="/assets/shell.js?v=1795502567"></script>
+<script src="/assets/tcl.js?v=1795502567"></script>
+<script src="/assets/app.js?v=1795502567"></script>
 </body>
 </html>

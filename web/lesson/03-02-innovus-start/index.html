@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>启动 Innovus：版本、常用选项与帮助系统 · 32 | IC 后端学院</title>
 <meta name="description" content="从 Encounter/ICC 到 Innovus/ICC2 的换代原因讲起，然后真刀真枪地启动工具：怎么确认版本、九个最常用的启动选项（写 log、自动跑脚本、无界面、定时、多核、帮助、GUI 开关）、CPU 该给多少核以及为什么不能给太多、启动后怎么调核数，最后把界面分成四块认识一遍。">
-<link rel="icon" href="/assets/logo.svg?v=1795499490" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795499490">
+<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795502567">
 </head>
 <body data-page="lesson" data-lesson="03-02-innovus-start">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795499490" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,6 +64,8 @@
     </div>
     <article id="article"><section class="ch" id="tools" data-ch="tools">
   <div class="ch-h"><span class="ch-n">01</span><h2>为什么是 Innovus / ICC2</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-02-innovus-start-tools-1.jpg" data-fig="ai"><img src="/fig/ai/03-02-innovus-start-tools-1.jpg" alt="老式绿皮火车在现代高铁轨道上跑不动，正如老一代后端工具在 28nm 以下先进工艺中无法满足设计需求。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>老式绿皮火车在现代高铁轨道上跑不动，正如老一代后端工具在 28nm 以下先进工艺中无法满足设计需求。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-02-innovus-start-tools-2.jpg" data-fig="ai"><img src="/fig/ai/03-02-innovus-start-tools-2.jpg" alt="新一代的高铁列车轻松穿梭于现代化立交桥， Innovus 和 ICC2 正是应对先进微缩工艺的主流利器。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>新一代的高铁列车轻松穿梭于现代化立交桥， Innovus 和 ICC2 正是应对先进微缩工艺的主流利器。</figcaption></figure>
   <div class="goal"><span>本章目标</span>能说出 Innovus/ICC2 各自替代的老工具与换代原因；能用一条命令完成&quot;无界面启动 + 自动跑脚本 + 写 log&quot;；能解释 -log / -files / -no_gui / -wait / -cpus 五个选项的真实语义与风险；能用 which、nproc、help *关键字* 三件事把环境摸清。</div>
 <div class="tbl"><table><thead><tr><th>时代</th><th>Cadence</th><th>Synopsys</th><th>适用工艺</th></tr></thead><tbody><tr><td>老一代</td><td><strong>Encounter</strong></td><td><strong>ICC</strong></td><td>90nm 及以上</td></tr><tr><td>主流</td><td><strong>Innovus</strong></td><td><strong>ICC2</strong></td><td>65nm 及以下，28/16/7nm</td></tr></tbody></table></div>
 <p>文档给的理由很实在：<strong>&quot;工艺越来越先进，原有的架构已经无法满足新的架构&quot;</strong>，具体对比就是<strong>运行时间</strong>。</p>
@@ -74,6 +76,8 @@
 </section>
 <section class="ch" id="start" data-ch="start">
   <div class="ch-h"><span class="ch-n">02</span><h2>第一步：启动与确认版本</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-02-innovus-start-start-1.jpg" data-fig="ai"><img src="/fig/ai/03-02-innovus-start-start-1.jpg" alt="启动工具前先查版本号，就像开工前先对对讲机频道，确保大家用的是同一个频道才不会鸡同鸭讲。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>启动工具前先查版本号，就像开工前先对对讲机频道，确保大家用的是同一个频道才不会鸡同鸭讲。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-02-innovus-start-start-2.jpg" data-fig="ai"><img src="/fig/ai/03-02-innovus-start-start-2.jpg" alt="启动报错时先看是环境变量没配好还是通行证没拿到，就像进游乐园先确认门票和排队状态。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>启动报错时先看是环境变量没配好还是通行证没拿到，就像进游乐园先确认门票和排队状态。</figcaption></figure>
   <p>在 Linux 终端里，进入你的工作目录，直接敲工具名：</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 启动 Innovus（图形界面模式），前提是环境变量已由公司/学校的 module 或 cshrc 配好</span><span class="ln ">innovus</span><span class="ln "> </span><span class="ln cmt"># 如果提示 command not found，先用 which 确认工具在不在 PATH 里</span><span class="ln ">which innovus</span></code></pre></div>
 <p><code>which innovus</code> 的返回值一举两得，文档说得很清楚：<strong>&quot;结果会显示 innovus 所在目录以及 innovus 的版本&quot;</strong>：</p>
@@ -93,6 +97,8 @@
 </section>
 <section class="ch" id="options" data-ch="options">
   <div class="ch-h"><span class="ch-n">03</span><h2>九个常用启动选项</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-02-innovus-start-options-1.jpg" data-fig="ai"><img src="/fig/ai/03-02-innovus-start-options-1.jpg" alt="启动工具时加上 -log 参数，蓝色小电子就像带着一个随身录音机，把所有的操作和错误日志全部记录下来，方便事后翻阅。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>启动工具时加上 -log 参数，蓝色小电子就像带着一个随身录音机，把所有的操作和错误日志全部记录下来，方便事后翻阅。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-02-innovus-start-options-2.jpg" data-fig="ai"><img src="/fig/ai/03-02-innovus-start-options-2.jpg" alt="使用 -wait 选项启动时，如果遇到许可证不够，蓝色小电子就会乖乖坐在长椅上排队等候，而不是直接放弃离开。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>使用 -wait 选项启动时，如果遇到许可证不够，蓝色小电子就会乖乖坐在长椅上排队等候，而不是直接放弃离开。</figcaption></figure>
   <p>文档列了九条，我按&quot;一定会用到的程度&quot;重排，并补上实际工作中的注意点。</p>
 <h3 id="log">1. <code>-log</code>：把这一趟的全部输出记下来</h3>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 启动时指定 log 文件名，工具的所有输出都会写进 test.log</span><span class="ln ">innovus -log test.log</span></code></pre></div>
@@ -154,6 +160,7 @@
 </section>
 <section class="ch" id="gui" data-ch="gui">
   <div class="ch-h"><span class="ch-n">04</span><h2>界面分四块认识</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-02-innovus-start-gui.jpg" data-fig="ai"><img src="/fig/ai/03-02-innovus-start-gui.jpg" alt="芯片设计软件的界面就像一个带四个分区的控制室，版图区看图形，命令行敲指令，输出窗看日志，层次树找元件。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>芯片设计软件的界面就像一个带四个分区的控制室，版图区看图形，命令行敲指令，输出窗看日志，层次树找元件。</figcaption></figure>
   <p>启动后（不带 <code>-no_gui</code>）你会看到一个典型的三段式布局，先认地方再学操作：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">┌────────────────────────────────────────────────────────────┐</span><span class="ln ">│  菜单栏 File / Edit / View / Design / Timing / ...          │</span><span class="ln ">├──────────────────────────────────────────────┬─────────────┤</span><span class="ln ">│                                              │  右侧面板    │</span><span class="ln ">│           版图显示区（Layout View）           │  ├ Design   │</span><span class="ln ">│                                              │  ├ Physical │</span><span class="ln ">│   · 左边是 Design Browser（层次树）           │  └ Timing   │</span><span class="ln ">│   · 中间是芯片版图，滚轮缩放、中键平移         │             │</span><span class="ln ">│                                              │             │</span><span class="ln ">├──────────────────────────────────────────────┴─────────────┤</span><span class="ln ">│  命令行（Command Line）：所有 Tcl 命令在这里敲               │</span><span class="ln ">├────────────────────────────────────────────────────────────┤</span><span class="ln ">│  输出窗（Log / Console）：命令的返回、warning、error 都在这 │</span><span class="ln ">└────────────────────────────────────────────────────────────┘</span></code></pre></div>
 <p>四个地方必须会用：</p>
@@ -216,8 +223,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795499490"></script>
-<script src="/assets/tcl.js?v=1795499490"></script>
-<script src="/assets/app.js?v=1795499490"></script>
+<script src="/assets/shell.js?v=1795502567"></script>
+<script src="/assets/tcl.js?v=1795502567"></script>
+<script src="/assets/app.js?v=1795502567"></script>
 </body>
 </html>

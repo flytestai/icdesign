@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 4 讲 · 数组：键-值对（相当于 Python 的字典） · 10 | IC 后端学院</title>
 <meta name="description" content="数组是"键-值对"集合，对应 Python 的字典。定义与访问、array set 批量赋值与两个易错点、嵌套列表写法与 dict get、增改、unset 删除与两种报错、foreach 两种遍历、{} "" [] 原理复用、文档原题 fruit 练习。">
-<link rel="icon" href="/assets/logo.svg?v=1795499490" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795499490">
+<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795502567">
 </head>
 <body data-page="lesson" data-lesson="01-10-tcl-04-array">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795499490" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,6 +64,7 @@
     </div>
     <article id="article"><section class="ch" id="define" data-ch="define">
   <div class="ch-h"><span class="ch-n">01</span><h2>数组是什么、怎么定义</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-define.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-define.jpg" alt="数组就像带有标签的储物柜，每个格子都有一个名字作为钥匙，里面装着对应的数据，存取非常方便。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>数组就像带有标签的储物柜，每个格子都有一个名字作为钥匙，里面装着对应的数据，存取非常方便。</figcaption></figure>
   <div class="goal"><span>本章目标</span>会用 set arr(key) 定义并访问数组；会用 array set 批量赋值并避开两个易错点；会用嵌套列表写法 + dict get 取嵌套字段；会用 unset 删元素/删数组并认识两种报错；会两种 foreach 遍历。</div>
 <p>数组是&quot;键 - 值对&quot;的集合，键（索引）可以是字符串或数字，值可以是任意数据类型，适合存储关联数据（如学生姓名-学号、产品编号-价格）。<strong>它对应 Python 的 dict</strong>。</p>
 <p><strong>定义与访问：<code>set 数组名(键名) 值</code></strong></p>
@@ -95,6 +96,8 @@ puts &quot;班级：$student(class)&quot;      ;# 输出：班级：三年级2�
 </section>
 <section class="ch" id="arrayset" data-ch="arrayset">
   <div class="ch-h"><span class="ch-n">02</span><h2>批量赋值：array set（标准写法）</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-arrayset-1.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-arrayset-1.jpg" alt="蓝色小电子正把多对贴着名字和年龄的标签，一口气贴进一个大抽屉里，代表用一条命令批量存入多个键值对。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子正把多对贴着名字和年龄的标签，一口气贴进一个大抽屉里，代表用一条命令批量存入多个键值对。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-arrayset-2.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-arrayset-2.jpg" alt="蓝色小电子站在标有名字的大箱子前，手里只拿出一张写着名字的纸条，代表只提取数组中所有的键名。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子站在标有名字的大箱子前，手里只拿出一张写着名字的纸条，代表只提取数组中所有的键名。</figcaption></figure>
   <div class="tsbx has-code" data-code=";# 标准写法：array set 数组名 {key1 val1 key2 val2}  批量一次性赋值
 array set person  {name zhangsan age 20}  ;# person 是数组名称 {}里为键值key/val
 puts [array get person]   ;# 返回 name zhangsan age 20
@@ -135,11 +138,14 @@ puts [dict get $person(002) name]   ;# 取嵌套字段：lisi</pre><button class
 </section>
 <section class="ch" id="change" data-ch="change">
   <div class="ch-h"><span class="ch-n">03</span><h2>数组增加 / 修改</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-change.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-change.jpg" alt="蓝色小电子正在往写着键名的小柜子里塞入新物品，代表给数组增加或修改数据。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子正在往写着键名的小柜子里塞入新物品，代表给数组增加或修改数据。</figcaption></figure>
   <p><strong>增加：<code>set 数组名(键) 值</code></strong>——存在已有的键就是<strong>修改</strong>，不存在就是<strong>新增</strong>。（和 Python 的 dict 赋值一模一样。）</p>
   <label class="ch-done"><input type="checkbox" data-mark="change"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="unset" data-ch="unset">
   <div class="ch-h"><span class="ch-n">04</span><h2>数组删除（unset）</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-unset-1.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-unset-1.jpg" alt="就像从抽屉里抽走一张标签纸，箱子还在，但里面的名字不见了，对应删除单个键的情况。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>就像从抽屉里抽走一张标签纸，箱子还在，但里面的名字不见了，对应删除单个键的情况。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-unset-2.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-unset-2.jpg" alt="就像直接把整个大柜子搬走砸碎，连放东西的地方都没有了，对应删除整个数组的情况。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>就像直接把整个大柜子搬走砸碎，连放东西的地方都没有了，对应删除整个数组的情况。</figcaption></figure>
   <p>使用 <code>unset</code> 删除数组中的某个元素或整个数组：</p>
 <p><strong>语法</strong>：<code>unset 数组名(键名)</code>（删除单个元素）/ <code>unset 数组名</code>（删除整个数组）</p>
 <div class="tsbx has-code" data-code="array set person  {name zhangsan age 20}
@@ -167,6 +173,8 @@ puts [array get person]   ;# 返回空值</pre><button class="tcl-go" type="butt
 </section>
 <section class="ch" id="iterate" data-ch="iterate">
   <div class="ch-h"><span class="ch-n">05</span><h2>数组遍历（foreach + array names / array get）</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-iterate-1.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-iterate-1.jpg" alt="快递仓库管理员拿着名册点名，先找到货架编号，再按编号去拿对应的商品，这就是先获取键名再取值的遍历方法。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>快递仓库管理员拿着名册点名，先找到货架编号，再按编号去拿对应的商品，这就是先获取键名再取值的遍历方法。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-iterate-2.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-iterate-2.jpg" alt="快递传送带上一对一对地运出货物，一个蓝色小电子双手同时抱住编号和商品，一轮循环直接拿走一对键值对。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>快递传送带上一对一对地运出货物，一个蓝色小电子双手同时抱住编号和商品，一轮循环直接拿走一对键值对。</figcaption></figure>
   <p>通过 <code>array names 数组名</code> 获取所有键名，再用 foreach 遍历；<code>array names</code> 是 Tcl 内置数组专用命令，属于固定语法。</p>
 <p><strong>方法 1：foreach + array names（拿到 key，再用 key 取值）</strong></p>
 <div class="tsbx has-code" data-code=";# 重新定义数组
@@ -237,6 +245,8 @@ foreach key [array names product] { puts $key }             ;# 循环获取key</
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-lab-1.jpg" alt="蓝色小电子像在超市货架上贴标签一样，给每个储物格编好门牌号并放进水果，这就是用键和值存东西。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子像在超市货架上贴标签一样，给每个储物格编好门牌号并放进水果，这就是用键和值存东西。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-lab-2.jpg" alt="蓝色小电子拿着两把钥匙，分别用来单独打开某个小抽屉拿走水果，或者一把火清空整个大柜子。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子拿着两把钥匙，分别用来单独打开某个小抽屉拿走水果，或者一把火清空整个大柜子。</figcaption></figure>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>文档原题：fruit 数组</div><div class="lab-b"><p>定义一个数组 <code>fruit</code>，里面编号为 001、002、003，分别是 apple、banana、orange。遍历它的键、遍历它的值。</p></div></div>
 <div class="tsbx" data-code="">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">参考写法在下面，先自己写，再对照（练习台里改改玩）</span><button class="sbx-rst" type="button">重置</button></div>
@@ -299,8 +309,8 @@ foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值</pre>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795499490"></script>
-<script src="/assets/tcl.js?v=1795499490"></script>
-<script src="/assets/app.js?v=1795499490"></script>
+<script src="/assets/shell.js?v=1795502567"></script>
+<script src="/assets/tcl.js?v=1795502567"></script>
+<script src="/assets/app.js?v=1795502567"></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>什么是布局布线（PR）：把网表变成能送去生产的版图 · 21 | IC 后端学院</title>
 <meta name="description" content="用一间毛坯房讲清 PR 到底在做什么：综合给的 netlist 只是逻辑连接，PR 把每个单元放到真实坐标上、用真实的金属线连起来，最后吐出 GDSII。顺带把 PD/DE/ME、block 与 top、三种线、芯片分类这些面试必问的名词一次说清。">
-<link rel="icon" href="/assets/logo.svg?v=1795499490" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795499490">
+<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795502567">
 </head>
 <body data-page="lesson" data-lesson="02-02-pr-what">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795499490" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,6 +64,7 @@
     </div>
     <article id="article"><section class="ch" id="what" data-ch="what">
   <div class="ch-h"><span class="ch-n">01</span><h2>先把一句话说死：PR 是什么</h2></div>
+  
   <div class="goal"><span>本章目标</span>能用一句话说出 PR 的输入和输出（netlist → GDSII），能分清 PD/DE/ME 三个岗位，能说出 block 与 top 的区别、三种线分别是什么。</div>
 <p><strong>PR = Place and Route = 布局和布线。</strong> 它在做的事情只有一件：</p>
 <blockquote><p>把综合之后的 <strong>netlist（网表）</strong>，变成可以送去工厂流片的 <strong>GDSII</strong>。</p></blockquote>
@@ -86,6 +87,8 @@
 </section>
 <section class="ch" id="logic-vs-physical" data-ch="logic-vs-physical">
   <div class="ch-h"><span class="ch-n">02</span><h2>综合给的是逻辑连接，PR 才给出物理连接</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-logic-vs-physical-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-logic-vs-physical-1.jpg" alt="综合阶段只管元件之间怎么连线，就像网购时画好的电路原理图，还没有确定在芯片上的真实位置。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>综合阶段只管元件之间怎么连线，就像网购时画好的电路原理图，还没有确定在芯片上的真实位置。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-logic-vs-physical-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-logic-vs-physical-2.jpg" alt="布局布线阶段把元件真正摆到芯片地图的精确坐标上，连线也变成有长短宽窄的真实铜线。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>布局布线阶段把元件真正摆到芯片地图的精确坐标上，连线也变成有长短宽窄的真实铜线。</figcaption></figure>
   <p>完整链条上有三个关键节点，别混：</p>
 <div class="tbl"><table><thead><tr><th>阶段</th><th>谁做</th><th>产物</th><th>关键特征</th></tr></thead><tbody><tr><td>综合（RTL → 电路）</td><td>前端</td><td>netlist（.v.gz）</td><td>器件按功能连起来，<strong>只有逻辑关系</strong></td></tr><tr><td>布局布线（PR）</td><td>后端</td><td>GDSII + def + 报告</td><td>器件有坐标，线有层与宽度，<strong>物理可实现</strong></td></tr><tr><td>签核（STA / PV / PA）</td><td>后端/签核组</td><td>通过的数据库</td><td>证明它在各种 corner 下都能工作</td></tr></tbody></table></div>
 <p>举个具体例子理解&quot;逻辑 → 物理&quot;：</p>
@@ -95,6 +98,8 @@
 </section>
 <section class="ch" id="roles" data-ch="roles">
   <div class="ch-h"><span class="ch-n">03</span><h2>三个岗位缩写：PD / DE / ME</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-roles-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-roles-1.jpg" alt="DE 负责设计架构，蓝色小电子像建筑师一样在画纸上勾勒出房间的逻辑结构。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>DE 负责设计架构，蓝色小电子像建筑师一样在画纸上勾勒出房间的逻辑结构。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-roles-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-roles-2.jpg" alt="ME 负责在中间加固结构，蓝色小电子像质检员一样给房间装上管道和骨架。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>ME 负责在中间加固结构，蓝色小电子像质检员一样给房间装上管道和骨架。</figcaption></figure>
   <p>看招聘 JD 时最先撞上的三个词：</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">PD</span><span class="term-zh">物理设计工程师</span><i class="term-ico">点击看解释</i></div>
@@ -113,6 +118,7 @@
 </section>
 <section class="ch" id="two-tracks" data-ch="two-tracks">
   <div class="ch-h"><span class="ch-n">04</span><h2>后端的两个方向：物理设计与时序设计</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-two-tracks.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-two-tracks.jpg" alt="物理设计和时序设计像是一场拔河比赛，两者互相拉扯，必须互相配合才能让芯片完美出厂。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>物理设计和时序设计像是一场拔河比赛，两者互相拉扯，必须互相配合才能让芯片完美出厂。</figcaption></figure>
   <p>后端不只 PR 一件事，粗分两条线：</p>
 <div class="tbl"><table><thead><tr><th>方向</th><th>干什么</th><th>常见工具</th></tr></thead><tbody><tr><td>物理设计（Physical Design）</td><td>布局、布线、时钟树、供电、DRC/LVS 收敛</td><td>Innovus、ICC2</td></tr><tr><td>时序设计（Timing / STA）</td><td>判断信号能不能&quot;按时到达&quot;，出时序报告、定约束</td><td>PrimeTime、Tempus</td></tr></tbody></table></div>
 <p>两者不是上下级，是<strong>互相拉扯</strong>：PR 把线绕短一点，时序就好一点；时序要求太狠，PR 就得更费力地摆和绕，面积和功耗跟着涨。真实项目里这两个角色每天都要对账——所以本站后面既讲 Innovus，也单独讲 STA。</p>
@@ -120,6 +126,8 @@
 </section>
 <section class="ch" id="block-top" data-ch="block-top">
   <div class="ch-h"><span class="ch-n">05</span><h2>block 级和 top 级：你接到的活是哪一种</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-block-top-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-block-top-1.jpg" alt="块级设计就像在别人划好的地块里盖房子，边界和门的位置都是定好的，只需要专心把里面装好。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>块级设计就像在别人划好的地块里盖房子，边界和门的位置都是定好的，只需要专心把里面装好。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-block-top-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-block-top-2.jpg" alt="顶层设计就像在小区里做总规划，要决定每栋房子的位置、马路怎么走以及总电源从哪里接进来。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>顶层设计就像在小区里做总规划，要决定每栋房子的位置、马路怎么走以及总电源从哪里接进来。</figcaption></figure>
   <p>后端设计按层级分两类，<strong>决定了你每天要操心的东西完全不同</strong>：</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">block / tile</span><span class="term-zh">模块（块级设计）</span><i class="term-ico">点击看解释</i></div>
@@ -135,6 +143,8 @@
 </section>
 <section class="ch" id="place" data-ch="place">
   <div class="ch-h"><span class="ch-n">06</span><h2>布局：什么必须人摆，什么能自动摆</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-place-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-place-1.jpg" alt="体积庞大且引脚固定的内存模块就像大衣柜，必须由人工精心挑选位置摆放，否则会堵塞整个房间的通道。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>体积庞大且引脚固定的内存模块就像大衣柜，必须由人工精心挑选位置摆放，否则会堵塞整个房间的通道。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-place-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-place-2.jpg" alt="标准逻辑门就像标准尺寸的书籍，可以由工具自动且整齐地排列在书架上，省时又高效。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>标准逻辑门就像标准尺寸的书籍，可以由工具自动且整齐地排列在书架上，省时又高效。</figcaption></figure>
   <p>&quot;布局&quot;听着像全部自动，其实分三类器件，待遇完全不同：</p>
 <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">macro / mem / sram</span><span class="term-zh">宏单元、存储器</span><i class="term-ico">点击看解释</i></div>
@@ -155,6 +165,7 @@
 </section>
 <section class="ch" id="route" data-ch="route">
   <div class="ch-h"><span class="ch-n">07</span><h2>布线：三种线，三种命</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-route.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-route.jpg" alt="芯片里的线分三种命，供电线像粗壮的主水管，时钟线像整齐的节拍器，信号线像密密麻麻的小路。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>芯片里的线分三种命，供电线像粗壮的主水管，时钟线像整齐的节拍器，信号线像密密麻麻的小路。</figcaption></figure>
   <p>&quot;布线&quot;不是一种线，是三种，优先级和做法都不同：</p>
 <div class="tbl"><table><thead><tr><th>线</th><th>干什么</th><th>为什么特殊</th></tr></thead><tbody><tr><td><strong>供电</strong>（power）</td><td>把电源/地从 pad 送到每个单元</td><td>要够宽、要成网（mesh/strap）、要算 IR drop 和电迁移</td></tr><tr><td><strong>时钟</strong>（clock）</td><td>把时钟送到每个触发器的 clock 端</td><td>要求&quot;同时到达&quot;（低 skew），要单独做时钟树，普通布线器不许随便动</td></tr><tr><td><strong>信号</strong>（signal）</td><td>其余所有数据/控制线</td><td>数量最多，是拥塞和 DRC 的主要来源</td></tr></tbody></table></div>
 <p>这三条线分别对应流程里的三步：<strong>powerplan（打供电）→ cts（绕时钟）→ route（绕信号）</strong>。下一课就把整个流程串起来。</p>
@@ -163,6 +174,8 @@
 </section>
 <section class="ch" id="scale" data-ch="scale">
   <div class="ch-h"><span class="ch-n">08</span><h2>模块分级与芯片分类：面试的&quot;广度题&quot;</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-scale-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-scale-1.jpg" alt="一颗芯片像一座大厦，分成顶层的一级大厅和底层的各个独立房间，蓝色小电子正站在属于自己的二级房间里忙碌。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>一颗芯片像一座大厦，分成顶层的一级大厅和底层的各个独立房间，蓝色小电子正站在属于自己的二级房间里忙碌。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-scale-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-scale-2.jpg" alt="在一颗集成多种功能的SOC大芯片里，蓝色小电子正像快递员一样在CPU、GPU和高速接口等不同房间之间运送数据。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>在一颗集成多种功能的SOC大芯片里，蓝色小电子正像快递员一样在CPU、GPU和高速接口等不同房间之间运送数据。</figcaption></figure>
   <p><strong>模块分级</strong>：一颗芯片按层级切成一级模块、二级模块、三级模块。越往上（一级）越大越接近顶层，越往下越像&quot;一个具体功能块&quot;。分给你的活通常落在二级或三级模块上——这也解释了为什么招聘会写&quot;负责 XX 模块的 PR&quot;。</p>
 <p><strong>芯片分类</strong>（知道各自算什么就行，面试常拿来探你的知识面）：</p>
 <div class="tbl"><table><thead><tr><th>类型</th><th>是什么</th><th>典型厂商/场景</th></tr></thead><tbody><tr><td>SOC</td><td>片上系统，把 CPU、总线、外设、存储接口集成到一颗</td><td>手机主芯片、车规芯片</td></tr><tr><td>CPU</td><td>通用处理器，看核心数、主频</td><td>Intel、AMD</td></tr><tr><td>GPU</td><td>图形处理器，大量并行计算</td><td>NVIDIA、AMD</td></tr><tr><td>NPU</td><td>神经网络加速单元</td><td>手机/服务器 AI 芯片</td></tr><tr><td>DSP</td><td>数字信号处理，音频、图像、通信基带</td><td>音频/基带芯片</td></tr><tr><td>DDR</td><td>缓存/内存接口控制器</td><td>内存条、SoC 的存储接口</td></tr><tr><td>USB / PCIE</td><td>高速串行传输接口</td><td>外设、板级互连</td></tr><tr><td>VCN</td><td>视频/音频编解码处理</td><td>多媒体芯片</td></tr></tbody></table></div>
@@ -185,6 +198,8 @@
 </section>
 <section class="ch" id="in-project" data-ch="in-project">
   <div class="ch-h"><span class="ch-n">09</span><h2>这一课在项目里的位置</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-in-project-1.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-in-project-1.jpg" alt="后端工程师接手项目时，首先要把前道工序送来的蓝图设计图纸与物理尺寸材料规整好，确认边界与大小。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>后端工程师接手项目时，首先要把前道工序送来的蓝图设计图纸与物理尺寸材料规整好，确认边界与大小。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-02-pr-what-in-project-2.jpg" data-fig="ai"><img src="/fig/ai/02-02-pr-what-in-project-2.jpg" alt="经历九个紧凑工序的流水线打磨后，蓝图最终变为了带有精确坐标和制造尺寸的立体工厂版图。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>经历九个紧凑工序的流水线打磨后，蓝图最终变为了带有精确坐标和制造尺寸的立体工厂版图。</figcaption></figure>
   <p>把这一课放回真实时间线：</p>
 <ol><li>DE 交来 netlist（第 N 版），ME 补好 DFT 和 MMMC 环境；</li><li>你作为 PD 接手，先搞清楚<strong>这块活的边界</strong>（block 还是 top、面积多大、port 在哪）；</li><li>导入数据（netlist + lef + lib + sdc + MMMC）；</li><li>走完 init → floorplan → powerplan → place → cts → optcts → route → optroute → chipfinish；</li><li>交出 GDSII + def + 报告，交给签核组做 STA / PV / PA。</li></ol>
 <p>下一课就把第 4 步这九个阶段一个一个拆开讲，并且告诉你每个阶段&quot;做完怎么看它做得好不好&quot;。</p>
@@ -243,8 +258,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795499490"></script>
-<script src="/assets/tcl.js?v=1795499490"></script>
-<script src="/assets/app.js?v=1795499490"></script>
+<script src="/assets/shell.js?v=1795502567"></script>
+<script src="/assets/tcl.js?v=1795502567"></script>
+<script src="/assets/app.js?v=1795502567"></script>
 </body>
 </html>

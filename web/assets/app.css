@@ -408,6 +408,10 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .fig-img .fig-a{display:block;cursor:zoom-in;background:#f7fafd;line-height:0}
 .fig-img img{display:block;width:100%;height:auto}
 .fig-img figcaption{padding:9px 14px;font-size:12.5px;line-height:1.72;color:var(--muted);border-top:1px solid var(--line);background:#fbfcfe}
+/* 小节首图（AI 生成）：紧跟标题，间距压到和标题一体，别和正文第一段之间空一大块 */
+.fig-ai{margin:0 0 18px}
+.ch-h + .fig-ai{margin-top:-2px}
+.fig-ai figcaption{padding:8px 13px;font-size:12px;line-height:1.68}
 #lb{position:fixed;inset:0;z-index:300;background:rgba(11,20,29,.94);display:none;align-items:center;justify-content:center;padding:22px}
 #lb.on{display:flex}
 #lb img{max-width:100%;max-height:86vh;border-radius:8px;box-shadow:0 24px 70px rgba(0,0,0,.55);background:#fff}

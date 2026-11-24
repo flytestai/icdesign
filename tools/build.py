@@ -79,6 +79,38 @@ NAV = [("/", "课程"), ("/playground/", "练习场"), ("/quiz/", "题库"), ("/
 
 BLOCK_RE = re.compile(r"^:::([a-z]+)(?:[ \t]+(.*?))?[ \t]*\n(.*?)^:::[ \t]*$", re.S | re.M)
 
+AI_INDEX = os.path.join(ROOT, "tools", "aifig_index.json")
+
+
+def load_ai_figs():
+    """读 AI 配图索引（tools/genfig.py 生成）：{"课id#小节anchor": [ {file, caption, w, h} ]}。
+
+    这里是"每小节标题下面第一眼看到的图"，和正文里手写的 :::fig 是两回事，
+    手写的图不经过这个索引。索引里有、磁盘上没有的，跳过并告警——宁可不放，也别放破图。"""
+    if not os.path.exists(AI_INDEX):
+        return {}
+    try:
+        idx = json.load(open(AI_INDEX, encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        print("WARN AI 配图索引读不了（%s），本次不插 AI 图" % e)
+        return {}
+    out, missing = {}, 0
+    for key, it in (idx.get("items") or {}).items():
+        figs = []
+        for f in it.get("figs") or []:
+            if os.path.exists(os.path.join(WEB, f.get("file", ""))):
+                figs.append(f)
+            else:
+                missing += 1
+        if figs:
+            out[key] = figs
+    if missing:
+        print("WARN AI 配图索引里有 %d 个文件不存在，已跳过" % missing)
+    return out
+
+
+AI_FIGS = load_ai_figs()
+
 
 # ---------------------------------------------------------------- 基础工具
 def esc(t):
@@ -651,12 +683,29 @@ HOME = HEAD + """
 </html>"""
 
 
+def ai_figs_html(lesson_id, anchor):
+    """小节标题下面那组 AI 配图。宽高写进 img 属性，图没加载完也不会把版面顶跳。"""
+    figs = AI_FIGS.get("%s#%s" % (lesson_id, anchor))
+    if not figs:
+        return ""
+    out = []
+    for f in figs:
+        src = "/" + f["file"].lstrip("/")
+        cap = esc(f.get("caption", ""))
+        dim = (' width="%d" height="%d"' % (f["w"], f["h"])) if f.get("w") and f.get("h") else ""
+        out.append(f'<figure class="fig-img fig-ai"><a class="fig-a" href="{src}" data-fig="ai">'
+                   f'<img src="{src}" alt="{cap}" loading="lazy" decoding="async"{dim}></a>'
+                   f'<figcaption>{cap}</figcaption></figure>')
+    return "\n  ".join(out)
+
+
 def build_lesson(L, idx, all_lessons):
     chs = L["chapters"]
     art = []
     for i, c in enumerate(chs):
         art.append(f"""<section class="ch" id="{c['id']}" data-ch="{c['id']}">
   <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2></div>
+  {ai_figs_html(L['id'], c['id'])}
   {c['html']}
   <label class="ch-done"><input type="checkbox" data-mark="{c['id']}"><span>这一章我学完了</span></label>
 </section>""")

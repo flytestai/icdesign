@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>init_design：把数据导进 Innovus，并证明它导对了 · 33 | IC 后端学院</title>
 <meta name="description" content="数据准备的文件清单前面讲过，这一课讲怎么把它们真正喂进工具。对比脚本方式与 GUI 方式、逐段拆一份能跑的 init 脚本、说清 init_design 那一刻工具做了什么，然后给出导入后的五条验证检查和一张报错对照表——绝大多数"跑出来结果不对"的问题，都死在这一步没验干净。">
-<link rel="icon" href="/assets/logo.svg?v=1795499490" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795499490">
+<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795502567">
 </head>
 <body data-page="lesson" data-lesson="03-03-innovus-init">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795499490" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,6 +64,8 @@
     </div>
     <article id="article"><section class="ch" id="two" data-ch="two">
   <div class="ch-h"><span class="ch-n">01</span><h2>两条路：脚本是主干，GUI 是拐杖</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-two-1.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-two-1.jpg" alt="就像全自动传送带只要按下开关就能精准重复，写脚本能让整个芯片设计过程完美复现。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>就像全自动传送带只要按下开关就能精准重复，写脚本能让整个芯片设计过程完美复现。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-two-2.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-two-2.jpg" alt="面对满屋子几十个密密麻麻的水龙头和阀门，纯靠手动挨个去拧不仅容易漏掉，还很难记住步骤。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>面对满屋子几十个密密麻麻的水龙头和阀门，纯靠手动挨个去拧不仅容易漏掉，还很难记住步骤。</figcaption></figure>
   <div class="goal"><span>本章目标</span>能默写一份 init 脚本的骨架（mmmc → lef → verilog+top → pwr/gnd → init_design）；能说出 init_design 内部五个动作，尤其是 link；能跑完五条验证检查并读懂异常信号；遇到 Cannot find cell、0 clocks defined、Unconnected power pin 能当场说出原因与修法。</div>
 <p>初始化一个设计，Innovus 给了两条路：</p>
 <div class="tbl"><table><thead><tr><th></th><th>脚本方式（推荐）</th><th>GUI 方式</th></tr></thead><tbody><tr><td>怎么干</td><td>写一份 tcl，<code>innovus -files init.tcl</code></td><td>菜单 File → Import Design，一项项选文件</td></tr><tr><td>可重复性</td><td>完全可重复，改一行重跑</td><td>靠人记，第二次就配不一样</td></tr><tr><td>出错排查</td><td>log 里全有，能 diff</td><td>不知道哪一步点错了</td></tr><tr><td>团队协作</td><td>脚本进版本库，谁都能复现</td><td>别人无法复现你的环境</td></tr><tr><td>文档评价</td><td><strong>主推</strong></td><td><strong>&quot;一般不用，需要配置太多&quot;</strong></td></tr></tbody></table></div>
@@ -73,6 +75,8 @@
 </section>
 <section class="ch" id="files" data-ch="files">
   <div class="ch-h"><span class="ch-n">02</span><h2>数据清单：init 要喂进去什么</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-files-1.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-files-1.jpg" alt="就像拼乐高前必须清点零件，芯片开工前也要备齐网表、库文件和约束等全套原料，缺一不可。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>就像拼乐高前必须清点零件，芯片开工前也要备齐网表、库文件和约束等全套原料，缺一不可。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-files-2.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-files-2.jpg" alt="核对数据时，必须确保网表、布局和引脚文件的名字完全对得上号，否则工具算出的结果毫无意义。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>核对数据时，必须确保网表、布局和引脚文件的名字完全对得上号，否则工具算出的结果毫无意义。</figcaption></figure>
   <p>先把清单摆全，缺一样都跑不起来：</p>
 <div class="tbl"><table><thead><tr><th>类别</th><th>文件</th><th>作用</th><th>缺了会怎样</th></tr></thead><tbody><tr><td>设计</td><td><strong>netlist</strong>（<code>.v.gz</code>）</td><td>门级网表，逻辑连接</td><td>无设计可导</td></tr><tr><td>物理</td><td><strong>tech lef</strong></td><td>工艺层与规则</td><td>不知道能用哪些层、间距多少</td></tr><tr><td>物理</td><td><strong>cell lef</strong></td><td>每个单元的形状与引脚</td><td>所有单元都找不到</td></tr><tr><td>物理</td><td><strong>def</strong>（可选）</td><td>已有布局，接着往下跑</td><td>从零 floorplan</td></tr><tr><td>时序</td><td><strong>lib</strong></td><td>单元延迟功耗</td><td>算不出 cell delay</td></tr><tr><td>时序</td><td><strong>rc tech</strong></td><td>线上寄生参数</td><td>算不出 net delay</td></tr><tr><td>时序</td><td><strong>sdc</strong></td><td>约束（目标）</td><td>不知道往哪优化</td></tr><tr><td>环境</td><td><strong>viewDefinition.tcl</strong></td><td>MMMC 组合</td><td>只有默认一套环境</td></tr><tr><td>电源</td><td>power/ground net 名</td><td>电源网络名</td><td>电源规划找不到网络</td></tr></tbody></table></div>
 <p>前八项的作用在 02-04 ~ 02-08 已经逐个讲过，这里只强调<strong>两件工程上的事</strong>：</p>
@@ -84,6 +88,8 @@
 </section>
 <section class="ch" id="script" data-ch="script">
   <div class="ch-h"><span class="ch-n">03</span><h2>一份能跑的 init 脚本</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-script-1.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-script-1.jpg" alt="就像大厨做菜前先把各种食材和菜谱登记好，在输入正式命令之前，必须先把所有配置文件和路径填好登记在册。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>就像大厨做菜前先把各种食材和菜谱登记好，在输入正式命令之前，必须先把所有配置文件和路径填好登记在册。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-script-2.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-script-2.jpg" alt="如果把配置写在正式启动命令的后面，就像菜已经炒完了才记起放盐，工具根本看不见，结果自然是白忙一场。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>如果把配置写在正式启动命令的后面，就像菜已经炒完了才记起放盐，工具根本看不见，结果自然是白忙一场。</figcaption></figure>
   <p>下面这份脚本是<strong>最常见的写法</strong>（<code>set init_*</code> 风格），几乎每个项目都能看到它的影子。逐段读：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># ============ 第 0 段：基础设置 ============</span><span class="ln ">setMultiCpuUsage -localCpu 16 -cpuAutoAdjust true   ;# 16 核，允许自动升降</span><span class="ln ">setDesignMode -process 28                           ;# 告诉工具是 28nm 工艺，影响内部算法阈值</span><span class="ln ">setLibraryUnit -time 1ns -cap 1pF                   ;# 统一时间与电容单位，与 lib 保持一致</span><span class="ln "> </span><span class="ln cmt"># ============ 第 1 段：MMMC 环境 ============</span><span class="ln ">set init_mmmc_file &quot;scripts/viewDefinition.tcl&quot;     ;# 多模式多端角配置，必须先指定</span><span class="ln cmt"># 这一步会顺带读入 lib、rc tech 和所有 sdc，所以 lib 与 sdc 不用单独列</span><span class="ln "> </span><span class="ln cmt"># ============ 第 2 段：物理库 ============</span><span class="ln ">set init_lef_file {                                 \</span><span class="ln ">    /pdk/tech/tech28.lef                            \</span><span class="ln ">    /pdk/lib/stdcell_lvt.lef                        \</span><span class="ln ">    /pdk/lib/memory_sram.lef                        \</span><span class="ln ">    /pdk/lib/io.lef                                 \</span><span class="ln ">}                                                   ;# 顺序无所谓，但 tech lef 一定要在里面</span><span class="ln "> </span><span class="ln cmt"># ============ 第 3 段：网表与顶层 ============</span><span class="ln ">set init_verilog &quot;netlist/top_v3.v.gz&quot;              ;# 门级网表，可以是列表（多个 .v）</span><span class="ln ">set init_top_cell &quot;top&quot;                             ;# 顶层模块名，必须和 verilog 里 module 名一致</span><span class="ln ">set init_design_uniquify 1                          ;# 自动给重复层次改名，避免同名冲突</span><span class="ln "> </span><span class="ln cmt"># ============ 第 4 段：电源网络名 ============</span><span class="ln ">set init_pwr_net &quot;VDD&quot;                              ;# 电源网络名，以 netlist 为准</span><span class="ln ">set init_gnd_net &quot;VSS&quot;                              ;# 地网络名</span><span class="ln "> </span><span class="ln cmt"># ============ 第 5 段：真正执行导入 ============</span><span class="ln ">init_design                                         ;# 上面全是&quot;配置&quot;，这一行才真正干活</span><span class="ln "> </span><span class="ln cmt"># ============ 第 6 段：接着吃已有的布局（block 流程常用）============</span><span class="ln cmt"># defIn floorplan.def                               ;# 若从别人手里接过来的 def，在这里读入</span></code></pre></div>
 <p>几个必须说清的点：</p>
@@ -96,6 +102,8 @@
 </section>
 <section class="ch" id="what" data-ch="what">
   <div class="ch-h"><span class="ch-n">04</span><h2>init_design 那一刻，工具做了什么</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-what-1.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-what-1.jpg" alt="执行初始化命令时，工具像在工厂里把五种零件图纸和材料一次性整理好，搭建起整个设计的骨架。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>执行初始化命令时，工具像在工厂里把五种零件图纸和材料一次性整理好，搭建起整个设计的骨架。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-what-2.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-what-2.jpg" alt="链接步骤就像核对快递单上的名字，名字写错一个字（比如少了一个下划线），小电子就找不到对应的物品而报错。" loading="lazy" decoding="async" width="1200" height="614"></a><figcaption>链接步骤就像核对快递单上的名字，名字写错一个字（比如少了一个下划线），小电子就找不到对应的物品而报错。</figcaption></figure>
   <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">init_design</span><span class="term-zh">初始化设计</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>Innovus 里把&quot;配置&quot;变成&quot;真设计&quot;的那一条命令：建库、链接、建层次、建时序图、挂约束，五件事一次做完。**执行它之前所有的 <code>set init_*</code> 都只是在记配置，不产生任何动作。**</p></div>
@@ -111,6 +119,7 @@
 </section>
 <section class="ch" id="verify" data-ch="verify">
   <div class="ch-h"><span class="ch-n">05</span><h2>导入成功怎么验证：五条检查</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-verify.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-verify.jpg" alt="就像快递刚送到时不能只看箱子没破，必须打开核对清单，用五条检查确保货物齐全且时钟没丢。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>就像快递刚送到时不能只看箱子没破，必须打开核对清单，用五条检查确保货物齐全且时钟没丢。</figcaption></figure>
   <div class="tip"><div class="tip-h">小技巧</div><p><code>init_design</code> <strong>不报错</strong> ≠ 导入成功。它经常&quot;成功地&quot;导入了一个缺库、缺约束、缺时钟的设计。<strong>必须自己验。</strong></p></div>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 设计概况：实例数、端口数、单元数——数量级对不上就是网表拿错了</span><span class="ln ">report_summary</span><span class="ln "> </span><span class="ln cmt"># 2. 设计规则体检：悬空输入、无驱动网络、多驱动、未连接电源</span><span class="ln ">checkDesign -all</span><span class="ln "> </span><span class="ln cmt"># 3. 约束体检：有没有时钟、有没有未约束的路径、有没有时序环路</span><span class="ln ">check_timing</span><span class="ln "> </span><span class="ln cmt"># 4. 时钟是否真的建上了：数量、名字、周期对不对</span><span class="ln ">report_clocks</span><span class="ln "> </span><span class="ln cmt"># 5. 全局时序概览：WNS/TNS 的量级是否合理（此时还没优化，差是正常的，差得离谱才是问题）</span><span class="ln ">report_timing_summary</span></code></pre></div>
 <p>五条各自的判读标准：</p>
@@ -128,6 +137,8 @@
 </section>
 <section class="ch" id="errors" data-ch="errors">
   <div class="ch-h"><span class="ch-n">06</span><h2>报错对照表：init 阶段九成的问题都在这</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-errors-1.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-errors-1.jpg" alt="芯片导入就像按图拼积木，如果蓝图上的名字和积木盒里的对不上，工具就会大喊找不到。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>芯片导入就像按图拼积木，如果蓝图上的名字和积木盒里的对不上，工具就会大喊找不到。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/03-03-innovus-init-errors-2.jpg" data-fig="ai"><img src="/fig/ai/03-03-innovus-init-errors-2.jpg" alt="导入完成后必须进行五项严格体检，就像给刚组装好的机器做全方位透视，确保没有隐藏毛病。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>导入完成后必须进行五项严格体检，就像给刚组装好的机器做全方位透视，确保没有隐藏毛病。</figcaption></figure>
   <div class="tbl"><table><thead><tr><th>报错/现象</th><th>原因</th><th>怎么修</th></tr></thead><tbody><tr><td><code>Cannot find library 'xxx'</code></td><td>mmmc 里 lib 路径写错，或文件不存在</td><td><code>ls</code> 确认路径；检查 viewDefinition.tcl 里的绝对路径</td></tr><tr><td><code>Cannot find cell 'NAND2_X1'</code></td><td>link 失败：lef/lib 里没这个单元</td><td>比对 netlist 与 lef 的单元名；确认 lef 版本与网表匹配</td></tr><tr><td><code>Cannot find module 'top'</code></td><td><code>init_top_cell</code> 名与 verilog 的 module 名不一致</td><td><code>grep -n &quot;^module&quot; top.v</code> 看真实名字</td></tr><tr><td><code>0 clocks defined</code></td><td>mmmc 没读进来，或 sdc 里没 <code>create_clock</code></td><td><code>report_clocks</code> 确认；检查 <code>init_mmmc_file</code> 路径</td></tr><tr><td><code>Library unit mismatch</code></td><td>lef/lib 的单位与 <code>setLibraryUnit</code> 不一致</td><td>统一成 ns / pF，或去掉 setLibraryUnit 让工具自取</td></tr><tr><td><code>DEF version not supported</code></td><td>def 版本比工具新</td><td>让上游用兼容版本导出，或用工具自带转换</td></tr><tr><td><code>Unconnected power pin</code> 大量出现</td><td>power/ground 网络名写错</td><td><code>set init_pwr_net VDD</code> 按 netlist 实际名字改</td></tr><tr><td><code>Net xxx has no driver</code></td><td>网表本身残缺（综合时被优化掉/黑盒）</td><td><code>checkDesign</code> 定位具体 net，找前端确认</td></tr><tr><td>跑得极慢，内存爆</td><td><code>-cpus</code> 给太高、或 lef 里带了几百个 macro</td><td>降核数；确认 lef 只导入了需要的库</td></tr></tbody></table></div>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>跑一次 init，并留下证据</div><div class="lab-b"><p>在真机环境里按下面步骤走一遍；模拟终端只演示命令语法。</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 先确认四类文件都在，缺哪个当场就能看出来</span><span class="ln ">ls -lh netlist/top_v3.v.gz</span><span class="ln ">ls -lh /pdk/tech/tech28.lef /pdk/lib/stdcell_lvt.lef</span><span class="ln ">ls -lh scripts/viewDefinition.tcl</span><span class="ln ">grep -c &quot;create_clock&quot; scripts/func.sdc        # 确认 sdc 里有主时钟</span><span class="ln "> </span><span class="ln cmt"># 2. 无界面启动 + 自动跑 init 脚本 + 写 log，一条命令搞定</span><span class="ln ">innovus -no_gui -files scripts/init.tcl -log logs/init_v3.log -cpus 8</span><span class="ln "> </span><span class="ln cmt"># 3. 跑完先看错误，再看警告，最后看五条检查的输出</span><span class="ln ">grep -n &quot;ERROR&quot; logs/init_v3.log | head -20</span><span class="ln ">grep -c &quot;Warning&quot; logs/init_v3.log</span><span class="ln ">grep -n -A2 &quot;report_summary\|check_timing\|report_clocks&quot; logs/init_v3.log | head -40</span><span class="ln "> </span><span class="ln cmt"># 4. 确认设计存下来了（下次可以 loadDesign 续跑，不用重新 init）</span><span class="ln ">ls -lh DBS/top.enc</span></code></pre></div>
@@ -188,8 +199,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795499490"></script>
-<script src="/assets/tcl.js?v=1795499490"></script>
-<script src="/assets/app.js?v=1795499490"></script>
+<script src="/assets/shell.js?v=1795502567"></script>
+<script src="/assets/tcl.js?v=1795502567"></script>
+<script src="/assets/app.js?v=1795502567"></script>
 </body>
 </html>

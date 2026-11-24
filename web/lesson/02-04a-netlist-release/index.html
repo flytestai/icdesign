@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>网表版本、Release 路径与迭代协作 · 24 | IC 后端学院</title>
 <meta name="description" content="真实项目里网表不是"一份"，而是一串版本。这一课讲清网表怎么命名（模块名+后缀）、Release 路径在服务器上长什么样（项目/ME 或 DE/模块）、S1 与 S2 两版网表各用来干什么、instance 数量为什么会从 200 万跳到 400 万、模块形状从矩形变 L 型时为什么之前两个月的布局全废——以及最后一条：为什么必须在最后一版网表定下来之前把问题全抛出去。">
-<link rel="icon" href="/assets/logo.svg?v=1795499490" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795499490">
+<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795502567">
 </head>
 <body data-page="lesson" data-lesson="02-04a-netlist-release">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795499490" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,6 +64,7 @@
     </div>
     <article id="article"><section class="ch" id="why" data-ch="why">
   <div class="ch-h"><span class="ch-n">01</span><h2>网表不是一份，是一串</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-why.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-why.jpg" alt="芯片网表在项目迭代中会经历多次修改，从V1.0一直演变到V9.0，每一步都必须用对最新版本。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>芯片网表在项目迭代中会经历多次修改，从V1.0一直演变到V9.0，每一步都必须用对最新版本。</figcaption></figure>
   <div class="goal"><span>本章目标</span>能说出网表的命名规则与常见后缀；能画出 Release 路径结构（项目/ME|DE/模块/文件）；能说清 S1 与 S2 网表各用来干什么；能解释 instance 数量波动与模块形状变更对 PR 的影响；能说出&quot;最后一版网表定责&quot;这条规矩为什么重要。</div>
 <p>课上讲&quot;网表是前段综合之后给到后端的文件&quot;，听起来像一次性交付。实际项目里它是<strong>连续迭代的一串版本</strong>：V1.0、V1.1、V2.0……一直迭代到 V9.0 甚至更多。</p>
 <p><strong>你拿错版本、或者拿的是别人改过的旧版本，后面几周的活全白干</strong>——所以这一课的内容虽然不&quot;技术&quot;，却直接决定你会不会白加班。</p>
@@ -71,6 +72,7 @@
 </section>
 <section class="ch" id="naming" data-ch="naming">
   <div class="ch-h"><span class="ch-n">02</span><h2>命名规则：模块名 + 后缀</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-naming.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-naming.jpg" alt="蓝色小电子给网表文件贴上标准标签，名字用小写字母，这样自动脚本寻找时就不会在深夜报错。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>蓝色小电子给网表文件贴上标准标签，名字用小写字母，这样自动脚本寻找时就不会在深夜报错。</figcaption></figure>
   <p>网表文件的后缀常见三种：</p>
 <div class="tbl"><table><thead><tr><th>后缀</th><th>含义</th></tr></thead><tbody><tr><td><code>.v</code></td><td>明文 Verilog 网表</td></tr><tr><td><code>.v.gz</code></td><td>gzip 压缩的 Verilog（<strong>最常见</strong>，体积小）</td></tr><tr><td><code>.gz</code></td><td>压缩包（有的流程把多个文件打一起）</td></tr></tbody></table></div>
 <p>命名规则只有一条：<strong>文件名主体 = 模块名，小写</strong>。</p>
@@ -80,6 +82,8 @@
 </section>
 <section class="ch" id="release" data-ch="release">
   <div class="ch-h"><span class="ch-n">03</span><h2>Release：一个动作，也是一个路径</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-release-1.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-release-1.jpg" alt="发布动作就像把做好的模型放进公共收纳柜，让下游的小伙伴直接来取，不用发邮件传文件。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>发布动作就像把做好的模型放进公共收纳柜，让下游的小伙伴直接来取，不用发邮件传文件。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-release-2.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-release-2.jpg" alt="服务器上的路径就像一排排整齐的仓库货架，ME放网表，DE放前端代码，找东西先问路径。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>服务器上的路径就像一排排整齐的仓库货架，ME放网表，DE放前端代码，找东西先问路径。</figcaption></figure>
   <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">Release</span><span class="term-zh">交付/上传</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>在项目语境里是个<strong>动作</strong>：把本地综合好的网表<strong>上传到服务器上约定的共享路径</strong>，让下游（后端）能取到。<br>注意它不是&quot;发个邮件&quot;，而是&quot;放到那个大家都能访问的目录里&quot;。</p></div>
@@ -94,6 +98,8 @@
 </section>
 <section class="ch" id="s1s2" data-ch="s1s2">
   <div class="ch-h"><span class="ch-n">04</span><h2>S1 与 S2：两版网表，两种用途</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-s1s2-1.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-s1s2-1.jpg" alt="S1版本是没有串联测试结构的纯功能网表，只用来摸清整体面积和逻辑增长情况。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>S1版本是没有串联测试结构的纯功能网表，只用来摸清整体面积和逻辑增长情况。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-s1s2-2.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-s1s2-2.jpg" alt="S2版本是插入了测试链的最终网表，后续的所有综合和布线分析都基于这个版本。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>S2版本是插入了测试链的最终网表，后续的所有综合和布线分析都基于这个版本。</figcaption></figure>
   <p>项目里你会拿到两次&quot;正式&quot;网表：</p>
 <div class="tbl"><table><thead><tr><th>版本</th><th>内容</th><th>用来干什么</th></tr></thead><tbody><tr><td><strong>S1</strong></td><td><strong>纯功能（func）网表</strong>，没插扫描链</td><td>检查 RTL 从 v1.0 到 v2.0 时<strong>内部逻辑增长了多少</strong>（instance 数变化），先把面积与可行性摸清</td></tr><tr><td><strong>S2</strong></td><td>插入 <strong>scan chain</strong> 之后的最终版</td><td><strong>后续所有分析、签核都基于 S2</strong></td></tr></tbody></table></div>
 <div class="term" tabindex="0">
@@ -105,6 +111,8 @@
 </section>
 <section class="ch" id="instance" data-ch="instance">
   <div class="ch-h"><span class="ch-n">05</span><h2>数量波动：200 万 → 400 万 → 300 万</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-instance-1.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-instance-1.jpg" alt="芯片里的蓝色小电子代表一个个单元，数量越多面积越大。当数量超标时硬扛会导致后期绕线失败。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>芯片里的蓝色小电子代表一个个单元，数量越多面积越大。当数量超标时硬扛会导致后期绕线失败。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-instance-2.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-instance-2.jpg" alt="当芯片网表数量异常激增时，不能盲目硬扛，必须及时向上游反馈，让前端和DFT团队共同优化解决。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>当芯片网表数量异常激增时，不能盲目硬扛，必须及时向上游反馈，让前端和DFT团队共同优化解决。</figcaption></figure>
   <div class="term" tabindex="0">
   <div class="term-h"><span class="term-en">instance</span><span class="term-zh">实例</span><i class="term-ico">点击看解释</i></div>
   <div class="term-b"><p>网表里每一个&quot;被用到的单元&quot;就是一个 instance。<strong>instance 数直接对应面积</strong>，是判断&quot;这块能不能做下&quot;的第一指标。</p></div>
@@ -117,6 +125,7 @@
 </section>
 <section class="ch" id="shape" data-ch="shape">
   <div class="ch-h"><span class="ch-n">06</span><h2>形状变更：为什么两个月的工作会重做</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-shape.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-shape.jpg" alt="顶层规划时，蓝色小电子被强制塞进 L 形的房间里，原本顺手的摆设全得推倒重来。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>顶层规划时，蓝色小电子被强制塞进 L 形的房间里，原本顺手的摆设全得推倒重来。</figcaption></figure>
   <p>文档里那段关于 L 型的描述，是后端最真实的痛：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">   矩形              长条形            L 型             两个 L</span><span class="ln "> ┌───────┐        ┌───────────┐     ┌─────┐          ┌───┬───┐</span><span class="ln "> │       │        │           │     │     │          │   │   │</span><span class="ln "> └───────┘        └───────────┘     │     └────┐     │   └───┤</span><span class="ln ">                                    └──────────┘     └───────┘</span></code></pre></div>
 <p>为什么会变形？因为<strong>顶层受面积和其他模块的限制</strong>，把你这一块的形状切成了 L 型、LU 型，或者干脆拆成两个：</p>
@@ -127,6 +136,8 @@
 </section>
 <section class="ch" id="delay" data-ch="delay">
   <div class="ch-h"><span class="ch-n">07</span><h2>Delay 的两层意思</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-delay-1.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-delay-1.jpg" alt="信号在电线里跑步需要时间，这是芯片设计里的技术延迟，就像赛跑计时一样。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>信号在电线里跑步需要时间，这是芯片设计里的技术延迟，就像赛跑计时一样。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-delay-2.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-delay-2.jpg" alt="团队开会时大家互相等待、沟通不畅耽误的时间，就是让人头疼的协作延迟。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>团队开会时大家互相等待、沟通不畅耽误的时间，就是让人头疼的协作延迟。</figcaption></figure>
   <p>课上专门提过：<code>Delay</code> 这个词在项目里有两层含义。</p>
 <div class="tbl"><table><thead><tr><th>含义</th><th>例子</th></tr></thead><tbody><tr><td><strong>技术延迟</strong></td><td>信号从 A 到 B 花了多少 ns（时序分析里的 delay）</td></tr><tr><td><strong>协作延迟</strong></td><td>周三反馈问题，前端说周五改完，你下周一才拿到网表——中间这几天就是 delay</td></tr></tbody></table></div>
 <div class="pit"><div class="pit-h">常见坑 · 项目后期还容许&quot;协作 delay&quot;</div><div class="pit-b"><p><strong>现象</strong>：临近版图冻结，你还在等前端的新网表，等到最后一周才拿到。</p>
@@ -136,6 +147,8 @@
 </section>
 <section class="ch" id="responsibility" data-ch="responsibility">
   <div class="ch-h"><span class="ch-n">08</span><h2>定责：最后一版网表之前，把问题全抛出去</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-responsibility-1.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-responsibility-1.jpg" alt="网表冻结前必须把所有设计问题和数据摆上台面彻底讲清楚，避免后期无法修改时独自承担责任。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>网表冻结前必须把所有设计问题和数据摆上台面彻底讲清楚，避免后期无法修改时独自承担责任。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-responsibility-2.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-responsibility-2.jpg" alt="网表冻结后如果遇到时序或面积不达标，只能靠微调来硬凑，说空话无法解决任何实际问题。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>网表冻结后如果遇到时序或面积不达标，只能靠微调来硬凑，说空话无法解决任何实际问题。</figcaption></figure>
   <p>这是文档里最重要的一条职场经验，原文很直白：<strong>前端会提供最后一版网表，此后所有逻辑/约束问题都要在此前反馈，否则后端自己背锅。</strong></p>
 <p>拆分一下：</p>
 <ol><li><strong>最后一版网表之前</strong>：任何&quot;逻辑太长、面积不够、时钟定义不清、约束不合理&quot;的问题，<strong>立刻提</strong>，最好留邮件/群记录；</li><li><strong>最后一版之后</strong>：网表冻结，只能靠 PR 手段（换单元、加 pipeline 不行了、调约束）去凑；</li><li><strong>凑不出来</strong>：责任会落到&quot;你当时没说&quot;。</li></ol>
@@ -146,6 +159,8 @@
 </section>
 <section class="ch" id="rhythm" data-ch="rhythm">
   <div class="ch-h"><span class="ch-n">09</span><h2>工作节奏：前期松、后期紧</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-rhythm-1.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-rhythm-1.jpg" alt="项目前期像是在悠闲地拼积木，有充足的时间把每个零件检查干净，绝不把隐患留到最后。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>项目前期像是在悠闲地拼积木，有充足的时间把每个零件检查干净，绝不把隐患留到最后。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/02-04a-netlist-release-rhythm-2.jpg" data-fig="ai"><img src="/fig/ai/02-04a-netlist-release-rhythm-2.jpg" alt="项目后期则像是在疯狂冲刺的传送带前，如果前期没做好，后期就会被成堆的快递压得喘不过气。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>项目后期则像是在疯狂冲刺的传送带前，如果前期没做好，后期就会被成堆的快递压得喘不过气。</figcaption></figure>
   <p>文档讲得很实：</p>
 <ul><li><strong>前期（PR 阶段前几个月）</strong>：模块做得顺、没有新网表时，确实比较轻松，有的项目不严格打卡；</li><li><strong>后期（ECO 两个月）</strong>：加班频繁，到晚上九点、十点甚至凌晨一两点都常见；</li><li><strong>决定因素是前期质量</strong>：前期问题清干净，后期 ECO 相对轻松；前期问题堆到最后一周，后期就是地狱。</li></ul>
 <p><strong>结论很朴素</strong>：这一行的&quot;累不累&quot;不取决于后期多拼，而取决于<strong>前期有没有把问题及时抛出去、把布局留够余量</strong>。</p>
@@ -205,8 +220,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795499490"></script>
-<script src="/assets/tcl.js?v=1795499490"></script>
-<script src="/assets/app.js?v=1795499490"></script>
+<script src="/assets/shell.js?v=1795502567"></script>
+<script src="/assets/tcl.js?v=1795502567"></script>
+<script src="/assets/app.js?v=1795502567"></script>
 </body>
 </html>

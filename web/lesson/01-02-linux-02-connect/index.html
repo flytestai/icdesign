@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 2 课 · 连接服务器与目录结构 · 02 | IC 后端学院</title>
 <meta name="description" content="Xshell 连接服务器的完整 5 步流程（带截图）；Linux 系统级目录结构 / 工作级目录；通过颜色区分文件类型。">
-<link rel="icon" href="/assets/logo.svg?v=1795499490" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795499490">
+<link rel="icon" href="/assets/logo.svg?v=1795502567" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795502567">
 </head>
 <body data-page="lesson" data-lesson="01-02-linux-02-connect">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795499490" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795502567" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -64,6 +64,7 @@
     </div>
     <article id="article"><section class="ch" id="connect" data-ch="connect">
   <div class="ch-h"><span class="ch-n">01</span><h2>1. Xshell 连接的方式</h2></div>
+  
   <div class="goal"><span>本章目标</span>按照截图步骤独立完成 Xshell 连接服务器；记住 Linux 核心目录的用途；会用颜色判断文件类型。</div>
 <p><strong>第 1 步</strong>：从以下入口进入，新建会话。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/linux-07.png" data-fig="linux-07"><img src="/fig/linux-07.png" alt="Xshell 新建会话入口" loading="lazy" decoding="async"></a><figcaption>Xshell 新建会话入口</figcaption></figure>
@@ -80,6 +81,8 @@
 </section>
 <section class="ch" id="tree" data-ch="tree">
   <div class="ch-h"><span class="ch-n">02</span><h2>2. 目录的结构</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-02-linux-02-connect-tree-1.jpg" data-fig="ai"><img src="/fig/ai/01-02-linux-02-connect-tree-1.jpg" alt="Linux的目录结构就像一栋大楼的楼梯间，根目录是稳固的大厅（/），下面分出放工具的杂物间、住户的家（/home）和管理室（/root）。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>Linux的目录结构就像一栋大楼的楼梯间，根目录是稳固的大厅（/），下面分出放工具的杂物间、住户的家（/home）和管理室（/root）。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-02-linux-02-connect-tree-2.jpg" data-fig="ai"><img src="/fig/ai/01-02-linux-02-connect-tree-2.jpg" alt="工作级目录就像公司里每个人都有自己带锁的抽屉，大家各自干活、互不干扰，保证文件不会乱套。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>工作级目录就像公司里每个人都有自己带锁的抽屉，大家各自干活、互不干扰，保证文件不会乱套。</figcaption></figure>
   <h3>系统级目录</h3>
 <div class="tbl"><table><thead><tr><th>目录</th><th>用途</th></tr></thead><tbody><tr><td><code>/</code></td><td><strong>根目录</strong>，所有的文件都存放在根目录下</td></tr><tr><td><code>/bin</code></td><td>命令的存放位置</td></tr><tr><td><code>/dev</code></td><td>一些设备的配置文件</td></tr><tr><td><code>/etc</code></td><td>存放网络的相关配置文件，密码、防火墙配置、端口等</td></tr><tr><td><code>/home</code></td><td><strong>家目录</strong>，所有普通用户的家目录（或写作 <code>~</code>）</td></tr><tr><td><code>/opt</code></td><td>存放一些安装的软件</td></tr><tr><td><code>/root</code></td><td><strong>超级管理员</strong>的家目录</td></tr><tr><td><code>.</code></td><td>当前目录</td></tr><tr><td><code>..</code></td><td>当前目录的上一级目录</td></tr></tbody></table></div>
 <h3>工作级的目录</h3>
@@ -90,12 +93,15 @@
 </section>
 <section class="ch" id="color" data-ch="color">
   <div class="ch-h"><span class="ch-n">03</span><h2>3. 通过颜色区分文件类型</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-02-linux-02-connect-color.jpg" data-fig="ai"><img src="/fig/ai/01-02-linux-02-connect-color.jpg" alt="电脑屏幕里的文件列表就像超市货架，通过不同颜色一眼就能分出文件夹、普通文件和压缩包。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>电脑屏幕里的文件列表就像超市货架，通过不同颜色一眼就能分出文件夹、普通文件和压缩包。</figcaption></figure>
   <div class="tbl"><table><thead><tr><th>颜色</th><th>含义</th></tr></thead><tbody><tr><td>蓝色</td><td>目录</td></tr><tr><td>白色</td><td>普通文本文件</td></tr><tr><td>绿色</td><td>一般是加了可执行权限的文件</td></tr><tr><td>红色</td><td>压缩、打包之后的文件</td></tr><tr><td>浅蓝</td><td>链接文件</td></tr></tbody></table></div>
 <div class="note"><div class="note-h">先混个眼熟</div><p>下一课开始正式敲命令。ls 出来一大片颜色时，你就能一眼分清哪些是目录、哪些是文件、哪些是压缩包。</p></div>
   <label class="ch-done"><input type="checkbox" data-mark="color"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-02-linux-02-connect-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-02-linux-02-connect-lab-1.jpg" alt="就像大楼里不同的储物间，Linux 系统用不同的文件夹来存放家目录、系统配置和软件。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>就像大楼里不同的储物间，Linux 系统用不同的文件夹来存放家目录、系统配置和软件。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-02-linux-02-connect-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-02-linux-02-connect-lab-2.jpg" alt="终端里的文件名就像穿着不同制服的人，蓝色代表文件夹，绿色代表能跑起来的机器人，红色是打包的包裹。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>终端里的文件名就像穿着不同制服的人，蓝色代表文件夹，绿色代表能跑起来的机器人，红色是打包的包裹。</figcaption></figure>
   <div class="sbx" data-preset="basic">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>模拟终端</b><span class="sbx-tip">在模拟终端里敲 ls 试试：蓝色的是目录，白色的是文件。再试试 cd / 和 ls</span><button class="sbx-rst" type="button">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div>
@@ -140,8 +146,8 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795499490"></script>
-<script src="/assets/tcl.js?v=1795499490"></script>
-<script src="/assets/app.js?v=1795499490"></script>
+<script src="/assets/shell.js?v=1795502567"></script>
+<script src="/assets/tcl.js?v=1795502567"></script>
+<script src="/assets/app.js?v=1795502567"></script>
 </body>
 </html>
