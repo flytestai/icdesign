@@ -32,6 +32,8 @@ BASE = Path(os.environ.get("ICL_BASE", Path(__file__).resolve().parent))
 WEB = BASE / "web"
 DATA = BASE / "data"
 DB = DATA / "app.db"
+# 管理员上传/替换图片的持久目录：全量部署会原子切换 web/，存这里不受影响
+MIRROR = DATA / "fig_mirror"
 VERSION = "1.2.0"
 
 DATA.mkdir(exist_ok=True)
@@ -363,13 +365,26 @@ async def admin_fig(request: Request):
         raise HTTPException(400, "图片内容为空")
     if len(data) > MAX_FIG_BYTES:
         raise HTTPException(400, "图片超过 12MB")
-    target = WEB / rel
-    fig_root = os.path.realpath(WEB / "fig")
-    real = os.path.realpath(target)
-    if not real.startswith(fig_root + os.sep):
-        raise HTTPException(400, "路径必须位于 fig/ 目录下")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_bytes(data)
+    sub = rel[4:]                                   # 去掉 fig/ 前缀
+    if ".." in sub:
+        raise HTTPException(400, "非法图片路径")
+    if sub.startswith("custom/"):
+        # 粘贴/转存的新图 → 持久镜像（部署不受影响）
+        target = MIRROR / sub
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+    else:
+        # 替换构建产物里的同名图：写 web（当前立即可见）+ 持久镜像（部署后仍生效）
+        target = WEB / rel
+        fig_root = os.path.realpath(WEB / "fig")
+        real = os.path.realpath(target)
+        if not real.startswith(fig_root + os.sep):
+            raise HTTPException(400, "路径必须位于 fig/ 目录下")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        mtarget = MIRROR / sub
+        mtarget.parent.mkdir(parents=True, exist_ok=True)
+        mtarget.write_bytes(data)
     return {"ok": True, "path": rel, "size": len(data)}
 
 
@@ -381,14 +396,15 @@ CT_EXT = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/
 
 
 def _store_fig(data: bytes, ext: str, prefix: str = "paste") -> str:
-    """按内容哈希落盘到 fig/custom/，重复图片自动复用同一文件。返回相对路径 fig/xxx。"""
+    """按内容哈希落盘到持久镜像 fig_mirror/custom/（部署切换 web 不受影响）。
+    重复图片自动复用同一文件。返回相对路径 fig/custom/xxx。"""
     h = hashlib.sha1(data).hexdigest()[:12]
-    rel = "fig/custom/%s-%s.%s" % (prefix, h, ext)
-    target = WEB / rel
+    name = "%s-%s.%s" % (prefix, h, ext)
+    target = MIRROR / "custom" / name
     target.parent.mkdir(parents=True, exist_ok=True)
     if not target.exists():
         target.write_bytes(data)
-    return rel
+    return "fig/custom/" + name
 
 
 def _fetch_ext_image(url: str) -> tuple:
@@ -682,6 +698,24 @@ for _path, _file in AUTH_PAGES.items():
             return _auth_page(f)
         return _handler
     app.get(_path)(_make(_file))
+
+# ================================================================ 图片服务（持久镜像优先）
+# 管理员上传/替换的图存在 data/fig_mirror/（部署切换 web 不受影响），
+# 这里必须注册在下面的 "/" 静态挂载之前，才能抢到 /fig/* 的请求。
+FIG_SERVE_RE = re.compile(r"^[\w][\w\-./ ]*$")
+
+
+@app.get("/fig/{fig_path:path}")
+def fig_file(fig_path: str):
+    if ".." in fig_path or not FIG_SERVE_RE.match(fig_path):
+        raise HTTPException(404, "not found")
+    p = MIRROR / fig_path
+    if not p.exists():
+        p = WEB / "fig" / fig_path
+    if not p.exists():
+        raise HTTPException(404, "fig not found")
+    return FileResponse(p, headers={"Cache-Control": "no-cache"})
+
 
 app.mount("/", StaticFiles(directory=str(WEB), html=True), name="web")
 
