@@ -76,6 +76,7 @@ def load_cfg():
     cfg.setdefault("review_model", cfg["text_model"])
     cfg.setdefault("review_retries", 2)
     cfg["base_url"] = cfg["base_url"].rstrip("/")
+    cfg.setdefault("image_base_url", cfg["base_url"])
     return cfg
 
 
@@ -90,10 +91,26 @@ def api_key():
     raise SystemExit("缺少 API Key：设置环境变量 AIFIG_API_KEY，或写入 %s" % KEY_PATH)
 
 
-def post_json(cfg, path, payload, timeout=None):
-    """带重试的 JSON POST：429/5xx/网络抖动退避重试，4xx 直接报错。"""
-    key = api_key()
-    url = cfg["base_url"] + path
+def image_api_key(cfg):
+    """图像接口的 key：优先环境变量 AIFIG_IMAGE_API_KEY，其次配置 image_api_key，其次 .aifig_image.key，最后回落到文本 key。"""
+    k = os.environ.get("AIFIG_IMAGE_API_KEY", "").strip()
+    if k:
+        return k
+    k = str(cfg.get("image_api_key", "") or "").strip()
+    if k:
+        return k
+    p = os.path.join(ROOT, ".aifig_image.key")
+    if os.path.exists(p):
+        k = open(p, encoding="utf-8").read().strip()
+        if k:
+            return k
+    return api_key()
+
+
+def post_json(cfg, path, payload, timeout=None, base_url=None, key=None):
+    """带重试的 JSON POST：429/5xx/网络抖动退避重试，4xx 直接报错。base_url/key 可为图像接口单独指定。"""
+    key = key or api_key()
+    url = (base_url or cfg["base_url"]).rstrip("/") + path
     data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     last = None
     for attempt in range(cfg["retries"] + 1):
@@ -405,8 +422,21 @@ def draw(cfg, prompt):
         "prompt": prompt,
         "size": cfg["image_size"],
         "n": 1,
-    })
-    return base64.b64decode(r["data"][0]["b64_json"])
+    }, base_url=cfg.get("image_base_url"), key=image_api_key(cfg))
+    d = (r.get("data") or [{}])[0]
+    if d.get("b64_json"):
+        return base64.b64decode(d["b64_json"])
+    url = d.get("url")
+    if url:
+        # 兼容返回图片链接的接口：先匿名下载，401/403 再带上 key 试一次
+        for hdrs in ({}, {"Authorization": "Bearer " + image_api_key(cfg)}):
+            req = urllib.request.Request(url, headers=hdrs)
+            try:
+                with urllib.request.urlopen(req, timeout=180) as resp:
+                    return resp.read()
+            except Exception:
+                continue
+    raise RuntimeError("图像接口返回里既没有 b64_json 也没有可下载的 url：%s" % str(r)[:200])
 
 
 def save_jpeg(cfg, png_bytes, dst_base):

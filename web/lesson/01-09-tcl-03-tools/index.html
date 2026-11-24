@@ -64,10 +64,9 @@
     </div>
     <article id="article"><section class="ch" id="append" data-ch="append">
   <div class="ch-h"><span class="ch-n">01</span><h2>append：追加内容（字符串拼接）</h2></div>
-  <div class="fig-gallery" data-n="3">
-  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-append-p1.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-append-p1.jpg" alt="第 1/3 页 · 总览：这一节要弄明白的 2 件事——认识 append、追加多个与花括号。" loading="lazy" decoding="async" width="1400" height="788"></a><figcaption>第 1/3 页 · 总览：这一节要弄明白的 2 件事——认识 append、追加多个与花括号。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-append-p2.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-append-p2.jpg" alt="第 2/3 页 · 认识 append：它是直接在变量后面加文字的超能力。（append向后接，变量不用写美元符号。）" loading="lazy" decoding="async" width="1242" height="1266"></a><figcaption>第 2/3 页 · 认识 append：它是直接在变量后面加文字的超能力。（append向后接，变量不用写美元符号。）</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-append-p3.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-append-p3.jpg" alt="第 3/3 页 · 追加多个与花括号：它可以一次性连上好几个不同的文字积木。（append能连多个，用大括号也很方便。）" loading="lazy" decoding="async" width="1247" height="1261"></a><figcaption>第 3/3 页 · 追加多个与花括号：它可以一次性连上好几个不同的文字积木。（append能连多个，用大括号也很方便。）</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-append-p1.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-append-p1.jpg" alt="第 1/2 页 · 什么是追加：在变量原本的内容后面，直接贴上新内容。（append抓尾巴，贴字不用重新写！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/2 页 · 什么是追加：在变量原本的内容后面，直接贴上新内容。（append抓尾巴，贴字不用重新写！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-append-p2.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-append-p2.jpg" alt="第 2/2 页 · append用法：专门用来在末尾加字的魔法命令。（命令后面别加$，直接写名字！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 2/2 页 · append用法：专门用来在末尾加字的魔法命令。（命令后面别加$，直接写名字！）</figcaption></figure>
 </div>
   <div class="goal"><span>本章目标</span>会用 append 一次追加多个内容；知道 append 后面写变量名不带 $；会用 incr 做整数加减；会用 expr 做所有数学运算并躲开整数除法的坑。</div>
 <p>在原有变量值<strong>末尾</strong>添加新内容，无需重新赋值，效率更高。</p>
@@ -116,10 +115,11 @@ puts $str2                ;# 输出：Hello World!</pre><button class="tcl-go" t
 </section>
 <section class="ch" id="incr" data-ch="incr">
   <div class="ch-h"><span class="ch-n">02</span><h2>incr：数值递增 / 递减</h2></div>
-  <div class="fig-gallery" data-n="3">
-  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-incr-p1.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-incr-p1.jpg" alt="第 1/3 页 · 总览：这一节要弄明白的 2 件事——认识incr、加减小秘诀。" loading="lazy" decoding="async" width="1400" height="933"></a><figcaption>第 1/3 页 · 总览：这一节要弄明白的 2 件事——认识incr、加减小秘诀。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-incr-p2.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-incr-p2.jpg" alt="第 2/3 页 · 认识incr：专门给整数加减数字的魔法命令（incr专管整数加减，数字轻松变大变小。）" loading="lazy" decoding="async" width="1247" height="1261"></a><figcaption>第 2/3 页 · 认识incr：专门给整数加减数字的魔法命令（incr专管整数加减，数字轻松变大变小。）</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-incr-p3.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-incr-p3.jpg" alt="第 3/3 页 · 加减小秘诀：不写数字就默认每次只加1（不写数字默认加1，偷懒必备小技巧。）" loading="lazy" decoding="async" width="1216" height="1293"></a><figcaption>第 3/3 页 · 加减小秘诀：不写数字就默认每次只加1（不写数字默认加1，偷懒必备小技巧。）</figcaption></figure>
+  <div class="fig-gallery" data-n="4">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-incr-p1.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-incr-p1.jpg" alt="第 1/4 页 · 总览：这一节要弄明白的 3 件事——什么是incr、默认加一、指定增减。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/4 页 · 总览：这一节要弄明白的 3 件事——什么是incr、默认加一、指定增减。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-incr-p2.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-incr-p2.jpg" alt="第 2/4 页 · 什么是incr：专门给整数加减数字的魔法命令。（incr专管数字加加减减！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 2/4 页 · 什么是incr：专门给整数加减数字的魔法命令。（incr专管数字加加减减！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-incr-p3.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-incr-p3.jpg" alt="第 3/4 页 · 默认加一：不写第二个数字时默认加1。（不写数字时默认就加一！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 3/4 页 · 默认加一：不写第二个数字时默认加1。（不写数字时默认就加一！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-incr-p4.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-incr-p4.jpg" alt="第 4/4 页 · 指定增减：通过加减负数来控制变大变小。（写负数就是把数字变小！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 4/4 页 · 指定增减：通过加减负数来控制变大变小。（写负数就是把数字变小！）</figcaption></figure>
 </div>
   <p>incr 是 increment 的缩写（读音：/ˈɪŋkrəmənt/）。<strong>仅用于整数变量</strong>，默认递增 1，可指定递增/递减数值（负数为递减）。</p>
 <p><strong>语法：<code>incr 变量名 [递增数值]</code></strong>（中括号内为可选，默认 1）</p>
@@ -152,10 +152,9 @@ puts &quot;num2：$num2&quot;   ;# 输出：num2：-1</pre><button class="tcl-go
 </section>
 <section class="ch" id="expr" data-ch="expr">
   <div class="ch-h"><span class="ch-n">03</span><h2>expr：计算（数值运算专用）</h2></div>
-  <div class="fig-gallery" data-n="3">
-  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-expr-p1.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-expr-p1.jpg" alt="第 1/3 页 · 总览：这一节要弄明白的 2 件事——认识expr计算器、整数除法小心点。" loading="lazy" decoding="async" width="1400" height="933"></a><figcaption>第 1/3 页 · 总览：这一节要弄明白的 2 件事——认识expr计算器、整数除法小心点。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-expr-p2.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-expr-p2.jpg" alt="第 2/3 页 · 认识expr计算器：TCL里专门用来做数学计算的命令（算术计算找 expr，加减乘除全搞定！）" loading="lazy" decoding="async" width="1400" height="933"></a><figcaption>第 2/3 页 · 认识expr计算器：TCL里专门用来做数学计算的命令（算术计算找 expr，加减乘除全搞定！）</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-expr-p3.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-expr-p3.jpg" alt="第 3/3 页 · 整数除法小心点：整数除以整数结果还是整数的除法（整数相除没有小数，想要小数写成点零！）" loading="lazy" decoding="async" width="1246" height="1263"></a><figcaption>第 3/3 页 · 整数除法小心点：整数除以整数结果还是整数的除法（整数相除没有小数，想要小数写成点零！）</figcaption></figure>
+  <div class="fig-gallery" data-n="2">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-expr-p1.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-expr-p1.jpg" alt="第 1/2 页 · 数学计算器：专门用来做数学运算的命令（数学计算找 expr，加减乘除全搞定）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/2 页 · 数学计算器：专门用来做数学运算的命令（数学计算找 expr，加减乘除全搞定）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-expr-p2.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-expr-p2.jpg" alt="第 2/2 页 · 大括号护卫：把算式装起来的特殊符号（写算式加花括号，安全又快不出错）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 2/2 页 · 大括号护卫：把算式装起来的特殊符号（写算式加花括号，安全又快不出错）</figcaption></figure>
 </div>
   <p>expr 是 expression（/ɪkˈspreʃn/）的缩写。所有数学运算都要交给 <code>expr</code> 命令做。</p>
 <div class="tsbx has-code" data-code="set a 3
@@ -182,9 +181,11 @@ expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数<
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
-  <div class="fig-gallery" data-n="2">
-  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-lab-1.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-lab-1.jpg" alt="第 1/2 页 · 蓝色小电子像拼积木一样，用 append 把两截短木条严丝合缝地拼接成一整根长木条。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/2 页 · 蓝色小电子像拼积木一样，用 append 把两截短木条严丝合缝地拼接成一整根长木条。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-lab-2.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-lab-2.jpg" alt="第 2/2 页 · 蓝色小电子站在刻度尺前切蛋糕，整数除法切出来总是整块，带小数点的除法则切得精细。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 蓝色小电子站在刻度尺前切蛋糕，整数除法切出来总是整块，带小数点的除法则切得精细。</figcaption></figure>
+  <div class="fig-gallery" data-n="4">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-lab-p1.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-lab-p1.jpg" alt="第 1/4 页 · 总览：这一节要弄明白的 3 件事——追加小助手、数字加减法、神奇除法坑。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/4 页 · 总览：这一节要弄明白的 3 件事——追加小助手、数字加减法、神奇除法坑。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-lab-p2.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-lab-p2.jpg" alt="第 2/4 页 · 追加小助手：append是给变量后面加内容的命令（变量名不加美元符，直接加在后面！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 2/4 页 · 追加小助手：append是给变量后面加内容的命令（变量名不加美元符，直接加在后面！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-lab-p3.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-lab-p3.jpg" alt="第 3/4 页 · 数字加减法：incr是让数字变大变小的命令（用incr变数字，加减随你定！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 3/4 页 · 数字加减法：incr是让数字变大变小的命令（用incr变数字，加减随你定！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-09-tcl-03-tools-lab-p4.jpg" data-fig="ai"><img src="/fig/ai/01-09-tcl-03-tools-lab-p4.jpg" alt="第 4/4 页 · 神奇除法坑：expr是做数学计算的命令（整数相除会丢小数，带点小数才精确！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 4/4 页 · 神奇除法坑：expr是做数学计算的命令（整数相除会丢小数，带点小数才精确！）</figcaption></figure>
 </div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（3 题）</div><div class="lab-b"><ol><li><code>set s hi</code>，用 append 拼出 <code>hi tcl!</code>。</li><li>用 incr 从 10 递减到 0（循环还没学，先手动写三行）。</li><li>算一算 <code>expr {7 / 2}</code> 和 <code>expr {7.0 / 2}</code> 分别是多少。</li></ol></div></div>
 <div class="quiz"><div class="quiz-h">自测：先自己想，再点开答案</div><div class="q-item">

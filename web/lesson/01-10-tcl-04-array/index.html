@@ -65,8 +65,8 @@
     <article id="article"><section class="ch" id="define" data-ch="define">
   <div class="ch-h"><span class="ch-n">01</span><h2>数组是什么、怎么定义</h2></div>
   <div class="fig-gallery" data-n="2">
-  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-define-p1.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-define-p1.jpg" alt="第 1/2 页 · 什么是数组：数组是装着很多“键-值对”的储物盒。（数组就是成对存数据的储物盒！）" loading="lazy" decoding="async" width="1200" height="1213"></a><figcaption>第 1/2 页 · 什么是数组：数组是装着很多“键-值对”的储物盒。（数组就是成对存数据的储物盒！）</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-define-p2.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-define-p2.jpg" alt="第 2/2 页 · 定义和使用数组：用set命令就能造数组和存数据。（用set命令就能给数组存数据！）" loading="lazy" decoding="async" width="1200" height="1213"></a><figcaption>第 2/2 页 · 定义和使用数组：用set命令就能造数组和存数据。（用set命令就能给数组存数据！）</figcaption></figure>
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-define-p1.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-define-p1.jpg" alt="第 1/2 页 · 什么是数组：数组是装着很多个键值对的魔法盒子。（数组就是成对装数据的带标签抽屉！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/2 页 · 什么是数组：数组是装着很多个键值对的魔法盒子。（数组就是成对装数据的带标签抽屉！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-define-p2.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-define-p2.jpg" alt="第 2/2 页 · 怎么定义和访问：用set命令来创建和读取数组里的数据。（用set存数据，用puts把它们找出来！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 2/2 页 · 怎么定义和访问：用set命令来创建和读取数组里的数据。（用set存数据，用puts把它们找出来！）</figcaption></figure>
 </div>
   <div class="goal"><span>本章目标</span>会用 set arr(key) 定义并访问数组；会用 array set 批量赋值并避开两个易错点；会用嵌套列表写法 + dict get 取嵌套字段；会用 unset 删元素/删数组并认识两种报错；会两种 foreach 遍历。</div>
 <p>数组是&quot;键 - 值对&quot;的集合，键（索引）可以是字符串或数字，值可以是任意数据类型，适合存储关联数据（如学生姓名-学号、产品编号-价格）。<strong>它对应 Python 的 dict</strong>。</p>
@@ -143,15 +143,17 @@ puts [dict get $person(002) name]   ;# 取嵌套字段：lisi</pre><button class
 </section>
 <section class="ch" id="change" data-ch="change">
   <div class="ch-h"><span class="ch-n">03</span><h2>数组增加 / 修改</h2></div>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-change-p1.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-change-p1.jpg" alt="增加和修改：用set命令给数组安排键值对。（用set命令，有就改、没有就加！）" loading="lazy" decoding="async" width="1200" height="1247"></a><figcaption>增加和修改：用set命令给数组安排键值对。（用set命令，有就改、没有就加！）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-change-p1.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-change-p1.jpg" alt="数组增加和修改：用 set 命令给数组写数据的操作（用好 set 命令，存玩具改成绩都不怕！）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>数组增加和修改：用 set 命令给数组写数据的操作（用好 set 命令，存玩具改成绩都不怕！）</figcaption></figure>
   <p><strong>增加：<code>set 数组名(键) 值</code></strong>——存在已有的键就是<strong>修改</strong>，不存在就是<strong>新增</strong>。（和 Python 的 dict 赋值一模一样。）</p>
   <label class="ch-done"><input type="checkbox" data-mark="change"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="unset" data-ch="unset">
   <div class="ch-h"><span class="ch-n">04</span><h2>数组删除（unset）</h2></div>
-  <div class="fig-gallery" data-n="2">
-  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-unset-1.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-unset-1.jpg" alt="第 1/2 页 · 就像从抽屉里抽走一张标签纸，箱子还在，但里面的名字不见了，对应删除单个键的情况。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 1/2 页 · 就像从抽屉里抽走一张标签纸，箱子还在，但里面的名字不见了，对应删除单个键的情况。</figcaption></figure>
-  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-unset-2.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-unset-2.jpg" alt="第 2/2 页 · 就像直接把整个大柜子搬走砸碎，连放东西的地方都没有了，对应删除整个数组的情况。" loading="lazy" decoding="async" width="1200" height="675"></a><figcaption>第 2/2 页 · 就像直接把整个大柜子搬走砸碎，连放东西的地方都没有了，对应删除整个数组的情况。</figcaption></figure>
+  <div class="fig-gallery" data-n="4">
+  <figure class="fig-img fig-ai lead"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-unset-p1.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-unset-p1.jpg" alt="第 1/4 页 · 总览：这一节要弄明白的 3 件事——删除单个元素、删除整个数组、看报错认清丢了啥。" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 1/4 页 · 总览：这一节要弄明白的 3 件事——删除单个元素、删除整个数组、看报错认清丢了啥。</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-unset-p2.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-unset-p2.jpg" alt="第 2/4 页 · 删除单个元素：用unset命令加上键名删掉指定小卡片。（删掉一个键，数组还在，只是少了它。）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 2/4 页 · 删除单个元素：用unset命令加上键名删掉指定小卡片。（删掉一个键，数组还在，只是少了它。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-unset-p3.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-unset-p3.jpg" alt="第 3/4 页 · 删除整个数组：直接用unset命令把整个数组连根拔起。（连盒子带东西一起扔，啥也不剩。）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 3/4 页 · 删除整个数组：直接用unset命令把整个数组连根拔起。（连盒子带东西一起扔，啥也不剩。）</figcaption></figure>
+  <figure class="fig-img fig-ai"><a class="fig-a" href="/fig/ai/01-10-tcl-04-array-unset-p4.jpg" data-fig="ai"><img src="/fig/ai/01-10-tcl-04-array-unset-p4.jpg" alt="第 4/4 页 · 看报错认清丢了啥：访问删掉的东西时，电脑会弹出报错。（记住两种报错，一眼看出是少键还是空盒。）" loading="lazy" decoding="async" width="1200" height="800"></a><figcaption>第 4/4 页 · 看报错认清丢了啥：访问删掉的东西时，电脑会弹出报错。（记住两种报错，一眼看出是少键还是空盒。）</figcaption></figure>
 </div>
   <p>使用 <code>unset</code> 删除数组中的某个元素或整个数组：</p>
 <p><strong>语法</strong>：<code>unset 数组名(键名)</code>（删除单个元素）/ <code>unset 数组名</code>（删除整个数组）</p>
