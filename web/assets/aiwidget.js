@@ -644,26 +644,109 @@
   }
 
   /* ---------------- 轻量 Markdown 渲染（安全：先转义再生成标签） ---------------- */
-  /* 符号与文本类 LaTeX 命令（可用于全局兜底） */
-  function mdSym(t) {
+  /* LaTeX 命令 → 符号/文本 对照表（覆盖常见数学符号、箭头、希腊字母、函数名） */
+  var LATEX_SYM = {
+    /* 箭头 */
+    rightarrow: "→", longrightarrow: "→", to: "→", leftarrow: "←", longleftarrow: "←",
+    leftrightarrow: "↔", longleftrightarrow: "↔", Rightarrow: "⇒", longRightarrow: "⇒",
+    Leftarrow: "⇐", Longleftarrow: "⇐", Leftrightarrow: "⇔", Longleftrightarrow: "⇔",
+    mapsto: "↦", uparrow: "↑", downarrow: "↓", nearrow: "↗", searrow: "↘",
+    /* 二元运算与关系 */
+    div: "÷", times: "×", cdot: "·", ast: "∗", star: "★", circ: "∘", bullet: "•",
+    pm: "±", mp: "∓", leq: "≤", le: "≤", geq: "≥", ge: "≥", neq: "≠", ne: "≠",
+    approx: "≈", sim: "∼", simeq: "≃", equiv: "≡", propto: "∝", cong: "≅",
+    ll: "≪", gg: "≫", asymp: "≍",
+    /* 集合与逻辑 */
+    in: "∈", notin: "∉", ni: "∋", subset: "⊂", subseteq: "⊆", supset: "⊃", supseteq: "⊇",
+    cup: "∪", cap: "∩", emptyset: "∅", varnothing: "∅", forall: "∀", exists: "∃",
+    nexists: "∄", neg: "¬", lnot: "¬", land: "∧", lor: "∨",
+    /* 其它数学符号 */
+    infty: "∞", partial: "∂", nabla: "∇", sum: "Σ", prod: "∏", coprod: "∐", int: "∫",
+    oint: "∮", surd: "√", perp: "⊥", parallel: "∥", angle: "∠", triangle: "△",
+    square: "□", langle: "⟨", rangle: "⟩", lbrace: "{", rbrace: "}", lbrack: "[", rbrack: "]",
+    cdots: "⋯", ldots: "…", dots: "…", vdots: "⋮", ddots: "⋱", dotsb: "…", dotsc: "…",
+    prime: "′", degree: "°", ell: "ℓ", hbar: "ℏ", aleph: "ℵ", wp: "℘", Re: "ℜ", Im: "ℑ",
+    quad: " ", qquad: "  ", displaystyle: "", limits: "", nolimits: "",
+    /* 希腊字母 */
+    alpha: "α", beta: "β", gamma: "γ", delta: "δ", epsilon: "ε", varepsilon: "ε",
+    zeta: "ζ", eta: "η", theta: "θ", vartheta: "ϑ", iota: "ι", kappa: "κ",
+    lambda: "λ", mu: "μ", nu: "ν", xi: "ξ", pi: "π", rho: "ρ", sigma: "σ",
+    varsigma: "ς", tau: "τ", upsilon: "υ", phi: "φ", varphi: "φ", chi: "χ",
+    psi: "ψ", omega: "ω", digamma: "ϝ",
+    Gamma: "Γ", Delta: "Δ", Theta: "Θ", Lambda: "Λ", Xi: "Ξ", Pi: "Π",
+    Sigma: "Σ", Upsilon: "Υ", Phi: "Φ", Psi: "Ψ", Omega: "Ω",
+    /* 函数名（去反斜杠即为正体写法） */
+    log: "log", ln: "ln", lg: "lg", exp: "exp", sin: "sin", cos: "cos", tan: "tan",
+    cot: "cot", sec: "sec", csc: "csc", arcsin: "arcsin", arccos: "arccos",
+    arctan: "arctan", sinh: "sinh", cosh: "cosh", tanh: "tanh", max: "max",
+    min: "min", sup: "sup", inf: "inf", lim: "lim", det: "det", gcd: "gcd",
+    dim: "dim", ker: "ker", deg: "deg", hom: "Hom"
+  };
+
+  /* LaTeX → 可读文本：带参数命令 → 括注/加粗，裸命令查表，未知命令去反斜杠 */
+  function latexCmds(t) {
     var rep = [
-      [/\\,|\\;|\\!|\\ /g, " "],
-      [/\\mu\b/g, "μ"], [/\\times/g, "×"], [/\\cdot/g, "·"],
-      [/\\leq\b/g, "≤"], [/\\geq\b/g, "≥"], [/\\approx/g, "≈"], [/\\pm/g, "±"],
-      [/\\rightarrow/g, "→"], [/\\sim/g, "~"], [/\\%/g, "%"],
-      [/\\text\{([^{}]*)\}/g, "$1"],
-      [/\\mathrm\{([^{}]*)\}/g, "$1"],
-      [/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "$1/$2"]
+      /* 字体/强调命令 */
+      [/\\mathbf\s*\{([^{}]*)\}/g, "<b>$1</b>"],
+      [/\\boldsymbol\s*\{([^{}]*)\}/g, "<b>$1</b>"],
+      [/\\bm\s*\{([^{}]*)\}/g, "<b>$1</b>"],
+      [/\\mathbb\s*\{([^{}]*)\}/g, "$1"],
+      [/\\mathcal\s*\{([^{}]*)\}/g, "$1"],
+      [/\\mathfrak\s*\{([^{}]*)\}/g, "$1"],
+      [/\\mathit\s*\{([^{}]*)\}/g, "$1"],
+      [/\\mathsf\s*\{([^{}]*)\}/g, "$1"],
+      [/\\mathtt\s*\{([^{}]*)\}/g, "$1"],
+      [/\\text\s*\{([^{}]*)\}/g, "$1"],
+      [/\\textrm\s*\{([^{}]*)\}/g, "$1"],
+      [/\\textbf\s*\{([^{}]*)\}/g, "<b>$1</b>"],
+      [/\\texttt\s*\{([^{}]*)\}/g, "$1"],
+      [/\\mathrm\s*\{([^{}]*)\}/g, "$1"],
+      /* 装饰符号（组合字符） */
+      [/\\overline\s*\{([^{}]*)\}/g, "$1\u0305"],
+      [/\\bar\s*\{([^{}]*)\}/g, "$1\u0304"],
+      [/\\hat\s*\{([^{}]*)\}/g, "$1\u0302"],
+      [/\\tilde\s*\{([^{}]*)\}/g, "$1\u0303"],
+      [/\\widehat\s*\{([^{}]*)\}/g, "$1\u0302"],
+      [/\\widetilde\s*\{([^{}]*)\}/g, "$1\u0303"],
+      [/\\vec\s*\{([^{}]*)\}/g, "$1\u20D7"],
+      [/\\dot\s*\{([^{}]*)\}/g, "$1\u0307"],
+      [/\\ddot\s*\{([^{}]*)\}/g, "$1\u0308"],
+      /* 根号与分式 */
+      [/\\sqrt\s*\[([^\]]*)\]\s*\{([^{}]*)\}/g, "√$1($2)"],
+      [/\\sqrt\s*\{([^{}]*)\}/g, "√($1)"],
+      [/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "($1)/($2)"],
+      [/\\dfrac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "($1)/($2)"],
+      [/\\tfrac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "($1)/($2)"],
+      [/\\tfrac|\\dfrac/g, ""],
+      /* 上下标里的 °（度） */
+      [/\^\{\\circ\}/g, "°"],
+      [/\^\\circ\b/g, "°"],
+      /* 定界符命令与空隙（负向断言防止吞掉 \rightarrow 等长命令的前缀） */
+      [/\\left(?![A-Za-z])\s*/g, ""],
+      [/\\right(?![A-Za-z])\s*/g, ""],
+      [/\\[,;!]/g, " "],
+      [/\\\{/g, "{"],
+      [/\\\}/g, "}"],
+      [/\\%/g, "%"], [/\\\$/g, "$"], [/\\#/g, "#"], [/\\_/g, "_"]
     ];
     rep.forEach(function (r) { t = t.replace(r[0], r[1]); });
+    /* 裸命令查表；未知命令去掉反斜杠原样保留 */
+    t = t.replace(/\\([A-Za-z]+)/g, function (m, name) {
+      return LATEX_SYM.hasOwnProperty(name) ? LATEX_SYM[name] : name;
+    });
     return t;
   }
 
-  /* 数学片段：符号 + 上下标 */
+  /* 符号与文本类 LaTeX 命令（可用于全局兜底） */
+  function mdSym(t) {
+    return latexCmds(t);
+  }
+
+  /* 数学片段：符号 + 上下标 + 残余花括号清理 */
   function mdTex(t) {
     /* 先把 _\text{xx} / ^\text{xx} 合并成 _{xx} / ^{xx}，避免括号丢失 */
-    t = t.replace(/(_|\^)\s*(?:\\text|\\mathrm)\{([^{}]+)\}/g, "$1{$2}");
-    t = mdSym(t);
+    t = t.replace(/(_|\^)\s*(?:\\text|\\mathrm|\\mathbf)\{([^{}]+)\}/g, "$1{$2}");
+    t = latexCmds(t);
     var rep = [
       [/_\{([^{}]+)\}/g, "<sub>$1</sub>"],
       [/_([A-Za-z0-9])\b/g, "<sub>$1</sub>"],
@@ -671,6 +754,8 @@
       [/\^(-?[A-Za-z0-9]+)\b/g, "<sup>$1</sup>"]
     ];
     rep.forEach(function (r) { t = t.replace(r[0], r[1]); });
+    /* 数学片段内残余的花括号清理 */
+    t = t.replace(/[{}]/g, "");
     return t;
   }
 
