@@ -21,7 +21,7 @@
   var lessonId = document.body.getAttribute('data-lesson') || '';
   var isLesson = lessonId !== 'home' && lessonId !== '';
   var sections = [].slice.call(document.querySelectorAll('section.ch'));
-  var autoSeen = {};                     // 本次会话内已自动记录的章
+  var below = {};                        // 章 → 底边是否已在视口 65% 线上方（跨越检测基线）
 
   /* ---------------- 进度（滚动自动记录，无需手动标记） ---------------- */
   function key(ch) { return lessonId + '/' + ch; }
@@ -66,10 +66,19 @@
 
   var btnReset = document.getElementById('btn-reset');
   if (btnReset) btnReset.addEventListener('click', function () {
-    if (!confirm('清空这台设备上的学习进度？服务器上的记录也会删除。')) return;
-    done = {}; saveDone({});
-    fetch(API + '/progress/' + uid(), { method: 'DELETE' }).catch(function () { });
+    if (!confirm('清除本课的学习进度？\n清除后重新滚动阅读会再次自动记录。')) return;
+    Object.keys(done).forEach(function (k) {
+      if (k.indexOf(lessonId + '/') === 0) delete done[k];
+    });
+    saveDone(done);
+    /* 重新基线：当前位置已在线上方的章不瞬间重记，重新滚过才记录 */
+    below = {};
+    var line = window.innerHeight * 0.65;
+    sections.forEach(function (s) {
+      below[s.getAttribute('data-ch')] = s.getBoundingClientRect().bottom < line;
+    });
     paint();
+    fetch(API + '/progress/' + uid() + '/' + lessonId, { method: 'DELETE' }).catch(function () { });
   });
 
   /* 与服务端合并（换浏览器 / 清缓存后可恢复） */
@@ -102,7 +111,6 @@
     readbar.innerHTML = '<i></i>';
     document.body.appendChild(readbar);
     var rbi = readbar.querySelector('i');
-    var lastMark = 0;
     var LS_POS = 'icl.pos.' + lessonId;
     var lastPosSave = 0;
 
@@ -154,28 +162,30 @@
 
     function autoTrack() {
       /* 顶部阅读进度条 */
+      var y = window.scrollY;
+      var dy = y - lastY;
+      lastY = y;
       var h = document.documentElement.scrollHeight - window.innerHeight;
-      rbi.style.width = (h > 0 ? Math.min(100, Math.round(window.scrollY / h * 100)) : 0) + '%';
+      rbi.style.width = (h > 0 ? Math.min(100, Math.round(y / h * 100)) : 0) + '%';
       savePos();
-      /* 滚过视口 65% 线的章自动记录为已学 */
-      var now = Date.now();
-      if (now - lastMark < 400) return;
-      lastMark = now;
+      /* 跨越检测：章节底边向下越过视口 65% 线的那一刻记为已学。
+         只在向下滚动时触发 —— 清除进度后停在中部不会瞬间全部重记，
+         重新滚过才会再次记录。 */
       var line = window.innerHeight * 0.65;
       var items = [];
       sections.forEach(function (s) {
         var ch = s.getAttribute('data-ch');
-        if (autoSeen[ch]) return;
-        if (isDone(ch)) { autoSeen[ch] = 1; return; }
-        var r = s.getBoundingClientRect();
-        if (r.bottom < line) {
-          autoSeen[ch] = 1;
+        var isBelow = s.getBoundingClientRect().bottom < line;
+        var was = below[ch];
+        below[ch] = isBelow;
+        if (dy > 0 && isBelow && !was && !isDone(ch)) {
           done[key(ch)] = 1;
           items.push({ lesson: lessonId, chapter: ch, done: true });
         }
       });
       if (items.length) { saveDone(done); paint(); push(items); }
     }
+    var lastY = window.scrollY || 0;
     window.addEventListener('scroll', autoTrack, { passive: true });
     window.addEventListener('resize', autoTrack, { passive: true });
     autoTrack();

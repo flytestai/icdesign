@@ -677,7 +677,7 @@ def build_lesson(L, idx, all_lessons):
         desc=re.sub(r"[`*]", "", L.get("summary", "")),
         page="lesson", lesson=L["id"], nav=nav_html(),
         right='<div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div>'
-              '<button class="ghost" id="btn-reset" title="清空本机进度">重置</button>',
+              '<button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>',
         stageAnchor=f"stage-{stage}", stageName=STAGE_NAME.get(stage, ""),
         lessonNo=L.get("no", ""), en=L.get("en", ""),
         summary=inline(L.get("summary", "")), minutes=L.get("minutes", 40),

@@ -926,6 +926,18 @@ def reset_progress(uid: str):
     return {"ok": True}
 
 
+@app.delete("/api/progress/{uid}/{lesson}")
+def reset_progress_lesson(uid: str, lesson: str):
+    """清除单课学习进度（进度为滚动自动记录，清除后重新滚动会再次记录）。"""
+    check_uid(uid)
+    if not KEY_RE.match(lesson):
+        raise HTTPException(400, "bad lesson")
+    with closing(db()) as c:
+        c.execute("DELETE FROM progress WHERE uid=? AND lesson=?", (uid, lesson))
+        c.commit()
+    return {"ok": True}
+
+
 @app.get("/api/notes/{uid}/{lesson}")
 def get_note(uid: str, lesson: str):
     check_uid(uid)
