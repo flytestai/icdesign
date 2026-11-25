@@ -322,7 +322,7 @@
           nb.classList.toggle("on", notes.length > 0);
         }
         if (!notes.length) {
-          list.innerHTML = '<div class="aiw-ni-hint">还没有保存过 AI 问答。<br>对话里 AI 回答下方点「保存为笔记」即可收藏。</div>';
+          list.innerHTML = '<div class="aiw-ni-hint">还没有保存过 AI 问答。<br>对话里 AI 回答下方点「保存为笔记」：<br>课程页会写入<b>该课的课程笔记</b>，这里保留全部归档。</div>';
           return;
         }
         list.innerHTML = notes.map(function (n) {
@@ -504,6 +504,47 @@
   });
 
   /* ---------------- 气泡与发送 ---------------- */
+  /* 与 app.js 相同的设备 uid（课程笔记按设备存储） */
+  function lsUid() {
+    var u = localStorage.getItem("icl.uid");
+    if (!u) {
+      u = "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      localStorage.setItem("icl.uid", u);
+    }
+    return u;
+  }
+
+  /* 把 AI 问答追加写入当前课程的「课程笔记」 */
+  function appendLessonNote(lesson, q, a) {
+    var uid = lsUid();
+    return fetch("/api/notes/" + uid + "/" + lesson, { credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { return (d && d.body) || ""; })
+      .catch(function () { return ""; })
+      .then(function (body) {
+        var d = new Date();
+        var p = function (n) { return (n < 10 ? "0" : "") + n; };
+        var stamp = (d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+        var nb = (body ? body.replace(/\s+$/, "") : "") +
+          "\n\n—— AI 问答 · " + stamp + "\n【问】" + q + "\n【答】" + a + "\n";
+        return fetch("/api/notes", {
+          method: "PUT",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uid: uid, lesson: lesson, body: nb })
+        }).then(function (r) {
+          if (!r.ok) return false;
+          try { localStorage.setItem("icl.note." + lesson, nb); } catch (e) {}
+          /* 页面底部笔记框若是打开状态，实时同步 */
+          var box = document.getElementById("note-box");
+          if (box) box.value = nb;
+          var st = document.getElementById("note-state");
+          if (st) st.textContent = "AI 问答已写入课程笔记";
+          return true;
+        }).catch(function () { return false; });
+      });
+  }
+
   /* AI 回答下方的小操作条：复制 / 保存为笔记 */
   function addActs(row, q, a) {
     var acts = document.createElement("div");
@@ -524,28 +565,31 @@
       }
     });
     saveBtn.addEventListener("click", function () {
+      var lesson = (document.body.dataset && document.body.dataset.lesson) || "";
       saveBtn.disabled = true;
       saveBtn.innerHTML = BOOKMARK + " 保存中…";
-      fetch("/api/ai/notes", {
+      /* 1) 问答归档（跨课程可查） 2) 课程页同时写入该课的课程笔记 */
+      var archP = fetch("/api/ai/notes", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          question: q,
-          answer: a,
-          lesson: (document.body.dataset && document.body.dataset.lesson) || "",
-        }),
+        body: JSON.stringify({ question: q, answer: a, lesson: lesson }),
       })
-        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
-        .then(function (res) {
-          if (res.ok) {
-            saveBtn.innerHTML = BOOKMARK + " 已保存";
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); });
+      var noteP = lesson ? appendLessonNote(lesson, q, a) : Promise.resolve(null);
+      Promise.all([archP, noteP])
+        .then(function (rs) {
+          var archOk = rs[0] && rs[0].ok;
+          var noteOk = rs[1] === null || rs[1] === true;
+          if (archOk && noteOk) {
+            saveBtn.innerHTML = BOOKMARK + (lesson ? " 已存入课程笔记" : " 已保存");
             var hint = document.createElement("div");
             hint.className = "aiw-hint";
-            hint.innerHTML = "✅ 已存入问答笔记（点顶部 📖 图标或 <span class=\"aiw-link\" data-open-notes>这里</span> 查看）";
+            hint.innerHTML = lesson
+              ? '✅ 已写入本节课的「课程笔记」（页面底部笔记框已同步），归档见顶部 📖'
+              : '✅ 已存入问答笔记；在课程页提问保存会同时写入该课的「课程笔记」';
             bodyEl.appendChild(hint);
             bodyEl.scrollTop = bodyEl.scrollHeight;
-            hint.querySelector("[data-open-notes]").addEventListener("click", openNotes);
             refreshBadge();
           } else {
             failSave();
