@@ -115,6 +115,25 @@
     (function studyTimer() {
       var acc = 0;                      // 未上报的秒数
       var last = Date.now();
+      var known = 0;                    // 本课已累计（服务器）
+      var timeEl = document.getElementById('lp-time');
+      function fmt(sec) {
+        if (!sec) return '';
+        if (sec < 60) return sec + ' 秒';
+        var m = Math.floor(sec / 60);
+        if (m < 60) return m + ' 分钟';
+        return Math.floor(m / 60) + ' 时 ' + (m % 60) + ' 分';
+      }
+      function paintTime() {
+        if (!timeEl) return;
+        var t = known + Math.floor(acc);
+        timeEl.textContent = t > 0 ? '⏱ ' + fmt(t) : '';
+      }
+      /* 读取本课已有累计时长（重学也保留） */
+      fetch(API + '/study-time').then(function (r) { return r.json(); }).then(function (d) {
+        known = (d.by_lesson || {})[lessonId] || 0;
+        paintTime();
+      }).catch(function () { });
       function idle() { return Date.now() - last > 120000; }   // 2 分钟无操作视为挂机
       ['scroll', 'keydown', 'mousemove', 'touchstart', 'click'].forEach(function (ev) {
         window.addEventListener(ev, function () { last = Date.now(); }, { passive: true });
@@ -126,10 +145,12 @@
         fetch(API + '/study-time', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ lesson: lessonId, seconds: s })
+        }).then(function (r) {
+          if (r.ok) { known += s; paintTime(); } else { acc += s; }
         }).catch(function () { acc += s; });     // 失败下次补报
       }
       setInterval(function () {
-        if (document.visibilityState === 'visible' && !idle()) acc += 1;
+        if (document.visibilityState === 'visible' && !idle()) { acc += 1; paintTime(); }
         if (acc >= 30) flush();
       }, 1000);
       setInterval(flush, 60000);
