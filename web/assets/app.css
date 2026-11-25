@@ -288,12 +288,20 @@ td code{font-size:12.5px}
 .sbx-fbtn:hover{background:#22344a;color:#dbe7f3}
 .sbx-fbtn.on{background:#173327;border-color:#2e5c43;color:#8fe0b0}
 .pg-rz{position:absolute;z-index:12}
-.pg-rz-e{right:-3px;top:0;bottom:14px;width:9px;cursor:ew-resize}
-.pg-rz-s{left:0;right:14px;bottom:-3px;height:9px;cursor:ns-resize}
+.pg-rz-e{right:-3px;top:10px;bottom:14px;width:9px;cursor:ew-resize}
+.pg-rz-w{left:-3px;top:10px;bottom:14px;width:9px;cursor:ew-resize}
+.pg-rz-s{left:10px;right:14px;bottom:-3px;height:9px;cursor:ns-resize}
+.pg-rz-n{left:14px;right:10px;top:-3px;height:9px;cursor:ns-resize}
 .pg-rz-se{right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize}
 .pg-rz-se::after{content:"";position:absolute;right:4px;bottom:4px;width:9px;height:9px;
   border-right:3px solid #3a526b;border-bottom:3px solid #3a526b;border-radius:2px}
 .pg-rz-se:hover::after{border-color:#59b6f5}
+.pg-rz-nw{left:0;top:0;width:18px;height:18px;cursor:nwse-resize}
+.pg-rz-nw::after{content:"";position:absolute;left:4px;top:4px;width:9px;height:9px;
+  border-left:3px solid #3a526b;border-top:3px solid #3a526b;border-radius:2px}
+.pg-rz-nw:hover::after{border-color:#59b6f5}
+.pg-rz-ne{right:0;top:0;width:18px;height:18px;cursor:nesw-resize}
+.pg-rz-sw{left:0;bottom:0;width:18px;height:18px;cursor:nesw-resize}
 
 /* ---------- 子页面通用 ---------- */
 .sub{max-width:1000px;margin:0 auto;padding:34px 24px 90px}

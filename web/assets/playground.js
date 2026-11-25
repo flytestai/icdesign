@@ -617,11 +617,20 @@ function mount() {
         g.className = 'pg-rz pg-rz-' + k;
         box.appendChild(g);
         grips.push(g);
+        /* 锚点式缩放：拖哪条边/角，对面的边保持不动 */
         function start(sx, sy) {
-          var sw = box.offsetWidth, sh = box.offsetHeight;
+          var W0 = box.offsetWidth, H0 = box.offsetHeight;
+          var L0 = box.offsetLeft, T0 = box.offsetTop;
           function move(dx, dy) {
-            if (k !== 's') box.style.width = clampW(sw + dx) + 'px';
-            if (k !== 'e') box.style.height = clampH(sh + dy) + 'px';
+            var x = L0, y = T0, w = W0, h = H0;
+            if (k.indexOf('e') >= 0) w = Math.min(Math.max(320, W0 + dx), window.innerWidth - L0 - 4);
+            if (k.indexOf('s') >= 0) h = Math.min(Math.max(240, H0 + dy), window.innerHeight - T0 - 4);
+            if (k.indexOf('w') >= 0) { w = Math.max(320, W0 - dx); x = L0 + W0 - w; }
+            if (k.indexOf('n') >= 0) { h = Math.max(240, H0 - dy); y = T0 + H0 - h; }
+            box.style.width = w + 'px';
+            box.style.height = h + 'px';
+            box.style.left = x + 'px';
+            box.style.top = y + 'px';
           }
           function end() {
             document.removeEventListener('mousemove', mm);
@@ -649,7 +658,7 @@ function mount() {
           start(t.clientX, t.clientY);
         });
       }
-      function addGrips() { ['e', 's', 'se'].forEach(makeGrip); }
+      function addGrips() { ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'].forEach(makeGrip); }
 
       function floatOn() {
         var cfg = loadCfg() || {};
