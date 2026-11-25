@@ -231,6 +231,11 @@ class ReviewIn(BaseModel):
     action: str  # approve / reject / reset / delete
 
 
+class RenameIn(BaseModel):
+    uid: int
+    name: str = Field(..., max_length=24)
+
+
 def current_user(request: Request) -> Optional[sqlite3.Row]:
     token = request.cookies.get(SESSION_COOKIE, "")
     if not token or not re.match(r"^[a-f0-9]{64}$", token):
@@ -341,6 +346,23 @@ def admin_users(request: Request):
             "CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END, "
             "role='admin' DESC, created_at DESC").fetchall()
     return {"users": [user_public(r) for r in rows]}
+
+
+@app.post("/api/admin/rename")
+def admin_rename(r: RenameIn, request: Request):
+    """管理员修改指定用户的显示名（account/密码不变）。"""
+    require_admin(request)
+    name = r.name.strip()
+    if not name or len(name) > 24:
+        raise HTTPException(400, "名字需为 1~24 个字符")
+    with closing(db()) as c:
+        row = c.execute("SELECT id,name FROM users WHERE id=?", (r.uid,)).fetchone()
+        if not row:
+            raise HTTPException(404, "用户不存在")
+        c.execute("UPDATE users SET name=?, updated_at=? WHERE id=?",
+                  (name, int(time.time()), r.uid))
+        c.commit()
+    return {"ok": True, "uid": r.uid, "old": row["name"], "name": name}
 
 
 @app.post("/api/admin/review")
