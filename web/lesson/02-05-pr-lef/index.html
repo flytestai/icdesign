@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LEF 详解：tech lef 与 cell lef 里到底写了什么 · 25 | IC 后端学院</title>
 <meta name="description" content="打开 lef 文件看真东西：tech lef 里的版本、单位、金属层定义、最小宽度与间距、pitch、走线方向、via 定义与电阻、obs 遮挡块；cell lef 里的单元尺寸与引脚。最后讲清 lef 与 def 的分工，以及工艺从 40nm 走到 3nm 时规则为什么越来越难。">
-<link rel="icon" href="/assets/logo.svg?v=1795608245" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795608245">
+<link rel="icon" href="/assets/logo.svg?v=1795608922" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795608922">
 </head>
 <body data-page="lesson" data-lesson="02-05-pr-lef">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608245" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608922" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -68,6 +68,7 @@
 <p>工具摆放和绕线时做的每个决定，背后都是 lef 里的规则在约束它。你看到的这些现象，原因都在 lef：</p>
 <ul><li>为什么这条线要绕这么远？——因为那一层禁止走线，或者间距不够；</li><li>为什么这个单元只能朝某个方向摆？——因为它的 pin 在某一边，反过来接不上；</li><li>为什么 DRC 报&quot;间距违规&quot;？——因为间距规则就写在 tech lef 里。</li></ul>
 <p>所以 lef 不是&quot;配好了就不用管&quot;的文件，它是你判断&quot;能不能这么干&quot;的依据。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="tech" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="tech" data-ch="tech">
   <div class="ch-h"><span class="ch-n">02</span><h2>tech lef：工艺的规则书</h2></div>
@@ -119,6 +120,7 @@
 <p><code>OBS</code>（obstruction）是<strong>禁止布线区域</strong>。有的公司把 macro 上方/周围的禁布规则直接写在 lef 的 obs 里，工具读进来就自动避开；有的写在 tech lef 的全局规则里。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">MACRO SRAM_1024X32</span><span class="ln ">  CLASS BLOCK ;                    # 这是个 macro（block 类）</span><span class="ln ">  SIZE 120.0 BY 80.0 ;             # 尺寸 120μm × 80μm</span><span class="ln ">  OBS</span><span class="ln ">    LAYER M1 RECT 0 0 120 80 ;     # M1 整块禁止走线（macro 内部不许穿线）</span><span class="ln ">    LAYER M2 RECT 0 0 120 80 ;</span><span class="ln ">  END</span><span class="ln ">END SRAM_1024X32</span></code></pre></div>
 <p>这条规则解释了上一课的一个问题：<strong>为什么 mem 摆错会毁掉布线</strong>——它的 obs 占掉了两层金属的整片区域，你把它摆在通道中间，等于把通道堵死。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="cell" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="cell" data-ch="cell">
   <div class="ch-h"><span class="ch-n">03</span><h2>cell lef：每个单元长什么样</h2></div>
@@ -137,17 +139,20 @@
 <div class="pit"><div class="pit-h">常见坑 · 单元方向摆反了</div><div class="pit-b"><p><strong>现象</strong>：place 之后某些单元周围拥塞异常，或时序比预期差很多。 <strong>原因</strong>：单元被翻转（flip）后 pin 换到了另一侧，线要从远处绕过来；有些单元（如带埋孔结构的）甚至不允许某些朝向。 <strong>怎么查</strong>：在版图上按 pin 方向筛一遍，或看 place 阶段的拥塞图是否集中在这些单元附近。</p></div></div>
 <div class="tip"><div class="tip-h">小技巧</div><p>行业里描述单元/模块尺寸，习惯说 <strong>width（宽，X 方向）</strong> 和 <strong>height（高，Y 方向）</strong>，不说&quot;长宽&quot;。</p>
 <p>lef 的 <code>SIZE A BY B</code> 就是 <strong>宽 BY 高</strong>（A=宽、B=高）。为什么强调这个：跨部门沟通时&quot;长&quot;到底指哪边经常吵起来，<strong>统一说 X/Y 或 width/height 就没人会误</strong>。面积一律按 宽×高 算。</p></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="macro" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="macro" data-ch="macro">
   <div class="ch-h"><span class="ch-n">04</span><h2>看 Memory 时看什么</h2></div>
   <p>宏单元（mem/SRAM）在 lef 里和标准单元同构（<code>MACRO ... SIZE ... PIN ...</code>），但你的关注点完全不同——<strong>因为它内部不能碰</strong>：</p>
 <div class="tbl"><table><thead><tr><th>你要看</th><th>为什么</th></tr></thead><tbody><tr><td><strong>实例名</strong>（常叫 M1、M2…）</td><td>指代清楚是哪块 mem，别和金属层 M1 混</td></tr><tr><td><strong>width × height</strong></td><td>决定 floorplan 能不能放下、通道还剩多少</td></tr><tr><td><strong>bit 数/规格</strong></td><td>判断它是什么用途（数据缓存？指令缓存？）</td></tr><tr><td><strong>pin 分布</strong>（在哪几条边）</td><td>决定朝向怎么摆才能让线短</td></tr><tr><td><strong>OBS</strong></td><td>内部禁布范围，摆错就把通道堵死</td></tr></tbody></table></div>
 <div class="note"><div class="note-h">memory 从哪来</div><p><strong>第三方 IP，不是你设计的</strong>。文档的说法很直接：memory 内部逻辑不用管，你只处理它的输入输出。所以别花时间研究它的功能，把 <strong>尺寸、pin、朝向</strong> 搞对就够了。</p></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lef-vs-def" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="lef-vs-def" data-ch="lef-vs-def">
   <div class="ch-h"><span class="ch-n">05</span><h2>lef 与 def 的分工：一个是字典，一个是答卷</h2></div>
   <div class="tbl"><table><thead><tr><th></th><th>lef</th><th>def</th></tr></thead><tbody><tr><td>内容</td><td>库信息：形状、规则、pin 位置</td><td>设计信息：这一版每个单元/端口的具体坐标</td></tr><tr><td>变化频率</td><td>一个工艺/库一份，基本不变</td><td>每跑一版都变</td></tr><tr><td>谁给</td><td>工艺厂、库组</td><td>上一道工序、顶层、或你自己导出</td></tr><tr><td>类比</td><td>字典（字长什么样、笔顺规则）</td><td>答卷（这一版你把字写在哪）</td></tr></tbody></table></div>
 <p>文档的说法很准：<strong>lef 是工具用来解析数据的（形状、线宽），def 存储单元的位置，可以还原我们的单元设置。</strong> 所以缺 lef 工具什么都干不了，缺 def 只是&quot;从零开始摆&quot;。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="advanced" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="advanced" data-ch="advanced">
   <div class="ch-h"><span class="ch-n">06</span><h2>工艺越先进，lef 越难缠</h2></div>
@@ -177,6 +182,7 @@
   <div class="q-a">规则复杂度和数量大幅上升（多重曝光、颜色、分段间距等），老引擎处理不了这些约束组合，运行时间也撑不住。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能在 lef 里定位 VERSION/UNITS、LAYER、VIA、MACRO、PIN、OBS 六类关键段</li><li>能解释 WIDTH / SPACING / PITCH / DIRECTION 各自约束什么</li><li>能说出 via 电阻为什么要少换层</li><li>能说清 lef 与 def 的分工（字典 vs 答卷）</li><li>能说出标准单元&quot;等高&quot;这个约定为什么是自动布局的前提</li></ul></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -194,9 +200,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795608245"></script>
-<script src="/assets/tcl.js?v=1795608245"></script>
-<script src="/assets/app.js?v=1795608245"></script>
-<script src="/assets/aiwidget.js?v=1795608245" defer></script>
+<script src="/assets/shell.js?v=1795608922"></script>
+<script src="/assets/tcl.js?v=1795608922"></script>
+<script src="/assets/app.js?v=1795608922"></script>
+<script src="/assets/aiwidget.js?v=1795608922" defer></script>
 </body>
 </html>

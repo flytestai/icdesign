@@ -614,7 +614,7 @@ HOME = HEAD + """
     <div class="hh-k">Digital Backend · 9 个阶段 · 课表 113 学时</div>
     <h1>把一块芯片<br>从代码变成版图</h1>
     <p>这门课写给<strong>完全没接触过芯片后端</strong>的人。每个概念先讲"它解决什么问题"，再讲工具怎么按；每个英文术语都给中文；每一行命令都写了注释和"删掉会怎样"。</p>
-    <div class="hh-btns"><a class="pri" href="/lesson/{first}/">从第一课开始 →</a><a class="ghost" href="#plan">先看学习路线</a></div>
+    <div class="hh-btns"><a class="pri" id="hh-continue" href="/lesson/{first}/">从第一课开始 →</a><a class="ghost" href="#plan">先看学习路线</a><span class="hh-sub" id="hh-sub"></span></div>
     <div class="hh-stats">{stats}</div>
   </div>
 </section>
@@ -659,9 +659,11 @@ def build_lesson(L, idx, all_lessons):
     chs = L["chapters"]
     art = []
     for i, c in enumerate(chs):
+        is_last = (i == len(chs) - 1)
         art.append(f"""<section class="ch" id="{c['id']}" data-ch="{c['id']}">
   <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2></div>
   {c['html']}
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="{'' if is_last else chs[i+1]['id']}" data-last="{1 if is_last else 0}">{'学完本课 · 下一课 →' if is_last else '学完这章，继续下一章 →'}</button></div>
 </section>""")
     prev_next = ""
     if idx > 0:

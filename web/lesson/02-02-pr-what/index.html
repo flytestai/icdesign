@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>什么是布局布线（PR）：把网表变成能送去生产的版图 · 21 | IC 后端学院</title>
 <meta name="description" content="用一间毛坯房讲清 PR 到底在做什么：综合给的 netlist 只是逻辑连接，PR 把每个单元放到真实坐标上、用真实的金属线连起来，最后吐出 GDSII。顺带把 PD/DE/ME、block 与 top、三种线、芯片分类这些面试必问的名词一次说清。">
-<link rel="icon" href="/assets/logo.svg?v=1795608245" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795608245">
+<link rel="icon" href="/assets/logo.svg?v=1795608922" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795608922">
 </head>
 <body data-page="lesson" data-lesson="02-02-pr-what">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608245" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608922" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -82,6 +82,7 @@
 <p>用装修打个比方：综合给你的是&quot;水电点位图&quot;（哪个插座接哪根线，纸上画得清），PR 要把它变成&quot;墙里真的埋进去的线管，位置精确到毫米&quot;。图纸和施工图不是一回事，netlist 和 GDSII 也不是一回事。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/pr-pnr-io.png" data-fig="pr-pnr-io"><img src="/fig/pr-pnr-io.png" alt="PR 的输入输出：前端给的 netlist 进 PnR，出来的是 GDSII" loading="lazy" decoding="async"></a><figcaption>PR 的输入输出：前端给的 netlist 进 PnR，出来的是 GDSII</figcaption></figure>
 <div class="pit"><div class="pit-h">常见坑 · 把 netlist 当版图</div><div class="pit-b"><p><strong>现象</strong>：面试被问&quot;你交付的成果是什么&quot;，答&quot;综合出来的 netlist&quot;。 <strong>原因</strong>：netlist 是逻辑网表，没有面积、没有坐标、没有金属层，工厂拿它没法生产。 <strong>正确说法</strong>：PR 的交付物是 GDSII（以及配套的 def、报告、时序数据库），netlist 只是 PR 的<strong>输入</strong>。</p></div></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="logic-vs-physical" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="logic-vs-physical" data-ch="logic-vs-physical">
   <div class="ch-h"><span class="ch-n">02</span><h2>综合给的是逻辑连接，PR 才给出物理连接</h2></div>
@@ -90,6 +91,7 @@
 <p>举个具体例子理解&quot;逻辑 → 物理&quot;：</p>
 <p>写一行 RTL <code>always @(negedge rst) cnt &lt;= 0;</code>，意思是&quot;rst 下降沿把 8 位寄存器 cnt 清零&quot;。综合工具会把它翻译成一堆真实的门：反相器、与门、或门、多路选择器、触发器——<strong>逻辑上等价</strong>。但这时候还没有任何东西告诉工具：这个触发器放在芯片的哪个角落？它到下一个触发器的线要走第几层金属、绕多远？</p>
 <p>这些正是 PR 要回答的问题。器件放得远、线绕得长，延迟就大，时序就过不去；放得挤，布线绕不开，DRC 就爆。所以 PR 不是&quot;画图&quot;，是<strong>在面积、时序、可制造性三者之间不停做交易</strong>。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="roles" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="roles" data-ch="roles">
   <div class="ch-h"><span class="ch-n">03</span><h2>三个岗位缩写：PD / DE / ME</h2></div>
@@ -107,12 +109,14 @@
   <div class="term-b"><p>Middle End Engineer。夹在前后端之间：DFT（扫描链插入）、formal、低功耗结构、网表质量检查，也常负责 MMMC 环境与 sdc 的整合。<strong>不是所有公司都设这个岗，但大厂很常见。</strong></p></div>
 </div>
 <p>一句话记法：<strong>DE 写逻辑，ME 加结构，PD 落到硅片上。</strong></p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="two-tracks" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="two-tracks" data-ch="two-tracks">
   <div class="ch-h"><span class="ch-n">04</span><h2>后端的两个方向：物理设计与时序设计</h2></div>
   <p>后端不只 PR 一件事，粗分两条线：</p>
 <div class="tbl"><table><thead><tr><th>方向</th><th>干什么</th><th>常见工具</th></tr></thead><tbody><tr><td>物理设计（Physical Design）</td><td>布局、布线、时钟树、供电、DRC/LVS 收敛</td><td>Innovus、ICC2</td></tr><tr><td>时序设计（Timing / STA）</td><td>判断信号能不能&quot;按时到达&quot;，出时序报告、定约束</td><td>PrimeTime、Tempus</td></tr></tbody></table></div>
 <p>两者不是上下级，是<strong>互相拉扯</strong>：PR 把线绕短一点，时序就好一点；时序要求太狠，PR 就得更费力地摆和绕，面积和功耗跟着涨。真实项目里这两个角色每天都要对账——所以本站后面既讲 Innovus，也单独讲 STA。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="block-top" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="block-top" data-ch="block-top">
   <div class="ch-h"><span class="ch-n">05</span><h2>block 级和 top 级：你接到的活是哪一种</h2></div>
@@ -127,6 +131,7 @@
 </div>
 <div class="tbl"><table><thead><tr><th></th><th>block 级</th><th>top 级</th></tr></thead><tbody><tr><td>边界</td><td>别人给（面积 + port 位置）</td><td>自己定</td></tr><tr><td>主要矛盾</td><td>块内时序、拥塞、DRC</td><td>块间连线、电源网络、全局拥塞</td></tr><tr><td>交付</td><td>干净的 block（def/lef/GDS）</td><td>整颗芯片 GDSII</td></tr><tr><td>交接方式</td><td>top 用 <strong>def</strong> 把面积和 port 位置发给 block owner</td><td>收回各 block 的 def/GDS 拼装</td></tr></tbody></table></div>
 <p>这张表里&quot;top 用 def 把面积和 port 位置发给 block owner&quot;是后面第 4 课的重点：<strong>def 是块级与顶层之间的合同</strong>，写错一个 port 坐标，块里所有接口逻辑都得重做。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="place" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="place" data-ch="place">
   <div class="ch-h"><span class="ch-n">06</span><h2>布局：什么必须人摆，什么能自动摆</h2></div>
@@ -146,6 +151,7 @@
 <p>为什么 mem 要人摆？三个原因，面试常问：</p>
 <ol><li><strong>引脚位置固定</strong>：mem 的 pin 在哪一侧是工艺决定的，摆错方向，线要从远处绕过来，时序和拥塞一起爆。</li><li><strong>面积大</strong>：一个 mem 可能顶几千个 stdcell 的位置，摆歪了整块的布线通道就断了。</li><li><strong>有物理禁忌</strong>：mem 上方通常禁止走线（routing blockage）、周围要留 halo，靠工具自动摆很容易踩规则。</li></ol>
 <p>所以真实项目里 floorplan 阶段最花时间的就是&quot;mem 怎么摆&quot;，摆完才轮到工具自动放 stdcell。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="route" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="route" data-ch="route">
   <div class="ch-h"><span class="ch-n">07</span><h2>布线：三种线，三种命</h2></div>
@@ -153,6 +159,7 @@
 <div class="tbl"><table><thead><tr><th>线</th><th>干什么</th><th>为什么特殊</th></tr></thead><tbody><tr><td><strong>供电</strong>（power）</td><td>把电源/地从 pad 送到每个单元</td><td>要够宽、要成网（mesh/strap）、要算 IR drop 和电迁移</td></tr><tr><td><strong>时钟</strong>（clock）</td><td>把时钟送到每个触发器的 clock 端</td><td>要求&quot;同时到达&quot;（低 skew），要单独做时钟树，普通布线器不许随便动</td></tr><tr><td><strong>信号</strong>（signal）</td><td>其余所有数据/控制线</td><td>数量最多，是拥塞和 DRC 的主要来源</td></tr></tbody></table></div>
 <p>这三条线分别对应流程里的三步：<strong>powerplan（打供电）→ cts（绕时钟）→ route（绕信号）</strong>。下一课就把整个流程串起来。</p>
 <div class="note"><div class="note-h">一句话记住优先级</div><p>供电最硬（做不好芯片会烧/不工作），时钟第二（做不好时序全崩），信号最后（做不好就慢慢修）。</p></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="scale" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="scale" data-ch="scale">
   <div class="ch-h"><span class="ch-n">08</span><h2>模块分级与芯片分类：面试的&quot;广度题&quot;</h2></div>
@@ -174,6 +181,7 @@
 <div class="tip"><div class="tip-h">小技巧</div><p>不要写&quot;负责后端物理设计&quot;，要写：</p>
 <blockquote><p>负责 XX 芯片 <strong>DDR 控制器 block</strong> 的 PR：面积 XX mm²、频率 XXX MHz、完成 floorplan/CTS/route 与时序收敛，DCLS/IR 达标。</p></blockquote>
 <p><strong>模块名 + 规模 + 频率 + 你做的那几步</strong>——四个要素齐了，面试官才有得问。</p></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="in-project" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="in-project" data-ch="in-project">
   <div class="ch-h"><span class="ch-n">09</span><h2>这一课在项目里的位置</h2></div>
@@ -208,6 +216,7 @@
   <div class="q-a">模块名（如 DDR 控制器 block）+ 规模（面积/门数）+ 频率 + 你负责的工序（floorplan/CTS/route/时序收敛）。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用一句话说出 PR 是&quot;把 netlist 变成 GDSII&quot;</li><li>能区分逻辑连接（netlist）与物理连接（GDSII）</li><li>能说出 block 与 top 的边界由谁定、各自交付什么</li><li>能说出三种线及对应的流程阶段</li><li>能举出至少三种芯片类型并说出各自的特点</li><li>能说出 SOC 的含义，以及为什么 DDR/USB/PCIe 这类模块在求职时更值钱</li></ul></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -225,9 +234,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795608245"></script>
-<script src="/assets/tcl.js?v=1795608245"></script>
-<script src="/assets/app.js?v=1795608245"></script>
-<script src="/assets/aiwidget.js?v=1795608245" defer></script>
+<script src="/assets/shell.js?v=1795608922"></script>
+<script src="/assets/tcl.js?v=1795608922"></script>
+<script src="/assets/app.js?v=1795608922"></script>
+<script src="/assets/aiwidget.js?v=1795608922" defer></script>
 </body>
 </html>

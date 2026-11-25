@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>芯片设计全流程：从需求到封装出货 · 19 | IC 后端学院</title>
 <meta name="description" content="一颗芯片从甲方需求到市面上的封装件，中间经过哪些人、哪些工具、哪些交付物。这一课把前端（RTL + 仿真）、中端（综合 + 形式验证）、后端（布局布线到 GDSII）、制造（光刻刻蚀 → 晶圆测试 → 切割封装）四段串成一条线，明确 DE/ME/PD 的分工边界，以及哪些环节是工具自动跑、哪些必须人手动干。">
-<link rel="icon" href="/assets/logo.svg?v=1795608245" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795608245">
+<link rel="icon" href="/assets/logo.svg?v=1795608922" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795608922">
 </head>
 <body data-page="lesson" data-lesson="02-01b-design-flow">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608245" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608922" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -67,6 +67,7 @@
   <div class="goal"><span>本章目标</span>能按顺序说出设计全流程的七个环节及各环节的交付物；能说清前端/中端/后端各用什么工具（VCS / DC 或 Genus / Innovus 或 ICC2）、各自的边界在哪；能说出 GDSII 之后到封装出货要经过哪几步；能指出后端里哪些环节手动、哪些自动。</div>
 <p>你现在学的 PR 只是这条链上的一段。<strong>不知道上下游在干什么，就无法判断&quot;这个数据对不对、这个 bug 该找谁&quot;</strong>——而这两件事，恰恰是新人最常卡住的地方。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">需求/架构 → 前端 RTL 编码 → 前端仿真 → 中端综合 → 形式验证 → 后端物理实现 → GDSII</span><span class="ln ">   ↑甲方        ↑DE            ↑VCS       ↑DC/Genus   ↑Formality   ↑PD(你在这里)     ↓</span><span class="ln ">                                                                              代工厂流片</span><span class="ln ">                                                                                    ↓</span><span class="ln ">                                                        出货 ← 封装 ← 切割 ← 晶圆测试</span></code></pre></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="spec" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="spec" data-ch="spec">
   <div class="ch-h"><span class="ch-n">02</span><h2>第一段：需求与架构</h2></div>
@@ -74,6 +75,7 @@
 <p>接手的是两类架构师：</p>
 <ul><li><strong>顶层架构师</strong>：定<strong>工艺制程</strong>（几纳米）与<strong>模块组成</strong>（CPU 计算、DDR 存储、USB 传输……）。选择工艺是成本、功耗、性能的三角权衡——先进工艺更贵，但同样面积能塞更多逻辑；</li><li><strong>底层架构师</strong>：定模块之间的<strong>具体逻辑连接</strong>，也就是后面 RTL 要写的东西。</li></ul>
 <p>这一步的产出是<strong>设计规格（spec）</strong>：有什么模块、跑多快、功耗上限多少、面积预算多少。<strong>后面所有人的工作，都是把这纸规格变成实物。</strong></p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="frontend" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="frontend" data-ch="frontend">
   <div class="ch-h"><span class="ch-n">03</span><h2>第二段：前端 RTL 编码与仿真</h2></div>
@@ -92,6 +94,7 @@
 <div class="pit"><div class="pit-h">常见坑 · 以为&quot;仿真通过就没问题了&quot;</div><div class="pit-b"><p><strong>现象</strong>：RTL 仿真全绿，综合之后时序一塌糊涂，或者后端发现某条路径根本收敛不了。</p>
 <p><strong>原因</strong>：仿真验的是<strong>功能</strong>，不是<strong>时序</strong>。一条组合逻辑链写得太长（比如一个周期里串了 30 级逻辑），功能完全正确，但物理上根本跑不到目标频率。</p>
 <p><strong>分工</strong>：功能归前端仿真管，时序归后面 STA/PR 管。<strong>仿真通过只代表&quot;逻辑对&quot;，不代表&quot;能做出来&quot;。</strong></p></div></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="synthesis" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="synthesis" data-ch="synthesis">
   <div class="ch-h"><span class="ch-n">04</span><h2>第三段：中端综合</h2></div>
@@ -114,6 +117,7 @@
   <div class="term-b"><p>用数学方法证明&quot;综合后的网表&quot;与&quot;原始 RTL&quot;<strong>功能完全等价</strong>。它不是仿真（不跑激励），而是穷举证明。</p></div>
 </div>
 <p>为什么必须要它？因为综合工具做优化时会重写逻辑（合并、替换单元、删冗余）。<strong>万一它优化错了，仿真是发现不了的</strong>——你仿的是 RTL，不是网表。Formality 通过，才敢说&quot;网表就是那份 RTL&quot;。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="backend" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="backend" data-ch="backend">
   <div class="ch-h"><span class="ch-n">05</span><h2>第四段：后端物理实现（你的战场）</h2></div>
@@ -122,6 +126,7 @@
 <p>两个必须记住的判断：</p>
 <div class="tip"><div class="tip-h">小技巧</div><ul><li><strong>手动最多的是 Floorplan</strong>：Memory 摆哪儿、IO 端口放哪边，直接决定后面能不能绕通、时序好不好。这也是为什么课表给 floorplan 排了 10 学时。</li><li><strong>标准单元摆放（Placement）是工具自动的</strong>：几百万个 cell 人根本摆不过来，人做的是<strong>设参数</strong>（密度、间距、优化目标）。</li></ul></div>
 <p>另外，文档提到每个阶段之后都会有 <strong>OPT（优化）</strong>：布局优化、CTS 优化、布线优化。<strong>PR 不是&quot;跑五步就完&quot;，而是&quot;跑一步、修一轮、再跑下一步&quot;的循环</strong>（后面流程课会展开）。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="fab" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="fab" data-ch="fab">
   <div class="ch-h"><span class="ch-n">06</span><h2>第五段：流片、制造与封装</h2></div>
@@ -136,6 +141,7 @@
   <div class="term-h"><span class="term-en">foundry</span><span class="term-zh">代工厂</span></div>
   <div class="term-b"><p>只做制造、不做设计的晶圆厂（台积电、三星、中芯国际）。与之相对的是 Fabless（只设计不制造，如英伟达、高通）和 IDM（设计制造都做，如英特尔）。</p></div>
 </div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="boundary" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="boundary" data-ch="boundary">
   <div class="ch-h"><span class="ch-n">07</span><h2>分工边界：一张表记住谁管什么</h2></div>
@@ -167,6 +173,7 @@
   <div class="q-a">仿真只验功能；组合逻辑链过长等时序问题在功能上完全正确，但物理上跑不到目标频率，需靠 STA/PR 检查。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能按顺序背出七个环节与各自交付物</li><li>能说出 DE / ME / PD 各管哪一段、用什么工具</li><li>能解释&quot;仿真只验功能、时序靠 STA/PR&quot;</li><li>能解释为什么必须有形式验证</li><li>能说出后端里 Floorplan 手动、Placement 自动的分界</li><li>能说出 GDSII 之后到封装出货的六步</li></ul></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -184,9 +191,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795608245"></script>
-<script src="/assets/tcl.js?v=1795608245"></script>
-<script src="/assets/app.js?v=1795608245"></script>
-<script src="/assets/aiwidget.js?v=1795608245" defer></script>
+<script src="/assets/shell.js?v=1795608922"></script>
+<script src="/assets/tcl.js?v=1795608922"></script>
+<script src="/assets/app.js?v=1795608922"></script>
+<script src="/assets/aiwidget.js?v=1795608922" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 6 讲 · 列表（下）：增删改查、排序与转换 · 12 | IC 后端学院</title>
 <meta name="description" content="列表核心操作函数总表（concat/lindex/llength/lappend/lreplace/lsearch/lsort/split/join）+ 两个必考陷阱（谁改源数据、lsort 默认字典序）+ split/join 互逆转换 + 本讲练习。">
-<link rel="icon" href="/assets/logo.svg?v=1795608245" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795608245">
+<link rel="icon" href="/assets/logo.svg?v=1795608922" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795608922">
 </head>
 <body data-page="lesson" data-lesson="01-12-tcl-06-list-b">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608245" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608922" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -124,6 +124,7 @@ puts [lsort -integer -decreasing {10 9 2 100}]   ;# 降序：100 10 9 2</textare
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="pit"><div class="pit-h">常见坑 · 必考陷阱二：lsort 默认是字符串字典排序，不是数字排序</div><div class="pit-b"><p>排数字必须加 <code>-integer</code> 参数（浮点用 <code>-real</code>）；降序加 <code>-decreasing</code>。排错的典型症状：100 排在 2 前面。</p></div></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="splitjoin" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="splitjoin" data-ch="splitjoin">
   <div class="ch-h"><span class="ch-n">02</span><h2>split 与 join：字符串 ↔ 列表互转</h2></div>
@@ -163,6 +164,7 @@ puts &quot;单元：[lindex $parts 1]&quot;</textarea>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">03</span><h2>动手练</h2></div>
@@ -181,6 +183,7 @@ puts &quot;单元：[lindex $parts 1]&quot;</textarea>
   <div class="q-a">互逆操作：split 撕开字符串变列表，join 粘合列表变字符串。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>9 个列表函数能说出用途和语法</li><li>两个必考陷阱都能背下来并演示</li><li>split/join 能互转一段实际数据（如路径）</li></ul></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -198,9 +201,9 @@ puts &quot;单元：[lindex $parts 1]&quot;</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795608245"></script>
-<script src="/assets/tcl.js?v=1795608245"></script>
-<script src="/assets/app.js?v=1795608245"></script>
-<script src="/assets/aiwidget.js?v=1795608245" defer></script>
+<script src="/assets/shell.js?v=1795608922"></script>
+<script src="/assets/tcl.js?v=1795608922"></script>
+<script src="/assets/app.js?v=1795608922"></script>
+<script src="/assets/aiwidget.js?v=1795608922" defer></script>
 </body>
 </html>

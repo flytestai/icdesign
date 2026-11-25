@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pin 与 Port：单元接口和模块接口 · 26 | IC 后端学院</title>
 <meta name="description" content="版图界面上那些黄色的小点和小片，含义完全不同：单元上的叫 pin，模块边缘的叫 port。这一课把两者的层级、方向、物理形态讲清，再讲清 Input/Output 的相对性、模块 90 度翻转与镜像、以及"顶层给你的 port 位置与顺序必须一模一样"这条硬规定——它决定两个模块能不能拼上。">
-<link rel="icon" href="/assets/logo.svg?v=1795608245" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795608245">
+<link rel="icon" href="/assets/logo.svg?v=1795608922" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795608922">
 </head>
 <body data-page="lesson" data-lesson="02-05a-pin-port">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608245" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608922" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -69,6 +69,7 @@
 <ul><li>单元（NAND、DFF）身上那些<strong>引脚</strong>——叫 <strong>pin</strong>；</li><li>模块（你做的整个 block）边缘那些<strong>接口片</strong>——叫 <strong>port</strong>。</li></ul>
 <p>它们长得像（都是一小块金属 + 一个方向），但<strong>层级完全不同，改错一个的后果也不同</strong>。</p>
 <div class="tbl"><table><thead><tr><th></th><th><strong>Pin</strong></th><th><strong>Port</strong></th></tr></thead><tbody><tr><td>层级</td><td><strong>Cell 层</strong>：标准单元/宏单元自己的引脚</td><td><strong>Block 层</strong>：整个模块对外的接口</td></tr><tr><td>作用</td><td>Cell 与 Cell 之间连接</td><td>模块与模块之间、模块与顶层之间交互</td></tr><tr><td>谁定</td><td>库（lef）里写死，你改不了</td><td>floorplan 时<strong>由你摆</strong>（或由顶层指定）</td></tr><tr><td>版图外观</td><td>单元内部的小黄点/小矩形</td><td>模块边缘的黄色区域/箭头</td></tr><tr><td>例子</td><td>DFF 的 CK、D、Q、S 脚</td><td>你这一块对外的 <code>data_in[7:0]</code>、<code>clk</code>、<code>rst_n</code></td></tr></tbody></table></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="pin" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="pin" data-ch="pin">
   <div class="ch-h"><span class="ch-n">02</span><h2>Pin：单元的接口，库说了算</h2></div>
@@ -79,6 +80,7 @@
 <p>一个 DFF 的典型引脚（文档举的例子）：</p>
 <div class="tbl"><table><thead><tr><th>Pin</th><th>方向</th><th>作用</th></tr></thead><tbody><tr><td><strong>CK</strong></td><td>输入</td><td>时钟，沿到来时采样</td></tr><tr><td><strong>D</strong></td><td>输入</td><td>数据输入</td></tr><tr><td><strong>Q</strong></td><td>输出</td><td>数据输出</td></tr><tr><td><strong>S</strong>（或 SE/SI）</td><td>输入</td><td>测试扫描相关（scan enable / scan in）</td></tr></tbody></table></div>
 <p><strong>这些 pin 你一个都不能动</strong>。你能做的只有：把它摆在哪、朝哪个方向（翻转/镜像）、用什么线连它。这也是为什么 place 阶段&quot;某类单元摆反了&quot;会出问题——pin 的方向决定线从哪一侧接进来（LEF 那课讲过）。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="port" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="port" data-ch="port">
   <div class="ch-h"><span class="ch-n">03</span><h2>Port：模块的接口，你说了算</h2></div>
@@ -94,6 +96,7 @@
 <ol><li><strong>位置</strong>：在模块边缘的哪一段（左边？上边？第几微米处）；</li><li><strong>顺序</strong>：一组总线里 <code>data[0]</code> 到 <code>data[7]</code> 是从下往上排还是从上往下排；</li><li><strong>方向</strong>：Input 还是 Output。</li></ol>
 <div class="tip"><div class="tip-h">小技巧</div><p>分两种情况（后面会反复遇到）：</p>
 <ul><li><strong>自己做主</strong>：独立模块（顶层没给你约束），floorplan 时你按数据流决定 port 摆哪边；</li><li><strong>顶层指定</strong>：顶层（top）已经和别的模块拼好了版图，它会给你一个 <strong>def 文件</strong>，里面写死了你这一块的<strong>面积和 port 位置</strong>——这时候<strong>位置不是你选的，是必须遵守的</strong>。</li></ul></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="direction" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="direction" data-ch="direction">
   <div class="ch-h"><span class="ch-n">04</span><h2>方向是相对的：别人 Output 就是你的 Input</h2></div>
@@ -103,6 +106,7 @@
 <div class="pit"><div class="pit-h">常见坑 · 把 Port 方向配反</div><div class="pit-b"><p><strong>现象</strong>：模块单独跑没问题，一拼到顶层就报&quot;驱动冲突&quot;或&quot;某根线没有驱动&quot;。</p>
 <p><strong>原因</strong>：你按自己的理解把某个 port 定义成了 Output，但对接模块也把它定义成 Output（或者两个都当 Input），两边顶上了。</p>
 <p><strong>怎么查</strong>：拿顶层的连接关系（或对方给的 def/接口文档）逐个 port 对方向；一个信号只能有一个驱动源。</p></div></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="orient" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="orient" data-ch="orient">
   <div class="ch-h"><span class="ch-n">05</span><h2>翻转与镜像：模块能转，port 顺序会变</h2></div>
@@ -114,12 +118,14 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">   原方向          旋转 90°         镜像（X 轴翻转）</span><span class="ln ">  ┌────┬──┐      ┌────────┐       ┌────────┐</span><span class="ln ">  │ P1 │P2│      │P3      │       │P2    P1│</span><span class="ln ">  │    │  │      │        │       │        │</span><span class="ln ">  └────┴──┘      │P1    P2│       └────────┘</span><span class="ln ">                 └────────┘</span></code></pre></div>
 <p><strong>关键后果</strong>：模块一翻转，<strong>port 的物理顺序就变了</strong>。如果顶层按&quot;没翻转&quot;的顺序连你，拼上去就是全错位——所以 floorplan 定完 port 之后，朝向也必须锁定并告知顶层。</p>
 <div class="note"><div class="note-h">为什么标准单元可以随便翻</div><p>标准单元是&quot;等高&quot;的（同一行内高度一致），翻转不会破坏行结构，而且 pin 一般在靠近行边界的位置，翻过来照样能接。但<strong>宏单元和 block 的 port 位置是语义相关的</strong>，翻转前必须确认对接方能不能接受。</p></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="wh" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="wh" data-ch="wh">
   <div class="ch-h"><span class="ch-n">06</span><h2>宽高、长宽：说法习惯要对齐</h2></div>
   <p>文档顺带纠了一个用词习惯：</p>
 <ul><li>描述芯片/模块尺寸时，行业里习惯说<strong>宽（width）和高（height）</strong>，不是&quot;长和宽&quot;；</li><li>lef 里写的是 <code>SIZE 10.792 BY 1.672</code>，<strong>前面是宽（X 方向），后面是高（Y 方向）</strong>；</li><li>面积利用率 = 单元总面积 / 可用面积，用的是同一个&quot;宽×高&quot;口径。</li></ul>
 <p><strong>为什么提这个</strong>：跨部门沟通时&quot;长&quot;到底指哪一边，经常吵起来。<strong>统一用 width/height（X/Y）就没人会误</strong>。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="macro" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="macro" data-ch="macro">
   <div class="ch-h"><span class="ch-n">07</span><h2>Memory：只有 port，没有你关心的引脚</h2></div>
@@ -155,6 +161,7 @@
   <div class="q-a">用 width（宽）和 height（高）；SIZE 前面是宽（X），后面是高（Y）。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能一句话区分 pin（Cell 层）与 port（Block 层）</li><li>能说出 DFF 四个常见 pin 的作用</li><li>能解释 Input/Output 的相对性，并说出箭头方向的约定</li><li>能说出 port 的三个属性，以及&quot;顶层指定&quot;时不能自改</li><li>能解释翻转/镜像为什么会让 port 顺序变化，为什么必须与顶层锁定</li><li>知道 lef 的 SIZE 是&quot;宽 BY 高&quot;，面积按宽×高算</li></ul></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -172,9 +179,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795608245"></script>
-<script src="/assets/tcl.js?v=1795608245"></script>
-<script src="/assets/app.js?v=1795608245"></script>
-<script src="/assets/aiwidget.js?v=1795608245" defer></script>
+<script src="/assets/shell.js?v=1795608922"></script>
+<script src="/assets/tcl.js?v=1795608922"></script>
+<script src="/assets/app.js?v=1795608922"></script>
+<script src="/assets/aiwidget.js?v=1795608922" defer></script>
 </body>
 </html>

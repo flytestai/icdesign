@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>阶段二导读：后端基本概念与 PR 理论 · 17 | IC 后端学院</title>
 <meta name="description" content="阶段二已从"占位"扩充为 13 讲正式内容（28 学时）。本页是这一阶段的地图：每讲讲什么、彼此怎么咬合、先学哪个后学哪个，以及学完你应该能回答哪些问题。">
-<link rel="icon" href="/assets/logo.svg?v=1795608245" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795608245">
+<link rel="icon" href="/assets/logo.svg?v=1795608922" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795608922">
 </head>
 <body data-page="lesson" data-lesson="02-01-concepts-plan">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608245" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608922" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -67,6 +67,7 @@
   <div class="goal"><span>本章目标</span>知道阶段二的 13 讲各讲什么、顺序为什么这么排；能判断自己卡在哪一讲；明确学完这一阶段应具备的能力边界——<strong>能读懂一份 PR 交接数据、能说清一份时序报告的前提条件、能听懂同事在说什么</strong>。</div>
 <p>阶段一的 Linux 和 Tcl 是&quot;手上的工具&quot;，阶段二才进&quot;后端的语言&quot;。这一阶段不讲怎么点工具，只讲<strong>概念、文件和它们之间的关系</strong>——因为 PR 的绝大部分事故，根因都不在操作，而在&quot;拿到的这份数据是什么、它意味着什么&quot;。</p>
 <p>课表上这一阶段标的是 4 学时，本站按实际需要扩到了 <strong>28 学时</strong>：概念类内容讲不透，后面 41 学时的 Innovus 实操就会全程&quot;照抄步骤但不知道为什么&quot;。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="map" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="map" data-ch="map">
   <div class="ch-h"><span class="ch-n">02</span><h2>十三讲地图</h2></div>
@@ -74,12 +75,14 @@
 <div class="tbl"><table><thead><tr><th>#</th><th>课程</th><th>学时</th><th>一句话</th></tr></thead><tbody><tr><td>1</td><td><a href="/lesson/02-01a-chip-basics/">数字电路基础：从晶体管到 CPU</a></td><td>2</td><td>晶体管 → FinFET → 逻辑门 → 加法器 → CPU</td></tr><tr><td>2</td><td><a href="/lesson/02-01b-design-flow/">芯片设计全流程</a></td><td>2</td><td>需求 → RTL → 综合 → 后端 → 流片 → 封装</td></tr><tr><td>3</td><td><a href="/lesson/02-01c-units/">电学基础与单位换算</a></td><td>2</td><td>ps/ns、um/nm，看错十倍是常态</td></tr></tbody></table></div>
 <p><strong>PR 篇</strong>——你要做的这段活：</p>
 <div class="tbl"><table><thead><tr><th>#</th><th>课程</th><th>学时</th><th>一句话</th></tr></thead><tbody><tr><td>4</td><td><a href="/lesson/02-02-pr-what/">什么是布局布线（PR）</a></td><td>2</td><td>PR 把 netlist 变成 GDSII，完成&quot;逻辑连接 → 物理连接&quot;</td></tr><tr><td>5</td><td><a href="/lesson/02-03-pr-flow/">PR 全流程九步</a></td><td>3</td><td>init → floorplan → powerplan → place → cts → optcts → route → optroute → chipfinish</td></tr><tr><td>6</td><td><a href="/lesson/02-04-pr-data/">数据准备：init 要哪些文件</a></td><td>2</td><td>netlist / lef / def / lib / rc tech / sdc / mmmc 各管什么</td></tr><tr><td>7</td><td><a href="/lesson/02-04a-netlist-release/">网表版本、Release 与迭代协作</a></td><td>2</td><td>V1.0→V9.0、S1/S2、形状变更与责任边界</td></tr><tr><td>8</td><td><a href="/lesson/02-05-pr-lef/">LEF 详解</a></td><td>2</td><td>tech lef 是规则书，cell lef 是单元长相</td></tr><tr><td>9</td><td><a href="/lesson/02-05a-pin-port/">Pin 与 Port</a></td><td>2</td><td>单元接口 vs 模块接口，方向是相对的</td></tr><tr><td>10</td><td><a href="/lesson/02-06-pr-lib-rctech/">lib 与 rc tech：延迟怎么算</a></td><td>2</td><td>cell delay 由 input transition + output load 决定，线延迟靠寄生 RC</td></tr><tr><td>11</td><td><a href="/lesson/02-06a-setup-hold/">Setup 与 Hold：两条红线与四种 Corner</a></td><td>2</td><td>WCS 查 setup、BCF 查 hold，OCV/POCV 加余量</td></tr><tr><td>12</td><td><a href="/lesson/02-07-pr-mmmc/">MMMC：多模式多端角</a></td><td>2</td><td>一颗芯片必须在好几个&quot;世界&quot;里都合格</td></tr><tr><td>13</td><td><a href="/lesson/02-08-pr-sdc/">SDC 时序约束</a></td><td>3</td><td>前面几讲给&quot;事实&quot;，sdc 给&quot;要求&quot;</td></tr></tbody></table></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="order" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="order" data-ch="order">
   <div class="ch-h"><span class="ch-n">03</span><h2>为什么是这个顺序</h2></div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">【基础篇】 [1] 电路基础 -&gt; [2] 设计全流程 -&gt; [3] 电学与单位</span><span class="ln ">                                  |</span><span class="ln ">                                  ↓</span><span class="ln ">【PR 篇】  [4] PR 是什么 -&gt; [5] 九步流程 -&gt; [6] 要哪些文件 -&gt; [7] 版本与迭代</span><span class="ln ">                                                              |</span><span class="ln ">    [8] lef（形状） -&gt; [9] pin/port（接口） -&gt; [10] lib/rc tech（时间）</span><span class="ln ">                    -&gt; [11] setup/hold + corner -&gt; [12] MMMC（多环境） -&gt; [13] sdc（要求）</span></code></pre></div>
 <p>三条理由：</p>
 <ol><li><strong>基础篇不先过，后面全是天书</strong>。不知道什么是触发器、不知道 28nm 指什么、不知道 ns 和 ps 差 1000 倍，读 lib 和 sdc 就是背单词。</li><li><strong>先有地图再挖细节</strong>。第 5 讲先把九道工序走一遍，第 6~13 讲再逐个拆文件——反过来先看 lef，你不知道它在整个流程里干什么用。</li><li><strong>时序那条线必须连着走</strong>。第 10 讲（lib/rc tech，延迟怎么算）→ 第 11 讲（setup/hold 与 corner，怎么判合格）→ 第 12 讲（MMMC，在几个世界里判）→ 第 13 讲（sdc，要求从哪来）。<strong>中间断一节，后面的配置就变成抄参数。</strong></li></ol>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="ability" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="ability" data-ch="ability">
   <div class="ch-h"><span class="ch-n">04</span><h2>学完应该能回答的问题</h2></div>
@@ -100,6 +103,7 @@
   <div class="q-q"><span class="q-no"></span>可以跳过阶段二直接学 Innovus 实操吗？</div>
   <div class="q-a">不建议。实操每一步都在用这一阶段的概念（floorplan 算面积、cts 理解 skew、route 理解 DRC），概念不清就只能照抄步骤。</div>
 </div></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -117,9 +121,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795608245"></script>
-<script src="/assets/tcl.js?v=1795608245"></script>
-<script src="/assets/app.js?v=1795608245"></script>
-<script src="/assets/aiwidget.js?v=1795608245" defer></script>
+<script src="/assets/shell.js?v=1795608922"></script>
+<script src="/assets/tcl.js?v=1795608922"></script>
+<script src="/assets/app.js?v=1795608922"></script>
+<script src="/assets/aiwidget.js?v=1795608922" defer></script>
 </body>
 </html>

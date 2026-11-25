@@ -661,3 +661,15 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit;white-space:nowrap}
 .lc-btn:hover{background:#f8ecc9}
 .lc-btn:disabled{cursor:default;opacity:.75}
+
+/* ---------- 每章底部「继续下一章」 ---------- */
+.ch-next{display:flex;justify-content:flex-end;margin:18px 0 4px}
+.ch-next-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #bfe3d5;
+  background:linear-gradient(135deg,#f0fbf6,#eaf7f2);color:#178a56;border-radius:10px;
+  padding:9px 18px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;
+  transition:transform .12s,box-shadow .12s,background .15s}
+.ch-next-btn:hover{background:linear-gradient(135deg,#e4f7ee,#dbf3e9);transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(24,160,122,.18)}
+.ch-next-btn:active{transform:translateY(0)}
+.hh-sub{margin-left:12px;font-size:12.5px;color:var(--muted);align-self:center}
+@media (max-width:620px){.hh-sub{margin-left:0;flex-basis:100%}}

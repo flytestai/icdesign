@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 10 讲 · 综合实战 + 结课自测 · 16 | IC 后端学院</title>
 <meta name="description" content="EDA 风格综合脚本（列表+proc+foreach+命令替换串起全部知识点）、结课自测 10 题（覆盖全部知识点）、知识点全覆盖清单（31 条对照表）、后续学习路线。">
-<link rel="icon" href="/assets/logo.svg?v=1795608245" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795608245">
+<link rel="icon" href="/assets/logo.svg?v=1795608922" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795608922">
 </head>
 <body data-page="lesson" data-lesson="01-16-tcl-10-final">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608245" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608922" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -128,6 +128,7 @@ puts &quot;全部 $total 个单元处理完毕&quot;</textarea>
 </div>
 <p>逐行拆解用到的知识点：</p>
 <div class="tbl"><table><thead><tr><th>代码</th><th>用到的知识点</th><th>出处</th></tr></thead><tbody><tr><td><code>set mem_list {...}</code> 多行</td><td><code>{}</code> 定义列表（可跨行）</td><td>第 5 讲</td></tr><tr><td><code>proc report {mem idx total}</code></td><td>带参函数 + return</td><td>第 9 讲</td></tr><tr><td><code>[llength $mem_list]</code></td><td>命令替换 + 列表长度</td><td>第 3 / 6 讲</td></tr><tr><td><code>foreach mem $mem_list</code></td><td>遍历列表</td><td>第 8 讲</td></tr><tr><td><code>incr idx</code></td><td>整数自增</td><td>第 3 讲</td></tr><tr><td><code>report $mem $idx $total</code></td><td>直接调用函数</td><td>第 9 讲</td></tr><tr><td><code>[get_cells $mem]</code></td><td>命令替换嵌套（EDA 命令）</td><td>第 2 / 3 讲</td></tr><tr><td><code>puts &quot;全部 $total 个...&quot;</code></td><td>双引号内变量替换</td><td>第 2 讲</td></tr></tbody></table></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="quiz10" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="quiz10" data-ch="quiz10">
   <div class="ch-h"><span class="ch-n">02</span><h2>10.2 结课自测（覆盖全部知识点）</h2></div>
@@ -163,11 +164,13 @@ puts &quot;全部 $total 个单元处理完毕&quot;</textarea>
   <div class="q-q"><span class="q-no"></span>proc 不写 return，返回什么？</div>
   <div class="q-a">返回最后一条命令的结果。</div>
 </div></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="checklist" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="checklist" data-ch="checklist">
   <div class="ch-h"><span class="ch-n">03</span><h2>10.3 知识点全覆盖清单（文档 → 课程对照）</h2></div>
   <p>对照文档章节逐条检查，全部打勾 = 文档知识点无一遗漏：</p>
 <div class="tbl"><table><thead><tr><th>文档章节</th><th>知识点</th><th>课程位置</th></tr></thead><tbody><tr><td>开篇</td><td>innovus 打不开 / .bashrc 配置 / source / win / exit</td><td>第 1 讲 1.1</td></tr><tr><td>开篇</td><td>puts 输出</td><td>第 1 讲 1.2</td></tr><tr><td>一、1</td><td>变量命名规则 / set 语法 / 三种类型变量 / puts 多变量</td><td>第 2 讲 2.1</td></tr><tr><td>一、1</td><td>&quot;名字绑值&quot;心智模型</td><td>第 2 讲 2.1</td></tr><tr><td>一、1</td><td>{} &quot;&quot; [] 三种替换原理</td><td>第 2 讲 2.2</td></tr><tr><td>一、1</td><td>set 不支持多变量 → 字典 dict get</td><td>第 2 讲 2.5</td></tr><tr><td>一、2</td><td>特殊变量名 ${} 调用</td><td>第 2 讲 2.4</td></tr><tr><td>一、3(1)</td><td>append 追加（两种方法 + 对比拼接）</td><td>第 3 讲 3.1</td></tr><tr><td>一、3(2)</td><td>incr 递增递减（默认1 / 正负步长 / 仅整数）</td><td>第 3 讲 3.2</td></tr><tr><td>一、3(3)</td><td>expr 计算 / 整数除法 / 浮点除法</td><td>第 3 讲 3.3</td></tr><tr><td>二、1</td><td>数组定义 set arr(key) / 键可为字符串 / 访问</td><td>第 4 讲 4.2</td></tr><tr><td>二、1</td><td>array set 批量赋值 / array get / 参数限制 / 嵌套写法 / dict get</td><td>第 4 讲 4.3</td></tr><tr><td>二、1</td><td>数组增加/修改（同键覆盖）</td><td>第 4 讲 4.4</td></tr><tr><td>二、2</td><td>unset 删元素 / 删整个数组 / 两种报错</td><td>第 4 讲 4.5</td></tr><tr><td>二、3</td><td>array names / foreach 遍历 / foreach {k v} + array get / 练习 fruit</td><td>第 4 讲 4.6</td></tr><tr><td>三、1</td><td>{} 定义列表（多行 / 含空格元素加引号）</td><td>第 5 讲 5.2</td></tr><tr><td>三、1</td><td>list 命令定义（单行 / 嵌套）</td><td>第 5 讲 5.3</td></tr><tr><td>三、2</td><td>concat / lindex / llength / lappend / lreplace / lsearch / lsort / split / join 与源数据规则</td><td>第 6 讲总表</td></tr><tr><td>三、3</td><td>嵌套列表访问（双层 lindex 与多级连写）</td><td>第 6 讲末</td></tr><tr><td>四、1</td><td>if-elseif-else 语法 / 比较与逻辑运算符 / 四大铁律</td><td>第 7 讲 7.1-7.2</td></tr><tr><td>四、1</td><td>gets stdin 输入 / rand() 随机数 / 猜数字 / 成绩等级</td><td>第 7 讲 7.3-7.4</td></tr><tr><td>四、2</td><td>while 三要素 / 死循环 / while {1} / break / 倒序复制 / 倒序遍历</td><td>第 8 讲 8.1</td></tr><tr><td>四、3</td><td>foreach 语法 / EDA 移动对象示例 / 列表求和及原理</td><td>第 8 讲 8.2</td></tr><tr><td>四、4</td><td>for 语法 / 1-100偶数减奇数练习</td><td>第 8 讲 8.3</td></tr><tr><td>四、4</td><td>source 文件</td><td>第 8 讲 8.5</td></tr><tr><td>五、1</td><td>无参函数 / 调用规则</td><td>第 9 讲 9.1</td></tr><tr><td>五、2</td><td>带参函数 / return 语义 / [ ] 接收返回值</td><td>第 9 讲 9.2</td></tr><tr><td>五、3</td><td>默认参数 / args 混合写法</td><td>第 9 讲 9.3-9.4</td></tr><tr><td>五、4</td><td>args 可变参数规则（放最后 / 打包成列表）</td><td>第 9 讲 9.4</td></tr><tr><td>五、5</td><td>global 全局变量 / 局部变量</td><td>第 9 讲 9.5</td></tr><tr><td>五、6</td><td>max 综合示例 / proc 核心语法总结</td><td>第 9 讲 9.6-9.7</td></tr></tbody></table></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="next" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="next" data-ch="next">
   <div class="ch-h"><span class="ch-n">04</span><h2>10.4 从这里继续走</h2></div>
@@ -175,6 +178,7 @@ puts &quot;全部 $total 个单元处理完毕&quot;</textarea>
 <p>下一步建议：</p>
 <ol><li><strong>直接上手真实项目脚本</strong>——遇到不认识的命令查工具手册（<code>man</code> 命令）。</li><li><strong>语法层面你已经是&quot;全科医生&quot;</strong>——剩下的是熟练度和工程习惯。</li><li>继续本站课程：阶段二的数字 IC 后端概念 → Innovus / ICC2 实操，那里大量用到本课程语法。</li></ol>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>EDA 综合脚本逐行能说清用了哪个知识点</li><li>结课自测 10 题全部答对</li><li>知识点清单 31 条全部打勾</li></ul></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -192,9 +196,9 @@ puts &quot;全部 $total 个单元处理完毕&quot;</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795608245"></script>
-<script src="/assets/tcl.js?v=1795608245"></script>
-<script src="/assets/app.js?v=1795608245"></script>
-<script src="/assets/aiwidget.js?v=1795608245" defer></script>
+<script src="/assets/shell.js?v=1795608922"></script>
+<script src="/assets/tcl.js?v=1795608922"></script>
+<script src="/assets/app.js?v=1795608922"></script>
+<script src="/assets/aiwidget.js?v=1795608922" defer></script>
 </body>
 </html>

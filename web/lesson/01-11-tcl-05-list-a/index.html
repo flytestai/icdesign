@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 5 讲 · 列表（上）：定义与读取 · 11 | IC 后端学院</title>
 <meta name="description" content="列表是 TCL 最常用的数据结构。两种定义方法（大括号 {} 适合多行 / list 命令适合单行嵌套）、lindex 取元素、llength 求长度、嵌套列表的两种访问写法（双层 lindex 与多级连写）。">
-<link rel="icon" href="/assets/logo.svg?v=1795608245" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795608245">
+<link rel="icon" href="/assets/logo.svg?v=1795608922" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795608922">
 </head>
 <body data-page="lesson" data-lesson="01-11-tcl-05-list-a">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608245" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795608922" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -136,6 +136,7 @@ puts $nested_list   ;# 输出：10 {20 30} {40 50 60}</textarea>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="read" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="read" data-ch="read">
   <div class="ch-h"><span class="ch-n">02</span><h2>读取：lindex（索引从 0 开始）与 llength</h2></div>
@@ -154,6 +155,7 @@ puts [llength $num_list]     ;# 获取列表长度（元素个数）→ 5</texta
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>lindex $l 2</code> ≈ <code>l[2]</code>；<code>llength $l</code> ≈ <code>len(l)</code>。</p></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="nested" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="nested" data-ch="nested">
   <div class="ch-h"><span class="ch-n">03</span><h2>列表实操示例：嵌套列表访问</h2></div>
@@ -211,6 +213,7 @@ puts $name</textarea>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>lindex $L 1 1</code> ≈ <code>L[1][1]</code>。</p></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
@@ -226,6 +229,7 @@ puts $name</textarea>
   <div class="q-a"><code>lindex [lindex $L 1] 1</code> 或 <code>lindex $L 1 1</code>（由外向内）。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用两种方法定义列表并说清适用场景</li><li>lindex / llength 不看资料能写</li><li>嵌套列表两种取值写法都能写对</li></ul></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -243,9 +247,9 @@ puts $name</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795608245"></script>
-<script src="/assets/tcl.js?v=1795608245"></script>
-<script src="/assets/app.js?v=1795608245"></script>
-<script src="/assets/aiwidget.js?v=1795608245" defer></script>
+<script src="/assets/shell.js?v=1795608922"></script>
+<script src="/assets/tcl.js?v=1795608922"></script>
+<script src="/assets/app.js?v=1795608922"></script>
+<script src="/assets/aiwidget.js?v=1795608922" defer></script>
 </body>
 </html>

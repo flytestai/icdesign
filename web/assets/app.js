@@ -171,6 +171,13 @@
     /* 定位目标：优先本地位置记录；没有（换设备/清缓存）则按进度推导 =
        第一个未完成的章节；全部完成则停在最后一章。 */
     function targetIdx() {
+      /* URL 里带 #chapter 锚点（从「继续学习」或「下一章」跳转而来）时优先用它 */
+      var hash = (location.hash || '').replace(/^#/, '');
+      if (hash) {
+        for (var h = 0; h < sections.length; h++) {
+          if (sections[h].getAttribute('data-ch') === hash) return h;
+        }
+      }
       var rec = null;
       try { rec = localStorage.getItem(LS_POS); } catch (e) { }
       if (rec) {
@@ -337,7 +344,65 @@
         startCatalog();
       }).catch(startCatalog);
     })();
+
+    /* 首页主按钮改为「继续学习」：按账号真实进度决定去哪 */
+    (function continueBtn() {
+      var btn = document.getElementById('hh-continue');
+      var sub = document.getElementById('hh-sub');
+      if (!btn) return;
+      fetch(API + '/next').then(function (r) { return r.json(); }).then(function (d) {
+        if (!d || !d.lesson) return;
+        var href = '/lesson/' + d.lesson + '/';
+        if (d.chapter) href += '#' + d.chapter;
+        btn.href = href;
+        if (d.reason === 'anonymous' || d.reason === 'next-undone' && !d.chapter) {
+          btn.textContent = '从第一课开始 →';
+          return;
+        }
+        if (d.reason === 'all-done') {
+          btn.textContent = '全部学完 · 去复习 →';
+          if (sub) sub.textContent = '恭喜，209 章都学过了';
+          return;
+        }
+        btn.textContent = '继续学习 →';
+        if (sub) {
+          var t = btn.getAttribute('data-title') || '';
+          sub.textContent = d.reason === 'resume' ? '接着上次的位置' : '下一门没学完的课';
+        }
+      }).catch(function () { });
+    })();
   }
+
+  /* ---------------- 每章底部「继续下一章」 ---------------- */
+  document.querySelectorAll('.ch-next-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      /* 先把当前这一章标记为已学（即使用户没滚够 65% 也认） */
+      var sec = btn.closest('section.ch');
+      var ch = sec && sec.getAttribute('data-ch');
+      if (ch && !isDone(ch)) setDone(ch, true);
+
+      var nextCh = btn.getAttribute('data-next');
+      if (nextCh) {
+        var target = document.getElementById(nextCh);
+        if (target) {
+          window.scrollTo({ top: Math.max(0, target.offsetTop - 80), behavior: 'smooth' });
+          return;
+        }
+      }
+      /* 本课最后一章：问服务端下一门该学什么 */
+      fetch(API + '/next').then(function (r) { return r.json(); }).then(function (d) {
+        if (d && d.lesson && d.lesson !== lessonId) {
+          location.href = '/lesson/' + d.lesson + '/' + (d.chapter ? '#' + d.chapter : '');
+        } else {
+          var nav = document.querySelector('.end-nav .nav-btn:last-child');
+          if (nav) location.href = nav.getAttribute('href');
+        }
+      }).catch(function () {
+        var nav = document.querySelector('.end-nav .nav-btn:last-child');
+        if (nav) location.href = nav.getAttribute('href');
+      });
+    });
+  });
 
   /* ---------------- 术语卡 ---------------- */
   document.querySelectorAll('.term').forEach(function (t) {

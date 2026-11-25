@@ -1004,6 +1004,80 @@ def _total_stages() -> int:
         return 0
 
 
+@app.get("/api/next")
+def next_lesson(request: Request):
+    """计算「继续学习」该去哪儿。
+
+    规则（按账号的真实进度）：
+    1. 优先回到「上一次学习的位置」（lessons_progress 记录的最后访问课程 + 章节）
+       —— 但若该课已全部学完，则跳过它去下一课
+    2. 否则取第一门「没学完」的课程，定位到它第一个未完成的章节
+    3. 全部学完则返回最后一课
+    """
+    u = current_user(request)
+    if not u:
+        return {"lesson": _first_lesson(), "chapter": "", "reason": "anonymous"}
+    cat = _catalog()
+    lessons = cat.get("lessons") or []
+    if not lessons:
+        return {"lesson": "", "chapter": "", "reason": "no-catalog"}
+    order = [L["id"] for L in lessons]
+    ch_of = {L["id"]: [c["id"] for c in (L.get("chapters") or [])] for L in lessons}
+
+    with closing(db()) as c:
+        rows = c.execute(
+            "SELECT lesson, chapter FROM progress_u WHERE user_id=? AND done=1", (u["id"],)).fetchall()
+    done_set = {(r["lesson"], r["chapter"]) for r in rows}
+
+    def first_undone(lid):
+        for ch in ch_of.get(lid, []):
+            if (lid, ch) not in done_set:
+                return ch
+        return None
+
+    # 1) 上次学习位置
+    last = None
+    try:
+        last = localStorage_last_lesson(u["id"])
+    except Exception:
+        last = None
+    if last and last in ch_of:
+        if first_undone(last) is not None:
+            return {"lesson": last, "chapter": first_undone(last), "reason": "resume"}
+
+    # 2) 第一门没学完的课
+    for lid in order:
+        ch = first_undone(lid)
+        if ch is not None:
+            return {"lesson": lid, "chapter": ch,
+                    "reason": "resume" if (last == lid) else "next-undone"}
+
+    # 3) 全部学完
+    return {"lesson": order[-1], "chapter": "", "reason": "all-done"}
+
+
+def localStorage_last_lesson(user_id: int) -> Optional[str]:
+    """最近一次有进度写入的课程（作为「上次学习位置」）。"""
+    with closing(db()) as c:
+        r = c.execute(
+            "SELECT lesson FROM progress_u WHERE user_id=? ORDER BY ts DESC LIMIT 1",
+            (user_id,)).fetchone()
+    return r["lesson"] if r else None
+
+
+def _catalog() -> dict:
+    p = WEB / "data" / "catalog.json"
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _first_lesson() -> str:
+    lessons = _catalog().get("lessons") or []
+    return lessons[0]["id"] if lessons else ""
+
+
 def _total_chapters() -> int:
     """全站章节总数（读 web/data/catalog.json）。读不到则回退 0。"""
     p = WEB / "data" / "catalog.json"
