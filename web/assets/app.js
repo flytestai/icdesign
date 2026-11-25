@@ -141,6 +141,66 @@
   }
   if (sections.length) { window.addEventListener('scroll', spy, { passive: true }); spy(); }
 
+  /* ---------------- 首页目录：课程完成标识 ---------------- */
+  if (!isLesson && document.querySelector('.lrow')) {
+    (function () {
+      function paintCatalog(cat) {
+        var perStage = {};
+        (cat.lessons || []).forEach(function (L) {
+          var total = (L.chapters || []).length, n = 0;
+          (L.chapters || []).forEach(function (c) { if (done[L.id + '/' + c.id]) n++; });
+          var row = document.querySelector('.lrow[href="/lesson/' + L.id + '/"]');
+          if (!row) return;
+          var full = total > 0 && n === total;
+          row.classList.toggle('done', full);
+          row.classList.toggle('partial', !full && n > 0);
+          var lno = row.querySelector('.lno');
+          if (lno) {
+            lno.textContent = full ? '✓' : lno.textContent;
+          }
+          if (full && !row.querySelector('.ldone')) {
+            var lh = row.querySelector('.lh');
+            if (lh) lh.insertAdjacentHTML('beforebegin', '<span class="ldone">✓ 已完成</span>');
+          }
+          if (!full && n > 0 && !row.querySelector('.lpart')) {
+            var lh2 = row.querySelector('.lh');
+            if (lh2) lh2.insertAdjacentHTML('beforebegin', '<span class="lpart">' + n + '/' + total + '</span>');
+          }
+          var stage = row.closest('.stage');
+          if (stage) {
+            var agg = perStage[stage.id] || (perStage[stage.id] = [0, 0, stage]);
+            agg[0] += n; agg[1] += total;
+          }
+        });
+        Object.keys(perStage).forEach(function (sid) {
+          var dn = perStage[sid][0], tt = perStage[sid][1], stage = perStage[sid][2];
+          if (!tt) return;
+          var pct = Math.round(dn / tt * 100);
+          var r = stage.querySelector('.stage-r');
+          if (!r) return;
+          var el = stage.querySelector('.stage-prog');
+          if (!el) {
+            el = document.createElement('div');
+            el.className = 'stage-prog';
+            r.insertBefore(el, r.querySelector('.lrows'));
+          }
+          el.innerHTML = '<div class="sp-bar"><i style="width:' + pct + '%"></i></div>' +
+            '<span>' + dn + '/' + tt + ' 章已完成' + (pct === 100 ? ' 🎉' : '') + '</span>';
+        });
+      }
+
+      function startCatalog() {
+        fetch('/data/catalog.json').then(function (r) { return r.json(); }).then(paintCatalog).catch(function () { });
+      }
+      /* 与服务器进度合并后绘制（换设备也能看到完成标识） */
+      fetch(API + '/progress/' + uid()).then(function (r) { return r.json(); }).then(function (d) {
+        (d.items || []).forEach(function (it) { if (it.done) done[it.lesson + '/' + it.chapter] = 1; });
+        saveDone(done);
+        startCatalog();
+      }).catch(startCatalog);
+    })();
+  }
+
   /* ---------------- 术语卡 ---------------- */
   document.querySelectorAll('.term').forEach(function (t) {
     function toggle() { t.classList.toggle('open'); }
