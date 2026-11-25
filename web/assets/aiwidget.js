@@ -212,7 +212,7 @@
     statusTxt = panel.querySelector("#aiw-dot-t");
     refreshStatus();
     panel.querySelector('[data-act="close"]').addEventListener("click", closePanel);
-    panel.querySelector('[data-act="cfg"]').addEventListener("click", openConfig);
+    panel.querySelector('[data-act="cfg"]').addEventListener("click", function () { openConfig(); });
     panel.querySelector('[data-act="clear"]').addEventListener("click", function () {
       HISTORY = [];
       bodyEl.innerHTML = '<div class="aiw-hint">会话已清空。</div>';
