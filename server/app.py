@@ -109,6 +109,13 @@ def init_db():
             api_key TEXT NOT NULL,
             model TEXT NOT NULL,
             updated_at INTEGER NOT NULL)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS ai_notes(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            lesson TEXT NOT NULL DEFAULT '',
+            question TEXT NOT NULL,
+            answer TEXT NOT NULL,
+            ts INTEGER NOT NULL)""")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_uid ON progress(uid)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_lesson ON progress(lesson)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
@@ -689,6 +696,61 @@ def ai_models(r: AIModelsIn, request: Request):
     if not ids:
         raise HTTPException(502, "接口返回了空模型列表，请确认地址和 Key 是否正确")
     return {"models": ids}
+
+
+class AINoteIn(BaseModel):
+    question: str = Field(..., max_length=4000)
+    answer: str = Field(..., max_length=12000)
+    lesson: str = Field("", max_length=64)
+
+
+@app.post("/api/ai/notes")
+def ai_note_add(r: AINoteIn, request: Request):
+    """保存一条 AI 问答为笔记。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    lesson = r.lesson.strip()
+    if lesson and not KEY_RE.match(lesson):
+        lesson = ""
+    q = r.question.strip()
+    a = r.answer.strip()
+    if not q or not a:
+        raise HTTPException(400, "问答内容为空")
+    now = int(time.time())
+    with closing(db()) as c:
+        cur = c.execute(
+            "INSERT INTO ai_notes(user_id,lesson,question,answer,ts) VALUES(?,?,?,?,?)",
+            (u["id"], lesson, q[:4000], a[:12000], now))
+        c.commit()
+    return {"ok": True, "id": cur.lastrowid}
+
+
+@app.get("/api/ai/notes")
+def ai_note_list(request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    with closing(db()) as c:
+        rows = c.execute(
+            "SELECT id,lesson,question,answer,ts FROM ai_notes WHERE user_id=? "
+            "ORDER BY id DESC LIMIT 200", (u["id"],)).fetchall()
+    return {"notes": [
+        {"id": r["id"], "lesson": r["lesson"], "question": r["question"],
+         "answer": r["answer"], "ts": r["ts"]} for r in rows]}
+
+
+@app.delete("/api/ai/notes/{note_id}")
+def ai_note_del(note_id: int, request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    with closing(db()) as c:
+        cur = c.execute("DELETE FROM ai_notes WHERE id=? AND user_id=?", (note_id, u["id"]))
+        c.commit()
+    if cur.rowcount == 0:
+        raise HTTPException(404, "笔记不存在")
+    return {"ok": True}
 
 
 def _strip_html(html: str) -> str:

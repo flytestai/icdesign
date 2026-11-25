@@ -25,6 +25,9 @@
   var CLOSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>';
   var MINUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>';
   var ERASER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H8.5L3 14.5a2 2 0 0 1 0-2.8L11.7 3a2 2 0 0 1 2.8 0l6.5 6.5a2 2 0 0 1 0 2.8L14 19.3"/><path d="M8 11l5 5"/></svg>';
+  var NOTEBOOK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9.5 7.5h6"/><path d="M9.5 11.5h6"/></svg>';
+  var BOOKMARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>';
+  var COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
   var REFRESH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>';
 
   var CSS = [
@@ -85,6 +88,13 @@
     ".aiw-row.u .aiw-msg{background:linear-gradient(135deg," + ACCENT + "," + ACCENT2 + ");color:#fff;",
     "border-bottom-right-radius:4px;box-shadow:0 3px 10px rgba(91,108,255,.3)}",
     ".aiw-msg.err{background:#fef2f2!important;color:#c2453e;border:1px solid #f5cbc6!important}",
+    ".aiw-acts{display:flex;gap:14px;margin:-9px 0 13px 34px}",
+    ".aiw-acts button{background:none;border:none;color:#98a1b8;font-size:11.5px;cursor:pointer;",
+    "padding:0;display:flex;align-items:center;gap:4px;font-family:inherit;transition:color .15s}",
+    ".aiw-acts button:hover{color:" + ACCENT + "}",
+    ".aiw-acts button:disabled{color:#22c55e;cursor:default}",
+    ".aiw-acts button.fail{color:#c2453e}",
+    ".aiw-acts svg{width:12px;height:12px}",
     ".aiw-hint{color:#8a94ad;font-size:12.5px;text-align:center;line-height:1.7;padding:10px 8px}",
     ".aiw-hint b{color:" + ACCENT + "}",
     ".aiw-typing{display:inline-flex;gap:4px;align-items:center;padding:10px 14px;background:#fff;",
@@ -142,6 +152,30 @@
     "border-radius:10px;color:" + ACCENT + ";cursor:pointer;display:flex;align-items:center;justify-content:center}",
     ".aiw-mrow .mini svg{width:16px;height:16px}",
     ".aiw-mrow .mini:disabled{opacity:.45;cursor:default}",
+    /* ---- 问答笔记页 ---- */
+    ".aiw-notes{flex:1;overflow-y:auto;background:#f7f8fd;display:none;flex-direction:column}",
+    ".aiw-notes.on{display:flex}",
+    ".aiw-notes-h{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fff;",
+    "border-bottom:1px solid #e8ebf5;font-size:14.5px;font-weight:700}",
+    ".aiw-notes-h button{width:28px;height:28px;border:1px solid #dde2f0;background:#fff;border-radius:8px;",
+    "cursor:pointer;display:flex;align-items:center;justify-content:center;color:#5a657a}",
+    ".aiw-notes-h button svg{width:15px;height:15px}",
+    ".aiw-notes-h .cnt{font-size:12px;font-weight:400;color:#98a1b8}",
+    ".aiw-notes-b{flex:1;overflow-y:auto;padding:12px}",
+    ".aiw-ni{background:#fff;border:1px solid #e6eaf5;border-radius:12px;padding:10px 12px;margin-bottom:10px;",
+    "box-shadow:0 1px 3px rgba(30,50,120,.05)}",
+    ".aiw-ni-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:#98a1b8;margin-bottom:6px}",
+    ".aiw-ni-meta a{color:" + ACCENT + ";text-decoration:none;font-weight:600}",
+    ".aiw-ni-meta .sp{flex:1}",
+    ".aiw-ni-meta button{background:none;border:none;color:#b6bdcf;cursor:pointer;padding:0;display:flex}",
+    ".aiw-ni-meta button:hover{color:#c2453e}",
+    ".aiw-ni-meta button svg{width:13px;height:13px}",
+    ".aiw-ni-q{font-size:13px;font-weight:600;line-height:1.55;word-break:break-word;color:#2a3650}",
+    ".aiw-ni-a{font-size:12.5px;color:#5a657a;line-height:1.65;margin-top:6px;white-space:pre-wrap;",
+    "word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;",
+    "overflow:hidden;cursor:pointer}",
+    ".aiw-ni-a.open{-webkit-line-clamp:unset;display:block}",
+    ".aiw-ni-hint{color:#98a1b8;font-size:12px;text-align:center;padding:16px 10px;line-height:1.8}",
     "@media (max-width:520px){.aiw-panel{right:10px;left:10px;width:auto;bottom:86px}}",
     "@media (prefers-reduced-motion:reduce){.aiw-panel{animation:none}.aiw-ball::before{animation:none}}"
   ].join("");
@@ -163,7 +197,7 @@
   document.body.appendChild(ball);
 
   var panel = null, bodyEl = null, inputEl = null, sendEl = null;
-  var cfgEl = null, statusDot = null, statusTxt = null;
+  var cfgEl = null, noteEl = null, statusDot = null, statusTxt = null;
 
   function esc(t) {
     return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -177,13 +211,98 @@
 
   function showChat() {
     if (cfgEl) cfgEl.classList.remove("on");
+    if (noteEl) noteEl.classList.remove("on");
     panel.querySelector(".aiw-view").style.display = "";
   }
 
   function showCfg() {
+    if (noteEl) noteEl.classList.remove("on");
     panel.querySelector(".aiw-view").style.display = "none";
     if (!cfgEl) cfgEl = buildCfg();
     cfgEl.classList.add("on");
+  }
+
+  function showNotes() {
+    if (cfgEl) cfgEl.classList.remove("on");
+    panel.querySelector(".aiw-view").style.display = "none";
+    if (!noteEl) noteEl = buildNotes();
+    noteEl.classList.add("on");
+    renderNotes();
+  }
+
+  function openNotes() {
+    if (!panel) openPanel();
+    showNotes();
+  }
+
+  /* ---------------- 问答笔记页 ---------------- */
+  function buildNotes() {
+    var nv = document.createElement("div");
+    nv.className = "aiw-notes";
+    nv.innerHTML =
+      '<div class="aiw-notes-h">' +
+        '<button type="button" id="aiw-notes-back" title="返回对话">' + BACK + "</button> AI 问答笔记" +
+        '<span class="cnt" id="aiw-notes-cnt"></span>' +
+      "</div>" +
+      '<div class="aiw-notes-b" id="aiw-notes-list"></div>';
+    panel.appendChild(nv);
+    nv.querySelector("#aiw-notes-back").addEventListener("click", showChat);
+    return nv;
+  }
+
+  function fmtTs(ts) {
+    var d = new Date(ts * 1000);
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return (d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  function renderNotes() {
+    var list = noteEl.querySelector("#aiw-notes-list");
+    var cnt = noteEl.querySelector("#aiw-notes-cnt");
+    list.innerHTML = '<div class="aiw-ni-hint">加载中…</div>';
+    fetch("/api/ai/notes", { credentials: "same-origin" })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok) {
+          list.innerHTML = '<div class="aiw-ni-hint">' + esc(res.j.detail || "加载失败") + "</div>";
+          return;
+        }
+        var notes = res.j.notes || [];
+        cnt.textContent = notes.length ? "共 " + notes.length + " 条" : "";
+        if (!notes.length) {
+          list.innerHTML = '<div class="aiw-ni-hint">还没有保存过 AI 问答。<br>对话里 AI 回答下方点「保存为笔记」即可收藏。</div>';
+          return;
+        }
+        list.innerHTML = notes.map(function (n) {
+          var src = n.lesson
+            ? '<a href="/lesson/' + esc(n.lesson) + '/" target="_blank" rel="noopener">' + esc(n.lesson) + "</a>"
+            : "站内提问";
+          return '<div class="aiw-ni" data-id="' + n.id + '">' +
+            '<div class="aiw-ni-meta"><span>' + src + "</span><span>" + fmtTs(n.ts) + '</span><span class="sp"></span>' +
+            '<button type="button" data-del="' + n.id + '" title="删除">' + TRASH + "</button></div>" +
+            '<div class="aiw-ni-q">Q：' + esc(n.question) + "</div>" +
+            '<div class="aiw-ni-a">A：' + esc(n.answer) + "</div></div>";
+        }).join("");
+        list.querySelectorAll(".aiw-ni-a").forEach(function (el) {
+          el.addEventListener("click", function () { el.classList.toggle("open"); });
+        });
+        list.querySelectorAll("[data-del]").forEach(function (el) {
+          el.addEventListener("click", function () { delNote(el.getAttribute("data-del")); });
+        });
+      })
+      .catch(function () {
+        list.innerHTML = '<div class="aiw-ni-hint">加载失败，请稍后重试。</div>';
+      });
+  }
+
+  function delNote(id) {
+    if (!window.confirm("确定删除这条问答笔记吗？")) return;
+    fetch("/api/ai/notes/" + id, { method: "DELETE", credentials: "same-origin" })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (res.ok) renderNotes();
+      })
+      .catch(function () {});
   }
 
   /* ---------------- 面板骨架 ---------------- */
@@ -196,6 +315,7 @@
         '<div class="aiw-ava">' + ROBOT + "</div>" +
         '<div class="aiw-tt"><b>AI 助手</b><i><span class="aiw-dot" id="aiw-dot"></span><span id="aiw-dot-t">…</span></i></div>' +
         '<button class="aiw-hbtn" type="button" data-act="cfg" title="AI 设置">' + GEAR + "</button>" +
+        '<button class="aiw-hbtn" type="button" data-act="notes" title="问答笔记">' + NOTEBOOK + "</button>" +
         '<button class="aiw-hbtn" type="button" data-act="clear" title="清空会话">' + ERASER + "</button>" +
         '<button class="aiw-hbtn" type="button" data-act="close" title="收起">' + MINUS + "</button>" +
       "</div>" +
@@ -213,6 +333,7 @@
     refreshStatus();
     panel.querySelector('[data-act="close"]').addEventListener("click", closePanel);
     panel.querySelector('[data-act="cfg"]').addEventListener("click", function () { openConfig(); });
+    panel.querySelector('[data-act="notes"]').addEventListener("click", function () { openNotes(); });
     panel.querySelector('[data-act="clear"]').addEventListener("click", function () {
       HISTORY = [];
       bodyEl.innerHTML = '<div class="aiw-hint">会话已清空。</div>';
@@ -228,14 +349,18 @@
           : "有任何 IC 后端的问题都可以问我。") +
         '<br>右上角 ⚙ 可随时配置你的大模型。</div>';
     } else {
-      HISTORY.forEach(function (m) { bubble(m.role === "user" ? "u" : "b", m.content); });
+      var lastQ = "";
+      HISTORY.forEach(function (m) {
+        if (m.role === "user") { lastQ = m.content; bubble("u", m.content); }
+        else bubble("b", m.content, false, lastQ);
+      });
       bodyEl.scrollTop = bodyEl.scrollHeight;
     }
     inputEl.focus();
   }
 
   function closePanel() {
-    if (panel) { panel.remove(); panel = null; cfgEl = null; }
+    if (panel) { panel.remove(); panel = null; cfgEl = null; noteEl = null; }
     statusDot = statusTxt = null;
   }
 
@@ -244,7 +369,60 @@
   });
 
   /* ---------------- 气泡与发送 ---------------- */
-  function bubble(kind, text, isErr) {
+  /* AI 回答下方的小操作条：复制 / 保存为笔记 */
+  function addActs(row, q, a) {
+    var acts = document.createElement("div");
+    acts.className = "aiw-acts";
+    acts.innerHTML =
+      '<button type="button" data-act="copy">' + COPY + " 复制</button>" +
+      '<button type="button" data-act="save">' + BOOKMARK + " 保存为笔记</button>";
+    row.parentNode.insertBefore(acts, row.nextSibling);
+    var copyBtn = acts.querySelector('[data-act="copy"]');
+    var saveBtn = acts.querySelector('[data-act="save"]');
+    copyBtn.addEventListener("click", function () {
+      var text = "问：" + q + "\n\n答：" + a + "\n\n—— 来自 ic.feice.net AI 助手";
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          copyBtn.innerHTML = COPY + " 已复制";
+          setTimeout(function () { copyBtn.innerHTML = COPY + " 复制"; }, 1800);
+        }).catch(function () {});
+      }
+    });
+    saveBtn.addEventListener("click", function () {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = BOOKMARK + " 保存中…";
+      fetch("/api/ai/notes", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: q,
+          answer: a,
+          lesson: (document.body.dataset && document.body.dataset.lesson) || "",
+        }),
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          if (res.ok) {
+            saveBtn.innerHTML = BOOKMARK + " 已保存";
+          } else {
+            failSave();
+          }
+        })
+        .catch(failSave);
+      function failSave() {
+        saveBtn.disabled = false;
+        saveBtn.classList.add("fail");
+        saveBtn.innerHTML = BOOKMARK + " 保存失败";
+        setTimeout(function () {
+          saveBtn.classList.remove("fail");
+          saveBtn.innerHTML = BOOKMARK + " 保存为笔记";
+        }, 2200);
+      }
+    });
+  }
+
+  function bubble(kind, text, isErr, q) {
     var row = document.createElement("div");
     row.className = "aiw-row " + kind;
     if (kind === "b") row.innerHTML = '<div class="aiw-mava">' + ROBOT + "</div>";
@@ -253,6 +431,7 @@
     d.textContent = text;
     row.appendChild(d);
     bodyEl.appendChild(row);
+    if (kind === "b" && !isErr && q) addActs(row, q, text);
     bodyEl.scrollTop = bodyEl.scrollHeight;
     return d;
   }
@@ -293,7 +472,7 @@
         }
         configured = true; refreshStatus();
         HISTORY.push({ role: "assistant", content: res.j.reply });
-        bubble("b", res.j.reply);
+        bubble("b", res.j.reply, false, q);
       })
       .catch(function (ex) {
         tip.remove();

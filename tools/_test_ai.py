@@ -108,3 +108,32 @@ try:
 except urllib.error.HTTPError as e:
     print("14) 删除后拉模型报错:", e.code, "请先填写 API Key" in json.loads(e.read())["detail"])
 
+# AI 问答笔记
+st, res = api("/api/ai/notes", {"question": "什么是 DRC？", "answer": "DRC 是设计规则检查。", "lesson": "01-01-linux-01-intro"})
+print("15) 保存问答笔记:", st == 200 and res.get("ok") and res["id"] > 0, "| id =", res.get("id"))
+NID = res.get("id")
+
+st, res = api("/api/ai/notes", {"question": "另一问", "answer": "另一答", "lesson": ""})
+NID2 = res.get("id")
+
+st, res = api("/api/ai/notes")
+byid = {n["id"]: n for n in res["notes"]}
+print("16) 笔记列表:", st == 200 and len(res["notes"]) >= 2, "| 共", len(res["notes"]), "条")
+print("17) 笔记带课程:", byid.get(NID, {}).get("lesson") == "01-01-linux-01-intro")
+
+try:
+    api("/api/ai/notes", {"question": "", "answer": ""})
+    print("18) 空内容应报错: FAIL")
+except urllib.error.HTTPError as e:
+    print("18) 空内容报错:", e.code)
+
+st, res = api("/api/ai/notes/%d" % NID, method="DELETE")
+print("19) 删除笔记:", st == 200 and res["ok"] is True)
+try:
+    api("/api/ai/notes/%d" % NID, method="DELETE")
+    print("20) 重复删除报 404: FAIL")
+except urllib.error.HTTPError as e:
+    print("20) 重复删除报 404:", e.code == 404)
+api("/api/ai/notes/%d" % NID2, method="DELETE")
+
+
