@@ -76,6 +76,7 @@ SESSION_TTL = 7 * 24 * 3600  # 7 天
 
 # 管理员内置账号
 ADMIN_ACCOUNT = "weizhen"
+ADMIN_NAME = "魏振"
 ADMIN_PASSWORD = "wz729729"
 ADMIN_PHONE = "19919930729"
 
@@ -179,12 +180,15 @@ def init_db():
             c.execute(
                 "INSERT INTO users(name,account,phone,pw_hash,salt,role,status,created_at,updated_at) "
                 "VALUES(?,?,?,?,?,?,?,?,?)",
-                ("管理员", ADMIN_ACCOUNT, ADMIN_PHONE, hash_password(ADMIN_PASSWORD, salt), salt,
+                ("魏振", ADMIN_ACCOUNT, ADMIN_PHONE, hash_password(ADMIN_PASSWORD, salt), salt,
                  "admin", "approved", now, now))
         else:
             # 已有管理员但手机号为空时补录
             c.execute("UPDATE users SET phone=?, updated_at=? WHERE account=? AND (phone='' OR phone IS NULL)",
                       (ADMIN_PHONE, now, ADMIN_ACCOUNT))
+            # 管理员显示名统一为「魏振」（旧库里是「管理员」）
+            c.execute("UPDATE users SET name=?, updated_at=? WHERE account=? AND name<>?",
+                      (ADMIN_NAME, now, ADMIN_ACCOUNT, ADMIN_NAME))
         # 清理过期会话
         c.execute("DELETE FROM sessions WHERE expires < ?", (now,))
         # 一次性迁移：旧的设备 uid 数据 → 按账号存储（仅迁移已能判定归属的部分）
