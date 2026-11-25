@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 2 讲 · 变量与替换规则（TCL 的灵魂） · 08 | IC 后端学院</title>
 <meta name="description" content="set 定义变量、$ 取变量、[ ] 执行命令、{} 和 "" 分组——三种替换是全课程最重要的一讲。还有特殊变量名的 ${} 包裹写法、set 一次只能定义一个变量的字典解法。掌握这一讲，后面所有语法都豁然开朗。">
-<link rel="icon" href="/assets/logo.svg?v=1795589376" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795589376">
+<link rel="icon" href="/assets/logo.svg?v=1795590847" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795590847">
 </head>
 <body data-page="lesson" data-lesson="01-08-tcl-02-vars">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795589376" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795590847" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -74,17 +74,18 @@ set score 98.5         ;# 浮点型变量
 puts &quot;姓名：$name，年龄：$age，成绩：$score&quot;
 puts &quot;$name $age&quot;       ;# 打印多个变量
 puts &quot;age=$age , name=$name&quot;">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>set name &quot;Zhang San&quot;   ;# 字符串变量（双引号可保留空格）
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set name &quot;Zhang San&quot;   ;# 字符串变量（双引号可保留空格）
 set age 25             ;# 数值变量
 set score 98.5         ;# 浮点型变量
 puts &quot;姓名：$name，年龄：$age，成绩：$score&quot;
 puts &quot;$name $age&quot;       ;# 打印多个变量
-puts &quot;age=$age , name=$name&quot;</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts &quot;age=$age , name=$name&quot;</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <p><strong>命名规则</strong>：变量名由字母、数字、下划线组成，建议见名知意（如 <code>age</code>、<code>user_name</code>），避免特殊字符（下划线除外）。</p>
 </section>
@@ -98,16 +99,17 @@ puts &quot;hello $name&quot;    ;# 输出：hello Tom（&quot;&quot; 里读了�
 puts {hello $name}    ;# 输出：hello $name（{} 里原样输出）
 set x [expr {1 + 2}]  ;# [] 先算出 3，再赋给 x
 puts $x">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>set name &quot;Tom&quot;
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set name &quot;Tom&quot;
 puts &quot;hello $name&quot;    ;# 输出：hello Tom（&quot;&quot; 里读了变量）
 puts {hello $name}    ;# 输出：hello $name（{} 里原样输出）
 set x [expr {1 + 2}]  ;# [] 先算出 3，再赋给 x
-puts $x</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts $x</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <p>读一遍输出，确认你能解释每一行为什么长这样——这一讲就算学通了。</p>
 </section>
@@ -122,15 +124,16 @@ puts $x</pre><button class="tcl-go" type="button">▶ 运行这段代码</button
 set b-2 &quot;test&quot;   ;# 变量名含减号，特殊定义
 puts ${a.1}      ;# 正确调用，输出：100
 puts ${b-2}      ;# 正确调用，输出：test">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>set a.1 100      ;# 变量名含小数点，特殊定义
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set a.1 100      ;# 变量名含小数点，特殊定义
 set b-2 &quot;test&quot;   ;# 变量名含减号，特殊定义
 puts ${a.1}      ;# 正确调用，输出：100
-puts ${b-2}      ;# 正确调用，输出：test</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts ${b-2}      ;# 正确调用，输出：test</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <p>看一眼错误示范（练习台里跑跑看，报错也是真实的）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">puts $a.1</span><span class="ln cmt">;# 错误！TCL 会解析为变量 a + 字符串 &quot;.1&quot;</span><span class="ln cmt">;# 报错：can't read &quot;a&quot;: no such variable</span></code></pre></div>
@@ -142,14 +145,15 @@ puts ${b-2}      ;# 正确调用，输出：test</pre><button class="tcl-go" typ
 <div class="tsbx has-code" data-code="set info {age 20 name zhangsan}
 puts [dict get $info age]     ;# 取出 20
 puts [dict get $info name]    ;# 取出 zhangsan">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>set info {age 20 name zhangsan}
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set info {age 20 name zhangsan}
 puts [dict get $info age]     ;# 取出 20
-puts [dict get $info name]    ;# 取出 zhangsan</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts [dict get $info name]    ;# 取出 zhangsan</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <p>原理：<code>{age 20 name zhangsan}</code> 是一个&quot;键 值 键 值&quot;交替排列的列表，<code>dict get</code> 按键取值。（字典的完整讲法在第 4 讲数组之后。）</p>
 </section>
@@ -184,9 +188,9 @@ puts [dict get $info name]    ;# 取出 zhangsan</pre><button class="tcl-go" typ
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795589376"></script>
-<script src="/assets/tcl.js?v=1795589376"></script>
-<script src="/assets/app.js?v=1795589376"></script>
-<script src="/assets/aiwidget.js?v=1795589376" defer></script>
+<script src="/assets/shell.js?v=1795590847"></script>
+<script src="/assets/tcl.js?v=1795590847"></script>
+<script src="/assets/app.js?v=1795590847"></script>
+<script src="/assets/aiwidget.js?v=1795590847" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SDC 时序约束：告诉工具"做到什么程度算合格" · 30 | IC 后端学院</title>
 <meta name="description" content="前面几课给的是"事实"，这一课给的是"要求"。从 DFF→组合逻辑→DFF 的基本模型讲起，一条条写出时钟、分频、虚拟时钟、抖动、时钟分组、输入输出延迟、假路径、负载三件套，说清周期与频率、占空比与 waveform 的换算，最后讲约束力度为什么直接决定优化力度，以及 SDC 由 FCT 部门负责这件事对 PR 工程师意味着什么。">
-<link rel="icon" href="/assets/logo.svg?v=1795589376" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795589376">
+<link rel="icon" href="/assets/logo.svg?v=1795590847" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795590847">
 </head>
 <body data-page="lesson" data-lesson="02-08-pr-sdc">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795589376" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795590847" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -116,8 +116,10 @@ puts &quot;分频后周期 $per ns，频率 [expr {1000.0 / $per}] MHz&quot;
 # 倍频：周期除以倍数
 set mul 2                                     ;# 倍频系数
 puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625ns → 1600MHz">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre># 800MHz 对应的周期是多少 ns：1 / 0.8GHz = 1.25ns
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器"># 800MHz 对应的周期是多少 ns：1 / 0.8GHz = 1.25ns
 puts [expr {1.0 / 0.8}]
 
 # 周期 2.5ns 对应多少 MHz：1000 / 2.5 = 400MHz
@@ -131,11 +133,10 @@ puts &quot;分频后周期 $per ns，频率 [expr {1000.0 / $per}] MHz&quot;
 
 # 倍频：周期除以倍数
 set mul 2                                     ;# 倍频系数
-puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625ns → 1600MHz</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625ns → 1600MHz</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <h3 id="genclock">2. create_generated_clock：分频与倍频</h3>
 <p>芯片内部几乎不可能所有模块都跑同一个频率。文档举的例子非常典型：</p>
@@ -252,9 +253,9 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795589376"></script>
-<script src="/assets/tcl.js?v=1795589376"></script>
-<script src="/assets/app.js?v=1795589376"></script>
-<script src="/assets/aiwidget.js?v=1795589376" defer></script>
+<script src="/assets/shell.js?v=1795590847"></script>
+<script src="/assets/tcl.js?v=1795590847"></script>
+<script src="/assets/app.js?v=1795590847"></script>
+<script src="/assets/aiwidget.js?v=1795590847" defer></script>
 </body>
 </html>

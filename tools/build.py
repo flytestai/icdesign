@@ -217,17 +217,19 @@ def render_block(name, arg, body):
 def render_tclsh(arg, code):
     """Tcl 练习终端：browser 内置解释器。
        :::tclsh 提示语        —— 空终端自由练
-       :::tclrun + 代码块体   —— 预置代码，一键运行"""
-    hint = esc(arg or "在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令")
+       :::tclrun + 代码块体   —— 预置代码，一键运行
+    编辑器为多行 textarea，Ctrl/Cmd+Enter 或点按钮运行。"""
+    hint = esc(arg or "多行编辑，点「运行」或按 Ctrl+Enter 执行")
     codeattr = esc(code)
     hascode = " has-code" if code else ""
     return f"""<div class="tsbx{hascode}" data-code="{codeattr}">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">{hint}</span><button class="sbx-rst" type="button">重置</button></div>
-  {('<div class="tcl-code"><pre>' + esc(code) + '</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>') if code else ''}
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">{codeattr}</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{{}} 可把换行当分隔符。</div>
 </div>"""
 
 
@@ -824,11 +826,13 @@ PLAYGROUND_BODY = """
         <div class="sbx-f">和上面共用同一个环境：点「跑整段」等于把上面逐条敲进来，之后你可以接着改、接着试。想从头来就点「重置环境」。</div>
       </div>
       <div class="tsbx pg-tsbx" id="pg-tcl" style="display:none">
-        <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 交互解释器</b><span class="sbx-tip">一行一执行；括号没闭合会自动等续行</span><button class="sbx-rst" type="button">重置</button></div>
-        <div class="sbx-body"><div class="sbx-out"></div>
-          <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="敲 Tcl 命令，回车执行" aria-label="Tcl 解释器输入"></div>
+        <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 交互解释器</b><span class="sbx-tip">多行编辑，Ctrl/⌘+Enter 或点「运行」执行</span><button class="sbx-rst" type="button">重置</button></div>
+        <div class="sbx-body"><div class="sbx-out"></div></div>
+        <div class="tcl-edit">
+          <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" placeholder="在上面写 Tcl 代码，支持多行；Ctrl/⌘+Enter 运行" aria-label="Tcl 多行编辑器"></textarea>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
         </div>
-        <div class="sbx-f">变量和 proc 都留在环境里：先 set 一个变量，下一行直接用它；多行结构（if / while / proc）写到一半回车会显示 ...&gt; 等续行。</div>
+        <div class="sbx-f">变量和 proc 都留在环境里：先 set 一个变量，后面直接用它；多行结构（if / while / proc）一次贴进来就能整段跑。</div>
       </div>
       <div class="pg-stdin" id="pg-stdin-box" style="display:none">
         <div class="pg-eh">stdin 预输入（每行一条，供 gets stdin 读取）</div>

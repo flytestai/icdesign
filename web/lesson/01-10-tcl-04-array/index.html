@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 4 讲 · 数组：键-值对（相当于 Python 的字典） · 10 | IC 后端学院</title>
 <meta name="description" content="数组是"键-值对"集合，对应 Python 的字典。定义与访问、array set 批量赋值与两个易错点、嵌套列表写法与 dict get、增改、unset 删除与两种报错、foreach 两种遍历、{} "" [] 原理复用、文档原题 fruit 练习。">
-<link rel="icon" href="/assets/logo.svg?v=1795589376" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795589376">
+<link rel="icon" href="/assets/logo.svg?v=1795590847" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795590847">
 </head>
 <body data-page="lesson" data-lesson="01-10-tcl-04-array">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795589376" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795590847" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -76,8 +76,10 @@ set student(class) &quot;三年级2班&quot;    ;# 键也可以是字符串
 ;# 访问数组元素
 puts &quot;学号001：$student(001)&quot;     ;# 输出：学号001：Xiao Ming
 puts &quot;班级：$student(class)&quot;      ;# 输出：班级：三年级2班">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>;# 定义学生数组：键为学号，值为姓名
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">;# 定义学生数组：键为学号，值为姓名
 set student(001) &quot;Xiao Ming&quot;
 set student(002) &quot;Xiao Fang&quot;
 set student(003) &quot;Xiao Zhang&quot;
@@ -85,11 +87,10 @@ set student(class) &quot;三年级2班&quot;    ;# 键也可以是字符串
 
 ;# 访问数组元素
 puts &quot;学号001：$student(001)&quot;     ;# 输出：学号001：Xiao Ming
-puts &quot;班级：$student(class)&quot;      ;# 输出：班级：三年级2班</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts &quot;班级：$student(class)&quot;      ;# 输出：班级：三年级2班</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 </section>
 <section class="ch" id="arrayset" data-ch="arrayset">
@@ -99,16 +100,17 @@ array set person  {name zhangsan age 20}  ;# person 是数组名称 {}里为键�
 puts [array get person]   ;# 返回 name zhangsan age 20
 puts [array names person] ;# 只拿所有键名
 puts [array size person]  ;# 键值对个数">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>;# 标准写法：array set 数组名 {key1 val1 key2 val2}  批量一次性赋值
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">;# 标准写法：array set 数组名 {key1 val1 key2 val2}  批量一次性赋值
 array set person  {name zhangsan age 20}  ;# person 是数组名称 {}里为键值key/val
 puts [array get person]   ;# 返回 name zhangsan age 20
 puts [array names person] ;# 只拿所有键名
-puts [array size person]  ;# 键值对个数</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts [array size person]  ;# 键值对个数</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="pit"><div class="pit-h">常见坑 · 两个易错点（文档强调）</div><div class="pit-b"><ol><li><strong>不可以</strong>写 <code>array set person(001) {...}</code> ——<code>array set</code> 的第一个参数必须是<strong>数组名字</strong>（单纯名字，不带括号和 key），否则直接报错。</li><li>想&quot;每个键又是一个小信息包&quot;，用嵌套列表写法（见下一章）。</li></ol></div></div>
 <p><strong>嵌套写法</strong>：<code>{}</code> 里为列表，取值后用 dict get 拿字段：</p>
@@ -118,17 +120,18 @@ array set person {001 {name zhangsan age 20}  002 {name lisi age 25}}
 set val $person(001)   ;# 定义 val 接收列表值
 puts $val              ;# 打印列表：name zhangsan age 20
 puts [dict get $person(002) name]   ;# 取嵌套字段：lisi">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>;# 不可以：array set person(001) {name zhangsan age 20}
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">;# 不可以：array set person(001) {name zhangsan age 20}
 ;# 可以写成：
 array set person {001 {name zhangsan age 20}  002 {name lisi age 25}}
 set val $person(001)   ;# 定义 val 接收列表值
 puts $val              ;# 打印列表：name zhangsan age 20
-puts [dict get $person(002) name]   ;# 取嵌套字段：lisi</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts [dict get $person(002) name]   ;# 取嵌套字段：lisi</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 </section>
 <section class="ch" id="change" data-ch="change">
@@ -145,17 +148,18 @@ puts [array get person]   ;# 返回 age 20 无 name
 
 unset person          ;# 删除整个数组
 puts [array get person]   ;# 返回空值">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>array set person  {name zhangsan age 20}
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">array set person  {name zhangsan age 20}
 unset person(name)   ;# 删除 键：name
 puts [array get person]   ;# 返回 age 20 无 name
 
 unset person          ;# 删除整个数组
-puts [array get person]   ;# 返回空值</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts [array get person]   ;# 返回空值</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <p>删除后再访问会报错（两种报错信息要认识）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">;# 承接上面的 student 数组</span><span class="ln ">unset student(002) ;# 删除学号002的元素</span><span class="ln ">puts $student(002) ;# 错误！can't read &quot;student(002)&quot;: no such element in array</span><span class="ln "> </span><span class="ln ">unset student ;# 删除整个student数组</span><span class="ln ">puts $student(001) ;# 错误！can't read &quot;student(001)&quot;: no such array</span></code></pre></div>
@@ -178,8 +182,10 @@ foreach key [array names product] {
 ;# 产品id001：手机
 ;# 产品id002：电脑
 ;# 产品id003：平板">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>;# 重新定义数组
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">;# 重新定义数组
 set product(id001) &quot;手机&quot;
 set product(id002) &quot;电脑&quot;
 set product(id003) &quot;平板&quot;
@@ -191,11 +197,10 @@ foreach key [array names product] {
 ;# 输出：
 ;# 产品id001：手机
 ;# 产品id002：电脑
-;# 产品id003：平板</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+;# 产品id003：平板</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <p><strong>方法 2：foreach {k v} + array get（一轮循环同时拿一个键值对）</strong></p>
 <div class="tsbx has-code" data-code="array set product {001 shouji 002 diannao 003 pingban}
@@ -203,30 +208,32 @@ foreach key [array names product] {
 foreach {k v} [array get product] {
     puts &quot;key=$k val=$v&quot;
 }">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>array set product {001 shouji 002 diannao 003 pingban}
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">array set product {001 shouji 002 diannao 003 pingban}
 ;# 循环获取键值对
 foreach {k v} [array get product] {
     puts &quot;key=$k val=$v&quot;
-}</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+}</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <p>原理：<code>{k v}</code> 是变量列表，告诉 foreach：每一轮循环，从数据源取出 2 个元素，依次赋值给 k、v；循环体 <code>puts &quot;key=$k val=$v&quot;</code> 打印每一轮的值。（{}（不读变量）和 &quot;&quot;（读变量）是同一类——分组；[] 完全是另一类——替换，第 2 讲的原理在这里再次用到。）</p>
 <p><strong>只遍历 val / 只遍历 key</strong>：</p>
 <div class="tsbx has-code" data-code="array set product {001 shouji 002 diannao 003 pingban}
 foreach key [array names product] { puts $product($key) }   ;# 循环获取val
 foreach key [array names product] { puts $key }             ;# 循环获取key">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>array set product {001 shouji 002 diannao 003 pingban}
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">array set product {001 shouji 002 diannao 003 pingban}
 foreach key [array names product] { puts $product($key) }   ;# 循环获取val
-foreach key [array names product] { puts $key }             ;# 循环获取key</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+foreach key [array names product] { puts $key }             ;# 循环获取key</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="note"><div class="note-h">小结速查（文档原文）</div><p><code>array names 数组</code> 获取 key；<code>array get 数组</code> 获取 key 和 val。</p></div>
 </section>
@@ -235,27 +242,29 @@ foreach key [array names product] { puts $key }             ;# 循环获取key</
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>文档原题：fruit 数组</div><div class="lab-b"><p>定义一个数组 <code>fruit</code>，里面编号为 001、002、003，分别是 apple、banana、orange。遍历它的键、遍历它的值。</p></div></div>
 <div class="tsbx" data-code="">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">参考写法在下面，先自己写，再对照（练习台里改改玩）</span><button class="sbx-rst" type="button">重置</button></div>
-  
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器"></textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="tsbx has-code" data-code="set fruit(001) apple
 set fruit(002) banana
 set fruit(003) orange
 foreach key [array names fruit] { puts $key }           ;# 遍历它的键
 foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>set fruit(001) apple
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set fruit(001) apple
 set fruit(002) banana
 set fruit(003) orange
 foreach key [array names fruit] { puts $key }           ;# 遍历它的键
-foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span><code>set 数组名(键) 值</code> 什么时候是新增、什么时候是修改？</div>
@@ -288,9 +297,9 @@ foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值</pre>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795589376"></script>
-<script src="/assets/tcl.js?v=1795589376"></script>
-<script src="/assets/app.js?v=1795589376"></script>
-<script src="/assets/aiwidget.js?v=1795589376" defer></script>
+<script src="/assets/shell.js?v=1795590847"></script>
+<script src="/assets/tcl.js?v=1795590847"></script>
+<script src="/assets/app.js?v=1795590847"></script>
+<script src="/assets/aiwidget.js?v=1795590847" defer></script>
 </body>
 </html>

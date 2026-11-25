@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>数字电路基础：从晶体管到 CPU · 18 | IC 后端学院</title>
 <meta name="description" content="后端工程师不必设计电路，但必须知道自己在摆的是什么东西。这一课从最底层的晶体管讲起：NMOS 的三个极怎么控制电流、28nm 指的是沟道多宽、为什么沟道太短会漏电、FinFET 为什么要三面包裹；再往上讲到与或非门、二进制与半加器/全加器，最后拼成 ALU 与 CPU 的模块图，说清"晶体管→逻辑门→功能模块→CPU"这条认知链。">
-<link rel="icon" href="/assets/logo.svg?v=1795589376" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795589376">
+<link rel="icon" href="/assets/logo.svg?v=1795590847" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795590847">
 </head>
 <body data-page="lesson" data-lesson="02-01a-chip-basics">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795589376" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795590847" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -167,8 +167,10 @@ puts &quot;1+1 -&gt; sum=[expr {1 ^ 1}] carry=[expr {1 &amp; 1}]&quot;
 
 # 二进制 1111 = 8+4+2+1 = 15
 puts &quot;1111(2) = [expr {8 + 4 + 2 + 1}]&quot;">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre># 与门：全 1 才输出 1
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器"># 与门：全 1 才输出 1
 puts &quot;1 AND 1 = [expr {1 &amp;&amp; 1}]&quot;
 puts &quot;1 AND 0 = [expr {1 &amp;&amp; 0}]&quot;
 
@@ -186,11 +188,10 @@ puts &quot;1 XOR 1 = [expr {1 ^ 1}]&quot;
 puts &quot;1+1 -&gt; sum=[expr {1 ^ 1}] carry=[expr {1 &amp; 1}]&quot;
 
 # 二进制 1111 = 8+4+2+1 = 15
-puts &quot;1111(2) = [expr {8 + 4 + 2 + 1}]&quot;</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts &quot;1111(2) = [expr {8 + 4 + 2 + 1}]&quot;</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>手算 + 对号</div><div class="lab-b"><ol><li>手算二进制 <code>1011</code> 的十进制值，再用练习台验算；</li><li>说出 <code>1 XOR 1</code> 为什么是 0、<code>1 AND 1</code> 为什么是 1；</li><li>在纸上画一个 NMOS，标出源极、漏极、栅极，并写出&quot;栅极加压/不加压&quot;两种情况的沟道状态；</li><li>用一句话解释：为什么 16nm 以下要用 FinFET。</li></ol>
 <p>验收标准：四题都能不看课回答出来，且能说清&quot;28nm 指的是沟道长度&quot;。</p></div></div>
@@ -237,9 +238,9 @@ puts &quot;1111(2) = [expr {8 + 4 + 2 + 1}]&quot;</pre><button class="tcl-go" ty
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795589376"></script>
-<script src="/assets/tcl.js?v=1795589376"></script>
-<script src="/assets/app.js?v=1795589376"></script>
-<script src="/assets/aiwidget.js?v=1795589376" defer></script>
+<script src="/assets/shell.js?v=1795590847"></script>
+<script src="/assets/tcl.js?v=1795590847"></script>
+<script src="/assets/app.js?v=1795590847"></script>
+<script src="/assets/aiwidget.js?v=1795590847" defer></script>
 </body>
 </html>

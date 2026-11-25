@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 3 讲 · 变量操作三剑客：append / incr / expr · 09 | IC 后端学院</title>
 <meta name="description" content="字符串拼接用 append（两种方法 + 与普通拼接对比）、整数加减用 incr（默认 1 / 正负步长）、一切数学运算交给 expr（含整数除法陷阱）。三剑客是写任何 TCL 脚本都绕不开的三个命令。">
-<link rel="icon" href="/assets/logo.svg?v=1795589376" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795589376">
+<link rel="icon" href="/assets/logo.svg?v=1795590847" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795590847">
 </head>
 <body data-page="lesson" data-lesson="01-09-tcl-03-tools">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795589376" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795590847" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -71,40 +71,43 @@
 <div class="tsbx has-code" data-code="set str &quot;Hello&quot;
 append str &quot;空格&quot;  &quot;World&quot;  &quot;!&quot;   ;# 可一次性追加多个内容
 puts $str                          ;# 输出：Hello World!">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>set str &quot;Hello&quot;
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set str &quot;Hello&quot;
 append str &quot;空格&quot;  &quot;World&quot;  &quot;!&quot;   ;# 可一次性追加多个内容
-puts $str                          ;# 输出：Hello World!</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts $str                          ;# 输出：Hello World!</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <p><strong>方法 2</strong>：用 <code>{}</code> 追加</p>
 <div class="tsbx has-code" data-code="set str hello
 append str { world!}
 puts $str">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>set str hello
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set str hello
 append str { world!}
-puts $str</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts $str</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <p><strong>对比普通拼接</strong>（效果相同，但 append 更简洁）：</p>
 <div class="tsbx has-code" data-code="set str2 &quot;Hello&quot;
 set str2 &quot;$str2 World!&quot;   ;# 旧办法：读出旧值自己拼自己
 puts $str2                ;# 输出：Hello World!">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>set str2 &quot;Hello&quot;
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set str2 &quot;Hello&quot;
 set str2 &quot;$str2 World!&quot;   ;# 旧办法：读出旧值自己拼自己
-puts $str2                ;# 输出：Hello World!</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts $str2                ;# 输出：Hello World!</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>append</code> ≈ <code>s += &quot;...&quot;</code>，但 TCL 里不用写自己拼自己。</p></div>
 </section>
@@ -121,8 +124,10 @@ puts &quot;num1最终值：$num1&quot;   ;# 输出：num1最终值：13
 set num2 0
 incr num2 -1     ;# 递减为-1
 puts &quot;num2：$num2&quot;   ;# 输出：num2：-1">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>set num1 10
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set num1 10
 incr num1        ;# 默认+1，num1=11
 incr num1 5      ;# +5，num1=16
 incr num1 -3     ;# -3，num1=13
@@ -130,11 +135,10 @@ puts &quot;num1最终值：$num1&quot;   ;# 输出：num1最终值：13
 
 set num2 0
 incr num2 -1     ;# 递减为-1
-puts &quot;num2：$num2&quot;   ;# 输出：num2：-1</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts &quot;num2：$num2&quot;   ;# 输出：num2：-1</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>incr i</code> ≈ <code>i += 1</code>；<code>incr i -3</code> ≈ <code>i -= 3</code>。</p></div>
 </section>
@@ -147,17 +151,18 @@ expr {$a * 2}      ;# 乘
 expr {$b - $a}     ;# 减
 expr {$b / $a}     ;# 整数除法：5/3=1（整数相除结果仍是整数！）
 expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>set a 3
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set a 3
 set b 5
 expr {$a * 2}      ;# 乘
 expr {$b - $a}     ;# 减
 expr {$b / $a}     ;# 整数除法：5/3=1（整数相除结果仍是整数！）
-expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="pit"><div class="pit-h">常见坑 · 重点陷阱（文档强调）：整数除整数，小数部分直接扔掉</div><div class="pit-b"><p><code>expr {5 / 3}</code> 的结果是 <strong>1</strong>——整数相除结果仍是整数，和 Python 2 类似。想得到小数，把其中一个数写成 <code>5.0</code> 这种浮点形式。<strong>惯例</strong>：expr 的表达式用 <code>{}</code> 包起来（不读变量、性能好、避免空格歧义）。</p></div></div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>expr {...}</code> ≈ 直接写算式，但 TCL 里&quot;算式&quot;是一条命令。</p></div>
@@ -193,9 +198,9 @@ expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数<
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795589376"></script>
-<script src="/assets/tcl.js?v=1795589376"></script>
-<script src="/assets/app.js?v=1795589376"></script>
-<script src="/assets/aiwidget.js?v=1795589376" defer></script>
+<script src="/assets/shell.js?v=1795590847"></script>
+<script src="/assets/tcl.js?v=1795590847"></script>
+<script src="/assets/app.js?v=1795590847"></script>
+<script src="/assets/aiwidget.js?v=1795590847" defer></script>
 </body>
 </html>

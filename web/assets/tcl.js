@@ -1018,43 +1018,71 @@ Console.prototype.runScript = function (code, echoResult) {
   }
 };
 
-/* ---------- 课程内练习台 .tsbx ---------- */
+/* ---------- 课程内练习台 .tsbx（多行编辑器） ---------- */
 function mountTsbx(root) {
   var outEl = root.querySelector('.sbx-out');
-  var input = root.querySelector('.sbx-in');
-  var ps1 = root.querySelector('.sbx-ps1');
+  var ed = root.querySelector('.tcl-in');          // 多行编辑器
+  var input = root.querySelector('.sbx-in');       // 兼容旧模板（单行）
   var rst = root.querySelector('.sbx-rst');
   var goBtn = root.querySelector('.tcl-go');
   var ip = new Interp();
   var con = new Console(outEl, ip);
-  var buf = '';
 
-  function fresh() { ip = new Interp(); con.ip = ip; buf = ''; outEl.innerHTML = ''; }
+  function fresh() { ip = new Interp(); con.ip = ip; outEl.innerHTML = ''; }
+
+  function runEditor() {
+    var code = ed ? ed.value : '';
+    if (!/\S/.test(code)) return;
+    con.runScript(code, true);
+    con.print('', '');
+  }
+
   rst.addEventListener('click', function () { fresh(); con.print('—— 已重置 ——', 'dim'); });
+  if (goBtn) goBtn.addEventListener('click', runEditor);
 
-  if (goBtn && root.dataset.code) {
-    goBtn.addEventListener('click', function () {
-      con.runScript(root.dataset.code);
-      con.print('', '');
+  if (ed) {
+    /* 预置代码已在 textarea 里；自动随内容长高（上限 360px） */
+    function fit() {
+      ed.style.height = 'auto';
+      ed.style.height = Math.min(360, Math.max(96, ed.scrollHeight + 2)) + 'px';
+    }
+    fit();
+    ed.addEventListener('input', fit);
+    ed.addEventListener('keydown', function (e) {
+      if (e.key === 'Tab') {                       // Tab 缩进 4 空格
+        e.preventDefault();
+        var s = ed.selectionStart;
+        ed.value = ed.value.slice(0, s) + '    ' + ed.value.slice(ed.selectionEnd);
+        ed.selectionStart = ed.selectionEnd = s + 4;
+        fit();
+        return;
+      }
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        runEditor();
+      }
+    });
+    root.addEventListener('click', function (e) {
+      if (e.target === outEl || e.target === root) ed.focus();
+    });
+  } else if (input) {
+    /* 旧模板兜底：单行回车执行 */
+    var buf = '';
+    input.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      var line = input.value;
+      con.print((buf ? '...> ' : 'tclsh> ') + line, 'in');
+      var combined = buf ? buf + '\n' + line : line;
+      if (!isComplete(combined)) { buf = combined; input.value = ''; return; }
+      buf = '';
+      con.runScript(combined, true);
+      input.value = '';
+    });
+    root.addEventListener('click', function (e) {
+      if (e.target === outEl) input.focus();
     });
   }
-
-  function submit() {
-    var line = input.value;
-    con.print((buf ? '...> ' : 'tclsh> ') + line, 'in');
-    var combined = buf ? buf + '\n' + line : line;
-    if (!isComplete(combined)) { buf = combined; input.value = ''; if (ps1) ps1.textContent = '...>'; return; }
-    buf = '';
-    if (ps1) ps1.textContent = 'tclsh>%';
-    con.runScript(combined, true);
-    input.value = '';
-  }
-  input.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); submit(); }
-  });
-  root.addEventListener('click', function (e) {
-    if (e.target === outEl) input.focus();
-  });
 
   // 给外部（练习场的「跑整段 / 执行下一行」）用的接口：和手动敲共用同一个解释器
   root.__tsbx = {
@@ -1065,7 +1093,9 @@ function mountTsbx(root) {
     fresh: fresh,
     setStdin: function (arr) { ip.stdin = (arr || []).slice(); },
     stdinLeft: function () { return (ip.stdin || []).length; },
-    focus: function () { if (input) input.focus(); }
+    focus: function () { if (ed) ed.focus(); else if (input) input.focus(); },
+    runEditor: runEditor,
+    setCode: function (code) { if (ed) { ed.value = code; } }
   };
   return root.__tsbx;
 }

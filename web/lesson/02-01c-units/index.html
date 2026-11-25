@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>电学基础与单位换算：ps、um 与那些 1000 倍 · 20 | IC 后端学院</title>
 <meta name="description" content="后面所有课的每个数字都带单位，单位错了十倍，结论就全错。这一课把电压/电流/电阻/电容/功耗五个基本量讲清物理含义，再把两套必须形成肌肉记忆的换算练熟：时间 ps↔ns（时序报告用）、长度 um↔nm（lef 与工艺用），最后用真实的 lef 数字（pitch 0.2um、线宽 0.06um、面积 0.02um²）做一遍对号。">
-<link rel="icon" href="/assets/logo.svg?v=1795589376" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795589376">
+<link rel="icon" href="/assets/logo.svg?v=1795590847" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795590847">
 </head>
 <body data-page="lesson" data-lesson="02-01c-units">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795589376" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795590847" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -154,8 +154,10 @@ puts &quot;100um 能排 [expr {int(100 / $pitch)}] 条线&quot;
 
 # 面积：0.06um × 0.33um 的引脚矩形
 puts &quot;引脚面积 [expr {0.06 * 0.33}] um2&quot;">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre># 时间：ns → ps（乘 1000）
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器"># 时间：ns → ps（乘 1000）
 set ns 0.052                                  ;# 报告里的一个延迟值（ns）
 puts &quot;$ns ns = [expr {$ns * 1000}] ps&quot;        ;# 52 ps
 
@@ -176,11 +178,10 @@ set pitch 0.19                                ;# 栅格间距（um）
 puts &quot;100um 能排 [expr {int(100 / $pitch)}] 条线&quot;
 
 # 面积：0.06um × 0.33um 的引脚矩形
-puts &quot;引脚面积 [expr {0.06 * 0.33}] um2&quot;</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts &quot;引脚面积 [expr {0.06 * 0.33}] um2&quot;</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>三个反算题</div><div class="lab-b"><p>不看答案，先自己算，再用练习台验：</p>
 <ol><li>时序报告写 <code>slack = -0.032</code>，表头是 ns，换成 ps 是多少？</li><li>lef 里 <code>SIZE 2.4 BY 0.4</code>，单位 um，这个单元宽多少 nm、高多少 nm？</li><li>目标频率 1.2GHz，周期该在 SDC 里写多少 ns？换算成 ps 是多少？</li></ol>
@@ -228,9 +229,9 @@ puts &quot;引脚面积 [expr {0.06 * 0.33}] um2&quot;</pre><button class="tcl-g
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795589376"></script>
-<script src="/assets/tcl.js?v=1795589376"></script>
-<script src="/assets/app.js?v=1795589376"></script>
-<script src="/assets/aiwidget.js?v=1795589376" defer></script>
+<script src="/assets/shell.js?v=1795590847"></script>
+<script src="/assets/tcl.js?v=1795590847"></script>
+<script src="/assets/app.js?v=1795590847"></script>
+<script src="/assets/aiwidget.js?v=1795590847" defer></script>
 </body>
 </html>

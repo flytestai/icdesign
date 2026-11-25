@@ -751,7 +751,7 @@ function mount() {
 
   setMode('linux', false);
   var repl = tclRepl();
-  if (repl) repl.print('—— 这里可以直接敲 Tcl 命令，一行一执行 ——', 'dim');
+  if (repl) repl.print('—— 下方是多行编辑器：写完整段代码后点「运行这段代码」或按 Ctrl/⌘+Enter ——', 'dim');
   floatTerminals();
 }
 

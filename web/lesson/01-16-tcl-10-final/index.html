@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 10 讲 · 综合实战 + 结课自测 · 16 | IC 后端学院</title>
 <meta name="description" content="EDA 风格综合脚本（列表+proc+foreach+命令替换串起全部知识点）、结课自测 10 题（覆盖全部知识点）、知识点全覆盖清单（31 条对照表）、后续学习路线。">
-<link rel="icon" href="/assets/logo.svg?v=1795589376" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795589376">
+<link rel="icon" href="/assets/logo.svg?v=1795590847" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795590847">
 </head>
 <body data-page="lesson" data-lesson="01-16-tcl-10-final">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795589376" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795590847" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -93,8 +93,10 @@ foreach mem $mem_list {
 
 ;# 4. 结果统计
 puts &quot;全部 $total 个单元处理完毕&quot;">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">在输入行敲 Tcl 命令，回车运行；输入 help 看支持的命令</span><button class="sbx-rst" type="button">重置</button></div>
-  <div class="tcl-code"><pre>;# 1. 定义数据（列表 + 嵌套）
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-body"><div class="sbx-out"></div></div>
+  <div class="tcl-edit">
+    <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">;# 1. 定义数据（列表 + 嵌套）
 set mem_list {
     I_CONTEXT_MEM/I_CONTEXT_RAM_0_4
     I_CONTEXT_MEM/I_CONTEXT_RAM_0_3
@@ -119,11 +121,10 @@ foreach mem $mem_list {
 }
 
 ;# 4. 结果统计
-puts &quot;全部 $total 个单元处理完毕&quot;</pre><button class="tcl-go" type="button">▶ 运行这段代码</button></div>
-  <div class="sbx-body"><div class="sbx-out"></div>
-    <div class="sbx-line"><span class="sbx-ps1">tclsh&gt;%</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="输入 Tcl 命令，按回车运行" aria-label="Tcl 练习终端输入"></div>
+puts &quot;全部 $total 个单元处理完毕&quot;</textarea>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
-  <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
+  <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <p>逐行拆解用到的知识点：</p>
 <div class="tbl"><table><thead><tr><th>代码</th><th>用到的知识点</th><th>出处</th></tr></thead><tbody><tr><td><code>set mem_list {...}</code> 多行</td><td><code>{}</code> 定义列表（可跨行）</td><td>第 5 讲</td></tr><tr><td><code>proc report {mem idx total}</code></td><td>带参函数 + return</td><td>第 9 讲</td></tr><tr><td><code>[llength $mem_list]</code></td><td>命令替换 + 列表长度</td><td>第 3 / 6 讲</td></tr><tr><td><code>foreach mem $mem_list</code></td><td>遍历列表</td><td>第 8 讲</td></tr><tr><td><code>incr idx</code></td><td>整数自增</td><td>第 3 讲</td></tr><tr><td><code>report $mem $idx $total</code></td><td>直接调用函数</td><td>第 9 讲</td></tr><tr><td><code>[get_cells $mem]</code></td><td>命令替换嵌套（EDA 命令）</td><td>第 2 / 3 讲</td></tr><tr><td><code>puts &quot;全部 $total 个...&quot;</code></td><td>双引号内变量替换</td><td>第 2 讲</td></tr></tbody></table></div>
@@ -191,9 +192,9 @@ puts &quot;全部 $total 个单元处理完毕&quot;</pre><button class="tcl-go"
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795589376"></script>
-<script src="/assets/tcl.js?v=1795589376"></script>
-<script src="/assets/app.js?v=1795589376"></script>
-<script src="/assets/aiwidget.js?v=1795589376" defer></script>
+<script src="/assets/shell.js?v=1795590847"></script>
+<script src="/assets/tcl.js?v=1795590847"></script>
+<script src="/assets/app.js?v=1795590847"></script>
+<script src="/assets/aiwidget.js?v=1795590847" defer></script>
 </body>
 </html>
