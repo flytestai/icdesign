@@ -22,6 +22,7 @@
   var isLesson = lessonId !== 'home' && lessonId !== '';
   var sections = [].slice.call(document.querySelectorAll('section.ch'));
   var below = {};                        // 章 → 底边是否已在视口 65% 线上方（跨越检测基线）
+  var reanchor = null;                   // 服务器进度回填后校正落点（课程页赋值）
 
   /* ---------------- 进度（滚动自动记录，无需手动标记） ---------------- */
   function key(ch) { return lessonId + '/' + ch; }
@@ -88,6 +89,8 @@
         if (it.lesson === lessonId && it.done) done[key(it.chapter)] = 1;
       });
       saveDone(done); paint();
+      /* 服务器进度到位后再校正落点：本地无位置记录时按进度推导 */
+      if (typeof reanchor === 'function') reanchor();
     }).catch(function () { });
   }
 
@@ -134,30 +137,62 @@
       setTimeout(function () { t.classList.add('show'); }, 10);
       setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 400); }, 2800);
     }
-    function restorePos() {
-      var ch = null;
-      try { ch = localStorage.getItem(LS_POS); } catch (e) { }
-      if (!ch) return;
-      var idx = -1;
-      sections.forEach(function (s, i) { if (s.getAttribute('data-ch') === ch) idx = i; });
-      if (idx <= 0) return;                       // 上次停在第一章：无需跳转
-      var s = sections[idx];
-      if (!s) return;
-      window.scrollTo(0, Math.max(0, s.offsetTop - 80));
-      var no = (idx + 1 < 10 ? '0' : '') + (idx + 1);
-      var title = s.querySelector('h2') ? s.querySelector('h2').textContent : '';
-      showToast('↩ 已回到上次学习位置：' + no + ' · ' + title);
-    }
-    /* 图片加载后布局会变化，load 后再校准一次 */
-    window.addEventListener('load', function () {
-      var ch = null;
-      try { ch = localStorage.getItem(LS_POS); } catch (e) { }
-      if (!ch) return;
-      sections.forEach(function (s) {
-        if (s.getAttribute('data-ch') === ch && sections.indexOf(s) > 0) {
-          window.scrollTo(0, Math.max(0, s.offsetTop - 80));
+    /* 定位目标：优先本地位置记录；没有（换设备/清缓存）则按进度推导 =
+       第一个未完成的章节；全部完成则停在最后一章。 */
+    function targetIdx() {
+      var rec = null;
+      try { rec = localStorage.getItem(LS_POS); } catch (e) { }
+      if (rec) {
+        for (var i = 0; i < sections.length; i++) {
+          if (sections[i].getAttribute('data-ch') === rec) {
+            if (i > 0) return i;
+            break;                                  // 记在第一章：按进度重新推导
+          }
         }
-      });
+      }
+      for (var j = 0; j < sections.length; j++) {
+        if (!isDone(sections[j].getAttribute('data-ch'))) return j;   // 第一个未学
+      }
+      return sections.length - 1;                   // 全学完：停最后一章
+    }
+
+    var anchored = false;
+    function anchorTo(idx, notify) {
+      if (idx <= 0 || !sections[idx]) return false;
+      var y = Math.max(0, sections[idx].offsetTop - 80);
+      if (Math.abs(window.scrollY - y) < 160 && anchored) return false;
+      window.scrollTo(0, y);
+      anchored = true;
+      if (notify) {
+        var no = (idx + 1 < 10 ? '0' : '') + (idx + 1);
+        var h2 = sections[idx].querySelector('h2');
+        var pct = Math.round(sections.filter(function (s) {
+          return isDone(s.getAttribute('data-ch'));
+        }).length / sections.length * 100);
+        showToast('↩ 已定位到学习位置：' + no + ' · ' + (h2 ? h2.textContent : '') +
+          '（本课进度 ' + pct + '%）');
+      }
+      return true;
+    }
+
+    function restorePos() {
+      anchorTo(targetIdx(), true);
+    }
+
+    /* 服务器进度回填后调用：若之前按空进度落在第 1 章，则按真实进度重新定位 */
+    reanchor = function () {
+      if (!anchored) { anchorTo(targetIdx(), true); return; }
+      var cur = curSection();
+      var curIdx = sections.indexOf(cur);
+      var ti = targetIdx();
+      if (curIdx <= 0 && ti > 0) anchorTo(ti, true);
+    };
+    /* 图片加载后布局会变化，load 后再校准一次（保持同一目标章节，不弹提示） */
+    window.addEventListener('load', function () {
+      if (!anchored) return;
+      var ti = targetIdx();
+      if (ti <= 0) return;
+      window.scrollTo(0, Math.max(0, sections[ti].offsetTop - 80));
     });
 
     function autoTrack() {
