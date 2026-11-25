@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 2 讲 · 变量与替换规则（TCL 的灵魂） · 08 | IC 后端学院</title>
 <meta name="description" content="set 定义变量、$ 取变量、[ ] 执行命令、{} 和 "" 分组——三种替换是全课程最重要的一讲。还有特殊变量名的 ${} 包裹写法、set 一次只能定义一个变量的字典解法。掌握这一讲，后面所有语法都豁然开朗。">
-<link rel="icon" href="/assets/logo.svg?v=1795586673" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795586673">
+<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587182">
 </head>
 <body data-page="lesson" data-lesson="01-08-tcl-02-vars">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795586673" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -87,7 +87,6 @@ puts &quot;age=$age , name=$name&quot;</pre><button class="tcl-go" type="button"
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <p><strong>命名规则</strong>：变量名由字母、数字、下划线组成，建议见名知意（如 <code>age</code>、<code>user_name</code>），避免特殊字符（下划线除外）。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="set"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="substitution" data-ch="substitution">
   <div class="ch-h"><span class="ch-n">02</span><h2>TCL 的三种&quot;替换&quot;——一句话原理（文档原文）</h2></div>
@@ -111,12 +110,10 @@ puts $x</pre><button class="tcl-go" type="button">▶ 运行这段代码</button
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <p>读一遍输出，确认你能解释每一行为什么长这样——这一讲就算学通了。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="substitution"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="dollar" data-ch="dollar">
   <div class="ch-h"><span class="ch-n">03</span><h2>调用变量：$变量名</h2></div>
   <p>在字符串或命令里写 <code>$name</code> 就能取到变量的值。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="dollar"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="special" data-ch="special">
   <div class="ch-h"><span class="ch-n">04</span><h2>特殊变量名：用 ${} 包裹（很少用，但要会）</h2></div>
@@ -138,7 +135,6 @@ puts ${b-2}      ;# 正确调用，输出：test</pre><button class="tcl-go" typ
 <p>看一眼错误示范（练习台里跑跑看，报错也是真实的）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">puts $a.1</span><span class="ln cmt">;# 错误！TCL 会解析为变量 a + 字符串 &quot;.1&quot;</span><span class="ln cmt">;# 报错：can't read &quot;a&quot;: no such variable</span></code></pre></div>
 <div class="pit"><div class="pit-h">常见坑 · $a.1 不报语法错，但读的是另一个变量</div><div class="pit-b"><p><code>$a.1</code> 不读 <code>a.1</code>，而是读变量 <code>a</code> 再拼上字符串 <code>.1</code>。变量 <code>a</code> 不存在，所以报 <code>can't read &quot;a&quot;: no such variable</code>。看到这个报错，先想想是不是变量名里有特殊字符没用 <code>${}</code>。</p></div></div>
-  <label class="ch-done"><input type="checkbox" data-mark="special"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="multi" data-ch="multi">
   <div class="ch-h"><span class="ch-n">05</span><h2>set 一次只能定义一个变量（想定义&quot;多个&quot;用字典）</h2></div>
@@ -156,7 +152,6 @@ puts [dict get $info name]    ;# 取出 zhangsan</pre><button class="tcl-go" typ
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <p>原理：<code>{age 20 name zhangsan}</code> 是一个&quot;键 值 键 值&quot;交替排列的列表，<code>dict get</code> 按键取值。（字典的完整讲法在第 4 讲数组之后。）</p>
-  <label class="ch-done"><input type="checkbox" data-mark="multi"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
@@ -172,7 +167,6 @@ puts [dict get $info name]    ;# 取出 zhangsan</pre><button class="tcl-go" typ
   <div class="q-a">命令替换：先执行里面的命令，用结果替换整个 [...]。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能不看示例写出 set + puts 的定义与打印</li><li>能解释 {} &quot;&quot; [] 三种符号的区别</li><li>变量名含特殊字符时知道用 ${} 调用</li></ul></div>
-  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -183,17 +177,16 @@ puts [dict get $info name]    ;# 取出 zhangsan</pre><button class="tcl-go" typ
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav"><a class="nav-btn" href="/lesson/01-07-tcl-01-start/">← TCL 第 1 讲 · 开工准备：环境与第一个命令</a><a class="nav-btn" href="/lesson/01-09-tcl-03-tools/">TCL 第 3 讲 · 变量操作三剑客：append / incr / expr →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795586673"></script>
-<script src="/assets/tcl.js?v=1795586673"></script>
-<script src="/assets/app.js?v=1795586673"></script>
-<script src="/assets/aiwidget.js?v=1795586673" defer></script>
+<script src="/assets/shell.js?v=1795587182"></script>
+<script src="/assets/tcl.js?v=1795587182"></script>
+<script src="/assets/app.js?v=1795587182"></script>
+<script src="/assets/aiwidget.js?v=1795587182" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 5 讲 · 列表（上）：定义与读取 · 11 | IC 后端学院</title>
 <meta name="description" content="列表是 TCL 最常用的数据结构。两种定义方法（大括号 {} 适合多行 / list 命令适合单行嵌套）、lindex 取元素、llength 求长度、嵌套列表的两种访问写法（双层 lindex 与多级连写）。">
-<link rel="icon" href="/assets/logo.svg?v=1795586673" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795586673">
+<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587182">
 </head>
 <body data-page="lesson" data-lesson="01-11-tcl-05-list-a">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795586673" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -133,7 +133,6 @@ puts $nested_list   ;# 输出：10 {20 30} {40 50 60}</pre><button class="tcl-go
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-  <label class="ch-done"><input type="checkbox" data-mark="define"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="read" data-ch="read">
   <div class="ch-h"><span class="ch-n">02</span><h2>读取：lindex（索引从 0 开始）与 llength</h2></div>
@@ -151,7 +150,6 @@ puts [llength $num_list]     ;# 获取列表长度（元素个数）→ 5</pre><
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>lindex $l 2</code> ≈ <code>l[2]</code>；<code>llength $l</code> ≈ <code>len(l)</code>。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="read"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="nested" data-ch="nested">
   <div class="ch-h"><span class="ch-n">03</span><h2>列表实操示例：嵌套列表访问</h2></div>
@@ -207,7 +205,6 @@ puts $name</pre><button class="tcl-go" type="button">▶ 运行这段代码</but
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>lindex $L 1 1</code> ≈ <code>L[1][1]</code>。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="nested"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
@@ -223,7 +220,6 @@ puts $name</pre><button class="tcl-go" type="button">▶ 运行这段代码</but
   <div class="q-a"><code>lindex [lindex $L 1] 1</code> 或 <code>lindex $L 1 1</code>（由外向内）。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用两种方法定义列表并说清适用场景</li><li>lindex / llength 不看资料能写</li><li>嵌套列表两种取值写法都能写对</li></ul></div>
-  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -234,17 +230,16 @@ puts $name</pre><button class="tcl-go" type="button">▶ 运行这段代码</but
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav"><a class="nav-btn" href="/lesson/01-10-tcl-04-array/">← TCL 第 4 讲 · 数组：键-值对（相当于 Python 的字典）</a><a class="nav-btn" href="/lesson/01-12-tcl-06-list-b/">TCL 第 6 讲 · 列表（下）：增删改查、排序与转换 →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795586673"></script>
-<script src="/assets/tcl.js?v=1795586673"></script>
-<script src="/assets/app.js?v=1795586673"></script>
-<script src="/assets/aiwidget.js?v=1795586673" defer></script>
+<script src="/assets/shell.js?v=1795587182"></script>
+<script src="/assets/tcl.js?v=1795587182"></script>
+<script src="/assets/app.js?v=1795587182"></script>
+<script src="/assets/aiwidget.js?v=1795587182" defer></script>
 </body>
 </html>

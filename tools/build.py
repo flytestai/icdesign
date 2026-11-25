@@ -579,9 +579,8 @@ PAGE = HEAD + """
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav">{prevNext}</div>
       </div>
     </div>
@@ -660,7 +659,6 @@ def build_lesson(L, idx, all_lessons):
         art.append(f"""<section class="ch" id="{c['id']}" data-ch="{c['id']}">
   <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2></div>
   {c['html']}
-  <label class="ch-done"><input type="checkbox" data-mark="{c['id']}"><span>这一章我学完了</span></label>
 </section>""")
     prev_next = ""
     if idx > 0:

@@ -137,12 +137,9 @@ td code{font-size:12.5px}
 .q-show{margin:8px 0 0 22px;border:1px solid #ddd5f2;background:#fff;color:var(--violet);border-radius:7px;font-size:12px;padding:3px 10px;cursor:pointer;font-family:inherit}
 .q-a{display:block;margin:9px 0 0 22px;padding:9px 13px;background:#fff;border-left:3px solid #c9bcf0;border-radius:0 7px 7px 0;font-size:14px;color:#3a3352}
 
-/* ---------- 章节完成 ---------- */
-.ch-done{display:inline-flex;align-items:center;gap:8px;margin:16px 0 4px;padding:7px 12px;border:1px solid var(--line);
-  border-radius:9px;font-size:13px;color:var(--muted);cursor:pointer;background:#fff;user-select:none}
-.ch-done:hover{border-color:#bfe3d5;color:var(--mint)}
-.ch-done input{accent-color:var(--mint);width:15px;height:15px;cursor:pointer}
-.ch-done.on{border-color:#bfe3d5;background:#f4fbf8;color:var(--mint);font-weight:600}
+/* ---------- 章节完成：滚动自动记录，顶部阅读进度条 ---------- */
+.readbar{position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;pointer-events:none}
+.readbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2f7fd0,#18a07a)}
 
 /* ---------- 课尾 ---------- */
 .lesson-end{margin-top:50px}

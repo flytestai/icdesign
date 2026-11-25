@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 3 课 · 目录与文件操作 · 03 | IC 后端学院</title>
 <meta name="description" content="ls / ll 全部常用选项与输出解析；cd / realpath / pwd / history；mkdir / rmdir / rm；touch 创建文件与通配符；课后练习一（19 题）。">
-<link rel="icon" href="/assets/logo.svg?v=1795586673" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795586673">
+<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587182">
 </head>
 <body data-page="lesson" data-lesson="01-03-linux-03-files">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795586673" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -77,14 +77,12 @@
 <h3>3）解析 ll 查看详细内容</h3>
 <p>以 <code>lrwxrwxrwx. 1 root root 7 Dec 18 2018</code> 为例：</p>
 <ul><li><strong>第一列：内容的类型</strong></li><li><code>-</code> 普通的文本文件、log 文件、脚本文件、包</li><li><code>d</code> 目录</li><li><code>l</code> 链接 Link</li><li><strong>第二列到第十列：权限</strong>（下一节细讲，先记住结构）</li><li><code>r</code> read　<code>w</code> write　<code>x</code> excute　<code>-</code> 无权限</li><li><code>rw-</code> 所属用户权限；<code>r--</code> 所属组的权限；<code>r--</code> 其他人的权限</li><li><strong>第 11 列</strong>：所属用户的用户名</li><li><strong>第 12 列</strong>：所属组的组名</li></ul>
-  <label class="ch-done"><input type="checkbox" data-mark="ls"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="cd" data-ch="cd">
   <div class="ch-h"><span class="ch-n">02</span><h2>2. 切换目录：cd</h2></div>
   <div class="tbl"><table><thead><tr><th>写法</th><th>作用</th></tr></thead><tbody><tr><td><code>cd 路径</code></td><td>进入指定目录</td></tr><tr><td><code>cd</code> 或 <code>cd ~</code></td><td>回到当前用户的<strong>家目录</strong></td></tr><tr><td><code>cd ..</code></td><td>切换到<strong>上一级</strong>目录</td></tr><tr><td><code>cd .</code></td><td>当前位置（原地不动）</td></tr><tr><td><code>cd -</code></td><td>回到<strong>上一次</strong>打开的目录</td></tr></tbody></table></div>
 <p><strong>相对路径 vs 绝对路径</strong>：</p>
 <ul><li>相对路径：不以 <code>/</code> 开头的路径（从当前位置出发）；</li><li>绝对路径：以 <code>/</code> 开头就是绝对路径（从根出发）。</li></ul>
-  <label class="ch-done"><input type="checkbox" data-mark="cd"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="locate" data-ch="locate">
   <div class="ch-h"><span class="ch-n">03</span><h2>3. 三个查位置的命令</h2></div>
@@ -93,7 +91,6 @@
 <p><strong>pwd</strong>：显示当前目录的绝对路径。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/linux-13.png" data-fig="linux-13"><img src="/fig/linux-13.png" alt="pwd 与 realpath 实际效果" loading="lazy" decoding="async"></a><figcaption>pwd 与 realpath 实际效果</figcaption></figure>
 <p><strong>history</strong>：查看命令的历史记录。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="locate"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="mkdir" data-ch="mkdir">
   <div class="ch-h"><span class="ch-n">04</span><h2>4. 目录管理</h2></div>
@@ -104,7 +101,6 @@
 <p><strong>rm -rf 删除非空目录 / 强制删除 / 删除文件</strong>：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">rm  -rf  目录名</span></code></pre></div>
 <div class="pit"><div class="pit-h">常见坑 · rm -rf 是不可逆操作</div><div class="pit-b"><p>删错目录没有回收站可找。敲 rm -rf 之前先停一秒确认路径，尤其是带通配符的时候。</p></div></div>
-  <label class="ch-done"><input type="checkbox" data-mark="mkdir"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="touch" data-ch="touch">
   <div class="ch-h"><span class="ch-n">05</span><h2>5. 文件管理</h2></div>
@@ -115,7 +111,6 @@
 <div class="tbl"><table><thead><tr><th>通配符</th><th>匹配</th></tr></thead><tbody><tr><td><code>a1*</code></td><td>以 a1 开头的文件或目录</td></tr><tr><td><code>*b</code></td><td>以 b 结尾的文件或目录</td></tr><tr><td><code>*a*</code></td><td>包含 a 的文件或目录</td></tr><tr><td><code>a*b</code></td><td>以 a 开头 b 结尾的文件或目录</td></tr><tr><td><code>a*y*b</code></td><td>a 开头、中间有 y、b 结尾</td></tr></tbody></table></div>
 <p>比如目录里有 <code>a12nn3b</code>、<code>b123kkb</code>、<code>a234yyb</code>：<code>a*y*b</code> 只匹配 <code>a234yyb</code>。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/linux-15.png" data-fig="linux-15"><img src="/fig/linux-15.png" alt="通配符配合 ls / rm 实际效果" loading="lazy" decoding="async"></a><figcaption>通配符配合 ls / rm 实际效果</figcaption></figure>
-  <label class="ch-done"><input type="checkbox" data-mark="touch"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练：练习一</h2></div>
@@ -134,7 +129,6 @@
   <div class="q-a">能：a 开头、中间含 y、b 结尾。a12nn3b 就不匹配（没有 y）。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>ls 七个常用选项全部记熟，会读 ll 的 12 列输出</li><li>cd 五种写法都练过一遍</li><li>练习一 19 题全部独立完成</li></ul></div>
-  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -145,17 +139,16 @@
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav"><a class="nav-btn" href="/lesson/01-02-linux-02-connect/">← Linux 第 2 课 · 连接服务器与目录结构</a><a class="nav-btn" href="/lesson/01-04-linux-04-view-vi/">Linux 第 4 课 · 查看与编辑文件（vi 全套） →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795586673"></script>
-<script src="/assets/tcl.js?v=1795586673"></script>
-<script src="/assets/app.js?v=1795586673"></script>
-<script src="/assets/aiwidget.js?v=1795586673" defer></script>
+<script src="/assets/shell.js?v=1795587182"></script>
+<script src="/assets/tcl.js?v=1795587182"></script>
+<script src="/assets/app.js?v=1795587182"></script>
+<script src="/assets/aiwidget.js?v=1795587182" defer></script>
 </body>
 </html>

@@ -21,9 +21,9 @@
   var lessonId = document.body.getAttribute('data-lesson') || '';
   var isLesson = lessonId !== 'home' && lessonId !== '';
   var sections = [].slice.call(document.querySelectorAll('section.ch'));
-  var marks = [].slice.call(document.querySelectorAll('[data-mark]'));
+  var autoSeen = {};                     // 本次会话内已自动记录的章
 
-  /* ---------------- 进度 ---------------- */
+  /* ---------------- 进度（滚动自动记录，无需手动标记） ---------------- */
   function key(ch) { return lessonId + '/' + ch; }
   function isDone(ch) { return !!done[key(ch)]; }
 
@@ -31,22 +31,14 @@
     var total = sections.length, n = 0;
     sections.forEach(function (s) {
       var ch = s.getAttribute('data-ch');
-      var box = s.querySelector('[data-mark]');
-      var lab = s.querySelector('.ch-done');
-      if (isDone(ch)) { n++; if (box) box.checked = true; if (lab) lab.classList.add('on'); }
-      else { if (box) box.checked = false; if (lab) lab.classList.remove('on'); }
+      if (isDone(ch)) n++;
       var link = document.querySelector('.toc nav a[data-ch="' + ch + '"]');
       if (link) link.classList.toggle('done', isDone(ch));
     });
     var pct = total ? Math.round(n / total * 100) : 0;
     var bar = document.getElementById('lp-bar'), txt = document.getElementById('lp-txt');
     if (bar) bar.style.width = pct + '%';
-    if (txt) txt.textContent = pct + '%';
-    var btn = document.getElementById('btn-done');
-    if (btn) {
-      if (pct === 100) { btn.textContent = '✓ 本课已完成'; btn.classList.add('done'); }
-      else { btn.textContent = '标记本课完成'; btn.classList.remove('done'); }
-    }
+    if (txt) txt.textContent = pct === 100 ? '100% ✓' : pct + '%';
   }
 
   function queue(payload) {
@@ -71,23 +63,6 @@
     paint();
     push([{ lesson: lessonId, chapter: ch, done: !!val }]);
   }
-
-  marks.forEach(function (box) {
-    box.addEventListener('change', function () { setDone(box.getAttribute('data-mark'), box.checked); });
-  });
-
-  var btnDone = document.getElementById('btn-done');
-  if (btnDone) btnDone.addEventListener('click', function () {
-    var allDone = sections.every(function (s) { return isDone(s.getAttribute('data-ch')); });
-    var items = [];
-    sections.forEach(function (s) {
-      var ch = s.getAttribute('data-ch');
-      done[key(ch)] = allDone ? 0 : 1;
-      if (allDone) delete done[key(ch)];
-      items.push({ lesson: lessonId, chapter: ch, done: !allDone });
-    });
-    saveDone(done); paint(); push(items);
-  });
 
   var btnReset = document.getElementById('btn-reset');
   if (btnReset) btnReset.addEventListener('click', function () {
@@ -119,6 +94,43 @@
       }).catch(function () { queue(b); });
     });
   })();
+
+  /* ---------------- 阅读进度条 + 滚动自动记录 ---------------- */
+  if (isLesson && sections.length) {
+    var readbar = document.createElement('div');
+    readbar.className = 'readbar';
+    readbar.innerHTML = '<i></i>';
+    document.body.appendChild(readbar);
+    var rbi = readbar.querySelector('i');
+    var lastMark = 0;
+
+    function autoTrack() {
+      /* 顶部阅读进度条 */
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      rbi.style.width = (h > 0 ? Math.min(100, Math.round(window.scrollY / h * 100)) : 0) + '%';
+      /* 滚过视口 65% 线的章自动记录为已学 */
+      var now = Date.now();
+      if (now - lastMark < 400) return;
+      lastMark = now;
+      var line = window.innerHeight * 0.65;
+      var items = [];
+      sections.forEach(function (s) {
+        var ch = s.getAttribute('data-ch');
+        if (autoSeen[ch]) return;
+        if (isDone(ch)) { autoSeen[ch] = 1; return; }
+        var r = s.getBoundingClientRect();
+        if (r.bottom < line) {
+          autoSeen[ch] = 1;
+          done[key(ch)] = 1;
+          items.push({ lesson: lessonId, chapter: ch, done: true });
+        }
+      });
+      if (items.length) { saveDone(done); paint(); push(items); }
+    }
+    window.addEventListener('scroll', autoTrack, { passive: true });
+    window.addEventListener('resize', autoTrack, { passive: true });
+    autoTrack();
+  }
 
   /* ---------------- 目录 + 滚动高亮 ---------------- */
   var nav = document.getElementById('toc-nav');

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 9 讲 · 定义 / 使用函数（proc） · 15 | IC 后端学院</title>
 <meta name="description" content="proc 函数全套：无参、带参数（return 语义与 [ ] 接收返回值）、默认参数、args 可变参数（必须放最后）、global 全局变量声明、max 综合示例、proc 核心语法总结（文档原文）。">
-<link rel="icon" href="/assets/logo.svg?v=1795586673" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795586673">
+<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587182">
 </head>
 <body data-page="lesson" data-lesson="01-15-tcl-09-proc">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795586673" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -82,7 +82,6 @@ sayHello
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-  <label class="ch-done"><input type="checkbox" data-mark="noparam"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="param" data-ch="param">
   <div class="ch-h"><span class="ch-n">02</span><h2>2. 带参数的函数（最常用）</h2></div>
@@ -110,7 +109,6 @@ puts &quot;10 + 20 = $result&quot;
 <p><strong>调用规则</strong>：</p>
 <ul><li>普通调用：<code>函数名 参数1 参数2</code>（直接写名字，不需要括号）。</li><li><strong>获取返回值</strong>：<code>[函数名 参数]</code>——用命令替换 <code>[ ]</code> 接住返回值。</li></ul>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>def add(a, b): return a + b</code>；<code>result = add(10, 20)</code>。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="param"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="default" data-ch="default">
   <div class="ch-h"><span class="ch-n">03</span><h2>3. 带默认参数的函数</h2></div>
@@ -133,7 +131,6 @@ puts [addDefault 3 7]   ;# 10</pre><button class="tcl-go" type="button">▶ 运�
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>def addDefault(a, b=5):</code>——默认参数写成 <code>{参数名 默认值}</code> 放在参数列表里。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="default"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="args" data-ch="args">
   <div class="ch-h"><span class="ch-n">04</span><h2>4. 可变参数函数（任意个数参数）</h2></div>
@@ -187,7 +184,6 @@ test 10 20 30 40
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>args</code> ≈ <code>*args</code>。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="args"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="global" data-ch="global">
   <div class="ch-h"><span class="ch-n">05</span><h2>5. 函数内使用局部变量 / 全局变量</h2></div>
@@ -215,7 +211,6 @@ testGlobal</pre><button class="tcl-go" type="button">▶ 运行这段代码</but
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p>函数里改全局变量要先 <code>global x</code>——TCL 更严格，<strong>读</strong>也要声明。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="global"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="max" data-ch="max">
   <div class="ch-h"><span class="ch-n">06</span><h2>6. 完整实用示例：计算两数最大值</h2></div>
@@ -247,7 +242,6 @@ puts &quot;max(5, 9) = [max 5 9]&quot;
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-  <label class="ch-done"><input type="checkbox" data-mark="max"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="summary" data-ch="summary">
   <div class="ch-h"><span class="ch-n">07</span><h2>proc 核心语法总结（文档原文）</h2></div>
@@ -255,7 +249,6 @@ puts &quot;max(5, 9) = [max 5 9]&quot;
 <p>关键点：</p>
 <ul><li>proc = 定义函数</li><li>{} 包裹参数列表</li><li>return 返回值（<strong>不写则返回最后一条命令结果</strong>）</li><li>调用：函数名 参数1 参数2</li><li>获取返回值：[函数名 参数]</li></ul>
 <p><strong>总结</strong>：Tcl 用 proc 定义函数；支持无参、有参、默认参数、可变参数；返回值用 return；调用方式：函数名 参数 或 [函数名 参数] 接收返回值。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="summary"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">08</span><h2>动手练</h2></div>
@@ -317,7 +310,6 @@ puts [avg 1 2 3 4]                ;# 2.5</pre><button class="tcl-go" type="butto
   <div class="q-a"><code>[函数名 参数]</code>——命令替换接住返回值。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>proc 四种形态都会写</li><li>能说清 return 的语义与省略 return 的行为</li><li>global 声明的必要性说得清</li></ul></div>
-  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -328,17 +320,16 @@ puts [avg 1 2 3 4]                ;# 2.5</pre><button class="tcl-go" type="butto
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav"><a class="nav-btn" href="/lesson/01-14-tcl-08-loops/">← TCL 第 8 讲 · 流程控制（下）：三种循环 while / foreach / for</a><a class="nav-btn" href="/lesson/01-16-tcl-10-final/">TCL 第 10 讲 · 综合实战 + 结课自测 →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795586673"></script>
-<script src="/assets/tcl.js?v=1795586673"></script>
-<script src="/assets/app.js?v=1795586673"></script>
-<script src="/assets/aiwidget.js?v=1795586673" defer></script>
+<script src="/assets/shell.js?v=1795587182"></script>
+<script src="/assets/tcl.js?v=1795587182"></script>
+<script src="/assets/app.js?v=1795587182"></script>
+<script src="/assets/aiwidget.js?v=1795587182" defer></script>
 </body>
 </html>

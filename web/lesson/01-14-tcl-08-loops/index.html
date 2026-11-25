@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 8 讲 · 流程控制（下）：三种循环 while / foreach / for · 14 | IC 后端学院</title>
 <meta name="description" content="while 三要素与死循环、while{1}+break、列表倒序复制与倒序遍历单元格（EDA）、foreach 遍历首选与 EDA 移动对象、for 计数循环、三种循环怎么选、source 加载脚本、文档原题偶数减奇数。">
-<link rel="icon" href="/assets/logo.svg?v=1795586673" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795586673">
+<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587182">
 </head>
 <body data-page="lesson" data-lesson="01-14-tcl-08-loops">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795586673" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -177,7 +177,6 @@ puts &quot;倒序列表：$target_list&quot;   ;# 输出：倒序列表：500 40
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-  <label class="ch-done"><input type="checkbox" data-mark="while"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="foreach" data-ch="foreach">
   <div class="ch-h"><span class="ch-n">02</span><h2>循环 2：foreach 循环（遍历列表元素）——首选</h2></div>
@@ -235,7 +234,6 @@ puts &quot;列表元素总和：$sum&quot;   ;# 输出：列表元素总和：15
 </div>
 <p>原理：第一次：0+1；第二次：0+1+2……第五次：0+1+2+3+4+5。</p>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>foreach num $num_list { ... }</code> ≈ <code>for num in num_list:</code></p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="foreach"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="for" data-ch="for">
   <div class="ch-h"><span class="ch-n">03</span><h2>循环 3：for 循环（知道次数时用）</h2></div>
@@ -255,12 +253,10 @@ puts &quot;列表元素总和：$sum&quot;   ;# 输出：列表元素总和：15
 <div class="tip"><div class="tip-h">小技巧</div><p><code>for i in range(5):</code>。四段各司其职：起始只跑一次，条件每轮判断，步进每轮结束执行。</p></div>
 <p><strong>三种循环怎么选（速查表）</strong>：</p>
 <div class="tbl"><table><thead><tr><th>循环</th><th>用在什么时候</th><th>Python 对应</th></tr></thead><tbody><tr><td>while</td><td>不知道跑几次、靠条件结束</td><td><code>while cond:</code></td></tr><tr><td>foreach</td><td>遍历列表/集合元素</td><td><code>for x in lst:</code></td></tr><tr><td>for</td><td>知道次数、按索引走</td><td><code>for i in range(n):</code></td></tr></tbody></table></div>
-  <label class="ch-done"><input type="checkbox" data-mark="for"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="source" data-ch="source">
   <div class="ch-h"><span class="ch-n">04</span><h2>source：加载并执行脚本文件</h2></div>
   <p><code>source 文件</code>——把另一个 TCL 脚本文件的内容载入执行（第 1 讲配置环境时已经在用）。练习场不支持 source，把脚本内容直接粘贴即可。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="source"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">05</span><h2>动手练</h2></div>
@@ -308,7 +304,6 @@ puts &quot;1-100偶数减奇数的值：$result&quot;</pre><button class="tcl-go
   <div class="q-a">把另一个 TCL 脚本文件的内容载入执行。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能背 while 三要素并解释死循环成因</li><li>倒序复制列表不看原文能写</li><li>三种循环各写一个例子并说清选择依据</li><li>偶数减奇数跑出 50</li></ul></div>
-  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -319,17 +314,16 @@ puts &quot;1-100偶数减奇数的值：$result&quot;</pre><button class="tcl-go
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav"><a class="nav-btn" href="/lesson/01-13-tcl-07-if/">← TCL 第 7 讲 · 流程控制（上）：if 条件判断与用户输入</a><a class="nav-btn" href="/lesson/01-15-tcl-09-proc/">TCL 第 9 讲 · 定义 / 使用函数（proc） →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795586673"></script>
-<script src="/assets/tcl.js?v=1795586673"></script>
-<script src="/assets/app.js?v=1795586673"></script>
-<script src="/assets/aiwidget.js?v=1795586673" defer></script>
+<script src="/assets/shell.js?v=1795587182"></script>
+<script src="/assets/tcl.js?v=1795587182"></script>
+<script src="/assets/app.js?v=1795587182"></script>
+<script src="/assets/aiwidget.js?v=1795587182" defer></script>
 </body>
 </html>

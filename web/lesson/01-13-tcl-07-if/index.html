@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 7 讲 · 流程控制（上）：if 条件判断与用户输入 · 13 | IC 后端学院</title>
 <meta name="description" content="if-elseif-else 语法与四大语法铁律（文档强调的初学者大坑）、比较与逻辑运算符、gets stdin 用户输入、rand() 随机数、成绩等级判断与猜数字游戏（文档原题）。">
-<link rel="icon" href="/assets/logo.svg?v=1795586673" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795586673">
+<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587182">
 </head>
 <body data-page="lesson" data-lesson="01-13-tcl-07-if">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795586673" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -97,13 +97,11 @@ if {$score &gt;= 90} {
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-  <label class="ch-done"><input type="checkbox" data-mark="if"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="rules" data-ch="rules">
   <div class="ch-h"><span class="ch-n">02</span><h2>四大语法铁律（文档强调，初学者最常踩坑）</h2></div>
   <ol><li><strong>铁律 1</strong>：<code>}</code> 和 <code>elseif</code> / <code>else</code> 必须<strong>同一行</strong>，中间必须<strong>有空格</strong>。</li><li><strong>铁律 2</strong>：<code>if</code> 后面的条件必须包在 <code>{}</code> 里，而且 <code>{</code> 必须跟在条件后面，<strong>不能换行</strong>。</li><li><strong>铁律 3</strong>：所有大括号、运算符，必须是<strong>英文半角符号</strong>，禁止中文括号 / 空格。</li><li><strong>铁律 4</strong>：TCL 是严格一行一条命令：<code>if</code> 是单条完整命令，不能用换行把 <code>}</code> 和 <code>elseif</code> 切开。</li></ol>
 <div class="note"><div class="note-h">为什么有这些规定？</div><p>因为 <code>{...}</code> 是&quot;分组&quot;——<code>}</code> 换行会让 TCL 以为命令提前结束了。（第 2 讲的分组原理在这里兑现。）</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="rules"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="gets" data-ch="gets">
   <div class="ch-h"><span class="ch-n">03</span><h2>输入（gets stdin）</h2></div>
@@ -135,7 +133,6 @@ if {$score &gt;= 90} {
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <p>练习台里的玩法：直接在下面输入行敲 <code>gets stdin score</code> 回车，再敲 <code>85</code> 回车，最后敲 <code>puts $score</code> 回车。有了输入，就能做出完整的交互程序。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="gets"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="rand" data-ch="rand">
   <div class="ch-h"><span class="ch-n">04</span><h2>rand()：获取随机数</h2></div>
@@ -150,7 +147,6 @@ puts [expr {int(rand()*100)}]   ;# 0-99 的整数随机数（多跑几次看变�
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-  <label class="ch-done"><input type="checkbox" data-mark="rand"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="rps" data-ch="rps">
   <div class="ch-h"><span class="ch-n">05</span><h2>综合例子：猜拳游戏（课件原题）</h2></div>
@@ -197,7 +193,6 @@ if {$com_num == $ply_ch} {
   </div>
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
-  <label class="ch-done"><input type="checkbox" data-mark="rps"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
@@ -262,7 +257,6 @@ while {1} {
   <div class="q-a"><code>{}</code>，且 <code>{</code> 必须紧跟条件不能换行。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能写 if/elseif/else 并背出四大铁律</li><li>会用 gets stdin 读输入并完成交互判断</li><li>会用 rand() 造随机数</li></ul></div>
-  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -273,17 +267,16 @@ while {1} {
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav"><a class="nav-btn" href="/lesson/01-12-tcl-06-list-b/">← TCL 第 6 讲 · 列表（下）：增删改查、排序与转换</a><a class="nav-btn" href="/lesson/01-14-tcl-08-loops/">TCL 第 8 讲 · 流程控制（下）：三种循环 while / foreach / for →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795586673"></script>
-<script src="/assets/tcl.js?v=1795586673"></script>
-<script src="/assets/app.js?v=1795586673"></script>
-<script src="/assets/aiwidget.js?v=1795586673" defer></script>
+<script src="/assets/shell.js?v=1795587182"></script>
+<script src="/assets/tcl.js?v=1795587182"></script>
+<script src="/assets/app.js?v=1795587182"></script>
+<script src="/assets/aiwidget.js?v=1795587182" defer></script>
 </body>
 </html>

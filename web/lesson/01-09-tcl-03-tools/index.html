@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 3 讲 · 变量操作三剑客：append / incr / expr · 09 | IC 后端学院</title>
 <meta name="description" content="字符串拼接用 append（两种方法 + 与普通拼接对比）、整数加减用 incr（默认 1 / 正负步长）、一切数学运算交给 expr（含整数除法陷阱）。三剑客是写任何 TCL 脚本都绕不开的三个命令。">
-<link rel="icon" href="/assets/logo.svg?v=1795586673" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795586673">
+<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587182">
 </head>
 <body data-page="lesson" data-lesson="01-09-tcl-03-tools">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795586673" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -107,7 +107,6 @@ puts $str2                ;# 输出：Hello World!</pre><button class="tcl-go" t
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>append</code> ≈ <code>s += &quot;...&quot;</code>，但 TCL 里不用写自己拼自己。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="append"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="incr" data-ch="incr">
   <div class="ch-h"><span class="ch-n">02</span><h2>incr：数值递增 / 递减</h2></div>
@@ -138,7 +137,6 @@ puts &quot;num2：$num2&quot;   ;# 输出：num2：-1</pre><button class="tcl-go
   <div class="sbx-f">这是浏览器内置的 Tcl 解释器（覆盖本课全部命令）：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。多行输入：先写上半句回车，解释器会等续行。</div>
 </div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>incr i</code> ≈ <code>i += 1</code>；<code>incr i -3</code> ≈ <code>i -= 3</code>。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="incr"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="expr" data-ch="expr">
   <div class="ch-h"><span class="ch-n">03</span><h2>expr：计算（数值运算专用）</h2></div>
@@ -163,7 +161,6 @@ expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数<
 </div>
 <div class="pit"><div class="pit-h">常见坑 · 重点陷阱（文档强调）：整数除整数，小数部分直接扔掉</div><div class="pit-b"><p><code>expr {5 / 3}</code> 的结果是 <strong>1</strong>——整数相除结果仍是整数，和 Python 2 类似。想得到小数，把其中一个数写成 <code>5.0</code> 这种浮点形式。<strong>惯例</strong>：expr 的表达式用 <code>{}</code> 包起来（不读变量、性能好、避免空格歧义）。</p></div></div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>expr {...}</code> ≈ 直接写算式，但 TCL 里&quot;算式&quot;是一条命令。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="expr"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
@@ -179,7 +176,6 @@ expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数<
   <div class="q-a">不行，直接写变量名：<code>append str &quot;!&quot;</code>，不是 <code>append $str</code>。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用 append 一次追加多个内容</li><li>能用 incr 完成加 1、加 N、减 N</li><li>能背出整数除法陷阱并知道怎么绕开</li></ul></div>
-  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -190,17 +186,16 @@ expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数<
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav"><a class="nav-btn" href="/lesson/01-08-tcl-02-vars/">← TCL 第 2 讲 · 变量与替换规则（TCL 的灵魂）</a><a class="nav-btn" href="/lesson/01-10-tcl-04-array/">TCL 第 4 讲 · 数组：键-值对（相当于 Python 的字典） →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795586673"></script>
-<script src="/assets/tcl.js?v=1795586673"></script>
-<script src="/assets/app.js?v=1795586673"></script>
-<script src="/assets/aiwidget.js?v=1795586673" defer></script>
+<script src="/assets/shell.js?v=1795587182"></script>
+<script src="/assets/tcl.js?v=1795587182"></script>
+<script src="/assets/app.js?v=1795587182"></script>
+<script src="/assets/aiwidget.js?v=1795587182" defer></script>
 </body>
 </html>

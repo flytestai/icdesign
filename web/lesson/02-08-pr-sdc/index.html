@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SDC 时序约束：告诉工具"做到什么程度算合格" · 30 | IC 后端学院</title>
 <meta name="description" content="前面几课给的是"事实"，这一课给的是"要求"。从 DFF→组合逻辑→DFF 的基本模型讲起，一条条写出时钟、分频、虚拟时钟、抖动、时钟分组、输入输出延迟、假路径、负载三件套，说清周期与频率、占空比与 waveform 的换算，最后讲约束力度为什么直接决定优化力度，以及 SDC 由 FCT 部门负责这件事对 PR 工程师意味着什么。">
-<link rel="icon" href="/assets/logo.svg?v=1795586673" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795586673">
+<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587182">
 </head>
 <body data-page="lesson" data-lesson="02-08-pr-sdc">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795586673" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -76,7 +76,6 @@
 <p>文档里还有一句必须画重点：</p>
 <div class="tip"><div class="tip-h">小技巧</div><p><strong>&quot;对工具是否能够优化到期望的范围，设置的力度越大，优化的力度就越大。&quot;</strong></p>
 <p>周期写 15ns，工具就拼命插 buffer、换大驱动、拆逻辑去挤进 15ns；周期写 40ns，工具就躺平不管。<strong>所以约束既不能虚松（松了不干活），也不能虚紧（紧了白烧面积和功耗，还可能根本收敛不了）。</strong></p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="what"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="model" data-ch="model">
   <div class="ch-h"><span class="ch-n">02</span><h2>先建立一个时序模型</h2></div>
@@ -92,7 +91,6 @@
 <p>同样一条&quot;起点 → 终点&quot;，来源不同，约束方式也不同。工具报告里通常按这三类分组：</p>
 <div class="tbl"><table><thead><tr><th>路径类型</th><th>起点</th><th>终点</th><th>约束靠什么</th></tr></thead><tbody><tr><td><strong>Reg2Reg</strong></td><td>内部触发器</td><td>内部触发器</td><td>只靠 <code>create_clock</code>（周期）</td></tr><tr><td><strong>In2Reg</strong></td><td><strong>输入端口</strong></td><td>内部触发器</td><td>需要 <code>set_input_delay</code>（外部占用了多少时间）</td></tr><tr><td><strong>Reg2Out</strong></td><td>内部触发器</td><td><strong>输出端口</strong></td><td>需要 <code>set_output_delay</code>（外面要求多早到）</td></tr></tbody></table></div>
 <p><strong>为什么必须分三类</strong>：Reg2Reg 的边界完全由周期决定；而 In2Reg/Reg2Out 多了一段&quot;芯片外部&quot;的时间，工具不知道外部器件多快、板级走线多长——<strong>所以必须由人用 io delay 告诉它</strong>。这就是为什么 io delay 写错，只有这两类路径会出问题。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="model"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="write" data-ch="write">
   <div class="ch-h"><span class="ch-n">03</span><h2>一条一条写约束</h2></div>
@@ -193,7 +191,6 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
 <p>端口上还要给出<strong>驱动能力与实际负载</strong>，否则第一级和最后一级算不准：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 输入端口：用一个真实单元来代表外部驱动能力（比 set_input_transition 更准）</span><span class="ln ">set_driving_cell -lib_cell BUF_X4 -pin Z [get_ports din*]</span><span class="ln "> </span><span class="ln cmt"># 输入端口：直接给一个 transition 值（简单但粗糙）</span><span class="ln ">set_input_transition 0.15 [get_ports din*]</span><span class="ln "> </span><span class="ln cmt"># 输出端口：外部挂了多大电容（板级走线 + 接收端引脚）</span><span class="ln ">set_load 0.05 [get_ports dout*]</span></code></pre></div>
 <p>回想上一课：<strong>cell delay 由 input transition 和 output load 决定</strong>。这三条命令就是在给这两端&quot;喂数据&quot;——喂错了，所有延迟数字都是编的。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="write"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="fct" data-ch="fct">
   <div class="ch-h"><span class="ch-n">04</span><h2>谁写 SDC：FCT 部门</h2></div>
@@ -238,7 +235,6 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能画出 DFF → 组合逻辑 → DFF 的模型，并指出起始点、结束点</li><li>能由周期算出频率、由 waveform 算出占空比，反过来也会</li><li>能写出 create_clock / create_generated_clock / create_clock 虚拟时钟三条命令并解释参数</li><li>能说清 set_input_delay / set_output_delay 的 -max 与 -min 各管什么</li><li>能举出两类该写 false path 的场景，并说出乱写的后果</li><li>能说出 fanout / capacitance / transition 三个电气约束各自限制什么</li><li>能说出&quot;约束力度 = 优化力度&quot;的含义，以及为什么 sdc 由 FCT 部门负责</li></ul></div>
 <div class="note"><div class="note-h">接下来</div><p>阶段二到这里结束。PR 篇这十讲给的是&quot;数据与目标&quot;，下一步就是动工具：<a href="/lesson/03-01-innovus-plan/">阶段三导读</a> 里有 41 学时的工序清单，前两讲 <a href="/lesson/03-02-innovus-start/">启动 Innovus</a> 和 <a href="/lesson/03-03-innovus-init/">init_design</a> 已经上线——把这一课写的 sdc 真正读进工具、用 <code>report_clocks</code> 验证它生效，是阶段三第一个动作。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="fct"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -249,17 +245,16 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav"><a class="nav-btn" href="/lesson/02-07-pr-mmmc/">← MMMC：多模式多端角，工具到底在几种世界里跑时序</a><a class="nav-btn" href="/lesson/03-01-innovus-plan/">阶段三导读：40nm Innovus 项目实操路线 →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795586673"></script>
-<script src="/assets/tcl.js?v=1795586673"></script>
-<script src="/assets/app.js?v=1795586673"></script>
-<script src="/assets/aiwidget.js?v=1795586673" defer></script>
+<script src="/assets/shell.js?v=1795587182"></script>
+<script src="/assets/tcl.js?v=1795587182"></script>
+<script src="/assets/app.js?v=1795587182"></script>
+<script src="/assets/aiwidget.js?v=1795587182" defer></script>
 </body>
 </html>

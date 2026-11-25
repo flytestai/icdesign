@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 4 课 · 查看与编辑文件（vi 全套） · 04 | IC 后端学院</title>
 <meta name="description" content="cat / more / less / head / tail / vi 五种查看方式；vi/vim/gvim 编辑模式与命令行模式全套用法；diff 对比文件；alias 快捷指令；重定向 > 与管道 |；Linux 快捷键；课后练习二。">
-<link rel="icon" href="/assets/logo.svg?v=1795586673" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795586673">
+<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587182">
 </head>
 <body data-page="lesson" data-lesson="01-04-linux-04-view-vi">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795586673" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -71,7 +71,6 @@
 <p><strong>查看文件开头 / 结尾</strong>：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">head  文件名        # 默认查看前 10 行</span><span class="ln ">head  -20  文件名   # 查看文件前 20 行</span><span class="ln ">tail  文件名        # 默认查看后 10 行</span><span class="ln ">tail  -20  文件名   # 查看文件的后 20 行</span></code></pre></div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>tail -100 xxx.log</code> 看最新 100 行——跑完仿真/PR 第一件事就是它。</p></div>
-  <label class="ch-done"><input type="checkbox" data-mark="view"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="vi" data-ch="vi">
   <div class="ch-h"><span class="ch-n">02</span><h2>2. vi / vim / gvim 编辑文件</h2></div>
@@ -88,7 +87,6 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">diff       文件1 文件2    # 直接打印不同的内容</span><span class="ln ">zdiff      压缩文件对比    # 支持 zcat 类压缩格式</span><span class="ln ">gvimdiff   文件1 文件2    # 打开两个文件，高亮显示不同的部分</span></code></pre></div>
 <h3>alias 快捷指令</h3>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">alias          # 查看已经设置了哪些快捷指令</span><span class="ln ">alias  l       # 查看是否设置了 l 这个快捷指令</span></code></pre></div>
-  <label class="ch-done"><input type="checkbox" data-mark="vi"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="symbols" data-ch="symbols">
   <div class="ch-h"><span class="ch-n">03</span><h2>3. 特殊符号</h2></div>
@@ -96,7 +94,6 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">history  &gt;  1.t                    # 把历史命令写进 1.t</span><span class="ln ">echo 123 &gt; 2.t                     # 把 123 写进 2.t</span><span class="ln ">cat  -n  .bash_history  &gt;  1.t     # 带行号写进 1.t</span></code></pre></div>
 <p><strong>2）管道符 <code>|</code></strong>：连接两个命令，把<strong>前一个命令的输出</strong>作为<strong>后一个命令的输入</strong>。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cmd1  |  cmd2</span><span class="ln ">ll | grep '.txt'      # 列出内容后过滤出含 .txt 的行</span></code></pre></div>
-  <label class="ch-done"><input type="checkbox" data-mark="symbols"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="hotkeys" data-ch="hotkeys">
   <div class="ch-h"><span class="ch-n">04</span><h2>4. Linux 的快捷键</h2></div>
@@ -104,7 +101,6 @@
 <p><strong>打开文件后</strong>：</p>
 <div class="tbl"><table><thead><tr><th>按键</th><th>作用</th></tr></thead><tbody><tr><td><code>G</code></td><td>跳转到文件<strong>最后一行</strong></td></tr><tr><td><code>gg</code></td><td>跳转到文件<strong>第一行</strong></td></tr><tr><td><code>g + f</code></td><td>直接在文件内跳转另一个文件</td></tr><tr><td><code>ctrl + o</code></td><td>返回原文件</td></tr><tr><td><code>!100</code></td><td>history 之后，直接执行第 100 行执行过的命令</td></tr></tbody></table></div>
 <p><strong>tips</strong>：帮助学习 cmd 的使用——<code>cmd --help</code>，展示命令的语法格式以及用法。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="hotkeys"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">05</span><h2>动手练：练习二</h2></div>
@@ -123,7 +119,6 @@
   <div class="q-a">/关键字 向下搜（n 下一个，shift+n 上一个）；?关键字 向上搜；:set ic 可忽略大小写。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>七种查看文件的方式都说得出、用得上</li><li>vi 编辑模式三个入口键 + 命令行模式十条命令全记熟</li><li>重定向和管道能各举一个工作场景</li><li>练习二 17 题全部完成</li></ul></div>
-  <label class="ch-done"><input type="checkbox" data-mark="lab"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -134,17 +129,16 @@
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav"><a class="nav-btn" href="/lesson/01-03-linux-03-files/">← Linux 第 3 课 · 目录与文件操作</a><a class="nav-btn" href="/lesson/01-05-linux-05-search-perm/">Linux 第 5 课 · 搜索、权限、打包与正则表达式 →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795586673"></script>
-<script src="/assets/tcl.js?v=1795586673"></script>
-<script src="/assets/app.js?v=1795586673"></script>
-<script src="/assets/aiwidget.js?v=1795586673" defer></script>
+<script src="/assets/shell.js?v=1795587182"></script>
+<script src="/assets/tcl.js?v=1795587182"></script>
+<script src="/assets/app.js?v=1795587182"></script>
+<script src="/assets/aiwidget.js?v=1795587182" defer></script>
 </body>
 </html>

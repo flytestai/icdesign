@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>启动 Innovus：版本、常用选项与帮助系统 · 32 | IC 后端学院</title>
 <meta name="description" content="从 Encounter/ICC 到 Innovus/ICC2 的换代原因讲起，然后真刀真枪地启动工具：怎么确认版本、九个最常用的启动选项（写 log、自动跑脚本、无界面、定时、多核、帮助、GUI 开关）、CPU 该给多少核以及为什么不能给太多、启动后怎么调核数，最后把界面分成四块认识一遍。">
-<link rel="icon" href="/assets/logo.svg?v=1795586673" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795586673">
+<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587182">
 </head>
 <body data-page="lesson" data-lesson="03-02-innovus-start">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795586673" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -70,7 +70,6 @@
 <p>老引擎的几个硬伤，在先进工艺下会直接暴露：</p>
 <ul><li>一次跑不完几十万 instance 的优化，跑一天还没到 route；</li><li>不支持多重曝光（double patterning）的染色约束；</li><li>时序/拥塞/功耗三者不能联合优化，只能一轮轮手调。</li></ul>
 <p>所以你在招聘要求里看到&quot;熟悉 Innovus 或 ICC2&quot;，指的是<strong>这一代工具</strong>；只会 Encounter/ICC，在 28nm 以下基本没有用武之地。本课程后面所有实操都用 Innovus。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="tools"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="start" data-ch="start">
   <div class="ch-h"><span class="ch-n">02</span><h2>第一步：启动与确认版本</h2></div>
@@ -89,7 +88,6 @@
   <div class="term-h"><span class="term-en">GUI</span><span class="term-zh">图形界面模式</span></div>
   <div class="term-b"><p>带版图窗口的运行模式（默认）。与之相对的 <code>-no_gui</code> 只跑命令、不加载图形引擎。<strong>GUI 用来 debug，脚本用来干活</strong>——这是 PR 工作的基本分工。</p></div>
 </div>
-  <label class="ch-done"><input type="checkbox" data-mark="start"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="options" data-ch="options">
   <div class="ch-h"><span class="ch-n">03</span><h2>九个常用启动选项</h2></div>
@@ -150,7 +148,6 @@
 <p>文档把&quot;TAB 键&quot;单独列成一条，因为它真的能救命：</p>
 <ul><li>敲 <code>setPlace</code> + Tab → 自动补成 <code>setPlaceMode</code>；</li><li>敲 <code>setPlaceMode -</code> + Tab → <strong>列出所有可用参数</strong>；</li><li>路径也能补：<code>source scr</code> + Tab → <code>source scripts/</code>。</li></ul>
 <p><strong>养成&quot;敲一半就按 Tab&quot;的习惯</strong>，能避掉大量拼写错误。Innovus 命令长、驼峰多，手打几乎必错。</p>
-  <label class="ch-done"><input type="checkbox" data-mark="options"><span>这一章我学完了</span></label>
 </section>
 <section class="ch" id="gui" data-ch="gui">
   <div class="ch-h"><span class="ch-n">04</span><h2>界面分四块认识</h2></div>
@@ -189,7 +186,6 @@
   <div class="q-a">补全命令/路径名；在命令后加空格再按 Tab 列出该命令的所有可用参数。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 Innovus/ICC2 对应替代的老工具，以及换代的核心原因（运行时间与先进工艺约束）</li><li>能用一条命令完成&quot;无界面启动 + 自动跑脚本 + 写 log&quot;</li><li>能解释 <code>-wait</code> 的真实语义（license 排队）</li><li>能说出 <code>-cpus</code> 给太高会被 kill 的两个原因</li><li>能用 <code>which</code> / <code>nproc</code> / <code>lscpu</code> 三个命令确认环境</li><li>能说出三个帮助入口各自查什么</li><li>能把界面分成版图区、命令行、输出窗、层次树四块并说出各自用途</li></ul></div>
-  <label class="ch-done"><input type="checkbox" data-mark="gui"><span>这一章我学完了</span></label>
 </section></article>
 
     <section class="notes" id="notes">
@@ -200,17 +196,16 @@
 
     <div class="lesson-end">
       <div class="end-card">
-        <h3>这一课学完了吗？</h3>
-        <p>点一下标记整课完成。进度会自动同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <button id="btn-done" class="pri">标记本课完成</button>
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
         <div class="end-nav"><a class="nav-btn" href="/lesson/03-01-innovus-plan/">← 阶段三导读：40nm Innovus 项目实操路线</a><a class="nav-btn" href="/lesson/03-03-innovus-init/">init_design：把数据导进 Innovus，并证明它导对了 →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795586673"></script>
-<script src="/assets/tcl.js?v=1795586673"></script>
-<script src="/assets/app.js?v=1795586673"></script>
-<script src="/assets/aiwidget.js?v=1795586673" defer></script>
+<script src="/assets/shell.js?v=1795587182"></script>
+<script src="/assets/tcl.js?v=1795587182"></script>
+<script src="/assets/app.js?v=1795587182"></script>
+<script src="/assets/aiwidget.js?v=1795587182" defer></script>
 </body>
 </html>
