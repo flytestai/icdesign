@@ -40,6 +40,28 @@
   function initQuiz() {
     var all = [], wrong = load(LS_WRONG, '[]'), stage = '', mode = 'draw', round = [];
     var panel = q('#quiz-panel'), sel = q('#q-stage'), cnt = q('#wrong-n');
+    /* 刷题进度：本地记录已作答过的题目（去重），并上报服务器用于排行榜 */
+    var LS_ANSWERED = 'icl.answered', LS_CORRECT = 'icl.correct';
+    var answered = load(LS_ANSWERED, '[]'), correctList = load(LS_CORRECT, '[]');
+    function pushQuizStats() {
+      fetch('/api/quiz-stats', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answered: answered.length, correct: correctList.length }),
+      }).catch(function () {});
+    }
+    function markAnswered(id, ok) {
+      var ch = false;
+      if (answered.indexOf(id) < 0) { answered.push(id); ch = true; }
+      if (ok) {
+        if (correctList.indexOf(id) < 0) { correctList.push(id); ch = true; }
+        wrong = wrong.filter(function (x) { return x !== id; });
+        save(LS_WRONG, wrong);
+      } else if (correctList.indexOf(id) >= 0) {
+        correctList = correctList.filter(function (x) { return x !== id; }); ch = true;
+      }
+      if (ch) { save(LS_ANSWERED, answered); save(LS_CORRECT, correctList); pushQuizStats(); }
+    }
 
     function paintWrongCount() { if (cnt) cnt.textContent = wrong.length; }
 
@@ -82,11 +104,13 @@
           wrong = wrong.filter(function (x) { return x !== id; });
           save(LS_WRONG, wrong); paintWrongCount();
           ok.textContent = '✓ 会了'; ok.classList.add('ok');
+          markAnswered(id, true);
         });
         if (no) no.addEventListener('click', function () {
           if (wrong.indexOf(id) < 0) wrong.push(id);
           save(LS_WRONG, wrong); paintWrongCount();
           no.textContent = '✓ 已记下'; no.classList.add('no');
+          markAnswered(id, false);
         });
       });
     }
@@ -417,6 +441,24 @@
           save(examKey(run.stage), { score: score, right: n, total: t, date: Date.now() });
         }
       }
+      /* 上报验收成绩到排行榜（通过阶段数 / 最高分） */
+      (function () {
+        var passed = 0, best = 0;
+        for (var s = 1; s <= 9; s++) {
+          var r = examResult(s);
+          if (r && r.score >= 80) { passed++; if (r.score > best) best = r.score; }
+        }
+        if (pass && score > best) best = score;
+        var a = load('icl.answered', '[]'), c = load('icl.correct', '[]');
+        fetch('/api/quiz-stats', {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            answered: a.length, correct: c.length,
+            exam_passed: pass ? Math.max(passed, 1) : passed, best_exam: best,
+          }),
+        }).catch(function () {});
+      })();
       panel.innerHTML =
         '<div class="xres' + (pass ? ' pass' : ' fail') + '">' +
         '<b>' + score + ' 分 · ' + (pass ? '过关！' : '还差一点') + '</b>' +
@@ -510,12 +552,16 @@
         box.innerHTML = rows.map(function (r) {
           var rk = r.rank <= 3 ? medal[r.rank - 1] : r.rank;
           var pct = Math.min(100, r.progress_pct || 0);
+          var qpct = Math.min(100, r.quiz_pct || 0);
           return '<div class="lb-row' + (r.is_me ? ' me' : '') + '">' +
             '<span class="c-rk">' + rk + '</span>' +
             '<span class="c-nm">' + esc(r.name) + (r.is_me ? '<b class="lb-you">我</b>' : '') +
             (r.role === 'admin' ? '<i class="lb-adm">管理员</i>' : '') + '</span>' +
             '<span class="c-pg"><b>' + r.done + '</b>/' + r.total +
             '<i class="lb-mini"><s style="width:' + pct + '%"></s></i></span>' +
+            '<span class="c-qz"><b>' + r.answered + '</b>/' + r.total_quizzes +
+            (r.exam_passed ? '<em class="lb-ex">验收 ' + r.exam_passed + ' 阶段</em>' : '') +
+            '<i class="lb-mini q"><s style="width:' + qpct + '%"></s></i></span>' +
             '<span class="c-tm">' + fmtTime(r.seconds) + '</span>' +
             '<span class="c-sc">' + r.score + '</span>' +
             '</div>';
@@ -525,8 +571,8 @@
         if (mine && me) {
           me.hidden = false;
           me.innerHTML = '我的排名：第 <b>' + mine.rank + '</b> / ' + rows.length +
-            ' 名 · 综合分 <b>' + mine.score + '</b> · 已完成 ' + mine.done + ' 章 · 学习 ' +
-            fmtTime(mine.seconds);
+            ' 名 · 综合分 <b>' + mine.score + '</b> · 完成 ' + mine.done + ' 章 · 刷题 ' +
+            mine.answered + ' 道（正确 ' + mine.correct + '）· 学习 ' + fmtTime(mine.seconds);
         }
       })
       .catch(function () { box.innerHTML = '<p class="qempty">数据没加载出来，刷新试试。</p>'; });

@@ -134,6 +134,13 @@ def init_db():
             uid TEXT NOT NULL,
             ts INTEGER NOT NULL,
             PRIMARY KEY(user_id, uid))""")
+        c.execute("""CREATE TABLE IF NOT EXISTS quiz_stats(
+            user_id INTEGER PRIMARY KEY,
+            answered INTEGER NOT NULL DEFAULT 0,
+            correct INTEGER NOT NULL DEFAULT 0,
+            exam_passed INTEGER NOT NULL DEFAULT 0,
+            best_exam INTEGER NOT NULL DEFAULT 0,
+            updated_at INTEGER NOT NULL)""")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_uid ON progress(uid)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_lesson ON progress(lesson)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
@@ -802,6 +809,55 @@ def ai_note_del(note_id: int, request: Request):
     return {"ok": True}
 
 
+class QuizStatIn(BaseModel):
+    answered: int = Field(0, ge=0, le=100000)   # 累计答过多少题（去重后的题数）
+    correct: int = Field(0, ge=0, le=100000)    # 其中答对多少
+    exam_passed: int = Field(0, ge=0, le=100)   # 通过验收的阶段数
+    best_exam: int = Field(0, ge=0, le=100)     # 验收最高分
+
+
+@app.post("/api/quiz-stats")
+def quiz_stats_save(r: QuizStatIn, request: Request):
+    """刷题进度上报（题数只增不减，避免清本地存储后倒退）。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    now = int(time.time())
+    with closing(db()) as c:
+        old = c.execute("SELECT answered,correct,exam_passed,best_exam FROM quiz_stats WHERE user_id=?",
+                        (u["id"],)).fetchone()
+        if old:
+            answered = max(old["answered"], r.answered)
+            correct = min(answered, max(old["correct"], r.correct))
+            exam_passed = max(old["exam_passed"], r.exam_passed)
+            best_exam = max(old["best_exam"], r.best_exam)
+        else:
+            answered, correct = r.answered, min(r.answered, r.correct)
+            exam_passed, best_exam = r.exam_passed, r.best_exam
+        c.execute(
+            "INSERT INTO quiz_stats(user_id,answered,correct,exam_passed,best_exam,updated_at) "
+            "VALUES(?,?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET answered=excluded.answered, "
+            "correct=excluded.correct, exam_passed=excluded.exam_passed, "
+            "best_exam=excluded.best_exam, updated_at=excluded.updated_at",
+            (u["id"], answered, correct, exam_passed, best_exam, now))
+        c.commit()
+    return {"ok": True, "answered": answered, "correct": correct,
+            "exam_passed": exam_passed, "best_exam": best_exam}
+
+
+@app.get("/api/quiz-stats")
+def quiz_stats_get(request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    with closing(db()) as c:
+        r = c.execute("SELECT * FROM quiz_stats WHERE user_id=?", (u["id"],)).fetchone()
+    if not r:
+        return {"answered": 0, "correct": 0, "exam_passed": 0, "best_exam": 0}
+    return {"answered": r["answered"], "correct": r["correct"],
+            "exam_passed": r["exam_passed"], "best_exam": r["best_exam"]}
+
+
 class StudyTimeIn(BaseModel):
     lesson: str = Field("", max_length=64)
     seconds: int = Field(..., ge=0, le=7200)      # 单次上报：最多 2 小时
@@ -852,40 +908,86 @@ def leaderboard(request: Request):
     if not u:
         raise HTTPException(401, "not logged in")
     total_chapters = _total_chapters()
+    total_quizzes = _total_quizzes()
+    total_stages = _total_stages()
     with closing(db()) as c:
         users = c.execute(
             "SELECT id,name,role FROM users WHERE status='approved' OR role='admin'").fetchall()
-        prog = c.execute("SELECT uid, COUNT(*) n FROM progress WHERE done=1 GROUP BY uid").fetchall()
+        # 按 (uid, lesson, chapter) 去重，避免重复上报
+        prog = c.execute(
+            "SELECT DISTINCT uid, lesson, chapter FROM progress WHERE done=1").fetchall()
         times = c.execute("SELECT user_id, SUM(seconds) s FROM study_time GROUP BY user_id").fetchall()
         links = c.execute("SELECT user_id,uid FROM user_uids").fetchall()
+        qstats = c.execute("SELECT * FROM quiz_stats").fetchall()
     uid_map = {}
     for l in links:
         uid_map.setdefault(l["user_id"], set()).add(l["uid"])
-    prog_by_user = {p["uid"]: p["n"] for p in prog}
+    # 每个 uid 的已完成章节集合（跨设备合并到账号时按章节去重）
+    prog_by_uid = {}
+    for p in prog:
+        prog_by_uid.setdefault(p["uid"], set()).add(p["lesson"] + "|" + p["chapter"])
     time_by_user = {t["user_id"]: t["s"] for t in times}
+    quiz_by_user = {r["user_id"]: r for r in qstats}
 
     rows = []
     for us in users:
         uids = uid_map.get(us["id"], set())
-        done = sum(prog_by_user.get(x, 0) for x in uids)
+        chapters = set()
+        for x in uids:
+            chapters |= prog_by_uid.get(x, set())
+        done = len(chapters)
         secs = time_by_user.get(us["id"], 0)
+        qs = quiz_by_user.get(us["id"])
+        answered = qs["answered"] if qs else 0
+        correct = qs["correct"] if qs else 0
+        exam_passed = qs["exam_passed"] if qs else 0
         rows.append({
             "name": us["name"], "role": us["role"],
-            "done": done, "total": total_chapters, "seconds": secs,
+            "done": min(done, total_chapters), "total": total_chapters,
+            "seconds": secs,
+            "answered": answered, "correct": correct,
+            "total_quizzes": total_quizzes,
+            "exam_passed": exam_passed, "total_stages": total_stages,
         })
     max_secs = max([r["seconds"] for r in rows] or [0]) or 1
     for r in rows:
+        # 三个维度各自归一化到 0~100
         p_score = (r["done"] / r["total"] * 100) if r["total"] else 0
+        q_score = (r["answered"] / r["total_quizzes"] * 100) if r["total_quizzes"] else 0
         t_score = (r["seconds"] / max_secs * 100) if max_secs else 0
         r["progress_pct"] = round(p_score, 1)
-        r["score"] = round(p_score * 0.7 + t_score * 0.3, 1)
-    rows.sort(key=lambda x: (-x["score"], -x["done"], -x["seconds"], x["name"]))
+        r["quiz_pct"] = round(q_score, 1)
+        r["time_pct"] = round(t_score, 1)
+        # 权重：进度 50% + 刷题 30% + 时长 20%
+        r["score"] = round(p_score * 0.5 + q_score * 0.3 + t_score * 0.2, 1)
+    rows.sort(key=lambda x: (-x["score"], -x["done"], -x["answered"], -x["seconds"], x["name"]))
     me = u["name"]
     for i, r in enumerate(rows):
         r["rank"] = i + 1
         r["is_me"] = (r["name"] == me)
     return {"rows": rows, "me": me, "total_chapters": total_chapters,
-            "weights": {"progress": 0.7, "time": 0.3}}
+            "total_quizzes": total_quizzes, "total_stages": total_stages,
+            "weights": {"progress": 0.5, "quiz": 0.3, "time": 0.2}}
+
+
+def _total_quizzes() -> int:
+    """题库总题数（web/data/quiz.json）。"""
+    p = WEB / "data" / "quiz.json"
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        return len(data if isinstance(data, list) else (data.get("quizzes") or []))
+    except Exception:
+        return 0
+
+
+def _total_stages() -> int:
+    """阶段总数（catalog.json 的 stages）。"""
+    p = WEB / "data" / "catalog.json"
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        return len(data.get("stages") or [])
+    except Exception:
+        return 0
 
 
 def _total_chapters() -> int:

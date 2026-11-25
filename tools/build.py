@@ -788,15 +788,15 @@ EXAM_BODY = """
 LEADERBOARD_BODY = """
 <div class="lb-wrap">
   <div class="lb-hero">
-    <div class="lb-h-l"><h2>学习排行榜</h2><p>综合分 = 学习进度 70% + 学习时长 30%。进度按已完成章节数，时长按课程页实际停留时间（挂机不计）。</p></div>
-    <div class="lb-h-r"><div class="lb-legend"><span class="lg-p">■ 进度 70%</span><span class="lg-t">■ 时长 30%</span></div></div>
+    <div class="lb-h-l"><h2>学习排行榜</h2><p>综合分 = 学习进度 50% + 刷题进度 30% + 学习时长 20%。进度按已完成章节数，刷题按题库中已作答过的题目数，时长按课程页实际停留时间（挂机不计）。</p></div>
+    <div class="lb-h-r"><div class="lb-legend"><span class="lg-p">■ 进度 50%</span><span class="lg-q">■ 刷题 30%</span><span class="lg-t">■ 时长 20%</span></div></div>
   </div>
   <div class="lb-me" id="lb-me" hidden></div>
   <div class="lb-card">
-    <div class="lb-thead"><span class="c-rk">排名</span><span class="c-nm">学习者</span><span class="c-pg">完成章节</span><span class="c-tm">学习时长</span><span class="c-sc">综合分</span></div>
+    <div class="lb-thead"><span class="c-rk">排名</span><span class="c-nm">学习者</span><span class="c-pg">课程进度</span><span class="c-qz">刷题</span><span class="c-tm">学习时长</span><span class="c-sc">综合分</span></div>
     <div id="lb-rows" class="lb-rows"><div class="lb-loading">加载中…</div></div>
   </div>
-  <div class="lb-note">只显示已审核通过的同学；进度与时长按账号统计，换设备登录后仍会累计到你的名下。数据每打开一次页面刷新一次。</div>
+  <div class="lb-note">只显示已审核通过的同学。进度与时长按账号统计：进课程页会自动把本设备学习记录关联到你的账号，换设备登录后仍会累计。刷题数据在你点「我会了 / 不会」和完成验收卷后上报。</div>
 </div>
 """
 
