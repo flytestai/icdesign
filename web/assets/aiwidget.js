@@ -68,7 +68,12 @@
     ".aiw-dot.off{background:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.25)}",
     ".aiw-hbtn{width:30px;height:30px;border-radius:8px;border:none;cursor:pointer;flex:0 0 auto;",
     "background:rgba(255,255,255,.16);color:#fff;display:flex;align-items:center;justify-content:center;",
-    "transition:background .15s}",
+    "transition:background .15s;position:relative}",
+    ".aiw-nb{position:absolute;top:-4px;right:-5px;min-width:16px;height:16px;border-radius:8px;",
+    "background:#ef4444;color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;",
+    "padding:0 4px;display:none;box-shadow:0 1px 3px rgba(0,0,0,.3)}",
+    ".aiw-nb.on{display:block}",
+    ".aiw-link{color:" + ACCENT + ";cursor:pointer;text-decoration:underline}",
     ".aiw-hbtn:hover{background:rgba(255,255,255,.32)}",
     ".aiw-hbtn svg{width:16px;height:16px}",
     /* ---- 聊天 ---- */
@@ -235,6 +240,22 @@
     statusTxt.textContent = configured === true ? "在线" : "未配置";
   }
 
+  /* 笔记数量角标 */
+  function refreshBadge() {
+    if (!panel) return;
+    var nb = panel.querySelector("#aiw-nb");
+    fetch("/api/ai/notes", { credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var n = (j.notes || []).length;
+        if (nb) {
+          nb.textContent = n > 99 ? "99+" : String(n);
+          nb.classList.toggle("on", n > 0);
+        }
+      })
+      .catch(function () {});
+  }
+
   function showChat() {
     if (cfgEl) cfgEl.classList.remove("on");
     if (noteEl) noteEl.classList.remove("on");
@@ -295,6 +316,11 @@
         }
         var notes = res.j.notes || [];
         cnt.textContent = notes.length ? "共 " + notes.length + " 条" : "";
+        var nb = panel && panel.querySelector("#aiw-nb");
+        if (nb) {
+          nb.textContent = notes.length > 99 ? "99+" : String(notes.length);
+          nb.classList.toggle("on", notes.length > 0);
+        }
         if (!notes.length) {
           list.innerHTML = '<div class="aiw-ni-hint">还没有保存过 AI 问答。<br>对话里 AI 回答下方点「保存为笔记」即可收藏。</div>';
           return;
@@ -418,7 +444,8 @@
         '<div class="aiw-ava">' + ROBOT + "</div>" +
         '<div class="aiw-tt"><b>AI 助手</b><i><span class="aiw-dot" id="aiw-dot"></span><span id="aiw-dot-t">…</span></i></div>' +
         '<button class="aiw-hbtn" type="button" data-act="cfg" title="AI 设置">' + GEAR + "</button>" +
-        '<button class="aiw-hbtn" type="button" data-act="notes" title="问答笔记">' + NOTEBOOK + "</button>" +
+        '<button class="aiw-hbtn" type="button" data-act="notes" title="问答笔记">' + NOTEBOOK +
+        '<span class="aiw-nb" id="aiw-nb">0</span></button>' +
         '<button class="aiw-hbtn" type="button" data-act="clear" title="清空会话">' + ERASER + "</button>" +
         '<button class="aiw-hbtn" type="button" data-act="close" title="收起">' + MINUS + "</button>" +
       "</div>" +
@@ -452,7 +479,10 @@
         (document.body.dataset.lesson
           ? "我会结合<b>本页课程内容</b>回答你的问题。"
           : "有任何 IC 后端的问题都可以问我。") +
-        '<br>右上角 ⚙ 可随时配置你的大模型。</div>';
+        '<br>右上角 ⚙ 可随时配置你的大模型。</div>' +
+        '<div class="aiw-hint"><span class="aiw-link" id="aiw-open-notes">📖 查看我的问答笔记</span></div>';
+      bodyEl.querySelector("#aiw-open-notes").addEventListener("click", openNotes);
+      refreshBadge();
     } else {
       var lastQ = "";
       HISTORY.forEach(function (m) {
@@ -510,6 +540,13 @@
         .then(function (res) {
           if (res.ok) {
             saveBtn.innerHTML = BOOKMARK + " 已保存";
+            var hint = document.createElement("div");
+            hint.className = "aiw-hint";
+            hint.innerHTML = "✅ 已存入问答笔记（点顶部 📖 图标或 <span class=\"aiw-link\" data-open-notes>这里</span> 查看）";
+            bodyEl.appendChild(hint);
+            bodyEl.scrollTop = bodyEl.scrollHeight;
+            hint.querySelector("[data-open-notes]").addEventListener("click", openNotes);
+            refreshBadge();
           } else {
             failSave();
           }
