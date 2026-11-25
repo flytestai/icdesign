@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Setup 与 Hold：两条红线与四种 Corner · 28 | IC 后端学院</title>
 <meta name="description" content="时序检查只有两件事：数据不能太晚（setup），也不能太早（hold）。这一课把这两条红线的判据写清楚，然后讲清它们各自该在什么条件下检查——corner 为什么分 FF/SS/TT、RC corner 的 Cmax/Cmin/RCmax/RCmin 由线宽 W、厚度 T、介质厚 H、间距 S 怎么决定、为什么 setup 看 SS+RCmax 而 hold 看 FF+RCmin，最后讲 OCV 与 POCV 这两种片上偏差建模。">
-<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795587182">
+<link rel="icon" href="/assets/logo.svg?v=1795587520" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587520">
 </head>
 <body data-page="lesson" data-lesson="02-06a-setup-hold">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587520" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清空本机进度">重置</button>
 <div id="userchip" class="userchip" hidden>
@@ -246,9 +246,9 @@ puts &quot;逻辑慢 300ps 后 setup slack=[expr {$required - $arrival2}] ps&quo
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795587182"></script>
-<script src="/assets/tcl.js?v=1795587182"></script>
-<script src="/assets/app.js?v=1795587182"></script>
-<script src="/assets/aiwidget.js?v=1795587182" defer></script>
+<script src="/assets/shell.js?v=1795587520"></script>
+<script src="/assets/tcl.js?v=1795587520"></script>
+<script src="/assets/app.js?v=1795587520"></script>
+<script src="/assets/aiwidget.js?v=1795587520" defer></script>
 </body>
 </html>

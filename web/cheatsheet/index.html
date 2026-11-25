@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>命令速查 | IC 后端学院</title>
 <meta name="description" content="Tcl 常用命令一页查：变量、运算、数组、列表、流程控制、函数、输入输出。">
-<link rel="icon" href="/assets/logo.svg?v=1795587182" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795587182">
+<link rel="icon" href="/assets/logo.svg?v=1795587520" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795587520">
 </head>
 <body data-page="cheatsheet" data-lesson="cheatsheet">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587182" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795587520" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a class="on" href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><a class="ghost" href="/">← 课程</a>
 <div id="userchip" class="userchip" hidden>
@@ -58,10 +58,10 @@
 <h2 id="errors">常见报错速查</h2>
 <div class="tbl"><table><thead><tr><th>报错信息</th><th>原因</th><th>解决办法</th></tr></thead><tbody><tr><td><code>can't read &quot;a&quot;: no such variable</code></td><td>用 <code>$a.1</code> 调用含 <code>.</code> 的变量名，被解析成变量 a</td><td>用 <code>${a.1}</code> 包裹调用</td></tr><tr><td><code>can't read &quot;student(002)&quot;: no such element in array</code></td><td>数组元素已被 unset 删除</td><td>重新 <code>set</code> 赋值后再用</td></tr><tr><td><code>can't read &quot;student(001)&quot;: no such array</code></td><td>整个数组已被 unset 删除</td><td>重新定义数组</td></tr><tr><td>死循环（程序卡住不动）</td><td>while 缺了&quot;更新&quot;要素</td><td>检查循环体内有没有 <code>incr i</code> 等更新语句</td></tr><tr><td>if 语法错误 / 命令提前结束</td><td><code>}</code> 和 elseif 不同行、条件没用 {}、用了中文符号</td><td>检查四大铁律（第 7 讲）</td></tr><tr><td><code>array set</code> 报参数错误</td><td>第一个参数带了括号（如 <code>person(001)</code>）</td><td>只写数组名，键放 <code>{}</code> 里</td></tr></tbody></table></div></article>
 </main>
-<script src="/assets/shell.js?v=1795587182"></script>
-<script src="/assets/tcl.js?v=1795587182"></script>
-<script src="/assets/page.js?v=1795587182"></script>
-<script src="/assets/playground.js?v=1795587182"></script>
-<script src="/assets/aiwidget.js?v=1795587182" defer></script>
+<script src="/assets/shell.js?v=1795587520"></script>
+<script src="/assets/tcl.js?v=1795587520"></script>
+<script src="/assets/page.js?v=1795587520"></script>
+<script src="/assets/playground.js?v=1795587520"></script>
+<script src="/assets/aiwidget.js?v=1795587520" defer></script>
 </body>
 </html>

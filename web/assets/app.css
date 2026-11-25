@@ -140,6 +140,12 @@ td code{font-size:12.5px}
 /* ---------- 章节完成：滚动自动记录，顶部阅读进度条 ---------- */
 .readbar{position:fixed;top:0;left:0;right:0;height:3px;z-index:9999;pointer-events:none}
 .readbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2f7fd0,#18a07a)}
+/* 恢复学习位置提示 */
+.aiw-toast{position:fixed;top:16px;left:50%;transform:translate(-50%,-12px);z-index:9998;
+  background:#243044;color:#fff;font-size:12.5px;padding:8px 18px;border-radius:99px;
+  opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;max-width:80vw;
+  box-shadow:0 6px 20px rgba(20,30,60,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aiw-toast.show{opacity:1;transform:translate(-50%,0)}
 
 /* ---------- 课尾 ---------- */
 .lesson-end{margin-top:50px}

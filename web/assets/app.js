@@ -95,7 +95,7 @@
     });
   })();
 
-  /* ---------------- 阅读进度条 + 滚动自动记录 ---------------- */
+  /* ---------------- 阅读进度条 + 滚动自动记录 + 位置记忆 ---------------- */
   if (isLesson && sections.length) {
     var readbar = document.createElement('div');
     readbar.className = 'readbar';
@@ -103,11 +103,60 @@
     document.body.appendChild(readbar);
     var rbi = readbar.querySelector('i');
     var lastMark = 0;
+    var LS_POS = 'icl.pos.' + lessonId;
+    var lastPosSave = 0;
+
+    function curSection() {
+      var y = window.scrollY + 140, cur = sections[0];
+      sections.forEach(function (s) { if (s.offsetTop <= y) cur = s; });
+      return cur;
+    }
+    function savePos() {
+      var now = Date.now();
+      if (now - lastPosSave < 800) return;
+      lastPosSave = now;
+      var s = curSection();
+      if (s) { try { localStorage.setItem(LS_POS, s.getAttribute('data-ch')); } catch (e) { } }
+    }
+    function showToast(msg) {
+      var t = document.createElement('div');
+      t.className = 'aiw-toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(function () { t.classList.add('show'); }, 10);
+      setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 400); }, 2800);
+    }
+    function restorePos() {
+      var ch = null;
+      try { ch = localStorage.getItem(LS_POS); } catch (e) { }
+      if (!ch) return;
+      var idx = -1;
+      sections.forEach(function (s, i) { if (s.getAttribute('data-ch') === ch) idx = i; });
+      if (idx <= 0) return;                       // 上次停在第一章：无需跳转
+      var s = sections[idx];
+      if (!s) return;
+      window.scrollTo(0, Math.max(0, s.offsetTop - 80));
+      var no = (idx + 1 < 10 ? '0' : '') + (idx + 1);
+      var title = s.querySelector('h2') ? s.querySelector('h2').textContent : '';
+      showToast('↩ 已回到上次学习位置：' + no + ' · ' + title);
+    }
+    /* 图片加载后布局会变化，load 后再校准一次 */
+    window.addEventListener('load', function () {
+      var ch = null;
+      try { ch = localStorage.getItem(LS_POS); } catch (e) { }
+      if (!ch) return;
+      sections.forEach(function (s) {
+        if (s.getAttribute('data-ch') === ch && sections.indexOf(s) > 0) {
+          window.scrollTo(0, Math.max(0, s.offsetTop - 80));
+        }
+      });
+    });
 
     function autoTrack() {
       /* 顶部阅读进度条 */
       var h = document.documentElement.scrollHeight - window.innerHeight;
       rbi.style.width = (h > 0 ? Math.min(100, Math.round(window.scrollY / h * 100)) : 0) + '%';
+      savePos();
       /* 滚过视口 65% 线的章自动记录为已学 */
       var now = Date.now();
       if (now - lastMark < 400) return;
@@ -130,6 +179,7 @@
     window.addEventListener('scroll', autoTrack, { passive: true });
     window.addEventListener('resize', autoTrack, { passive: true });
     autoTrack();
+    restorePos();
   }
 
   /* ---------------- 目录 + 滚动高亮 ---------------- */
