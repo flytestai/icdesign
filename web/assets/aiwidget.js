@@ -95,6 +95,22 @@
     ".aiw-acts button:disabled{color:#22c55e;cursor:default}",
     ".aiw-acts button.fail{color:#c2453e}",
     ".aiw-acts svg{width:12px;height:12px}",
+    /* ---- Markdown 渲染样式 ---- */
+    ".aiw-msg .aiw-p{margin:0 0 6px;line-height:1.65}",
+    ".aiw-msg .aiw-p:last-child{margin-bottom:0}",
+    ".aiw-msg .aiw-h{font-weight:700;font-size:13.5px;margin:8px 0 4px;line-height:1.5}",
+    ".aiw-msg ul,.aiw-msg ol{margin:4px 0 8px;padding-left:20px}",
+    ".aiw-msg ul:last-child,.aiw-msg ol:last-child{margin-bottom:0}",
+    ".aiw-msg li{margin:2px 0;line-height:1.6}",
+    ".aiw-msg code{background:#eef1fa;border-radius:4px;padding:1px 5px;font-size:12px;",
+    "font-family:Consolas,Menlo,monospace}",
+    ".aiw-msg pre{background:#eef1fa;border:1px solid #e0e5f4;border-radius:8px;padding:8px 11px;",
+    "overflow-x:auto;margin:6px 0}",
+    ".aiw-msg pre:last-child{margin-bottom:0}",
+    ".aiw-msg pre code{background:none;border:none;padding:0;font-size:12px;line-height:1.55}",
+    ".aiw-msg a{color:inherit;text-decoration:underline}",
+    ".aiw-math{white-space:nowrap}",
+    ".aiw-msg sub,.aiw-msg sup{font-size:.72em}",
     ".aiw-hint{color:#8a94ad;font-size:12.5px;text-align:center;line-height:1.7;padding:10px 8px}",
     ".aiw-hint b{color:" + ACCENT + "}",
     ".aiw-typing{display:inline-flex;gap:4px;align-items:center;padding:10px 14px;background:#fff;",
@@ -291,7 +307,7 @@
             '<div class="aiw-ni-meta"><span>' + src + "</span><span>" + fmtTs(n.ts) + '</span><span class="sp"></span>' +
             '<button type="button" data-del="' + n.id + '" title="删除">' + TRASH + "</button></div>" +
             '<div class="aiw-ni-q">Q：' + esc(n.question) + "</div>" +
-            '<div class="aiw-ni-a">A：' + esc(n.answer) + "</div></div>";
+            '<div class="aiw-ni-a">A：' + mdToHtml(n.answer) + "</div></div>";
         }).join("");
         list.querySelectorAll(".aiw-ni-a").forEach(function (el) {
           el.addEventListener("click", function () { el.classList.toggle("open"); });
@@ -511,13 +527,119 @@
     });
   }
 
+  /* ---------------- 轻量 Markdown 渲染（安全：先转义再生成标签） ---------------- */
+  /* 符号与文本类 LaTeX 命令（可用于全局兜底） */
+  function mdSym(t) {
+    var rep = [
+      [/\\,|\\;|\\!|\\ /g, " "],
+      [/\\mu\b/g, "μ"], [/\\times/g, "×"], [/\\cdot/g, "·"],
+      [/\\leq\b/g, "≤"], [/\\geq\b/g, "≥"], [/\\approx/g, "≈"], [/\\pm/g, "±"],
+      [/\\rightarrow/g, "→"], [/\\sim/g, "~"], [/\\%/g, "%"],
+      [/\\text\{([^{}]*)\}/g, "$1"],
+      [/\\mathrm\{([^{}]*)\}/g, "$1"],
+      [/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "$1/$2"]
+    ];
+    rep.forEach(function (r) { t = t.replace(r[0], r[1]); });
+    return t;
+  }
+
+  /* 数学片段：符号 + 上下标 */
+  function mdTex(t) {
+    /* 先把 _\text{xx} / ^\text{xx} 合并成 _{xx} / ^{xx}，避免括号丢失 */
+    t = t.replace(/(_|\^)\s*(?:\\text|\\mathrm)\{([^{}]+)\}/g, "$1{$2}");
+    t = mdSym(t);
+    var rep = [
+      [/_\{([^{}]+)\}/g, "<sub>$1</sub>"],
+      [/_([A-Za-z0-9])\b/g, "<sub>$1</sub>"],
+      [/\^\{([^{}]+)\}/g, "<sup>$1</sup>"],
+      [/\^(-?[A-Za-z0-9]+)\b/g, "<sup>$1</sup>"]
+    ];
+    rep.forEach(function (r) { t = t.replace(r[0], r[1]); });
+    return t;
+  }
+
+  function mdInline(s) {
+    return s
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>")
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  }
+
+  function mdToHtml(src) {
+    var s = String(src).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    var codes = [], inls = [];
+    s = s.replace(/```[a-zA-Z0-9_+-]*\r?\n?([\s\S]*?)```/g, function (m, c) {
+      codes.push(c.replace(/\n$/, ""));
+      return "\u0000C" + (codes.length - 1) + "\u0000";
+    });
+    s = s.replace(/`([^`\n]+)`/g, function (m, c) {
+      inls.push(c);
+      return "\u0000I" + (inls.length - 1) + "\u0000";
+    });
+    /* 数学：$...$ 与 \( ... \) 先按行内公式转换 */
+    s = s.replace(/\$\$([^$]+)\$\$/g, "\u0000M$1\u0000M");   // 块级公式先按行内处理
+    s = s.replace(/\u0000M([^M]+)\u0000M/g, function (m, t) { return mdTex(t); });
+    s = s.replace(/\$([^$\n]+)\$/g, function (m, t) { return mdTex(t); });
+    s = s.replace(/\\\((.+?)\\\)/g, function (m, t) { return mdTex(t); });
+    /* 兜底：未包 $ 的裸 LaTeX 命令也转换（不含上下标，避免误伤正文下划线） */
+    s = mdSym(s);
+    /* 行内语法 */
+    s = mdInline(s);
+    /* 块级结构 */
+    var out = [], list = null, buf = [];
+    function closeList() { if (list) { out.push("</" + list + ">"); list = null; } }
+    function flushBuf() {
+      if (buf.length) { out.push('<div class="aiw-p">' + buf.join("<br>") + "</div>"); buf = []; }
+    }
+    s.split(/\r?\n/).forEach(function (line) {
+      var m;
+      if (/^\s*$/.test(line)) { flushBuf(); closeList(); return; }
+      if ((m = line.match(/^\u0000C(\d+)\u0000\s*$/))) {
+        flushBuf(); closeList();
+        out.push("<pre><code>" + codes[+m[1]] + "</code></pre>");
+        return;
+      }
+      if ((m = line.match(/^\s{0,3}#{1,4}\s+(.+?)\s*#*\s*$/))) {
+        flushBuf(); closeList();
+        out.push('<div class="aiw-h">' + m[1] + "</div>");
+        return;
+      }
+      if ((m = line.match(/^\s*[-*•]\s+(.+)$/))) {
+        flushBuf();
+        if (list !== "ul") { closeList(); out.push("<ul>"); list = "ul"; }
+        out.push("<li>" + m[1] + "</li>");
+        return;
+      }
+      if ((m = line.match(/^\s*\d+[.)]\s+(.+)$/))) {
+        flushBuf();
+        if (list !== "ol") { closeList(); out.push("<ol>"); list = "ol"; }
+        out.push("<li>" + m[1] + "</li>");
+        return;
+      }
+      closeList();
+      buf.push(line);
+    });
+    flushBuf(); closeList();
+    var html = out.join("");
+    /* 恢复代码占位 */
+    html = html.replace(/\u0000I(\d+)\u0000/g, function (m, i) {
+      return "<code>" + inls[+i] + "</code>";
+    });
+    html = html.replace(/\u0000C(\d+)\u0000/g, function (m, i) {
+      return "<pre><code>" + codes[+i] + "</code></pre>";
+    });
+    return html;
+  }
+
   function bubble(kind, text, isErr, q) {
     var row = document.createElement("div");
     row.className = "aiw-row " + kind;
     if (kind === "b") row.innerHTML = '<div class="aiw-mava">' + ROBOT + "</div>";
     var d = document.createElement("div");
     d.className = "aiw-msg" + (isErr ? " err" : "");
-    d.textContent = text;
+    if (kind === "b" && !isErr) d.innerHTML = mdToHtml(text);   // AI 回答渲染 Markdown
+    else d.textContent = text;
     row.appendChild(d);
     bodyEl.appendChild(row);
     if (kind === "b" && !isErr && q) addActs(row, q, text);
