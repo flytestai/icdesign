@@ -176,6 +176,16 @@
     "overflow:hidden;cursor:pointer}",
     ".aiw-ni-a.open{-webkit-line-clamp:unset;display:block}",
     ".aiw-ni-hint{color:#98a1b8;font-size:12px;text-align:center;padding:16px 10px;line-height:1.8}",
+    /* ---- 拖拽调尺寸把手 ---- */
+    ".aiw-rz{position:absolute;z-index:30}",
+    ".aiw-rz-c{left:0;top:0;width:20px;height:20px;cursor:nwse-resize}",
+    ".aiw-rz-c::after{content:\"\";position:absolute;left:5px;top:5px;width:9px;height:9px;",
+    "border-left:3px solid #c9d0e6;border-top:3px solid #c9d0e6;border-top-left-radius:4px;",
+    "transition:border-color .15s}",
+    ".aiw-rz-c:hover::after{border-color:" + ACCENT + "}",
+    ".aiw-rz-l{left:-2px;top:10px;bottom:10px;width:7px;cursor:ew-resize}",
+    ".aiw-rz-t{top:-2px;left:24px;right:10px;height:7px;cursor:ns-resize}",
+    "@media(max-width:520px){.aiw-rz{display:none}}",
     "@media (max-width:520px){.aiw-panel{right:10px;left:10px;width:auto;bottom:86px}}",
     "@media (prefers-reduced-motion:reduce){.aiw-panel{animation:none}.aiw-ball::before{animation:none}}"
   ].join("");
@@ -306,6 +316,83 @@
   }
 
   /* ---------------- 面板骨架 ---------------- */
+  var SIZE_KEY = "aiw.size";           // 记住用户拖出来的窗口尺寸
+
+  function clampW(w) { return Math.min(Math.max(320, w), window.innerWidth - 24); }
+  function clampH(h) { return Math.min(Math.max(380, h), window.innerHeight - 110); }
+
+  function applySize() {
+    try {
+      var s = JSON.parse(localStorage.getItem(SIZE_KEY) || "null");
+      if (s && s.w && s.h) {
+        panel.style.width = clampW(s.w) + "px";
+        panel.style.height = clampH(s.h) + "px";
+      }
+    } catch (e) {}
+  }
+
+  function saveSize() {
+    try {
+      localStorage.setItem(SIZE_KEY, JSON.stringify({ w: panel.offsetWidth, h: panel.offsetHeight }));
+    } catch (e) {}
+  }
+
+  /* 左边缘 / 上边缘 / 左上角把手：向左上拖 = 放大（面板锚定右下角） */
+  function addResize(p) {
+    ["c", "l", "t"].forEach(function (k) {
+      var h = document.createElement("div");
+      h.className = "aiw-rz aiw-rz-" + k;
+      if (k === "c") h.title = "拖拽调整窗口大小，双击恢复默认";
+      p.appendChild(h);
+      var startDrag = function (sx, sy) {
+        var sw = p.offsetWidth, sh = p.offsetHeight, mode = k;
+        document.body.style.userSelect = "none";
+        p.style.transition = "none";
+        function move(dx, dy) {
+          if (mode !== "t") p.style.width = clampW(sw - dx) + "px";
+          if (mode !== "l") p.style.height = clampH(sh - dy) + "px";
+        }
+        function end() {
+          document.removeEventListener("mousemove", mm);
+          document.removeEventListener("mouseup", me);
+          document.removeEventListener("touchmove", tm);
+          document.removeEventListener("touchend", te);
+          document.body.style.userSelect = "";
+          p.style.transition = "";
+          saveSize();
+        }
+        function mm(e) { move(e.clientX - sx, e.clientY - sy); }
+        function me() { end(); }
+        function tm(e) {
+          var t = e.touches[0];
+          move(t.clientX - sx, t.clientY - sy);
+          e.preventDefault();
+        }
+        function te() { end(); }
+        document.addEventListener("mousemove", mm);
+        document.addEventListener("mouseup", me);
+        document.addEventListener("touchmove", tm, { passive: false });
+        document.addEventListener("touchend", te);
+      };
+      h.addEventListener("mousedown", function (e) {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        startDrag(e.clientX, e.clientY);
+      });
+      h.addEventListener("touchstart", function (e) {
+        var t = e.touches[0];
+        startDrag(t.clientX, t.clientY);
+      });
+      if (k === "c") {
+        h.addEventListener("dblclick", function () {
+          p.style.width = "";
+          p.style.height = "";
+          try { localStorage.removeItem(SIZE_KEY); } catch (e) {}
+        });
+      }
+    });
+  }
+
   function openPanel() {
     if (panel) return;
     panel = document.createElement("div");
@@ -325,6 +412,8 @@
         '<button class="aiw-send" id="aiw-send" type="button" title="发送">' + SEND + "</button></div>" +
       "</div>";
     document.body.appendChild(panel);
+    applySize();
+    addResize(panel);
     bodyEl = panel.querySelector("#aiw-body");
     inputEl = panel.querySelector("#aiw-input");
     sendEl = panel.querySelector("#aiw-send");
