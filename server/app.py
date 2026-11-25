@@ -116,6 +116,13 @@ def init_db():
             question TEXT NOT NULL,
             answer TEXT NOT NULL,
             ts INTEGER NOT NULL)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS ai_chats(
+            user_id INTEGER NOT NULL,
+            lesson TEXT NOT NULL,
+            messages TEXT NOT NULL,
+            digest TEXT NOT NULL DEFAULT '',
+            updated_at INTEGER NOT NULL,
+            PRIMARY KEY(user_id, lesson))""")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_uid ON progress(uid)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_lesson ON progress(lesson)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
@@ -570,6 +577,18 @@ class AIModelsIn(BaseModel):
 class AIChatIn(BaseModel):
     messages: List[dict] = Field(..., max_length=40)
     lesson: Optional[str] = None
+    digest: Optional[str] = Field(None, max_length=2000)   # 早期对话压缩摘要
+
+
+class AIChatSaveIn(BaseModel):
+    """保存某节课的对话（按用户 + 课程隔离持久化）。"""
+    lesson: str = Field("", max_length=64)
+    messages: List[dict] = Field(default_factory=list, max_length=200)
+
+
+# 上下文压缩阈值：超过就保留摘要 + 最近若干轮
+CHAT_KEEP_TURNS = 12          # 压缩后保留的最近消息条数（约 6 轮）
+CHAT_MSG_MAX = 200            # 单课最多存多少条消息
 
 
 def _ai_settings_of(user_id: int) -> Optional[sqlite3.Row]:
@@ -772,7 +791,95 @@ def _lesson_context(lesson_id: str, limit: int = 6000) -> str:
         return ""
 
 
-@app.post("/api/ai/chat")
+def _chat_key(lesson: str) -> str:
+    """课程页用 lesson id；非课程页统一存在空 lesson（全局会话）。"""
+    lesson = (lesson or "").strip()
+    return lesson if lesson and KEY_RE.match(lesson) else ""
+
+
+def _clean_msgs(raw) -> List[dict]:
+    out = []
+    for m in raw or []:
+        if not isinstance(m, dict):
+            continue
+        role = m.get("role")
+        content = str(m.get("content", "")).strip()
+        if role in ("user", "assistant") and content:
+            out.append({"role": role, "content": content[:8000]})
+    return out
+
+
+def _compress(msgs: List[dict], digest: str) -> tuple:
+    """上下文超长时压缩：保留最近 N 条，更早的折成一句摘要（不调用大模型，纯文本提炼）。"""
+    if len(msgs) <= CHAT_KEEP_TURNS:
+        return msgs, digest
+    cut = len(msgs) - CHAT_KEEP_TURNS
+    old, keep = msgs[:cut], msgs[cut:]
+    # 提炼被丢弃部分的问题要点，接到 digest 末尾
+    qs = [m["content"].replace("\n", " ")[:60] for m in old if m["role"] == "user"]
+    if qs:
+        add = "；".join(qs[-12:])
+        digest = (digest + "；" + add) if digest else add
+        digest = digest[-1200:]
+    return keep, digest
+
+
+@app.get("/api/ai/chat/history")
+def ai_chat_get(lesson: str = "", request: Request = None):
+    """读取该用户在这节课的历史对话（刷新后可恢复）。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    key = _chat_key(lesson)
+    with closing(db()) as c:
+        row = c.execute("SELECT messages, digest, updated_at FROM ai_chats WHERE user_id=? AND lesson=?",
+                        (u["id"], key)).fetchone()
+    if not row:
+        return {"messages": [], "digest": "", "updated_at": 0, "compressed": False}
+    try:
+        msgs = json.loads(row["messages"])
+    except Exception:
+        msgs = []
+    return {"messages": msgs, "digest": row["digest"], "updated_at": row["updated_at"],
+            "compressed": bool(row["digest"])}
+
+
+@app.post("/api/ai/chat/history")
+def ai_chat_save(r: AIChatSaveIn, request: Request):
+    """保存对话（按用户 + 课程隔离）。超长自动压缩：保留最近若干轮 + 早期要点摘要。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    key = _chat_key(r.lesson)
+    msgs = _clean_msgs(r.messages)[-CHAT_MSG_MAX:]
+    with closing(db()) as c:
+        old = c.execute("SELECT digest FROM ai_chats WHERE user_id=? AND lesson=?",
+                        (u["id"], key)).fetchone()
+        digest = old["digest"] if old else ""
+        msgs, digest = _compress(msgs, digest)
+        c.execute(
+            "INSERT INTO ai_chats(user_id,lesson,messages,digest,updated_at) VALUES(?,?,?,?,?) "
+            "ON CONFLICT(user_id,lesson) DO UPDATE SET messages=excluded.messages, "
+            "digest=excluded.digest, updated_at=excluded.updated_at",
+            (u["id"], key, json.dumps(msgs, ensure_ascii=False), digest, int(time.time())))
+        c.commit()
+    return {"ok": True, "count": len(msgs), "compressed": bool(digest)}
+
+
+@app.delete("/api/ai/chat/history")
+def ai_chat_clear(lesson: str = "", request: Request = None):
+    """清空该课的对话（用户主动清空）。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    key = _chat_key(lesson)
+    with closing(db()) as c:
+        cur = c.execute("DELETE FROM ai_chats WHERE user_id=? AND lesson=?", (u["id"], key))
+        c.commit()
+    return {"ok": True, "cleared": cur.rowcount}
+
+
+@app.post("/api/ai/chat/reply")
 def ai_chat(r: AIChatIn, request: Request):
     u = current_user(request)
     if not u:
@@ -782,16 +889,21 @@ def ai_chat(r: AIChatIn, request: Request):
     row = _ai_settings_of(u["id"])
     if not row:
         raise HTTPException(400, "NO_AI_CONFIG")
-    # 组装消息：课程上下文（system）+ 最近若干轮对话
+    # 组装消息：课程上下文（system）+ 早期摘要（system）+ 最近若干轮对话
     msgs = [m for m in r.messages if m.get("role") in ("user", "assistant") and str(m.get("content", "")).strip()]
     msgs = msgs[-10:]
+    sys_parts = []
     if r.lesson:
         ctx = _lesson_context(r.lesson)
         if ctx:
-            msgs = [{"role": "system",
-                     "content": "你是「IC 后端学院」的课程助教。下面是用户正在学习的课程《%s》的页面内容，"
-                                "回答时优先依据这份内容，用中文、面向初学者讲清楚；课程里没讲到的可以补充通识。\n\n"
-                                "---- 课程内容开始 ----\n%s\n---- 课程内容结束 ----" % (r.lesson, ctx)}] + msgs
+            sys_parts.append(
+                "你是「IC 后端学院」的课程助教。下面是用户正在学习的课程《%s》的页面内容，"
+                "回答时优先依据这份内容，用中文、面向初学者讲清楚；课程里没讲到的可以补充通识。\n\n"
+                "---- 课程内容开始 ----\n%s\n---- 课程内容结束 ----" % (r.lesson, ctx))
+    if r.digest:
+        sys_parts.append("用户在这节课早前问过（供你保持上下文连贯，不必复述）：" + r.digest)
+    if sys_parts:
+        msgs = [{"role": "system", "content": "\n\n".join(sys_parts)}] + msgs
     if not msgs:
         raise HTTPException(400, "消息为空")
     try:

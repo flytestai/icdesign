@@ -244,6 +244,11 @@
   document.head.appendChild(st);
 
   var HISTORY = [];                      // [{role, content}]
+  var DIGEST = "";                       // 早期对话压缩摘要（上下文超长后由服务端生成）
+  var HISTORY_LOADED = false;            // 是否已尝试从服务端加载本课历史
+  /* 对话按「用户 + 每节课」隔离：课程页用 lesson id，其它页面用空串（全局会话） */
+  var LESSON = (document.body.dataset && document.body.dataset.lesson &&
+    document.body.dataset.lesson !== "home") ? document.body.dataset.lesson : "";
   var configured = null;                 // null=未知 true/false
   var cfgCache = null;
 
@@ -614,31 +619,86 @@
       });
     });
     panel.querySelector('[data-act="clear"]').addEventListener("click", function () {
+      if (!window.confirm(LESSON ? "清空本节课的对话记录？\n（问答笔记里已保存的内容不受影响）" : "清空当前对话？")) return;
       HISTORY = [];
+      DIGEST = "";
       bodyEl.innerHTML = '<div class="aiw-hint">会话已清空。</div>';
+      fetch("/api/ai/chat/history?lesson=" + encodeURIComponent(LESSON), {
+        method: "DELETE", credentials: "same-origin",
+      }).catch(function () {});
     });
     sendEl.addEventListener("click", send);
     inputEl.addEventListener("keydown", function (e) {
       if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
     });
-    if (!HISTORY.length) {
-      bodyEl.innerHTML = '<div class="aiw-hint">你好，我是 <b>AI 助手</b> 🤖<br>' +
-        (document.body.dataset.lesson
-          ? "我会结合<b>本页课程内容</b>回答你的问题。"
-          : "有任何 IC 后端的问题都可以问我。") +
-        '<br>右上角 ⚙ 可随时配置你的大模型。</div>' +
-        '<div class="aiw-hint"><span class="aiw-link" id="aiw-open-notes">📖 查看我的问答笔记</span></div>';
-      bodyEl.querySelector("#aiw-open-notes").addEventListener("click", openNotes);
-      refreshBadge();
+    if (!HISTORY.length && !HISTORY_LOADED) {
+      bodyEl.innerHTML = '<div class="aiw-hint">正在加载本课对话记录…</div>';
+      loadHistory();
+    } else if (!HISTORY.length) {
+      showWelcome();
     } else {
-      var lastQ = "";
-      HISTORY.forEach(function (m) {
-        if (m.role === "user") { lastQ = m.content; bubble("u", m.content); }
-        else bubble("b", m.content, false, lastQ);
-      });
-      bodyEl.scrollTop = bodyEl.scrollHeight;
+      renderHistory();
     }
     inputEl.focus();
+  }
+
+  function showWelcome() {
+    bodyEl.innerHTML = '<div class="aiw-hint">你好，我是 <b>AI 助手</b> 🤖<br>' +
+      (LESSON
+        ? "我会结合<b>本页课程内容</b>回答你的问题，对话会自动记住（下次进来还能接着聊）。"
+        : "有任何 IC 后端的问题都可以问我。") +
+      '<br>右上角 ⚙ 可随时配置你的大模型。</div>' +
+      '<div class="aiw-hint"><span class="aiw-link" id="aiw-open-notes">📖 查看我的问答笔记</span></div>';
+    var n = bodyEl.querySelector("#aiw-open-notes");
+    if (n) n.addEventListener("click", openNotes);
+    refreshBadge();
+  }
+
+  function renderHistory() {
+    bodyEl.innerHTML = "";
+    if (DIGEST) {
+      var d = document.createElement("div");
+      d.className = "aiw-hint";
+      d.textContent = "（更早的对话已自动压缩为摘要，上下文仍然保留）";
+      bodyEl.appendChild(d);
+    }
+    var lastQ = "";
+    HISTORY.forEach(function (m) {
+      if (m.role === "user") { lastQ = m.content; bubble("u", m.content); }
+      else bubble("b", m.content, false, lastQ);
+    });
+    bodyEl.scrollTop = bodyEl.scrollHeight;
+  }
+
+  /* 读取该用户在本课的对话历史 */
+  function loadHistory() {
+    HISTORY_LOADED = true;
+    fetch("/api/ai/chat/history?lesson=" + encodeURIComponent(LESSON), { credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        HISTORY = (j && j.messages) || [];
+        DIGEST = (j && j.digest) || "";
+        if (!HISTORY.length) showWelcome(); else renderHistory();
+      })
+      .catch(function () {
+        showWelcome();
+      });
+  }
+
+  /* 保存对话到服务端（按用户 + 课程隔离；超长由服务端自动压缩） */
+  function saveHistory() {
+    if (!HISTORY.length) return;
+    fetch("/api/ai/chat/history", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lesson: LESSON, messages: HISTORY }),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.digest) DIGEST = j.digest;
+      })
+      .catch(function () {});
   }
 
   function closePanel() {
@@ -970,6 +1030,7 @@
     inputEl.value = "";
     bubble("u", q);
     HISTORY.push({ role: "user", content: q });
+    saveHistory();                     // 先落盘，刷新也不丢这次提问
     var tip = document.createElement("div");
     tip.className = "aiw-row b";
     tip.innerHTML = '<div class="aiw-mava">' + ROBOT + "</div>" +
@@ -977,13 +1038,14 @@
     bodyEl.appendChild(tip);
     bodyEl.scrollTop = bodyEl.scrollHeight;
     sendEl.disabled = true;
-    fetch("/api/ai/chat", {
+    fetch("/api/ai/chat/reply", {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         messages: HISTORY,
-        lesson: (document.body.dataset && document.body.dataset.lesson) || null,
+        lesson: LESSON || null,
+        digest: DIGEST || null,
       }),
     })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
@@ -1000,6 +1062,7 @@
         configured = true; refreshStatus();
         HISTORY.push({ role: "assistant", content: res.j.reply });
         bubble("b", res.j.reply, false, q);
+        saveHistory();                 // 持久化（按用户 + 课程隔离，超长自动压缩）
       })
       .catch(function (ex) {
         tip.remove();

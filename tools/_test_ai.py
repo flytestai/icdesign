@@ -69,7 +69,7 @@ print("登录 OK")
 
 print("1) 未配置时 settings:", api("/api/ai/settings")[1]["configured"] == False)
 try:
-    api("/api/ai/chat", {"messages": [{"role": "user", "content": "hi"}]})
+    api("/api/ai/chat/reply", {"messages": [{"role": "user", "content": "hi"}]})
     print("2) 未配置聊天应报错: FAIL")
 except urllib.error.HTTPError as e:
     print("2) 未配置聊天报错:", e.code, json.loads(e.read())["detail"] == "NO_AI_CONFIG")
@@ -77,10 +77,10 @@ except urllib.error.HTTPError as e:
 print("3) 保存配置:", api("/api/ai/settings", {"provider": "openai", "base_url": "http://127.0.0.1:8999/v1", "api_key": "sk-test-123456", "model": "mock-model"})[1])
 print("4) 配置后 settings:", api("/api/ai/settings")[1]["configured"] == True)
 
-st, res = api("/api/ai/chat", {"messages": [{"role": "user", "content": "什么是DRC"}], "lesson": "01-01-linux-01-intro"})
+st, res = api("/api/ai/chat/reply", {"messages": [{"role": "user", "content": "什么是DRC"}], "lesson": "01-01-linux-01-intro"})
 print("5) 课程页聊天:", st == 200, "|", res["reply"][:50])
 
-st, res = api("/api/ai/chat", {"messages": [{"role": "user", "content": "你好"}]})
+st, res = api("/api/ai/chat/reply", {"messages": [{"role": "user", "content": "你好"}]})
 print("6) 非课程页聊天:", st == 200, "|", res["reply"][:40])
 
 try:
@@ -90,7 +90,7 @@ except urllib.error.HTTPError as e:
     print("7) 内网拦截:", e.code, json.loads(e.read())["detail"] == "接口地址不允许指向内网/本机")
 
 print("8) 修改配置不传 key（沿用旧 key）:", api("/api/ai/settings", {"provider": "openai", "base_url": "http://127.0.0.1:8999/v1", "api_key": "", "model": "mock-model2"})[1])
-st, res = api("/api/ai/chat", {"messages": [{"role": "user", "content": "再问一次"}]})
+st, res = api("/api/ai/chat/reply", {"messages": [{"role": "user", "content": "再问一次"}]})
 print("9) 旧 key 生效:", st == 200, "|", res["reply"][:40])
 
 # 新端点：拉取模型列表 / 删除配置
