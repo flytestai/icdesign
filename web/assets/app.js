@@ -84,6 +84,11 @@
 
   /* 与服务端合并（换浏览器 / 清缓存后可恢复） */
   if (isLesson) {
+    /* 把当前设备 uid 登记到账号名下（排行榜按账号汇总进度） */
+    fetch(API + '/auth/link-uid', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: uid() })
+    }).catch(function () { });
     fetch(API + '/progress/' + uid()).then(function (r) { return r.json(); }).then(function (d) {
       (d.items || []).forEach(function (it) {
         if (it.lesson === lessonId && it.done) done[key(it.chapter)] = 1;
@@ -106,6 +111,34 @@
       }).catch(function () { queue(b); });
     });
   })();
+
+  /* ---------------- 学习时长统计（排行榜用） ---------------- */
+  if (isLesson && sections.length) {
+    (function studyTimer() {
+      var acc = 0;                      // 未上报的秒数
+      var last = Date.now();
+      function idle() { return Date.now() - last > 120000; }   // 2 分钟无操作视为挂机
+      ['scroll', 'keydown', 'mousemove', 'touchstart', 'click'].forEach(function (ev) {
+        window.addEventListener(ev, function () { last = Date.now(); }, { passive: true });
+      });
+      function flush() {
+        var s = Math.floor(acc);
+        if (s <= 0) return;
+        acc -= s;
+        fetch(API + '/study-time', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lesson: lessonId, seconds: s })
+        }).catch(function () { acc += s; });     // 失败下次补报
+      }
+      setInterval(function () {
+        if (document.visibilityState === 'visible' && !idle()) acc += 1;
+        if (acc >= 30) flush();
+      }, 1000);
+      setInterval(flush, 60000);
+      window.addEventListener('pagehide', flush);
+      document.addEventListener('visibilitychange', function () { if (document.hidden) flush(); });
+    })();
+  }
 
   /* ---------------- 阅读进度条 + 滚动自动记录 + 位置记忆 ---------------- */
   if (isLesson && sections.length) {

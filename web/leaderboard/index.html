@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>排行榜 | IC 后端学院</title>
+<meta name="description" content="看所有同学的学习进度与时长综合排名，知道自己排在哪。">
+<link rel="icon" href="/assets/logo.svg?v=1795603181" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795603181">
+</head>
+<body data-page="leaderboard" data-lesson="leaderboard">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795603181" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a class="on" href="/leaderboard/">排行</a></nav>
+  <div class="top-right"><a class="ghost" href="/">← 课程</a>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<main class="sub">
+<div class="sub-h"><h1>排行榜</h1><p>看所有同学的学习进度与时长综合排名，知道自己排在哪。</p></div>
+<div class="lb-wrap">
+  <div class="lb-hero">
+    <div class="lb-h-l"><h2>学习排行榜</h2><p>综合分 = 学习进度 70% + 学习时长 30%。进度按已完成章节数，时长按课程页实际停留时间（挂机不计）。</p></div>
+    <div class="lb-h-r"><div class="lb-legend"><span class="lg-p">■ 进度 70%</span><span class="lg-t">■ 时长 30%</span></div></div>
+  </div>
+  <div class="lb-me" id="lb-me" hidden></div>
+  <div class="lb-card">
+    <div class="lb-thead"><span class="c-rk">排名</span><span class="c-nm">学习者</span><span class="c-pg">完成章节</span><span class="c-tm">学习时长</span><span class="c-sc">综合分</span></div>
+    <div id="lb-rows" class="lb-rows"><div class="lb-loading">加载中…</div></div>
+  </div>
+  <div class="lb-note">只显示已审核通过的同学；进度与时长按账号统计，换设备登录后仍会累计到你的名下。数据每打开一次页面刷新一次。</div>
+</div>
+
+</main>
+<script src="/assets/shell.js?v=1795603181"></script>
+<script src="/assets/tcl.js?v=1795603181"></script>
+<script src="/assets/page.js?v=1795603181"></script>
+<script src="/assets/playground.js?v=1795603181"></script>
+<script src="/assets/aiwidget.js?v=1795603181" defer></script>
+</body>
+</html>

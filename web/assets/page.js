@@ -486,9 +486,56 @@
     });
   }
 
+  /* ---------------- 排行榜 ---------------- */
+  function initLeaderboard() {
+    var box = q('#lb-rows');
+    if (!box) return;
+    function fmtTime(sec) {
+      if (!sec || sec < 60) return (sec || 0) + ' 秒';
+      var m = Math.round(sec / 60);
+      if (m < 60) return m + ' 分钟';
+      return Math.floor(m / 60) + ' 小时 ' + (m % 60) + ' 分';
+    }
+    fetch('/api/leaderboard', { credentials: 'same-origin' })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok) {
+          box.innerHTML = '<p class="qempty">' + (res.j.detail === 'not logged in'
+            ? '登录后查看排行榜' : '数据加载失败') + '</p>';
+          return;
+        }
+        var rows = res.j.rows || [];
+        if (!rows.length) { box.innerHTML = '<p class="qempty">还没有数据</p>'; return; }
+        var medal = ['🥇', '🥈', '🥉'];
+        box.innerHTML = rows.map(function (r) {
+          var rk = r.rank <= 3 ? medal[r.rank - 1] : r.rank;
+          var pct = Math.min(100, r.progress_pct || 0);
+          return '<div class="lb-row' + (r.is_me ? ' me' : '') + '">' +
+            '<span class="c-rk">' + rk + '</span>' +
+            '<span class="c-nm">' + esc(r.name) + (r.is_me ? '<b class="lb-you">我</b>' : '') +
+            (r.role === 'admin' ? '<i class="lb-adm">管理员</i>' : '') + '</span>' +
+            '<span class="c-pg"><b>' + r.done + '</b>/' + r.total +
+            '<i class="lb-mini"><s style="width:' + pct + '%"></s></i></span>' +
+            '<span class="c-tm">' + fmtTime(r.seconds) + '</span>' +
+            '<span class="c-sc">' + r.score + '</span>' +
+            '</div>';
+        }).join('');
+        var mine = rows.filter(function (r) { return r.is_me; })[0];
+        var me = q('#lb-me');
+        if (mine && me) {
+          me.hidden = false;
+          me.innerHTML = '我的排名：第 <b>' + mine.rank + '</b> / ' + rows.length +
+            ' 名 · 综合分 <b>' + mine.score + '</b> · 已完成 ' + mine.done + ' 章 · 学习 ' +
+            fmtTime(mine.seconds);
+        }
+      })
+      .catch(function () { box.innerHTML = '<p class="qempty">数据没加载出来，刷新试试。</p>'; });
+  }
+
   if (page === 'quiz') initQuiz();
   if (page === 'exam') initExam();
   if (page === 'glossary') initGloss();
   if (page === 'search') initSearch();
   if (page === 'progress') initProgress();
+  if (page === 'leaderboard') initLeaderboard();
 })();

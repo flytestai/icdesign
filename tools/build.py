@@ -75,7 +75,8 @@ def bust(html):
 
 
 NAV = [("/", "课程"), ("/playground/", "练习场"), ("/quiz/", "题库"), ("/exam/", "验收"), ("/glossary/", "术语"),
-       ("/abbr/", "缩写"), ("/cheatsheet/", "速查"), ("/search/", "搜索"), ("/progress/", "进度")]
+       ("/abbr/", "缩写"), ("/cheatsheet/", "速查"), ("/search/", "搜索"), ("/progress/", "进度"),
+       ("/leaderboard/", "排行")]
 
 BLOCK_RE = re.compile(r"^:::([a-z]+)(?:[ \t]+(.*?))?[ \t]*\n(.*?)^:::[ \t]*$", re.S | re.M)
 
@@ -784,6 +785,22 @@ EXAM_BODY = """
 <div id="x-panel" class="xpanel" hidden></div>
 """
 
+LEADERBOARD_BODY = """
+<div class="lb-wrap">
+  <div class="lb-hero">
+    <div class="lb-h-l"><h2>学习排行榜</h2><p>综合分 = 学习进度 70% + 学习时长 30%。进度按已完成章节数，时长按课程页实际停留时间（挂机不计）。</p></div>
+    <div class="lb-h-r"><div class="lb-legend"><span class="lg-p">■ 进度 70%</span><span class="lg-t">■ 时长 30%</span></div></div>
+  </div>
+  <div class="lb-me" id="lb-me" hidden></div>
+  <div class="lb-card">
+    <div class="lb-thead"><span class="c-rk">排名</span><span class="c-nm">学习者</span><span class="c-pg">完成章节</span><span class="c-tm">学习时长</span><span class="c-sc">综合分</span></div>
+    <div id="lb-rows" class="lb-rows"><div class="lb-loading">加载中…</div></div>
+  </div>
+  <div class="lb-note">只显示已审核通过的同学；进度与时长按账号统计，换设备登录后仍会累计到你的名下。数据每打开一次页面刷新一次。</div>
+</div>
+"""
+
+
 PROGRESS_BODY = """
 <div class="pwrap">
   <div class="pstats">
@@ -857,6 +874,7 @@ def build_subpages(lessons, nquiz, nterm):
     subpage("glossary", "术语表", f"全站 {nterm} 条术语，英文原名 + 中文 + 白话解释 + 出处。", GLOSS_BODY)
     subpage("search", "搜索", "全站章节级搜索，命中后直接跳到对应小节。", SEARCH_BODY)
     subpage("progress", "学习进度", "按阶段看完成度，知道下一步该学哪一章。", PROGRESS_BODY)
+    subpage("leaderboard", "排行榜", "看所有同学的学习进度与时长综合排名，知道自己排在哪。", LEADERBOARD_BODY)
     build_playground()
     build_cheatsheet()
     build_abbr()

@@ -123,6 +123,17 @@ def init_db():
             digest TEXT NOT NULL DEFAULT '',
             updated_at INTEGER NOT NULL,
             PRIMARY KEY(user_id, lesson))""")
+        c.execute("""CREATE TABLE IF NOT EXISTS study_time(
+            user_id INTEGER NOT NULL,
+            lesson TEXT NOT NULL DEFAULT '',
+            seconds INTEGER NOT NULL DEFAULT 0,
+            updated_at INTEGER NOT NULL,
+            PRIMARY KEY(user_id, lesson))""")
+        c.execute("""CREATE TABLE IF NOT EXISTS user_uids(
+            user_id INTEGER NOT NULL,
+            uid TEXT NOT NULL,
+            ts INTEGER NOT NULL,
+            PRIMARY KEY(user_id, uid))""")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_uid ON progress(uid)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_lesson ON progress(lesson)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
@@ -261,6 +272,25 @@ def auth_me(request: Request):
     if not u:
         raise HTTPException(401, "not logged in")
     return user_public(u)
+
+
+class LinkUidIn(BaseModel):
+    uid: str = Field(..., max_length=64)
+
+
+@app.post("/api/auth/link-uid")
+def auth_link_uid(r: LinkUidIn, request: Request):
+    """把当前浏览器的设备 uid 登记到登录账号名下（排行榜按账号汇总进度用）。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    if not UID_RE.match(r.uid):
+        raise HTTPException(400, "bad uid")
+    with closing(db()) as c:
+        c.execute("INSERT OR IGNORE INTO user_uids(user_id,uid,ts) VALUES(?,?,?)",
+                  (u["id"], r.uid, int(time.time())))
+        c.commit()
+    return {"ok": True}
 
 
 # ================================================================ 管理员
@@ -770,6 +800,102 @@ def ai_note_del(note_id: int, request: Request):
     if cur.rowcount == 0:
         raise HTTPException(404, "笔记不存在")
     return {"ok": True}
+
+
+class StudyTimeIn(BaseModel):
+    lesson: str = Field("", max_length=64)
+    seconds: int = Field(..., ge=0, le=7200)      # 单次上报：最多 2 小时
+
+
+@app.post("/api/study-time")
+def study_time_add(r: StudyTimeIn, request: Request):
+    """课程页停留时间上报（按用户 + 课程累计），用于排行榜的“学习时长”项。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    if not r.seconds:
+        return {"ok": True, "added": 0}
+    lesson = (r.lesson or "").strip()
+    if lesson and not KEY_RE.match(lesson):
+        raise HTTPException(400, "bad lesson")
+    now = int(time.time())
+    with closing(db()) as c:
+        c.execute(
+            "INSERT INTO study_time(user_id,lesson,seconds,updated_at) VALUES(?,?,?,?) "
+            "ON CONFLICT(user_id,lesson) DO UPDATE SET seconds=seconds+excluded.seconds, "
+            "updated_at=excluded.updated_at",
+            (u["id"], lesson, int(r.seconds), now))
+        c.commit()
+    return {"ok": True, "added": int(r.seconds)}
+
+
+@app.get("/api/study-time")
+def study_time_mine(request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    with closing(db()) as c:
+        rows = c.execute("SELECT lesson,seconds FROM study_time WHERE user_id=?", (u["id"],)).fetchall()
+    total = sum(r["seconds"] for r in rows)
+    return {"total": total, "by_lesson": {r["lesson"]: r["seconds"] for r in rows}}
+
+
+@app.get("/api/leaderboard")
+def leaderboard(request: Request):
+    """排行榜：综合分 = 进度分 70% + 时长分 30%。
+
+    进度分：已完成章节数 / 全站章节总数
+    时长分：学习秒数 / 全站最长学习秒数（无记录则为 0）
+    只统计 approved / admin 用户，不暴露账号与手机号。
+    """
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    total_chapters = _total_chapters()
+    with closing(db()) as c:
+        users = c.execute(
+            "SELECT id,name,role FROM users WHERE status='approved' OR role='admin'").fetchall()
+        prog = c.execute("SELECT uid, COUNT(*) n FROM progress WHERE done=1 GROUP BY uid").fetchall()
+        times = c.execute("SELECT user_id, SUM(seconds) s FROM study_time GROUP BY user_id").fetchall()
+        links = c.execute("SELECT user_id,uid FROM user_uids").fetchall()
+    uid_map = {}
+    for l in links:
+        uid_map.setdefault(l["user_id"], set()).add(l["uid"])
+    prog_by_user = {p["uid"]: p["n"] for p in prog}
+    time_by_user = {t["user_id"]: t["s"] for t in times}
+
+    rows = []
+    for us in users:
+        uids = uid_map.get(us["id"], set())
+        done = sum(prog_by_user.get(x, 0) for x in uids)
+        secs = time_by_user.get(us["id"], 0)
+        rows.append({
+            "name": us["name"], "role": us["role"],
+            "done": done, "total": total_chapters, "seconds": secs,
+        })
+    max_secs = max([r["seconds"] for r in rows] or [0]) or 1
+    for r in rows:
+        p_score = (r["done"] / r["total"] * 100) if r["total"] else 0
+        t_score = (r["seconds"] / max_secs * 100) if max_secs else 0
+        r["progress_pct"] = round(p_score, 1)
+        r["score"] = round(p_score * 0.7 + t_score * 0.3, 1)
+    rows.sort(key=lambda x: (-x["score"], -x["done"], -x["seconds"], x["name"]))
+    me = u["name"]
+    for i, r in enumerate(rows):
+        r["rank"] = i + 1
+        r["is_me"] = (r["name"] == me)
+    return {"rows": rows, "me": me, "total_chapters": total_chapters,
+            "weights": {"progress": 0.7, "time": 0.3}}
+
+
+def _total_chapters() -> int:
+    """全站章节总数（读 web/data/catalog.json）。读不到则回退 0。"""
+    p = WEB / "data" / "catalog.json"
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        return sum(len(L.get("chapters") or []) for L in (data.get("lessons") or []))
+    except Exception:
+        return 0
 
 
 def _strip_html(html: str) -> str:
