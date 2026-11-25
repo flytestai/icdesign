@@ -199,6 +199,25 @@
     "overflow:hidden;cursor:pointer}",
     ".aiw-ni-a.open{-webkit-line-clamp:unset;display:block}",
     ".aiw-ni-hint{color:#98a1b8;font-size:12px;text-align:center;padding:16px 10px;line-height:1.8}",
+    /* ---- 课程页内嵌「本课 AI 问答」展开块 ---- */
+    ".aiw-lsec{margin:20px 0 0;border:1px solid #dfe4ff;border-radius:14px;background:#fff;overflow:hidden}",
+    ".aiw-ln-h{display:flex;align-items:center;gap:10px;padding:13px 18px;cursor:pointer;user-select:none;",
+    "background:linear-gradient(135deg,#eef1ff,#f6efff);font-size:14px;font-weight:600;color:#3a4668}",
+    ".aiw-ln-h:hover{background:linear-gradient(135deg,#e6eaff,#f0e6ff)}",
+    ".aiw-ln-h .cnt{font-size:11.5px;font-weight:600;color:" + ACCENT + ";background:#e4e7ff;",
+    "border-radius:10px;padding:2px 9px}",
+    ".aiw-ln-h .sub{font-size:11px;font-weight:400;color:#98a1b8}",
+    ".aiw-ln-h .arr{margin-left:auto;color:#8a94ad;transition:transform .2s;font-size:12px}",
+    ".aiw-ln-h.open .arr{transform:rotate(180deg)}",
+    ".aiw-ln-b{border-top:1px solid #e6eaf5;background:#fbfcff;padding:6px 18px;display:none}",
+    ".aiw-ln-b.open{display:block}",
+    ".aiw-lni{padding:12px 0;border-bottom:1px dashed #e3e8f5}",
+    ".aiw-lni:last-child{border-bottom:none}",
+    ".aiw-lni .m{font-size:11px;color:#98a1b8;margin-bottom:5px}",
+    ".aiw-lni .q{font-size:13.5px;font-weight:600;color:#2a3650;line-height:1.6;word-break:break-word}",
+    ".aiw-lni .a{font-size:13px;color:#4a5470;line-height:1.7;margin-top:6px;word-break:break-word}",
+    ".aiw-lni .a p{margin:0 0 6px}",
+    ".aiw-ln-empty{color:#98a1b8;font-size:12.5px;text-align:center;padding:16px 0}",
     /* ---- 常驻快捷入口栏（对话视图底部） ---- */
     ".aiw-quickbar{flex:0 0 auto;display:flex;gap:18px;padding:8px 14px;background:#f2f4fb;",
     "border-top:1px solid #e8ebf5;font-size:12px}",
@@ -278,6 +297,98 @@
     setTimeout(function () { box.classList.remove("aiw-flash"); }, 2500);
   }
 
+  /* ---------------- 课程页内嵌「本课 AI 问答」展开块 ---------------- */
+  function initLessonQa() {
+    var lesson = (document.body && document.body.dataset && document.body.dataset.lesson) || "";
+    if (!lesson) return;
+    var notes = document.getElementById("notes");
+    if (!notes || document.getElementById("aiw-lsec")) return;
+    var sec = document.createElement("section");
+    sec.className = "aiw-lsec";
+    sec.id = "aiw-lsec";
+    sec.innerHTML =
+      '<div class="aiw-ln-h" id="aiw-ln-h">' +
+        '<span>🤖 本课 AI 问答</span>' +
+        '<span class="cnt" id="aiw-ln-cnt">…</span>' +
+        '<span class="sub">自动保存 · 点击展开查看</span>' +
+        '<span class="arr" id="aiw-ln-arr">▾</span>' +
+      "</div>" +
+      '<div class="aiw-ln-b" id="aiw-ln-b"></div>';
+    notes.parentNode.insertBefore(sec, notes);
+    sec.querySelector("#aiw-ln-h").addEventListener("click", function () {
+      var b = sec.querySelector("#aiw-ln-b");
+      var h = sec.querySelector("#aiw-ln-h");
+      var open = b.classList.toggle("open");
+      h.classList.toggle("open", open);
+      if (open) loadLessonQa();
+    });
+    refreshLessonQa();
+  }
+
+  function refreshLessonQa() {
+    var cnt = document.getElementById("aiw-ln-cnt");
+    if (!cnt) return;
+    var lesson = document.body.dataset.lesson || "";
+    fetch("/api/ai/notes", { credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var items = (j.notes || []).filter(function (n) { return n.lesson === lesson; });
+        cnt.textContent = items.length + " 条";
+        var qb = panel && panel.querySelector("#aiw-qb-n");
+        if (qb) qb.textContent = String((j.notes || []).length);
+        var b = document.getElementById("aiw-ln-b");
+        if (b && b.classList.contains("open")) renderLessonQa(items, b);
+      })
+      .catch(function () {
+        cnt.textContent = "";
+      });
+  }
+
+  function loadLessonQa() {
+    var b = document.getElementById("aiw-ln-b");
+    if (!b) return;
+    b.innerHTML = '<div class="aiw-ln-empty">加载中…</div>';
+    var lesson = document.body.dataset.lesson || "";
+    fetch("/api/ai/notes", { credentials: "same-origin" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        var items = (j.notes || []).filter(function (n) { return n.lesson === lesson; });
+        renderLessonQa(items, b);
+      })
+      .catch(function () {
+        b.innerHTML = '<div class="aiw-ln-empty">加载失败，请稍后重试。</div>';
+      });
+  }
+
+  function renderLessonQa(items, b) {
+    if (!items.length) {
+      b.innerHTML = '<div class="aiw-ln-empty">本课还没有 AI 问答记录。<br>在对话里提问后，问答会自动保存在这里。</div>';
+      return;
+    }
+    b.innerHTML = items.map(function (n) {
+      return '<div class="aiw-lni">' +
+        '<div class="m">' + fmtTs(n.ts) + "</div>" +
+        '<div class="q">Q：' + esc(n.question) + "</div>" +
+        '<div class="a">A：' + mdToHtml(n.answer) + "</div></div>";
+    }).join("");
+  }
+
+  function scrollToQa() {
+    var sec = document.getElementById("aiw-lsec");
+    if (!sec) { openNotes(); return; }
+    if (panel) closePanel();
+    var b = sec.querySelector("#aiw-ln-b");
+    var h = sec.querySelector("#aiw-ln-h");
+    if (b && !b.classList.contains("open")) {
+      b.classList.add("open");
+      h.classList.add("open");
+      loadLessonQa();
+    }
+    sec.scrollIntoView({ behavior: "smooth", block: "start" });
+    h.classList.add("aiw-flash");
+    setTimeout(function () { h.classList.remove("aiw-flash"); }, 2500);
+  }
+
   function showChat() {
     if (cfgEl) cfgEl.classList.remove("on");
     if (noteEl) noteEl.classList.remove("on");
@@ -344,7 +455,7 @@
           nb.classList.toggle("on", notes.length > 0);
         }
         if (!notes.length) {
-          list.innerHTML = '<div class="aiw-ni-hint">还没有保存过 AI 问答。<br>对话里 AI 回答下方点「保存为笔记」：<br>课程页会写入<b>该课的课程笔记</b>，这里保留全部归档。</div>';
+          list.innerHTML = '<div class="aiw-ni-hint">还没有 AI 问答记录。<br>课程页提问后自动保存，<br>也可在各课底部的「🤖 本课 AI 问答」展开查看。</div>';
           return;
         }
         list.innerHTML = notes.map(function (n) {
@@ -476,7 +587,8 @@
         '<div class="aiw-quickbar">' +
           '<button class="aiw-qb" type="button" data-qb="notes">📒 问答笔记 <b id="aiw-qb-n">0</b> 条</button>' +
           (document.body.dataset && document.body.dataset.lesson
-            ? '<button class="aiw-qb" type="button" data-qb="note">📝 本课笔记</button>' : "") +
+            ? '<button class="aiw-qb" type="button" data-qb="qa">🤖 本课 AI 问答</button>' +
+              '<button class="aiw-qb" type="button" data-qb="note">📝 课程笔记</button>' : "") +
         "</div>" +
         '<div class="aiw-foot"><textarea id="aiw-input" placeholder="输入问题，Enter 发送 · Shift+Enter 换行"></textarea>' +
         '<button class="aiw-send" id="aiw-send" type="button" title="发送">' + SEND + "</button></div>" +
@@ -495,7 +607,9 @@
     panel.querySelector('[data-act="notes"]').addEventListener("click", function () { openNotes(); });
     panel.querySelectorAll("[data-qb]").forEach(function (el) {
       el.addEventListener("click", function () {
-        if (el.getAttribute("data-qb") === "notes") openNotes();
+        var k = el.getAttribute("data-qb");
+        if (k === "notes") openNotes();
+        else if (k === "qa") scrollToQa();
         else scrollToNote();
       });
     });
@@ -578,13 +692,45 @@
       });
   }
 
-  /* AI 回答下方的小操作条：复制 / 保存为笔记 */
+  /* 课程页：问答自动存档 + 写入课程笔记 */
+  function autoSaveQA(q, a) {
+    var lesson = document.body.dataset.lesson || "";
+    var archP = fetch("/api/ai/notes", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: q, answer: a, lesson: lesson }),
+    }).then(function (r) { return r.ok; }).catch(function () { return false; });
+    Promise.all([archP, appendLessonNote(lesson, q, a)])
+      .then(function (rs) {
+        if (rs[0] === true && rs[1] === true) {
+          var hint = document.createElement("div");
+          hint.className = "aiw-hint";
+          hint.innerHTML = '✅ 已自动存入本课 · <span class="aiw-link" data-goto-qa>🤖 本课 AI 问答</span>（页面底部，点击展开）';
+          bodyEl.appendChild(hint);
+          bodyEl.scrollTop = bodyEl.scrollHeight;
+          hint.querySelector("[data-goto-qa]").addEventListener("click", scrollToQa);
+          refreshBadge();
+          refreshLessonQa();
+        } else {
+          var warn = document.createElement("div");
+          warn.className = "aiw-hint";
+          warn.textContent = "⚠️ 自动保存课程笔记失败（笔记内容仍在会话中，可手动复制）";
+          bodyEl.appendChild(warn);
+          bodyEl.scrollTop = bodyEl.scrollHeight;
+        }
+      })
+      .catch(function () {});
+  }
+
+  /* AI 回答下方的小操作条：复制 /（非课程页）保存为笔记 */
   function addActs(row, q, a) {
+    var lesson = (document.body.dataset && document.body.dataset.lesson) || "";
     var acts = document.createElement("div");
     acts.className = "aiw-acts";
     acts.innerHTML =
       '<button type="button" data-act="copy">' + COPY + " 复制</button>" +
-      '<button type="button" data-act="save">' + BOOKMARK + " 保存为笔记</button>";
+      (lesson ? "" : '<button type="button" data-act="save">' + BOOKMARK + " 保存为笔记</button>");
     row.parentNode.insertBefore(acts, row.nextSibling);
     var copyBtn = acts.querySelector('[data-act="copy"]');
     var saveBtn = acts.querySelector('[data-act="save"]');
@@ -597,34 +743,25 @@
         }).catch(function () {});
       }
     });
+    if (!saveBtn) return;
     saveBtn.addEventListener("click", function () {
-      var lesson = (document.body.dataset && document.body.dataset.lesson) || "";
       saveBtn.disabled = true;
       saveBtn.innerHTML = BOOKMARK + " 保存中…";
-      /* 1) 问答归档（跨课程可查） 2) 课程页同时写入该课的课程笔记 */
-      var archP = fetch("/api/ai/notes", {
+      fetch("/api/ai/notes", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: q, answer: a, lesson: lesson }),
       })
-        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); });
-      var noteP = lesson ? appendLessonNote(lesson, q, a) : Promise.resolve(null);
-      Promise.all([archP, noteP])
-        .then(function (rs) {
-          var archOk = rs[0] && rs[0].ok;
-          var noteOk = rs[1] === null || rs[1] === true;
-          if (archOk && noteOk) {
-            saveBtn.innerHTML = BOOKMARK + (lesson ? " 已存入课程笔记" : " 已保存");
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          if (res.ok) {
+            saveBtn.innerHTML = BOOKMARK + " 已保存";
             var hint = document.createElement("div");
             hint.className = "aiw-hint";
-            hint.innerHTML = lesson
-              ? '✅ 已写入本节课的「课程笔记」——<span class="aiw-link" data-goto-note>点这里查看</span>（在页面底部）'
-              : '✅ 已存入问答笔记；在课程页提问保存会同时写入该课的「课程笔记」';
+            hint.innerHTML = "✅ 已存入问答归档；打开对应课程页提问，问答会自动写入该课的「课程笔记」";
             bodyEl.appendChild(hint);
             bodyEl.scrollTop = bodyEl.scrollHeight;
-            var gotoEl = hint.querySelector("[data-goto-note]");
-            if (gotoEl) gotoEl.addEventListener("click", scrollToNote);
             refreshBadge();
           } else {
             failSave();
@@ -885,6 +1022,9 @@
         configured = true; refreshStatus();
         HISTORY.push({ role: "assistant", content: res.j.reply });
         bubble("b", res.j.reply, false, q);
+        if (document.body.dataset && document.body.dataset.lesson) {
+          autoSaveQA(q, res.j.reply);   // 课程页：自动存入本课 AI 问答 + 课程笔记
+        }
       })
       .catch(function (ex) {
         tip.remove();
@@ -1102,7 +1242,9 @@
       .catch(function (ex) { errEl.textContent = "删除失败：" + String(ex.message || ex).slice(0, 60); });
   }
 
-  /* ---------------- 初始化：探测是否已配置 ---------------- */
+  /* ---------------- 初始化：课程页注入问答块 + 探测是否已配置 ---------------- */
+  initLessonQa();
+
   fetch("/api/ai/settings", { credentials: "same-origin" })
     .then(function (r) { return r.json(); })
     .then(function (s) { configured = !!s.configured; refreshStatus(); })
