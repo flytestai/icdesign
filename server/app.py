@@ -9,6 +9,7 @@ IC 后端学院 · 后端服务
 """
 import base64
 import hashlib
+import hmac
 import io
 import json
 import os
@@ -53,6 +54,24 @@ KEY_RE = re.compile(r"^[A-Za-z0-9_\-]{1,48}$")
 PHONE_RE = re.compile(r"^1[3-9]\d{9}$")
 
 SESSION_COOKIE = "ic_session"
+# 设备认领令牌的派生密钥（首次启动随机生成并落盘，重启后保持稳定）
+def _load_claim_key() -> bytes:
+    p = DB.parent / ".claim_key"
+    try:
+        if p.exists():
+            return p.read_bytes()
+        k = secrets.token_bytes(32)
+        p.write_bytes(k)
+        try:
+            os.chmod(p, 0o600)
+        except Exception:
+            pass
+        return k
+    except Exception:
+        return b"ic-academy-claim-fallback-key"
+
+
+CLAIM_KEY = _load_claim_key()
 SESSION_TTL = 7 * 24 * 3600  # 7 天
 
 # 管理员内置账号
@@ -896,11 +915,99 @@ def study_time_mine(request: Request):
     return {"total": total, "by_lesson": {r["lesson"]: r["seconds"] for r in rows}}
 
 
+@app.get("/api/my-devices")
+def my_devices(request: Request):
+    """列出「当前账号认领/关联的设备」+「尚未被任何账号关联的设备」。
+
+    安全约束：
+    - 已关联到别的账号的设备一律不返回（防止看到他人进度）
+    - 未关联设备只返回脱敏后的 uid 尾部，避免暴露可冒领的完整标识
+    """
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    with closing(db()) as c:
+        mine = c.execute("SELECT uid FROM user_uids WHERE user_id=?", (u["id"],)).fetchall()
+        mine_set = {r["uid"] for r in mine}
+        taken = c.execute("SELECT uid FROM user_uids WHERE user_id<>?", (u["id"],)).fetchall()
+        taken_set = {r["uid"] for r in taken}
+        rows = c.execute(
+            "SELECT uid, COUNT(DISTINCT lesson || '|' || chapter) n, "
+            "MIN(ts) first, MAX(ts) last FROM progress WHERE done=1 GROUP BY uid").fetchall()
+    out = []
+    for r in rows:
+        uid = r["uid"]
+        if uid in mine_set:
+            out.append({"uid": uid, "chapters": r["n"], "first": r["first"],
+                        "last": r["last"], "linked": True})
+        elif uid not in taken_set:
+            # 未关联：只给脱敏标识（前 4 + 后 4），认领时用 claim_token 校验
+            out.append({"uid": uid[:4] + "…" + uid[-4:], "chapters": r["n"],
+                        "first": r["first"], "last": r["last"], "linked": False,
+                        "claim_token": _claim_token(uid)})
+    out.sort(key=lambda x: (-x["chapters"], -x["last"]))
+    return {"devices": out, "linked_count": len(mine_set)}
+
+
+def _claim_token(uid: str) -> str:
+    """未关联设备的认领令牌：由 uid 与服务端密钥派生，前端只拿到令牌。"""
+    return hmac.new(CLAIM_KEY, uid.encode(), hashlib.sha256).hexdigest()[:24]
+
+
+def _uid_from_token(token: str, candidates) -> Optional[str]:
+    for uid in candidates:
+        if hmac.compare_digest(_claim_token(uid), token):
+            return uid
+    return None
+
+
+class ClaimUidIn(BaseModel):
+    token: str = Field("", max_length=64)
+    uid: str = Field("", max_length=64)
+
+
+@app.post("/api/claim-device")
+def claim_device(r: ClaimUidIn, request: Request):
+    """认领一个历史设备的学习记录。
+
+    优先用 claim_token 校验（防止冒领他人进度）；同时兼容旧版直接传 uid 的调用。
+    """
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    with closing(db()) as c:
+        rows = c.execute(
+            "SELECT uid FROM progress WHERE done=1 GROUP BY uid").fetchall()
+        cand = [x["uid"] for x in rows]
+        uid = None
+        if r.token:
+            uid = _uid_from_token(r.token, cand)
+            if not uid:
+                raise HTTPException(404, "认领失败：该记录不存在")
+        elif r.uid and UID_RE.match(r.uid):
+            uid = r.uid
+        else:
+            raise HTTPException(400, "参数缺失")
+
+        other = c.execute("SELECT user_id FROM user_uids WHERE uid=? AND user_id<>?",
+                          (uid, u["id"])).fetchone()
+        if other:
+            raise HTTPException(409, "该设备记录已关联到其他账号")
+        n = c.execute("SELECT COUNT(*) FROM progress WHERE uid=? AND done=1", (uid,)).fetchone()[0]
+        if not n:
+            raise HTTPException(404, "该设备没有学习记录")
+        c.execute("INSERT OR IGNORE INTO user_uids(user_id,uid,ts) VALUES(?,?,?)",
+                  (u["id"], uid, int(time.time())))
+        c.commit()
+    return {"ok": True, "uid": uid, "chapters": n}
+
+
 @app.get("/api/leaderboard")
 def leaderboard(request: Request):
-    """排行榜：综合分 = 进度分 70% + 时长分 30%。
+    """排行榜：综合分 = 学习进度 50% + 刷题进度 30% + 学习时长 20%。
 
     进度分：已完成章节数 / 全站章节总数
+    刷题分：已作答题目数 / 题库总题数
     时长分：学习秒数 / 全站最长学习秒数（无记录则为 0）
     只统计 approved / admin 用户，不暴露账号与手机号。
     """

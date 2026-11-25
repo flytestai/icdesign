@@ -82,13 +82,16 @@
     fetch(API + '/progress/' + uid() + '/' + lessonId, { method: 'DELETE' }).catch(function () { });
   });
 
+  /* 全站：登录后立刻把当前设备 uid 登记到账号名下（排行榜按账号汇总进度）。
+     这一步必须放在所有页面，否则用户只浏览首页/题库时不建立关联，
+     排行榜里就看不到他的进度。 */
+  fetch(API + '/auth/link-uid', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uid: uid() })
+  }).catch(function () { });
+
   /* 与服务端合并（换浏览器 / 清缓存后可恢复） */
   if (isLesson) {
-    /* 把当前设备 uid 登记到账号名下（排行榜按账号汇总进度） */
-    fetch(API + '/auth/link-uid', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid: uid() })
-    }).catch(function () { });
     fetch(API + '/progress/' + uid()).then(function (r) { return r.json(); }).then(function (d) {
       (d.items || []).forEach(function (it) {
         if (it.lesson === lessonId && it.done) done[key(it.chapter)] = 1;

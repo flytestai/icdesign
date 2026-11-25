@@ -548,7 +548,46 @@
         }
         var rows = res.j.rows || [];
         if (!rows.length) { box.innerHTML = '<p class="qempty">还没有数据</p>'; return; }
-        var medal = ['🥇', '🥈', '🥉'];
+        /* 认领历史设备的学习记录 */
+    function loadDevices() {
+      var wrap = q('#lb-claim'), list = q('#lc-list'), nEl = q('#lc-n');
+      if (!wrap || !list) return;
+      fetch('/api/my-devices', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var devs = (j.devices || []).filter(function (d) { return !d.linked; });
+          if (!devs.length) { wrap.hidden = true; return; }
+          wrap.hidden = false;
+          if (nEl) nEl.textContent = '（' + devs.length + ' 个）';
+          list.innerHTML = devs.map(function (d) {
+            var dt = new Date(d.last * 1000);
+            var p = function (n) { return (n < 10 ? '0' : '') + n; };
+            return '<div class="lc-item"><span class="lc-n2"><b>' + d.chapters +
+              '</b> 章已完成</span><span class="lc-d">最近 ' + (dt.getMonth() + 1) + '-' +
+              p(dt.getDate()) + ' ' + p(dt.getHours()) + ':' + p(dt.getMinutes()) + '</span>' +
+              '<button class="lc-btn" type="button" data-token="' + esc(d.claim_token || '') + '">认领到我的账号</button></div>';
+          }).join('');
+          list.querySelectorAll('.lc-btn').forEach(function (b) {
+            b.addEventListener('click', function () {
+              var token = b.getAttribute('data-token');
+              b.disabled = true; b.textContent = '认领中…';
+              fetch('/api/claim-device', {
+                method: 'POST', credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: token }),
+              }).then(function (r) { return r.json().then(function (j2) { return { ok: r.ok, j: j2 }; }); })
+                .then(function (res) {
+                  if (res.ok) { b.textContent = '✓ 已认领 ' + res.j.chapters + ' 章'; setTimeout(loadDevices, 900); }
+                  else { b.disabled = false; b.textContent = res.j.detail || '认领失败'; }
+                })
+                .catch(function () { b.disabled = false; b.textContent = '认领失败，重试'; });
+            });
+          });
+        })
+        .catch(function () { if (wrap) wrap.hidden = true; });
+    }
+
+    var medal = ['🥇', '🥈', '🥉'];
         box.innerHTML = rows.map(function (r) {
           var rk = r.rank <= 3 ? medal[r.rank - 1] : r.rank;
           var pct = Math.min(100, r.progress_pct || 0);
@@ -576,6 +615,7 @@
         }
       })
       .catch(function () { box.innerHTML = '<p class="qempty">数据没加载出来，刷新试试。</p>'; });
+    loadDevices();
   }
 
   if (page === 'quiz') initQuiz();
