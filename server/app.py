@@ -101,6 +101,13 @@ def init_db():
             lesson TEXT NOT NULL, chapter TEXT NOT NULL,
             title TEXT, body TEXT, updated_at INTEGER NOT NULL,
             PRIMARY KEY(lesson, chapter))""")
+        c.execute("""CREATE TABLE IF NOT EXISTS ai_settings(
+            user_id INTEGER PRIMARY KEY,
+            provider TEXT NOT NULL DEFAULT 'openai',
+            base_url TEXT NOT NULL,
+            api_key TEXT NOT NULL,
+            model TEXT NOT NULL,
+            updated_at INTEGER NOT NULL)""")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_uid ON progress(uid)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_lesson ON progress(lesson)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
@@ -528,6 +535,167 @@ def admin_fig_fetch(r: FigFetchIn, request: Request):
         raise HTTPException(400, "下载失败：%s" % str(e)[:80])
     rel = _store_fig(data, ext, "paste")
     return {"ok": True, "path": rel}
+
+
+# ================================================================ AI 浮窗助教
+# 每个用户配置自己的 AI 接口（OpenAI 兼容或 Anthropic），聊天由服务端代理转发：
+# 浏览器不接触 API Key、也没有跨域问题；课程页自动附带课程上下文。
+AI_PROVIDERS = {
+    "openai": {"name": "OpenAI 兼容", "base": "https://api.openai.com/v1", "model": "gpt-4o-mini"},
+    "anthropic": {"name": "Anthropic Claude", "base": "https://api.anthropic.com", "model": "claude-sonnet-4-20250514"},
+}
+
+
+class AISettingsIn(BaseModel):
+    provider: str = Field("openai", max_length=24)
+    base_url: str = Field(..., max_length=300)
+    api_key: str = Field("", max_length=300)
+    model: str = Field(..., max_length=120)
+
+
+class AIChatIn(BaseModel):
+    messages: List[dict] = Field(..., max_length=40)
+    lesson: Optional[str] = None
+
+
+def _ai_settings_of(user_id: int) -> Optional[sqlite3.Row]:
+    with closing(db()) as c:
+        return c.execute("SELECT * FROM ai_settings WHERE user_id=?", (user_id,)).fetchone()
+
+
+def _safe_ai_host(base_url: str) -> str:
+    """SSRF 防护：AI 接口地址不允许指向内网。本地测试可用 ICL_ALLOW_PRIVATE_AI=1 放开。"""
+    host = urllib.parse.urlparse(base_url).hostname or ""
+    if not host:
+        raise HTTPException(400, "接口地址无效")
+    if PRIV_HOST_RE.match(host) and not os.environ.get("ICL_ALLOW_PRIVATE_AI"):
+        raise HTTPException(400, "接口地址不允许指向内网/本机")
+    return host
+
+
+@app.get("/api/ai/settings")
+def ai_get_settings(request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    row = _ai_settings_of(u["id"])
+    if not row:
+        return {"configured": False, "providers": AI_PROVIDERS}
+    key = row["api_key"]
+    return {
+        "configured": True, "provider": row["provider"], "base_url": row["base_url"],
+        "model": row["model"],
+        "api_key_masked": (key[:4] + "****" + key[-4:]) if len(key) > 8 else "****",
+        "providers": AI_PROVIDERS,
+    }
+
+
+@app.post("/api/ai/settings")
+def ai_set_settings(r: AISettingsIn, request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    if r.provider not in ("openai", "anthropic"):
+        raise HTTPException(400, "provider 仅支持 openai / anthropic")
+    base = r.base_url.strip().rstrip("/")
+    if not re.match(r"^https?://", base, re.I):
+        raise HTTPException(400, "接口地址必须以 http(s):// 开头")
+    _safe_ai_host(base)
+    model = r.model.strip()
+    if not model:
+        raise HTTPException(400, "请填写模型名称")
+    key = r.api_key.strip()
+    old = _ai_settings_of(u["id"])
+    if not key and old:                      # 不填 key 表示沿用旧 key
+        key = old["api_key"]
+    if not key:
+        raise HTTPException(400, "请填写 API Key")
+    now = int(time.time())
+    with closing(db()) as c:
+        c.execute(
+            """INSERT INTO ai_settings(user_id,provider,base_url,api_key,model,updated_at)
+               VALUES(?,?,?,?,?,?)
+               ON CONFLICT(user_id) DO UPDATE SET provider=excluded.provider,
+               base_url=excluded.base_url, api_key=excluded.api_key,
+               model=excluded.model, updated_at=excluded.updated_at""",
+            (u["id"], r.provider, base, key, model, now))
+        c.commit()
+    return {"ok": True}
+
+
+def _strip_html(html: str) -> str:
+    html = re.sub(r"<script\b.*?</script>", " ", html, flags=re.S | re.I)
+    html = re.sub(r"<style\b.*?</style>", " ", html, flags=re.S | re.I)
+    html = re.sub(r"<[^>]+>", " ", html)
+    return re.sub(r"\s{2,}", " ", html).strip()
+
+
+def _lesson_context(lesson_id: str, limit: int = 6000) -> str:
+    if not KEY_RE.match(lesson_id):
+        return ""
+    p = WEB / "lesson" / lesson_id / "index.html"
+    if not p.exists():
+        return ""
+    try:
+        return _strip_html(p.read_text(encoding="utf-8"))[:limit]
+    except Exception:
+        return ""
+
+
+@app.post("/api/ai/chat")
+def ai_chat(r: AIChatIn, request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    if u["status"] != "approved" and u["role"] != "admin":
+        raise HTTPException(403, "pending review")
+    row = _ai_settings_of(u["id"])
+    if not row:
+        raise HTTPException(400, "NO_AI_CONFIG")
+    # 组装消息：课程上下文（system）+ 最近若干轮对话
+    msgs = [m for m in r.messages if m.get("role") in ("user", "assistant") and str(m.get("content", "")).strip()]
+    msgs = msgs[-10:]
+    if r.lesson:
+        ctx = _lesson_context(r.lesson)
+        if ctx:
+            msgs = [{"role": "system",
+                     "content": "你是「IC 后端学院」的课程助教。下面是用户正在学习的课程《%s》的页面内容，"
+                                "回答时优先依据这份内容，用中文、面向初学者讲清楚；课程里没讲到的可以补充通识。\n\n"
+                                "---- 课程内容开始 ----\n%s\n---- 课程内容结束 ----" % (r.lesson, ctx)}] + msgs
+    if not msgs:
+        raise HTTPException(400, "消息为空")
+    try:
+        if row["provider"] == "anthropic":
+            sys_txt = "\n".join(m["content"] for m in msgs if m["role"] == "system")
+            chat_msgs = [{"role": m["role"], "content": m["content"]} for m in msgs if m["role"] != "system"]
+            payload = {"model": row["model"], "max_tokens": 2000, "system": sys_txt, "messages": chat_msgs}
+            url = row["base_url"] + "/v1/messages"
+            headers = {"x-api-key": row["api_key"], "anthropic-version": "2023-06-01",
+                       "Content-Type": "application/json"}
+        else:
+            payload = {"model": row["model"], "messages": msgs, "temperature": 0.5, "max_tokens": 2000}
+            url = row["base_url"] + "/chat/completions"
+            headers = {"Authorization": "Bearer " + row["api_key"], "Content-Type": "application/json"}
+        req = urllib.request.Request(url, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                                     method="POST", headers=headers)
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            data = json.loads(resp.read().decode("utf-8", "replace"))
+        if row["provider"] == "anthropic":
+            reply = "".join(b.get("text", "") for b in (data.get("content") or []) if isinstance(b, dict))
+        else:
+            reply = ((data.get("choices") or [{}])[0].get("message") or {}).get("content") or ""
+        if not reply:
+            raise ValueError("AI 返回为空")
+        return {"ok": True, "reply": reply}
+    except urllib.error.HTTPError as e:
+        body = ""
+        try:
+            body = e.read().decode("utf-8", "replace")[:300]
+        except Exception:
+            pass
+        raise HTTPException(502, "AI 接口返回 %s：%s" % (e.code, body or "无详情"))
+    except Exception as e:
+        raise HTTPException(502, "调用 AI 接口失败：%s" % str(e)[:200])
 
 
 @app.post("/api/admin/fig-upload")

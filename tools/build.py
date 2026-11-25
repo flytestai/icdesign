@@ -69,7 +69,7 @@ def asset_ver():
 
 def bust(html):
     v = asset_ver()
-    for name in ("app.css", "app.js", "shell.js", "page.js", "tcl.js", "playground.js", "logo.svg"):
+    for name in ("app.css", "app.js", "shell.js", "page.js", "tcl.js", "playground.js", "aiwidget.js", "logo.svg"):
         html = html.replace('/assets/' + name, '/assets/' + name + '?v=' + v)
     return html
 
@@ -590,6 +590,7 @@ PAGE = HEAD + """
 <script src="/assets/shell.js"></script>
 <script src="/assets/tcl.js"></script>
 <script src="/assets/app.js"></script>
+<script src="/assets/aiwidget.js" defer></script>
 </body>
 </html>"""
 
@@ -601,6 +602,7 @@ SUB = HEAD + """
 <script src="/assets/tcl.js"></script>
 <script src="/assets/page.js"></script>
 <script src="/assets/playground.js"></script>
+<script src="/assets/aiwidget.js" defer></script>
 </body>
 </html>"""
 
@@ -646,6 +648,7 @@ HOME = HEAD + """
   <p>IC 后端学院 · 课表 9 阶段 113 学时，已上线 {nhours} 学时 · 共 {nlesson} 课 {nchapter} 章</p>
 </footer>
 <script src="/assets/app.js"></script>
+<script src="/assets/aiwidget.js" defer></script>
 </body>
 </html>"""
 

@@ -47,3 +47,7 @@ tools/figs/.cache/
 # 本地截图临时文件
 chk-*.png
 *.log
+
+.aifig.key
+.aifig_image.key
+.deploy.env
