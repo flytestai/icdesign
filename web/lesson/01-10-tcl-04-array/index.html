@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 4 讲 · 数组：键-值对（相当于 Python 的字典） · 10 | IC 后端学院</title>
 <meta name="description" content="数组是"键-值对"集合，对应 Python 的字典。定义与访问、array set 批量赋值与两个易错点、嵌套列表写法与 dict get、增改、unset 删除与两种报错、foreach 两种遍历、{} "" [] 原理复用、文档原题 fruit 练习。">
-<link rel="icon" href="/assets/logo.svg?v=1795590847" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795590847">
+<link rel="icon" href="/assets/logo.svg?v=1795592246" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795592246">
 </head>
 <body data-page="lesson" data-lesson="01-10-tcl-04-array">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795590847" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795592246" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -76,7 +76,7 @@ set student(class) &quot;三年级2班&quot;    ;# 键也可以是字符串
 ;# 访问数组元素
 puts &quot;学号001：$student(001)&quot;     ;# 输出：学号001：Xiao Ming
 puts &quot;班级：$student(class)&quot;      ;# 输出：班级：三年级2班">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">;# 定义学生数组：键为学号，值为姓名
@@ -100,7 +100,7 @@ array set person  {name zhangsan age 20}  ;# person 是数组名称 {}里为键�
 puts [array get person]   ;# 返回 name zhangsan age 20
 puts [array names person] ;# 只拿所有键名
 puts [array size person]  ;# 键值对个数">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">;# 标准写法：array set 数组名 {key1 val1 key2 val2}  批量一次性赋值
@@ -120,7 +120,7 @@ array set person {001 {name zhangsan age 20}  002 {name lisi age 25}}
 set val $person(001)   ;# 定义 val 接收列表值
 puts $val              ;# 打印列表：name zhangsan age 20
 puts [dict get $person(002) name]   ;# 取嵌套字段：lisi">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">;# 不可以：array set person(001) {name zhangsan age 20}
@@ -148,7 +148,7 @@ puts [array get person]   ;# 返回 age 20 无 name
 
 unset person          ;# 删除整个数组
 puts [array get person]   ;# 返回空值">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">array set person  {name zhangsan age 20}
@@ -182,7 +182,7 @@ foreach key [array names product] {
 ;# 产品id001：手机
 ;# 产品id002：电脑
 ;# 产品id003：平板">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">;# 重新定义数组
@@ -208,7 +208,7 @@ foreach key [array names product] {
 foreach {k v} [array get product] {
     puts &quot;key=$k val=$v&quot;
 }">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">array set product {001 shouji 002 diannao 003 pingban}
@@ -225,7 +225,7 @@ foreach {k v} [array get product] {
 <div class="tsbx has-code" data-code="array set product {001 shouji 002 diannao 003 pingban}
 foreach key [array names product] { puts $product($key) }   ;# 循环获取val
 foreach key [array names product] { puts $key }             ;# 循环获取key">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">array set product {001 shouji 002 diannao 003 pingban}
@@ -241,7 +241,7 @@ foreach key [array names product] { puts $key }             ;# 循环获取key</
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>文档原题：fruit 数组</div><div class="lab-b"><p>定义一个数组 <code>fruit</code>，里面编号为 001、002、003，分别是 apple、banana、orange。遍历它的键、遍历它的值。</p></div></div>
 <div class="tsbx" data-code="">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">参考写法在下面，先自己写，再对照（练习台里改改玩）</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">参考写法在下面，先自己写，再对照（练习台里改改玩）</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器"></textarea>
@@ -254,7 +254,7 @@ set fruit(002) banana
 set fruit(003) orange
 foreach key [array names fruit] { puts $key }           ;# 遍历它的键
 foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set fruit(001) apple
@@ -297,9 +297,9 @@ foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值</text
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795590847"></script>
-<script src="/assets/tcl.js?v=1795590847"></script>
-<script src="/assets/app.js?v=1795590847"></script>
-<script src="/assets/aiwidget.js?v=1795590847" defer></script>
+<script src="/assets/shell.js?v=1795592246"></script>
+<script src="/assets/tcl.js?v=1795592246"></script>
+<script src="/assets/app.js?v=1795592246"></script>
+<script src="/assets/aiwidget.js?v=1795592246" defer></script>
 </body>
 </html>

@@ -223,7 +223,7 @@ def render_tclsh(arg, code):
     codeattr = esc(code)
     hascode = " has-code" if code else ""
     return f"""<div class="tsbx{hascode}" data-code="{codeattr}">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">{hint}</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">{hint}</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">{codeattr}</textarea>
@@ -819,14 +819,14 @@ PLAYGROUND_BODY = """
     </div>
     <div class="pg-right">
       <div class="sbx pg-sbx" id="pg-term" data-preset="basic">
-        <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>交互终端</b><span class="sbx-tip">自己敲命令、回车就执行；↑↓ 历史、Tab 补全</span><button class="sbx-rst" type="button">重置</button></div>
+        <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>交互终端</b><span class="sbx-tip">自己敲命令、回车就执行；↑↓ 历史、Tab 补全</span><button class="sbx-clr" type="button" title="清空终端输出（保留文件系统与环境）">清空</button><button class="sbx-rst" type="button" title="重置环境并清空输出">重置</button></div>
         <div class="sbx-body"><div class="sbx-out"></div>
           <div class="sbx-line"><span class="sbx-ps1">[autumn@eda ~]$</span><input class="sbx-in" spellcheck="false" autocomplete="off" autocapitalize="off" enterkeyhint="go" placeholder="敲命令，回车执行（先敲 help 看支持哪些）" aria-label="模拟终端输入"></div>
         </div>
         <div class="sbx-f">和上面共用同一个环境：点「跑整段」等于把上面逐条敲进来，之后你可以接着改、接着试。想从头来就点「重置环境」。</div>
       </div>
       <div class="tsbx pg-tsbx" id="pg-tcl" style="display:none">
-        <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 交互解释器</b><span class="sbx-tip">多行编辑，Ctrl/⌘+Enter 或点「运行」执行</span><button class="sbx-rst" type="button">重置</button></div>
+        <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 交互解释器</b><span class="sbx-tip">多行编辑，Ctrl/⌘+Enter 或点「运行」执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
         <div class="sbx-body"><div class="sbx-out"></div></div>
         <div class="tcl-edit">
           <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" placeholder="在上面写 Tcl 代码，支持多行；Ctrl/⌘+Enter 运行" aria-label="Tcl 多行编辑器"></textarea>

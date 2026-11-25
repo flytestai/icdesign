@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 8 讲 · 流程控制（下）：三种循环 while / foreach / for · 14 | IC 后端学院</title>
 <meta name="description" content="while 三要素与死循环、while{1}+break、列表倒序复制与倒序遍历单元格（EDA）、foreach 遍历首选与 EDA 移动对象、for 计数循环、三种循环怎么选、source 加载脚本、文档原题偶数减奇数。">
-<link rel="icon" href="/assets/logo.svg?v=1795590847" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795590847">
+<link rel="icon" href="/assets/logo.svg?v=1795592246" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795592246">
 </head>
 <body data-page="lesson" data-lesson="01-14-tcl-08-loops">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795590847" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795592246" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -74,7 +74,7 @@ while {$i &lt; 5} {
     puts &quot;i = $i&quot;
     incr i
 }">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set i 0
@@ -96,7 +96,7 @@ while {$i &gt;= 0} {
 }
 puts &quot;原列表：$source_list&quot;     ;# 输出：原列表：100 200 300 400 500
 puts &quot;倒序列表：$target_list&quot;   ;# 输出：倒序列表：500 400 300 200 100">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set source_list {100 200 300 400 500} ;# 原列表
@@ -147,7 +147,7 @@ puts &quot;倒序列表：$target_list&quot;   ;# 输出：倒序列表：500 40
         puts &quot;You lose!&quot;
     }
 }">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">while {1} {
@@ -199,7 +199,7 @@ foreach mem $mem_list {
     puts &quot;  change_selection [get_cells $mem]&quot;
     puts &quot;  move_objects -delta {-50 0}&quot;
 }">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set mem_list {
@@ -224,7 +224,7 @@ foreach num $num_list {
     set sum [expr $sum + $num]   ;# expr 用于数值计算
 }
 puts &quot;列表元素总和：$sum&quot;   ;# 输出：列表元素总和：15">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set num_list {1 2 3 4 5}
@@ -246,7 +246,7 @@ puts &quot;列表元素总和：$sum&quot;   ;# 输出：列表元素总和：15
 <div class="tsbx has-code" data-code="for {set i 0} {$i &lt; 5} {incr i} {
     puts &quot;i = $i&quot;
 }">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">for {set i 0} {$i &lt; 5} {incr i} {
@@ -277,7 +277,7 @@ for {set i 1} {$i &lt;= 100} {incr i} {
     }
 }
 puts &quot;1-100偶数减奇数的值：$result&quot;">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">;# 参考实现（先自己写，写完再跑这个对照）
@@ -328,9 +328,9 @@ puts &quot;1-100偶数减奇数的值：$result&quot;</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795590847"></script>
-<script src="/assets/tcl.js?v=1795590847"></script>
-<script src="/assets/app.js?v=1795590847"></script>
-<script src="/assets/aiwidget.js?v=1795590847" defer></script>
+<script src="/assets/shell.js?v=1795592246"></script>
+<script src="/assets/tcl.js?v=1795592246"></script>
+<script src="/assets/app.js?v=1795592246"></script>
+<script src="/assets/aiwidget.js?v=1795592246" defer></script>
 </body>
 </html>

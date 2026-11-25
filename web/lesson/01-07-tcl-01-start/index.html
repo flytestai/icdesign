@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 1 讲 · 开工准备：环境与第一个命令 · 07 | IC 后端学院</title>
 <meta name="description" content="TCL 平时不是独立运行的，而是"寄生"在 EDA 工具里。这一课搞定 innovus 打不开的排查、写出第一个 puts、弄清两种注释写法，并在网页练习台上跑出第一行输出。全程 Python 对照。">
-<link rel="icon" href="/assets/logo.svg?v=1795590847" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=1795590847">
+<link rel="icon" href="/assets/logo.svg?v=1795592246" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=1795592246">
 </head>
 <body data-page="lesson" data-lesson="01-07-tcl-01-start">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795590847" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=1795592246" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -80,7 +80,7 @@
   <div class="ch-h"><span class="ch-n">02</span><h2>第一个命令：puts</h2></div>
   <p><code>puts</code> = put string，作用和 Python 的 <code>print()</code> 一样：输出内容并换行。字符串用双引号 <code>&quot;...&quot;</code> 包起来（也可以用花括号 <code>{...}</code>，第 2 讲讲区别）。</p>
 <div class="tsbx has-code" data-code="puts &quot;Hello, TCL!&quot;">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">puts &quot;Hello, TCL!&quot;</textarea>
@@ -100,7 +100,7 @@
   <div class="ch-h"><span class="ch-n">03</span><h2>注释怎么写</h2></div>
   <ul><li><strong>行首注释</strong>：用 <code>#</code>（和 Python 一样）。</li><li><strong>行中注释</strong>：命令后面接 <code>;#</code>——分号表示&quot;这一行命令到此结束&quot;，然后 <code>#</code> 开始注释。</li></ul>
 <div class="tsbx has-code" data-code="set age 25   ;# 这是注释">
-  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-rst" type="button">重置</button></div>
+  <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set age 25   ;# 这是注释</textarea>
@@ -144,9 +144,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=1795590847"></script>
-<script src="/assets/tcl.js?v=1795590847"></script>
-<script src="/assets/app.js?v=1795590847"></script>
-<script src="/assets/aiwidget.js?v=1795590847" defer></script>
+<script src="/assets/shell.js?v=1795592246"></script>
+<script src="/assets/tcl.js?v=1795592246"></script>
+<script src="/assets/app.js?v=1795592246"></script>
+<script src="/assets/aiwidget.js?v=1795592246" defer></script>
 </body>
 </html>

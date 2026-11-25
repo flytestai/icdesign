@@ -545,7 +545,9 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .tsbx .sbx-line{display:flex;align-items:center;gap:8px;padding:8px;border-top:1px solid #27334d}
 .tsbx .sbx-ps1{color:#34d399;font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:nowrap}
 .tsbx .sbx-in{flex:1;background:transparent;border:none;outline:none;color:#f1f5f9;font-family:ui-monospace,Consolas,monospace;font-size:13.5px}
-.tsbx .sbx-f{padding:6px 14px 10px;color:#64748b;font-size:11.5px;line-height:1.6}
+.tsbx .sbx-f{padding:8px 14px 12px;color:#8fa3b8;font-size:12px;line-height:1.75;white-space:normal;word-break:break-word;background:#0b1420;border-top:1px solid #1b2836}
+.tsbx .sbx-clr{background:#334155;color:#cbd5e1;border:none;border-radius:7px;padding:4px 12px;font-size:12px;cursor:pointer;flex:0 0 auto}
+.tsbx .sbx-clr:hover{background:#475569}
 
 /* ==================== 练习场 /playground/ ==================== */
 .pg-wrap{max-width:1240px;margin:0 auto;padding:24px 20px 60px}

@@ -1024,6 +1024,7 @@ function mountTsbx(root) {
   var ed = root.querySelector('.tcl-in');          // 多行编辑器
   var input = root.querySelector('.sbx-in');       // 兼容旧模板（单行）
   var rst = root.querySelector('.sbx-rst');
+  var clr = root.querySelector('.sbx-clr');
   var goBtn = root.querySelector('.tcl-go');
   var ip = new Interp();
   var con = new Console(outEl, ip);
@@ -1038,6 +1039,7 @@ function mountTsbx(root) {
   }
 
   rst.addEventListener('click', function () { fresh(); con.print('—— 已重置 ——', 'dim'); });
+  if (clr) clr.addEventListener('click', function () { outEl.innerHTML = ''; });
   if (goBtn) goBtn.addEventListener('click', runEditor);
 
   if (ed) {

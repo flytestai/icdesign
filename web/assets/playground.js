@@ -579,6 +579,15 @@ function mount() {
     fresh.addEventListener('click', pair[1]);
   });
 
+  // 头部「清空」按钮：只清输出，保留环境与变量
+  [['pg-term', function () { var s = termSh(); if (s) s.clear(); }],
+   ['pg-tcl', function () { var r = tclRepl(); if (r) r.clear(); }]].forEach(function (pair) {
+    var box = el(pair[0]);
+    if (!box) return;
+    var btn = box.querySelector('.sbx-clr');
+    if (btn) btn.addEventListener('click', pair[1]);
+  });
+
   /* ---------------- 终端悬浮窗：可拖拽移动 + 自由缩放 ---------------- */
   function floatTerminals() {
     ['pg-term', 'pg-tcl'].forEach(function (id) {
