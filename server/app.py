@@ -160,6 +160,14 @@ def init_db():
             exam_passed INTEGER NOT NULL DEFAULT 0,
             best_exam INTEGER NOT NULL DEFAULT 0,
             updated_at INTEGER NOT NULL)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS progress_u(
+            user_id INTEGER NOT NULL, lesson TEXT NOT NULL, chapter TEXT NOT NULL,
+            done INTEGER NOT NULL DEFAULT 1, ts INTEGER NOT NULL,
+            PRIMARY KEY(user_id, lesson, chapter))""")
+        c.execute("""CREATE TABLE IF NOT EXISTS notes_u(
+            user_id INTEGER NOT NULL, lesson TEXT NOT NULL, body TEXT NOT NULL, ts INTEGER NOT NULL,
+            PRIMARY KEY(user_id, lesson))""")
+        c.execute("CREATE INDEX IF NOT EXISTS idx_progress_u_user ON progress_u(user_id)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_uid ON progress(uid)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_progress_lesson ON progress(lesson)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
@@ -179,6 +187,18 @@ def init_db():
                       (ADMIN_PHONE, now, ADMIN_ACCOUNT))
         # 清理过期会话
         c.execute("DELETE FROM sessions WHERE expires < ?", (now,))
+        # 一次性迁移：旧的设备 uid 数据 → 按账号存储（仅迁移已能判定归属的部分）
+        has_links = c.execute(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='user_uids'").fetchone()[0]
+        if has_links:
+            c.execute(
+                "INSERT OR IGNORE INTO progress_u(user_id,lesson,chapter,done,ts) "
+                "SELECT l.user_id, p.lesson, p.chapter, p.done, p.ts "
+                "FROM progress p JOIN user_uids l ON l.uid=p.uid WHERE p.done=1")
+            c.execute(
+                "INSERT OR IGNORE INTO notes_u(user_id,lesson,body,ts) "
+                "SELECT l.user_id, n.lesson, n.body, n.ts "
+                "FROM notes n JOIN user_uids l ON l.uid=n.uid")
         c.commit()
 
 
@@ -298,25 +318,6 @@ def auth_me(request: Request):
     if not u:
         raise HTTPException(401, "not logged in")
     return user_public(u)
-
-
-class LinkUidIn(BaseModel):
-    uid: str = Field(..., max_length=64)
-
-
-@app.post("/api/auth/link-uid")
-def auth_link_uid(r: LinkUidIn, request: Request):
-    """把当前浏览器的设备 uid 登记到登录账号名下（排行榜按账号汇总进度用）。"""
-    u = current_user(request)
-    if not u:
-        raise HTTPException(401, "not logged in")
-    if not UID_RE.match(r.uid):
-        raise HTTPException(400, "bad uid")
-    with closing(db()) as c:
-        c.execute("INSERT OR IGNORE INTO user_uids(user_id,uid,ts) VALUES(?,?,?)",
-                  (u["id"], r.uid, int(time.time())))
-        c.commit()
-    return {"ok": True}
 
 
 # ================================================================ 管理员
@@ -915,93 +916,6 @@ def study_time_mine(request: Request):
     return {"total": total, "by_lesson": {r["lesson"]: r["seconds"] for r in rows}}
 
 
-@app.get("/api/my-devices")
-def my_devices(request: Request):
-    """列出「当前账号认领/关联的设备」+「尚未被任何账号关联的设备」。
-
-    安全约束：
-    - 已关联到别的账号的设备一律不返回（防止看到他人进度）
-    - 未关联设备只返回脱敏后的 uid 尾部，避免暴露可冒领的完整标识
-    """
-    u = current_user(request)
-    if not u:
-        raise HTTPException(401, "not logged in")
-    with closing(db()) as c:
-        mine = c.execute("SELECT uid FROM user_uids WHERE user_id=?", (u["id"],)).fetchall()
-        mine_set = {r["uid"] for r in mine}
-        taken = c.execute("SELECT uid FROM user_uids WHERE user_id<>?", (u["id"],)).fetchall()
-        taken_set = {r["uid"] for r in taken}
-        rows = c.execute(
-            "SELECT uid, COUNT(DISTINCT lesson || '|' || chapter) n, "
-            "MIN(ts) first, MAX(ts) last FROM progress WHERE done=1 GROUP BY uid").fetchall()
-    out = []
-    for r in rows:
-        uid = r["uid"]
-        if uid in mine_set:
-            out.append({"uid": uid, "chapters": r["n"], "first": r["first"],
-                        "last": r["last"], "linked": True})
-        elif uid not in taken_set:
-            # 未关联：只给脱敏标识（前 4 + 后 4），认领时用 claim_token 校验
-            out.append({"uid": uid[:4] + "…" + uid[-4:], "chapters": r["n"],
-                        "first": r["first"], "last": r["last"], "linked": False,
-                        "claim_token": _claim_token(uid)})
-    out.sort(key=lambda x: (-x["chapters"], -x["last"]))
-    return {"devices": out, "linked_count": len(mine_set)}
-
-
-def _claim_token(uid: str) -> str:
-    """未关联设备的认领令牌：由 uid 与服务端密钥派生，前端只拿到令牌。"""
-    return hmac.new(CLAIM_KEY, uid.encode(), hashlib.sha256).hexdigest()[:24]
-
-
-def _uid_from_token(token: str, candidates) -> Optional[str]:
-    for uid in candidates:
-        if hmac.compare_digest(_claim_token(uid), token):
-            return uid
-    return None
-
-
-class ClaimUidIn(BaseModel):
-    token: str = Field("", max_length=64)
-    uid: str = Field("", max_length=64)
-
-
-@app.post("/api/claim-device")
-def claim_device(r: ClaimUidIn, request: Request):
-    """认领一个历史设备的学习记录。
-
-    优先用 claim_token 校验（防止冒领他人进度）；同时兼容旧版直接传 uid 的调用。
-    """
-    u = current_user(request)
-    if not u:
-        raise HTTPException(401, "not logged in")
-    with closing(db()) as c:
-        rows = c.execute(
-            "SELECT uid FROM progress WHERE done=1 GROUP BY uid").fetchall()
-        cand = [x["uid"] for x in rows]
-        uid = None
-        if r.token:
-            uid = _uid_from_token(r.token, cand)
-            if not uid:
-                raise HTTPException(404, "认领失败：该记录不存在")
-        elif r.uid and UID_RE.match(r.uid):
-            uid = r.uid
-        else:
-            raise HTTPException(400, "参数缺失")
-
-        other = c.execute("SELECT user_id FROM user_uids WHERE uid=? AND user_id<>?",
-                          (uid, u["id"])).fetchone()
-        if other:
-            raise HTTPException(409, "该设备记录已关联到其他账号")
-        n = c.execute("SELECT COUNT(*) FROM progress WHERE uid=? AND done=1", (uid,)).fetchone()[0]
-        if not n:
-            raise HTTPException(404, "该设备没有学习记录")
-        c.execute("INSERT OR IGNORE INTO user_uids(user_id,uid,ts) VALUES(?,?,?)",
-                  (u["id"], uid, int(time.time())))
-        c.commit()
-    return {"ok": True, "uid": uid, "chapters": n}
-
-
 @app.get("/api/leaderboard")
 def leaderboard(request: Request):
     """排行榜：综合分 = 学习进度 50% + 刷题进度 30% + 学习时长 20%。
@@ -1020,29 +934,18 @@ def leaderboard(request: Request):
     with closing(db()) as c:
         users = c.execute(
             "SELECT id,name,role FROM users WHERE status='approved' OR role='admin'").fetchall()
-        # 按 (uid, lesson, chapter) 去重，避免重复上报
+        # 进度直接按账号统计（progress_u 主键含 user_id，天然去重）
         prog = c.execute(
-            "SELECT DISTINCT uid, lesson, chapter FROM progress WHERE done=1").fetchall()
+            "SELECT user_id, COUNT(*) n FROM progress_u WHERE done=1 GROUP BY user_id").fetchall()
         times = c.execute("SELECT user_id, SUM(seconds) s FROM study_time GROUP BY user_id").fetchall()
-        links = c.execute("SELECT user_id,uid FROM user_uids").fetchall()
         qstats = c.execute("SELECT * FROM quiz_stats").fetchall()
-    uid_map = {}
-    for l in links:
-        uid_map.setdefault(l["user_id"], set()).add(l["uid"])
-    # 每个 uid 的已完成章节集合（跨设备合并到账号时按章节去重）
-    prog_by_uid = {}
-    for p in prog:
-        prog_by_uid.setdefault(p["uid"], set()).add(p["lesson"] + "|" + p["chapter"])
+    prog_by_user = {p["user_id"]: p["n"] for p in prog}
     time_by_user = {t["user_id"]: t["s"] for t in times}
     quiz_by_user = {r["user_id"]: r for r in qstats}
 
     rows = []
     for us in users:
-        uids = uid_map.get(us["id"], set())
-        chapters = set()
-        for x in uids:
-            chapters |= prog_by_uid.get(x, set())
-        done = len(chapters)
+        done = prog_by_user.get(us["id"], 0)
         secs = time_by_user.get(us["id"], 0)
         qs = quiz_by_user.get(us["id"])
         answered = qs["answered"] if qs else 0
@@ -1308,12 +1211,10 @@ class Item(BaseModel):
 
 
 class ProgressIn(BaseModel):
-    uid: str
     items: List[Item]
 
 
 class NoteIn(BaseModel):
-    uid: str
     lesson: str
     body: str = Field("", max_length=8000)
 
@@ -1332,19 +1233,24 @@ def catalog():
                         headers={"Cache-Control": "public, max-age=60"})
 
 
-@app.get("/api/progress/{uid}")
-def get_progress(uid: str):
-    check_uid(uid)
+@app.get("/api/progress")
+def get_progress(request: Request):
+    """读取当前登录账号的学习进度（按账号存储，换设备/浏览器自动同步）。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
     with closing(db()) as c:
         rows = c.execute(
-            "SELECT lesson, chapter, done, ts FROM progress WHERE uid=? AND done=1", (uid,)
-        ).fetchall()
-    return {"uid": uid, "items": [dict(r) for r in rows]}
+            "SELECT lesson, chapter, done, ts FROM progress_u WHERE user_id=? AND done=1",
+            (u["id"],)).fetchall()
+    return {"items": [dict(r) for r in rows]}
 
 
 @app.post("/api/progress")
-def post_progress(p: ProgressIn):
-    check_uid(p.uid)
+def post_progress(p: ProgressIn, request: Request):
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
     if len(p.items) > 200:
         raise HTTPException(400, "too many items")
     now = int(time.time())
@@ -1354,53 +1260,67 @@ def post_progress(p: ProgressIn):
                 continue
             if it.done:
                 c.execute(
-                    "INSERT INTO progress(uid,lesson,chapter,done,ts) VALUES(?,?,?,1,?) "
-                    "ON CONFLICT(uid,lesson,chapter) DO UPDATE SET done=1, ts=excluded.ts",
-                    (p.uid, it.lesson, it.chapter, now))
+                    "INSERT INTO progress_u(user_id,lesson,chapter,done,ts) VALUES(?,?,?,1,?) "
+                    "ON CONFLICT(user_id,lesson,chapter) DO UPDATE SET done=1, ts=excluded.ts",
+                    (u["id"], it.lesson, it.chapter, now))
             else:
-                c.execute("DELETE FROM progress WHERE uid=? AND lesson=? AND chapter=?",
-                          (p.uid, it.lesson, it.chapter))
+                c.execute("DELETE FROM progress_u WHERE user_id=? AND lesson=? AND chapter=?",
+                          (u["id"], it.lesson, it.chapter))
         c.commit()
     return {"ok": True, "saved": len(p.items)}
 
 
-@app.delete("/api/progress/{uid}")
-def reset_progress(uid: str):
-    check_uid(uid)
+@app.delete("/api/progress")
+def reset_progress(request: Request):
+    """清空当前账号的全部学习进度。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
     with closing(db()) as c:
-        c.execute("DELETE FROM progress WHERE uid=?", (uid,))
+        c.execute("DELETE FROM progress_u WHERE user_id=?", (u["id"],))
         c.commit()
     return {"ok": True}
 
 
-@app.delete("/api/progress/{uid}/{lesson}")
-def reset_progress_lesson(uid: str, lesson: str):
+@app.delete("/api/progress/{lesson}")
+def reset_progress_lesson(lesson: str, request: Request):
     """清除单课学习进度（进度为滚动自动记录，清除后重新滚动会再次记录）。"""
-    check_uid(uid)
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
     if not KEY_RE.match(lesson):
         raise HTTPException(400, "bad lesson")
     with closing(db()) as c:
-        c.execute("DELETE FROM progress WHERE uid=? AND lesson=?", (uid, lesson))
+        c.execute("DELETE FROM progress_u WHERE user_id=? AND lesson=?", (u["id"], lesson))
         c.commit()
     return {"ok": True}
 
 
-@app.get("/api/notes/{uid}/{lesson}")
-def get_note(uid: str, lesson: str):
-    check_uid(uid)
+@app.get("/api/notes/{lesson}")
+def get_note(lesson: str, request: Request):
+    """读取当前账号在某节课的课程笔记。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
     with closing(db()) as c:
-        r = c.execute("SELECT body, ts FROM notes WHERE uid=? AND lesson=?", (uid, lesson)).fetchone()
+        r = c.execute("SELECT body, ts FROM notes_u WHERE user_id=? AND lesson=?",
+                      (u["id"], lesson)).fetchone()
     return {"body": r["body"] if r else "", "ts": r["ts"] if r else 0}
 
 
 @app.put("/api/notes")
-def put_note(n: NoteIn):
-    check_uid(n.uid)
+def put_note(n: NoteIn, request: Request):
+    """保存当前账号在某节课的课程笔记。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    if not KEY_RE.match(n.lesson):
+        raise HTTPException(400, "bad lesson")
     with closing(db()) as c:
         c.execute(
-            "INSERT INTO notes(uid,lesson,body,ts) VALUES(?,?,?,?) "
-            "ON CONFLICT(uid,lesson) DO UPDATE SET body=excluded.body, ts=excluded.ts",
-            (n.uid, n.lesson, n.body, int(time.time())))
+            "INSERT INTO notes_u(user_id,lesson,body,ts) VALUES(?,?,?,?) "
+            "ON CONFLICT(user_id,lesson) DO UPDATE SET body=excluded.body, ts=excluded.ts",
+            (u["id"], n.lesson, n.body, int(time.time())))
         c.commit()
     return {"ok": True}
 
@@ -1408,8 +1328,8 @@ def put_note(n: NoteIn):
 @app.get("/api/stats")
 def stats():
     with closing(db()) as c:
-        learners = c.execute("SELECT COUNT(DISTINCT uid) FROM progress").fetchone()[0]
-        done = c.execute("SELECT COUNT(*) FROM progress WHERE done=1").fetchone()[0]
+        learners = c.execute("SELECT COUNT(DISTINCT user_id) FROM progress_u").fetchone()[0]
+        done = c.execute("SELECT COUNT(*) FROM progress_u WHERE done=1").fetchone()[0]
     return {"learners": learners, "completions": done, "version": VERSION}
 
 

@@ -51,7 +51,7 @@
 
   function push(items) {
     if (!isLesson || !items.length) return;
-    var body = { uid: uid(), items: items };
+    var body = { items: items };
     fetch(API + '/progress', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
     }).catch(function () { queue(body); });
@@ -79,20 +79,15 @@
       below[s.getAttribute('data-ch')] = s.getBoundingClientRect().bottom < line;
     });
     paint();
-    fetch(API + '/progress/' + uid() + '/' + lessonId, { method: 'DELETE' }).catch(function () { });
+    fetch(API + '/progress/' + lessonId, { method: 'DELETE' }).catch(function () { });
   });
 
   /* 全站：登录后立刻把当前设备 uid 登记到账号名下（排行榜按账号汇总进度）。
      这一步必须放在所有页面，否则用户只浏览首页/题库时不建立关联，
      排行榜里就看不到他的进度。 */
-  fetch(API + '/auth/link-uid', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ uid: uid() })
-  }).catch(function () { });
-
   /* 与服务端合并（换浏览器 / 清缓存后可恢复） */
   if (isLesson) {
-    fetch(API + '/progress/' + uid()).then(function (r) { return r.json(); }).then(function (d) {
+    fetch(API + '/progress').then(function (r) { return r.json(); }).then(function (d) {
       (d.items || []).forEach(function (it) {
         if (it.lesson === lessonId && it.done) done[key(it.chapter)] = 1;
       });
@@ -336,7 +331,7 @@
         fetch('/data/catalog.json').then(function (r) { return r.json(); }).then(paintCatalog).catch(function () { });
       }
       /* 与服务器进度合并后绘制（换设备也能看到完成标识） */
-      fetch(API + '/progress/' + uid()).then(function (r) { return r.json(); }).then(function (d) {
+      fetch(API + '/progress').then(function (r) { return r.json(); }).then(function (d) {
         (d.items || []).forEach(function (it) { if (it.done) done[it.lesson + '/' + it.chapter] = 1; });
         saveDone(done);
         startCatalog();
@@ -396,7 +391,7 @@
       if (note) state.textContent = note;
     }
 
-    fetch(API + '/notes/' + uid() + '/' + lessonId).then(function (r) { return r.json(); }).then(function (d) {
+    fetch(API + '/notes/' + lessonId).then(function (r) { return r.json(); }).then(function (d) {
       if (d && d.body) {
         box.value = d.body;
         localStorage.setItem(LS_NOTE, d.body);
@@ -414,7 +409,7 @@
       saved('保存中…');
       fetch(API + '/notes', {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid: uid(), lesson: lessonId, body: body })
+        body: JSON.stringify({ lesson: lessonId, body: body })
       }).then(function (r) {
         if (!r.ok) throw new Error('bad');
         return r.json();

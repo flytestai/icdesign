@@ -792,16 +792,11 @@ LEADERBOARD_BODY = """
     <div class="lb-h-r"><div class="lb-legend"><span class="lg-p">■ 进度 50%</span><span class="lg-q">■ 刷题 30%</span><span class="lg-t">■ 时长 20%</span></div></div>
   </div>
   <div class="lb-me" id="lb-me" hidden></div>
-  <div class="lb-claim" id="lb-claim" hidden>
-    <div class="lc-h">检测到还有未关联账号的学习记录<span id="lc-n"></span></div>
-    <p class="lc-p">如果你之前用别的浏览器 / 没登录时学过，可以把那份进度认领到当前账号（认领后排行榜会合并统计）。</p>
-    <div class="lc-list" id="lc-list"></div>
-  </div>
   <div class="lb-card">
     <div class="lb-thead"><span class="c-rk">排名</span><span class="c-nm">学习者</span><span class="c-pg">课程进度</span><span class="c-qz">刷题</span><span class="c-tm">学习时长</span><span class="c-sc">综合分</span></div>
     <div id="lb-rows" class="lb-rows"><div class="lb-loading">加载中…</div></div>
   </div>
-  <div class="lb-note">只显示已审核通过的同学。进度与时长按账号统计：进课程页会自动把本设备学习记录关联到你的账号，换设备登录后仍会累计。刷题数据在你点「我会了 / 不会」和完成验收卷后上报。</div>
+  <div class="lb-note">只显示已审核通过的同学。所有学习数据（进度、笔记、刷题、时长、AI 对话）都保存在你的账号下，换电脑、换浏览器登录同一个账号即可无缝接续。</div>
 </div>
 """
 

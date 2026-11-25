@@ -711,20 +711,9 @@
   });
 
   /* ---------------- 气泡与发送 ---------------- */
-  /* 与 app.js 相同的设备 uid（课程笔记按设备存储） */
-  function lsUid() {
-    var u = localStorage.getItem("icl.uid");
-    if (!u) {
-      u = "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-      localStorage.setItem("icl.uid", u);
-    }
-    return u;
-  }
-
-  /* 把 AI 问答追加写入当前课程的「课程笔记」 */
+  /* 把 AI 问答追加写入当前课程的「课程笔记」（笔记按登录账号存储） */
   function appendLessonNote(lesson, q, a) {
-    var uid = lsUid();
-    return fetch("/api/notes/" + uid + "/" + lesson, { credentials: "same-origin" })
+    return fetch("/api/notes/" + encodeURIComponent(lesson), { credentials: "same-origin" })
       .then(function (r) { return r.json(); })
       .then(function (d) { return (d && d.body) || ""; })
       .catch(function () { return ""; })
@@ -738,7 +727,7 @@
           method: "PUT",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uid: uid, lesson: lesson, body: nb })
+          body: JSON.stringify({ lesson: lesson, body: nb })
         }).then(function (r) {
           if (!r.ok) return false;
           try { localStorage.setItem("icl.note." + lesson, nb); } catch (e) {}
