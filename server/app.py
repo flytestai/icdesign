@@ -16,6 +16,7 @@ import re
 import secrets
 import sqlite3
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from urllib.parse import quote
@@ -553,6 +554,12 @@ class AISettingsIn(BaseModel):
     model: str = Field(..., max_length=120)
 
 
+class AIModelsIn(BaseModel):
+    provider: str = Field("openai", max_length=24)
+    base_url: str = Field(..., max_length=300)
+    api_key: str = Field("", max_length=300)
+
+
 class AIChatIn(BaseModel):
     messages: List[dict] = Field(..., max_length=40)
     lesson: Optional[str] = None
@@ -621,6 +628,67 @@ def ai_set_settings(r: AISettingsIn, request: Request):
             (u["id"], r.provider, base, key, model, now))
         c.commit()
     return {"ok": True}
+
+
+@app.delete("/api/ai/settings")
+def ai_del_settings(request: Request):
+    """删除当前用户的大模型配置。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    with closing(db()) as c:
+        cur = c.execute("DELETE FROM ai_settings WHERE user_id=?", (u["id"],))
+        c.commit()
+    return {"ok": True, "deleted": cur.rowcount}
+
+
+@app.post("/api/ai/models")
+def ai_models(r: AIModelsIn, request: Request):
+    """代理拉取厂商模型列表：OpenAI 兼容走 GET {base}/models，Anthropic 走 GET {base}/v1/models。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    if r.provider not in ("openai", "anthropic"):
+        raise HTTPException(400, "provider 仅支持 openai / anthropic")
+    base = r.base_url.strip().rstrip("/")
+    if not re.match(r"^https?://", base, re.I):
+        raise HTTPException(400, "接口地址必须以 http(s):// 开头")
+    _safe_ai_host(base)
+    key = r.api_key.strip()
+    if not key:
+        old = _ai_settings_of(u["id"])
+        if old:
+            key = old["api_key"]             # key 留空时沿用已保存的 key
+    if not key:
+        raise HTTPException(400, "请先填写 API Key")
+    if r.provider == "anthropic":
+        url = re.sub(r"/v1/?$", "", base) + "/v1/models"
+        headers = {"x-api-key": key, "anthropic-version": "2023-06-01"}
+    else:
+        url = base + "/models"
+        headers = {"Authorization": "Bearer " + key}
+    headers["User-Agent"] = "icacademy/1.2"
+    try:
+        req = urllib.request.Request(url, headers=headers, method="GET")
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode("utf-8", "ignore"))
+    except urllib.error.HTTPError as e:
+        try:
+            msg = (e.read().decode("utf-8", "ignore") or "").strip()[:200]
+        except Exception:
+            msg = str(e.reason or "")
+        raise HTTPException(502, "拉取模型列表失败 HTTP %s：%s" % (e.code, msg))
+    except Exception as e:
+        raise HTTPException(502, "拉取模型列表失败：%s" % str(e)[:120])
+    ids = []
+    for it in (data.get("data") or data.get("models") or []):
+        mid = (it.get("id") or it.get("name")) if isinstance(it, dict) else str(it)
+        if mid:
+            ids.append(str(mid))
+    ids = sorted(set(ids))
+    if not ids:
+        raise HTTPException(502, "接口返回了空模型列表，请确认地址和 Key 是否正确")
+    return {"models": ids}
 
 
 def _strip_html(html: str) -> str:

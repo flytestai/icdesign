@@ -12,6 +12,14 @@ sys.path.insert(0, "tools")
 
 
 class MockAI(BaseHTTPRequestHandler):
+    def do_GET(self):
+        out = json.dumps({"data": [{"id": "mock-alpha"}, {"id": "mock-beta"}, {"id": "mock-gamma"}]}).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(out)))
+        self.end_headers()
+        self.wfile.write(out)
+
     def do_POST(self):
         n = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(n))
@@ -84,3 +92,19 @@ except urllib.error.HTTPError as e:
 print("8) 修改配置不传 key（沿用旧 key）:", api("/api/ai/settings", {"provider": "openai", "base_url": "http://127.0.0.1:8999/v1", "api_key": "", "model": "mock-model2"})[1])
 st, res = api("/api/ai/chat", {"messages": [{"role": "user", "content": "再问一次"}]})
 print("9) 旧 key 生效:", st == 200, "|", res["reply"][:40])
+
+# 新端点：拉取模型列表 / 删除配置
+st, res = api("/api/ai/models", {"provider": "openai", "base_url": "http://127.0.0.1:8999/v1", "api_key": "sk-test-123456"})
+print("10) 拉取模型列表(带key):", st == 200 and res["models"] == ["mock-alpha", "mock-beta", "mock-gamma"], "|", res["models"])
+
+st, res = api("/api/ai/models", {"provider": "openai", "base_url": "http://127.0.0.1:8999/v1", "api_key": ""})
+print("11) 拉取模型列表(不传key沿用已存):", st == 200 and len(res["models"]) == 3)
+
+print("12) 删除配置:", api("/api/ai/settings", method="DELETE")[1])
+print("13) 删除后 settings:", api("/api/ai/settings")[1]["configured"] == False)
+try:
+    api("/api/ai/models", {"provider": "openai", "base_url": "http://127.0.0.1:8999/v1", "api_key": ""})
+    print("14) 删除后拉模型应报错: FAIL")
+except urllib.error.HTTPError as e:
+    print("14) 删除后拉模型报错:", e.code, "请先填写 API Key" in json.loads(e.read())["detail"])
+
