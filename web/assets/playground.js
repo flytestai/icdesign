@@ -579,6 +579,153 @@ function mount() {
     fresh.addEventListener('click', pair[1]);
   });
 
+  /* ---------------- 终端悬浮窗：可拖拽移动 + 自由缩放 ---------------- */
+  function floatTerminals() {
+    ['pg-term', 'pg-tcl'].forEach(function (id) {
+      var box = el(id);
+      if (!box || box.__floatInit) return;
+      box.__floatInit = true;
+      var KEY = 'pg.float.' + id;
+      var h = box.querySelector('.sbx-h');
+      if (!h) return;
+
+      var btn = document.createElement('button');
+      btn.className = 'sbx-fbtn';
+      btn.type = 'button';
+      btn.textContent = '⧉ 悬浮';
+      btn.title = '切换悬浮窗：可拖拽移动、自由缩放；再点一次停靠回页面';
+      h.appendChild(btn);
+
+      var floating = false, grips = [];
+
+      function loadCfg() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
+      function saveCfg(c) { try { localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) { } }
+      function clampW(w) { return Math.min(Math.max(320, w), window.innerWidth - 16); }
+      function clampH(hh) { return Math.min(Math.max(240, hh), window.innerHeight - 30); }
+      function applyPos(x, y) {
+        x = Math.min(Math.max(4, x), window.innerWidth - 90);
+        y = Math.min(Math.max(4, y), window.innerHeight - 60);
+        box.style.left = x + 'px';
+        box.style.top = y + 'px';
+      }
+      function persist() {
+        saveCfg({ on: floating, w: box.offsetWidth, h: box.offsetHeight, x: box.offsetLeft, y: box.offsetTop });
+      }
+      function removeGrips() { grips.forEach(function (g) { g.remove(); }); grips = []; }
+      function makeGrip(k) {
+        var g = document.createElement('div');
+        g.className = 'pg-rz pg-rz-' + k;
+        box.appendChild(g);
+        grips.push(g);
+        function start(sx, sy) {
+          var sw = box.offsetWidth, sh = box.offsetHeight;
+          function move(dx, dy) {
+            if (k !== 's') box.style.width = clampW(sw + dx) + 'px';
+            if (k !== 'e') box.style.height = clampH(sh + dy) + 'px';
+          }
+          function end() {
+            document.removeEventListener('mousemove', mm);
+            document.removeEventListener('mouseup', me);
+            document.removeEventListener('touchmove', tm);
+            document.removeEventListener('touchend', te);
+            persist();
+          }
+          function mm(ev) { move(ev.clientX - sx, ev.clientY - sy); }
+          function me() { end(); }
+          function tm(ev) { var t = ev.touches[0]; move(t.clientX - sx, t.clientY - sy); ev.preventDefault(); }
+          function te() { end(); }
+          document.addEventListener('mousemove', mm);
+          document.addEventListener('mouseup', me);
+          document.addEventListener('touchmove', tm, { passive: false });
+          document.addEventListener('touchend', te);
+        }
+        g.addEventListener('mousedown', function (e) {
+          if (e.button !== 0) return;
+          e.preventDefault(); e.stopPropagation();
+          start(e.clientX, e.clientY);
+        });
+        g.addEventListener('touchstart', function (e) {
+          var t = e.touches[0];
+          start(t.clientX, t.clientY);
+        });
+      }
+      function addGrips() { ['e', 's', 'se'].forEach(makeGrip); }
+
+      function floatOn() {
+        var cfg = loadCfg() || {};
+        if (!cfg.w) {
+          var r = box.getBoundingClientRect();
+          cfg.w = Math.round(r.width || 560);
+          cfg.h = Math.round(Math.min((r.height || 420), window.innerHeight - 140));
+        }
+        if (cfg.x == null) { cfg.x = Math.max(12, window.innerWidth - cfg.w - 28); cfg.y = 76; }
+        floating = true;
+        box.classList.add('float');
+        box.style.width = clampW(cfg.w) + 'px';
+        box.style.height = clampH(cfg.h) + 'px';
+        applyPos(cfg.x, cfg.y);
+        addGrips();
+        btn.textContent = '⇲ 停靠';
+        btn.classList.add('on');
+        persist();
+      }
+      function floatOff() {
+        var g = { w: box.offsetWidth, h: box.offsetHeight, x: box.offsetLeft, y: box.offsetTop, on: false };
+        floating = false;
+        box.classList.remove('float');
+        box.style.width = box.style.height = box.style.left = box.style.top = '';
+        removeGrips();
+        btn.textContent = '⧉ 悬浮';
+        btn.classList.remove('on');
+        saveCfg(g);
+      }
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (floating) floatOff(); else floatOn();
+      });
+
+      /* 拖拽移动（按住头部空白处） */
+      function dragStart(sx, sy) {
+        var ox = sx - box.offsetLeft, oy = sy - box.offsetTop;
+        function move(dx, dy) { applyPos(dx, dy); }
+        function end() {
+          document.removeEventListener('mousemove', mm);
+          document.removeEventListener('mouseup', me);
+          document.removeEventListener('touchmove', tm);
+          document.removeEventListener('touchend', te);
+          persist();
+        }
+        function mm(ev) { move(ev.clientX - ox, ev.clientY - oy); }
+        function me() { end(); }
+        function tm(ev) { var t = ev.touches[0]; move(t.clientX - ox, t.clientY - oy); ev.preventDefault(); }
+        function te() { end(); }
+        document.addEventListener('mousemove', mm);
+        document.addEventListener('mouseup', me);
+        document.addEventListener('touchmove', tm, { passive: false });
+        document.addEventListener('touchend', te);
+      }
+      h.addEventListener('mousedown', function (e) {
+        if (!floating) return;
+        if (e.target.closest('.sbx-rst, .sbx-fbtn')) return;
+        e.preventDefault();
+        dragStart(e.clientX, e.clientY);
+      });
+      h.addEventListener('touchstart', function (e) {
+        if (!floating) return;
+        if (e.target.closest('.sbx-rst, .sbx-fbtn')) return;
+        var t = e.touches[0];
+        dragStart(t.clientX, t.clientY);
+      });
+
+      /* 刷新页面后自动恢复上次的悬浮状态 */
+      var cfg = loadCfg();
+      if (cfg && cfg.on && box.style.display !== 'none') floatOn();
+      window.addEventListener('resize', function () {
+        if (floating) applyPos(box.offsetLeft, box.offsetTop);
+      });
+    });
+  }
+
   ta.addEventListener('keydown', function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runAll(); }
     if (e.key === 'Tab') {
@@ -596,6 +743,7 @@ function mount() {
   setMode('linux', false);
   var repl = tclRepl();
   if (repl) repl.print('—— 这里可以直接敲 Tcl 命令，一行一执行 ——', 'dim');
+  floatTerminals();
 }
 
 if (typeof document !== 'undefined') {
