@@ -197,6 +197,14 @@
     "overflow:hidden;cursor:pointer}",
     ".aiw-ni-a.open{-webkit-line-clamp:unset;display:block}",
     ".aiw-ni-hint{color:#98a1b8;font-size:12px;text-align:center;padding:16px 10px;line-height:1.8}",
+    /* ---- 常驻快捷入口栏（对话视图底部） ---- */
+    ".aiw-quickbar{flex:0 0 auto;display:flex;gap:18px;padding:8px 14px;background:#f2f4fb;",
+    "border-top:1px solid #e8ebf5;font-size:12px}",
+    ".aiw-qb{color:#5a657a;cursor:pointer;display:flex;align-items:center;gap:4px;",
+    "font-family:inherit;background:none;border:none;padding:0;font-size:12px}",
+    ".aiw-qb:hover{color:" + ACCENT + "}",
+    ".aiw-qb b{color:" + ACCENT + "}",
+    ".aiw-flash{outline:3px solid " + ACCENT + " !important;outline-offset:2px;border-radius:6px}",
     /* ---- 拖拽调尺寸把手 ---- */
     ".aiw-rz{position:absolute;z-index:30}",
     ".aiw-rz-c{left:0;top:0;width:20px;height:20px;cursor:nwse-resize}",
@@ -243,17 +251,29 @@
   /* 笔记数量角标 */
   function refreshBadge() {
     if (!panel) return;
-    var nb = panel.querySelector("#aiw-nb");
     fetch("/api/ai/notes", { credentials: "same-origin" })
       .then(function (r) { return r.json(); })
       .then(function (j) {
         var n = (j.notes || []).length;
+        var nb = panel.querySelector("#aiw-nb");
         if (nb) {
           nb.textContent = n > 99 ? "99+" : String(n);
           nb.classList.toggle("on", n > 0);
         }
+        var qb = panel.querySelector("#aiw-qb-n");
+        if (qb) qb.textContent = String(n);
       })
       .catch(function () {});
+  }
+
+  /* 跳到页面底部的课程笔记框并高亮 */
+  function scrollToNote() {
+    var box = document.getElementById("note-box");
+    if (!box) return;
+    if (panel) closePanel();
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+    box.classList.add("aiw-flash");
+    setTimeout(function () { box.classList.remove("aiw-flash"); }, 2500);
   }
 
   function showChat() {
@@ -451,6 +471,11 @@
       "</div>" +
       '<div class="aiw-view">' +
         '<div class="aiw-body" id="aiw-body"></div>' +
+        '<div class="aiw-quickbar">' +
+          '<button class="aiw-qb" type="button" data-qb="notes">📒 问答笔记 <b id="aiw-qb-n">0</b> 条</button>' +
+          (document.body.dataset && document.body.dataset.lesson
+            ? '<button class="aiw-qb" type="button" data-qb="note">📝 本课笔记</button>' : "") +
+        "</div>" +
         '<div class="aiw-foot"><textarea id="aiw-input" placeholder="输入问题，Enter 发送 · Shift+Enter 换行"></textarea>' +
         '<button class="aiw-send" id="aiw-send" type="button" title="发送">' + SEND + "</button></div>" +
       "</div>";
@@ -466,6 +491,12 @@
     panel.querySelector('[data-act="close"]').addEventListener("click", closePanel);
     panel.querySelector('[data-act="cfg"]').addEventListener("click", function () { openConfig(); });
     panel.querySelector('[data-act="notes"]').addEventListener("click", function () { openNotes(); });
+    panel.querySelectorAll("[data-qb]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        if (el.getAttribute("data-qb") === "notes") openNotes();
+        else scrollToNote();
+      });
+    });
     panel.querySelector('[data-act="clear"]').addEventListener("click", function () {
       HISTORY = [];
       bodyEl.innerHTML = '<div class="aiw-hint">会话已清空。</div>';
@@ -586,10 +617,12 @@
             var hint = document.createElement("div");
             hint.className = "aiw-hint";
             hint.innerHTML = lesson
-              ? '✅ 已写入本节课的「课程笔记」（页面底部笔记框已同步），归档见顶部 📖'
+              ? '✅ 已写入本节课的「课程笔记」——<span class="aiw-link" data-goto-note>点这里查看</span>（在页面底部）'
               : '✅ 已存入问答笔记；在课程页提问保存会同时写入该课的「课程笔记」';
             bodyEl.appendChild(hint);
             bodyEl.scrollTop = bodyEl.scrollHeight;
+            var gotoEl = hint.querySelector("[data-goto-note]");
+            if (gotoEl) gotoEl.addEventListener("click", scrollToNote);
             refreshBadge();
           } else {
             failSave();
