@@ -392,7 +392,7 @@
           var rk = r.rank <= 3 ? medal[r.rank - 1] : r.rank;
           return '<a class="hlb-row' + (r.is_me ? ' me' : '') + '" href="/leaderboard/">' +
             '<span class="h-rk">' + rk + '</span>' +
-            '<span class="h-nm">' + esc(r.name) + (r.is_me ? '<b class="h-you">我</b>' : '') + '</span>' +
+            '<span class="h-nm">' + esc2(r.name) + (r.is_me ? '<b class="h-you">我</b>' : '') + '</span>' +
             '<span class="h-pg">' + r.done + '/' + r.total + ' 章</span>' +
             '<span class="h-qz">' + r.answered + ' 题</span>' +
             '<span class="h-sc">' + r.score + '</span></a>';

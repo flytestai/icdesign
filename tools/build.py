@@ -619,15 +619,28 @@ HOME = HEAD + """
   </div>
 </section>
 
-<section class="home-lb" id="home-lb">
-  <div class="hlb-in">
-    <div class="hlb-h">
-      <h2>学习排行榜</h2>
-      <a class="hlb-more" href="/leaderboard/">查看完整榜单 →</a>
-    </div>
-    <div class="hlb-me" id="hlb-me" hidden></div>
-    <div class="hlb-list" id="hlb-list"><div class="hlb-loading">加载中…</div></div>
+<section class="home-main">
+  <div class="hm-body">
+
+<section class="plan" id="plan">
+  <h2 class="sec-h">学习路线</h2>
+  <p class="sec-p">按顺序学，不要跳。前一阶段是后一阶段的地基 —— 这也是很多人"看了很多教程还是不会做项目"的真正原因。</p>
+  <div class="stages">{stages}</div>
+</section>
+
   </div>
+  <aside class="hm-side">
+    <div class="home-lb" id="home-lb">
+      <div class="hlb-in">
+        <div class="hlb-h">
+          <h2>学习排行榜</h2>
+          <a class="hlb-more" href="/leaderboard/">完整榜单 →</a>
+        </div>
+        <div class="hlb-me" id="hlb-me" hidden></div>
+        <div class="hlb-list" id="hlb-list"><div class="hlb-loading">加载中…</div></div>
+      </div>
+    </div>
+  </aside>
 </section>
 
 <section class="quick">
