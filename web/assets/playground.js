@@ -530,6 +530,8 @@ function setMode(mode, focus) {
   el('pg-term').style.display = mode === 'linux' ? '' : 'none';
   el('pg-tcl').style.display = mode === 'tcl' ? '' : 'none';
   el('pg-stdin-box').style.display = mode === 'tcl' ? '' : 'none';
+  var activeTerm = el(mode === 'linux' ? 'pg-term' : 'pg-tcl');
+  if (activeTerm.__restoreFloat) activeTerm.__restoreFloat();
   el('pg-eh').textContent = mode === 'linux'
     ? 'Linux 命令（一行一条；# 开头是注释。下面可以自己敲，也可以点「下一行」一条条来）'
     : 'Tcl 代码（;# 或 # 开头都是注释。下面解释器可以一行一敲，变量会一直留着）';
@@ -612,8 +614,8 @@ function mount() {
       function clampW(w) { return Math.min(Math.max(320, w), window.innerWidth - 16); }
       function clampH(hh) { return Math.min(Math.max(240, hh), window.innerHeight - 30); }
       function applyPos(x, y) {
-        x = Math.min(Math.max(4, x), window.innerWidth - 90);
-        y = Math.min(Math.max(4, y), window.innerHeight - 60);
+        x = Math.max(4, Math.min(x, window.innerWidth - box.offsetWidth - 4));
+        y = Math.max(4, Math.min(y, window.innerHeight - box.offsetHeight - 4));
         box.style.left = x + 'px';
         box.style.top = y + 'px';
       }
@@ -634,8 +636,8 @@ function mount() {
             var x = L0, y = T0, w = W0, h = H0;
             if (k.indexOf('e') >= 0) w = Math.min(Math.max(320, W0 + dx), window.innerWidth - L0 - 4);
             if (k.indexOf('s') >= 0) h = Math.min(Math.max(240, H0 + dy), window.innerHeight - T0 - 4);
-            if (k.indexOf('w') >= 0) { w = Math.max(320, W0 - dx); x = L0 + W0 - w; }
-            if (k.indexOf('n') >= 0) { h = Math.max(240, H0 - dy); y = T0 + H0 - h; }
+            if (k.indexOf('w') >= 0) { w = Math.min(Math.max(Math.min(320, W0), W0 - dx), L0 + W0 - 4); x = L0 + W0 - w; }
+            if (k.indexOf('n') >= 0) { h = Math.min(Math.max(Math.min(240, H0), H0 - dy), T0 + H0 - 4); y = T0 + H0 - h; }
             box.style.width = w + 'px';
             box.style.height = h + 'px';
             box.style.left = x + 'px';
@@ -724,22 +726,32 @@ function mount() {
       }
       h.addEventListener('mousedown', function (e) {
         if (!floating) return;
-        if (e.target.closest('.sbx-rst, .sbx-fbtn')) return;
+        if (e.target.closest('button')) return;
         e.preventDefault();
         dragStart(e.clientX, e.clientY);
       });
       h.addEventListener('touchstart', function (e) {
         if (!floating) return;
-        if (e.target.closest('.sbx-rst, .sbx-fbtn')) return;
+        if (e.target.closest('button')) return;
         var t = e.touches[0];
         dragStart(t.clientX, t.clientY);
       });
 
       /* 刷新页面后自动恢复上次的悬浮状态 */
-      var cfg = loadCfg();
-      if (cfg && cfg.on && box.style.display !== 'none') floatOn();
+      function fitViewport() {
+        var x = box.offsetLeft, y = box.offsetTop;
+        if (box.offsetWidth > window.innerWidth - 8) box.style.width = clampW(box.offsetWidth) + 'px';
+        if (box.offsetHeight > window.innerHeight - 8) box.style.height = clampH(box.offsetHeight) + 'px';
+        applyPos(x, y);
+      }
+      box.__restoreFloat = function () {
+        if (floating) { fitViewport(); return; }
+        var cfg = loadCfg();
+        if (cfg && cfg.on) floatOn();
+      };
+      if (box.style.display !== 'none') box.__restoreFloat();
       window.addEventListener('resize', function () {
-        if (floating) applyPos(box.offsetLeft, box.offsetTop);
+        if (floating && box.style.display !== 'none') fitViewport();
       });
     });
   }
