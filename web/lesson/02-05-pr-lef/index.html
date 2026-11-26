@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LEF 详解：tech lef 与 cell lef 里到底写了什么 · 25 | IC 后端学院</title>
 <meta name="description" content="打开 lef 文件看真东西：tech lef 里的版本、单位、金属层定义、最小宽度与间距、pitch、走线方向、via 定义与电阻、obs 遮挡块；cell lef 里的单元尺寸与引脚。最后讲清 lef 与 def 的分工，以及工艺从 40nm 走到 3nm 时规则为什么越来越难。">
-<link rel="icon" href="/assets/logo.svg?v=67b471dfef4a" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=67b471dfef4a">
+<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
 </head>
 <body data-page="lesson" data-lesson="02-05-pr-lef">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=67b471dfef4a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -62,16 +62,16 @@
         <span class="pill tag">LEF</span><span class="pill tag">工艺库</span><span class="pill tag">金属层</span><span class="pill tag">via</span><span class="pill tag">pitch</span><span class="pill tag">DRC</span><span class="pill tag">单元库</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="why" data-ch="why">
-  <div class="ch-h"><span class="ch-n">01</span><h2>为什么必须读懂 lef</h2></div>
+    <article id="article"><section class="ch" id="why" data-ch="why" data-est="1">
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么必须读懂 lef</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="goal"><span>本章目标</span>能在 lef 里找到 MACRO / PIN / LAYER / VIA / SITE 这几类关键段，能说出 tech lef 与 cell lef 各管什么，能解释 pitch、最小间距、preferred direction 是什么意思。</div>
 <p>工具摆放和绕线时做的每个决定，背后都是 lef 里的规则在约束它。你看到的这些现象，原因都在 lef：</p>
 <ul><li>为什么这条线要绕这么远？——因为那一层禁止走线，或者间距不够；</li><li>为什么这个单元只能朝某个方向摆？——因为它的 pin 在某一边，反过来接不上；</li><li>为什么 DRC 报&quot;间距违规&quot;？——因为间距规则就写在 tech lef 里。</li></ul>
 <p>所以 lef 不是&quot;配好了就不用管&quot;的文件，它是你判断&quot;能不能这么干&quot;的依据。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="tech" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="tech" data-ch="tech">
-  <div class="ch-h"><span class="ch-n">02</span><h2>tech lef：工艺的规则书</h2></div>
+<section class="ch" id="tech" data-ch="tech" data-est="7">
+  <div class="ch-h"><span class="ch-n">02</span><h2>tech lef：工艺的规则书</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈7 分钟</span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">tech lef</span><span class="term-zh">工艺 LEF</span></div>
   <div class="term-b"><p>只描述<strong>工艺</strong>、不含具体设计的 lef：能用哪些金属层、每层的宽度/间距/pitch 规则、via 的定义与电阻、走线方向。一个工艺一份，所有用这个工艺的项目共用。</p></div>
@@ -122,8 +122,8 @@
 <p>这条规则解释了上一课的一个问题：<strong>为什么 mem 摆错会毁掉布线</strong>——它的 obs 占掉了两层金属的整片区域，你把它摆在通道中间，等于把通道堵死。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="cell" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="cell" data-ch="cell">
-  <div class="ch-h"><span class="ch-n">03</span><h2>cell lef：每个单元长什么样</h2></div>
+<section class="ch" id="cell" data-ch="cell" data-est="3">
+  <div class="ch-h"><span class="ch-n">03</span><h2>cell lef：每个单元长什么样</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈3 分钟</span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">cell lef</span><span class="term-zh">单元 LEF</span></div>
   <div class="term-b"><p>描述每个标准单元/宏单元：宽高（SIZE）、有几个 pin、pin 的名字与方向（input/output/inout）、pin 的形状与位置、单元类别（CORE / BLOCK）。</p></div>
@@ -141,21 +141,21 @@
 <p>lef 的 <code>SIZE A BY B</code> 就是 <strong>宽 BY 高</strong>（A=宽、B=高）。为什么强调这个：跨部门沟通时&quot;长&quot;到底指哪边经常吵起来，<strong>统一说 X/Y 或 width/height 就没人会误</strong>。面积一律按 宽×高 算。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="macro" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="macro" data-ch="macro">
-  <div class="ch-h"><span class="ch-n">04</span><h2>看 Memory 时看什么</h2></div>
+<section class="ch" id="macro" data-ch="macro" data-est="1">
+  <div class="ch-h"><span class="ch-n">04</span><h2>看 Memory 时看什么</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>宏单元（mem/SRAM）在 lef 里和标准单元同构（<code>MACRO ... SIZE ... PIN ...</code>），但你的关注点完全不同——<strong>因为它内部不能碰</strong>：</p>
 <div class="tbl"><table><thead><tr><th>你要看</th><th>为什么</th></tr></thead><tbody><tr><td><strong>实例名</strong>（常叫 M1、M2…）</td><td>指代清楚是哪块 mem，别和金属层 M1 混</td></tr><tr><td><strong>width × height</strong></td><td>决定 floorplan 能不能放下、通道还剩多少</td></tr><tr><td><strong>bit 数/规格</strong></td><td>判断它是什么用途（数据缓存？指令缓存？）</td></tr><tr><td><strong>pin 分布</strong>（在哪几条边）</td><td>决定朝向怎么摆才能让线短</td></tr><tr><td><strong>OBS</strong></td><td>内部禁布范围，摆错就把通道堵死</td></tr></tbody></table></div>
 <div class="note"><div class="note-h">memory 从哪来</div><p><strong>第三方 IP，不是你设计的</strong>。文档的说法很直接：memory 内部逻辑不用管，你只处理它的输入输出。所以别花时间研究它的功能，把 <strong>尺寸、pin、朝向</strong> 搞对就够了。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lef-vs-def" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="lef-vs-def" data-ch="lef-vs-def">
-  <div class="ch-h"><span class="ch-n">05</span><h2>lef 与 def 的分工：一个是字典，一个是答卷</h2></div>
+<section class="ch" id="lef-vs-def" data-ch="lef-vs-def" data-est="1">
+  <div class="ch-h"><span class="ch-n">05</span><h2>lef 与 def 的分工：一个是字典，一个是答卷</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="tbl"><table><thead><tr><th></th><th>lef</th><th>def</th></tr></thead><tbody><tr><td>内容</td><td>库信息：形状、规则、pin 位置</td><td>设计信息：这一版每个单元/端口的具体坐标</td></tr><tr><td>变化频率</td><td>一个工艺/库一份，基本不变</td><td>每跑一版都变</td></tr><tr><td>谁给</td><td>工艺厂、库组</td><td>上一道工序、顶层、或你自己导出</td></tr><tr><td>类比</td><td>字典（字长什么样、笔顺规则）</td><td>答卷（这一版你把字写在哪）</td></tr></tbody></table></div>
 <p>文档的说法很准：<strong>lef 是工具用来解析数据的（形状、线宽），def 存储单元的位置，可以还原我们的单元设置。</strong> 所以缺 lef 工具什么都干不了，缺 def 只是&quot;从零开始摆&quot;。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="advanced" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="advanced" data-ch="advanced">
-  <div class="ch-h"><span class="ch-n">06</span><h2>工艺越先进，lef 越难缠</h2></div>
+<section class="ch" id="advanced" data-ch="advanced" data-est="6">
+  <div class="ch-h"><span class="ch-n">06</span><h2>工艺越先进，lef 越难缠</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈6 分钟</span></div>
   <p>制程演进路线：<strong>40nm → 32nm → 28nm → 12nm → 7nm → 3nm</strong>。每往前进一代，lef 里的规则复杂度和条数都是跳着涨的：</p>
 <ul><li>层数变多（可选层、双倍/四倍曝光层），可用的走线资源不再&quot;均匀&quot;；</li><li>间距规则从&quot;一个数&quot;变成&quot;分段规则 + 与宽度相关 + 与相邻线状态相关&quot;；</li><li>出现大量&quot;不许打 via 的区域&quot;&quot;颜色（color）必须交替&quot;之类的新约束（多重曝光带来的）。</li></ul>
 <p>这就是为什么老工艺用 Encounter/ICC 就够，先进工艺必须上 Innovus/ICC2——<strong>不是界面好看，是老引擎处理不了这些规则组合</strong>。</p>
@@ -200,9 +200,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=67b471dfef4a"></script>
-<script src="/assets/tcl.js?v=67b471dfef4a"></script>
-<script src="/assets/app.js?v=67b471dfef4a"></script>
-<script src="/assets/aiwidget.js?v=67b471dfef4a" defer></script>
+<script src="/assets/shell.js?v=78d29e0cecbc"></script>
+<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
+<script src="/assets/app.js?v=78d29e0cecbc"></script>
+<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
 </body>
 </html>

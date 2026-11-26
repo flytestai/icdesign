@@ -25,7 +25,7 @@ import urllib.request
 from urllib.parse import quote
 from contextlib import closing
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.gzip import GZipMiddleware
@@ -151,6 +151,13 @@ def init_db():
             seconds INTEGER NOT NULL DEFAULT 0,
             updated_at INTEGER NOT NULL,
             PRIMARY KEY(user_id, lesson))""")
+        c.execute("""CREATE TABLE IF NOT EXISTS study_time_ch(
+            user_id INTEGER NOT NULL,
+            lesson TEXT NOT NULL DEFAULT '',
+            chapter TEXT NOT NULL DEFAULT '',
+            seconds INTEGER NOT NULL DEFAULT 0,
+            updated_at INTEGER NOT NULL,
+            PRIMARY KEY(user_id, lesson, chapter))""")
         c.execute("""CREATE TABLE IF NOT EXISTS user_uids(
             user_id INTEGER NOT NULL,
             uid TEXT NOT NULL,
@@ -909,6 +916,7 @@ def quiz_stats_get(request: Request):
 class StudyTimeIn(BaseModel):
     lesson: str = Field("", max_length=64)
     seconds: int = Field(..., ge=0, le=7200)      # 单次上报：最多 2 小时
+    by_chapter: Dict[str, int] = Field(default_factory=dict)  # 章级秒数（防刷分校验用）
 
 
 @app.post("/api/study-time")
@@ -929,6 +937,15 @@ def study_time_add(r: StudyTimeIn, request: Request):
             "ON CONFLICT(user_id,lesson) DO UPDATE SET seconds=seconds+excluded.seconds, "
             "updated_at=excluded.updated_at",
             (u["id"], lesson, int(r.seconds), now))
+        # 章级计时（防刷分校验依据）：只接受本课的章，单章单次上限同 2 小时
+        for ch, s in (r.by_chapter or {}).items():
+            if not (KEY_RE.match(ch) and isinstance(s, int) and s > 0):
+                continue
+            c.execute(
+                "INSERT INTO study_time_ch(user_id,lesson,chapter,seconds,updated_at) VALUES(?,?,?,?,?) "
+                "ON CONFLICT(user_id,lesson,chapter) DO UPDATE SET seconds=seconds+excluded.seconds, "
+                "updated_at=excluded.updated_at",
+                (u["id"], lesson, ch, min(int(s), 7200), now))
         c.commit()
     return {"ok": True, "added": int(r.seconds)}
 
@@ -940,8 +957,13 @@ def study_time_mine(request: Request):
         raise HTTPException(401, "not logged in")
     with closing(db()) as c:
         rows = c.execute("SELECT lesson,seconds FROM study_time WHERE user_id=?", (u["id"],)).fetchall()
+        rows_ch = c.execute(
+            "SELECT lesson,chapter,seconds FROM study_time_ch WHERE user_id=?", (u["id"],)).fetchall()
     total = sum(r["seconds"] for r in rows)
-    return {"total": total, "by_lesson": {r["lesson"]: r["seconds"] for r in rows}}
+    by_ch: Dict[str, Dict[str, int]] = {}
+    for r in rows_ch:
+        by_ch.setdefault(r["lesson"], {})[r["chapter"]] = r["seconds"]
+    return {"total": total, "by_lesson": {r["lesson"]: r["seconds"] for r in rows}, "by_ch": by_ch}
 
 
 @app.get("/api/leaderboard")
@@ -1050,6 +1072,30 @@ def _plan_minutes_by_lesson() -> dict:
         return out or {"_": 1}
     except Exception:
         return {"_": 1}
+
+
+_EST_CACHE: Dict[str, dict] = {}
+
+
+def _est_by_chapter(lesson: str) -> dict:
+    """{lesson: {chapter: est_minutes}}，从 catalog.json 读取（build 时估算）。"""
+    if lesson in _EST_CACHE:
+        return _EST_CACHE[lesson]
+    p = WEB / "data" / "catalog.json"
+    out = {}
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        for L in (data.get("lessons") or []):
+            out[L["id"]] = {c["id"]: int(c.get("est") or 1) for c in (L.get("chapters") or [])}
+    except Exception:
+        out = {}
+    _EST_CACHE.update(out)
+    return out.get(lesson, {})
+
+
+def _chapter_min_seconds(est_min: int) -> int:
+    """打卡所需的最少有效学习秒数：预计时长的 30%，下限 30 秒。"""
+    return max(30, int(est_min * 60 * 0.3))
 
 
 def _plan_total_seconds() -> int:
@@ -1502,20 +1548,42 @@ def post_progress(p: ProgressIn, request: Request):
     if len(p.items) > 200:
         raise HTTPException(400, "too many items")
     now = int(time.time())
+    rejected = []            # [{"lesson","chapter","reason"}] 打卡被拒（学习时长不足）
+    saved = 0
     with closing(db()) as c:
+        # 一次性取出该用户本课相关章的章级累计秒数，避免逐条查询
+        lessons = {it.lesson for it in p.items if it.done}
+        ch_secs: Dict[tuple, int] = {}
+        if lessons:
+            q = ",".join("?" for _ in lessons)
+            for r in c.execute(
+                    f"SELECT lesson,chapter,seconds FROM study_time_ch "
+                    f"WHERE user_id=? AND lesson IN ({q})", (u["id"], *lessons)).fetchall():
+                ch_secs[(r["lesson"], r["chapter"])] = r["seconds"]
         for it in p.items:
             if not (KEY_RE.match(it.lesson) and KEY_RE.match(it.chapter)):
                 continue
             if it.done:
+                # 防刷分校验：本章有效学习秒数须 ≥ max(30, 预计时长×30%)
+                est = _est_by_chapter(it.lesson).get(it.chapter)
+                if est is not None:
+                    have = ch_secs.get((it.lesson, it.chapter), 0)
+                    need = _chapter_min_seconds(est)
+                    if have < need:
+                        rejected.append({"lesson": it.lesson, "chapter": it.chapter,
+                                         "need": need, "have": have})
+                        continue
                 c.execute(
                     "INSERT INTO progress_u(user_id,lesson,chapter,done,ts) VALUES(?,?,?,1,?) "
                     "ON CONFLICT(user_id,lesson,chapter) DO UPDATE SET done=1, ts=excluded.ts",
                     (u["id"], it.lesson, it.chapter, now))
+                saved += 1
             else:
                 c.execute("DELETE FROM progress_u WHERE user_id=? AND lesson=? AND chapter=?",
                           (u["id"], it.lesson, it.chapter))
+                saved += 1
         c.commit()
-    return {"ok": True, "saved": len(p.items)}
+    return {"ok": True, "saved": saved, "rejected": rejected}
 
 
 @app.delete("/api/progress")

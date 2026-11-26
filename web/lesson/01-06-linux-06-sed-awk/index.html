@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Linux 第 6 课 · 文本三剑客：sed / awk / gvim · 06 | IC 后端学院</title>
 <meta name="description" content="sed 打印/新增/删除/替换（含 -i 注意事项）；awk 完整语法框架、内置变量、常用函数与 10 条实操；gvim 常用命令全套（设置/光标移动/编辑/可视/分屏/.vimrc 配置）；课后 awk 练习。">
-<link rel="icon" href="/assets/logo.svg?v=67b471dfef4a" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=67b471dfef4a">
+<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
 </head>
 <body data-page="lesson" data-lesson="01-06-linux-06-sed-awk">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=67b471dfef4a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -62,8 +62,8 @@
         <span class="pill tag">Linux</span><span class="pill tag">sed</span><span class="pill tag">awk</span><span class="pill tag">gvim</span><span class="pill tag">文本处理</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="sed" data-ch="sed">
-  <div class="ch-h"><span class="ch-n">01</span><h2>1. sed</h2></div>
+    <article id="article"><section class="ch" id="sed" data-ch="sed" data-est="2">
+  <div class="ch-h"><span class="ch-n">01</span><h2>1. sed</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈2 分钟</span></div>
   <div class="goal"><span>本章目标</span>sed 的打印/新增/删除/替换四种操作全部上手；awk 三段式框架和内置变量记牢，能独立完成列提取练习；会用 gvimdiff 对比文件。</div>
 <div class="pit"><div class="pit-h">常见坑 · 所有操作不加 -i 都不会修改原文件</div><div class="pit-b"><p>sed 默认只把处理结果打印到屏幕，原文件不动；要真正写回文件需要加 -i。先用打印模式确认效果，再决定是否加 -i。</p></div></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/linux-22.png" data-fig="linux-22"><img src="/fig/linux-22.png" alt="sed 常用操作速查" loading="lazy" decoding="async"></a><figcaption>sed 常用操作速查</figcaption></figure>
@@ -77,8 +77,8 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">sed 's/old/new/g'   文件   # 替换所有行的某些关键字</span><span class="ln ">sed '3s/old/new/g'  文件   # 只替换第 3 行的某些关键字</span><span class="ln ">sed '2c 内容'       文件   # 替换第 2 行整行</span><span class="ln ">sed '2,5c 内容'     文件   # 替换第 2 行到第 5 行</span></code></pre></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="awk" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="awk" data-ch="awk">
-  <div class="ch-h"><span class="ch-n">02</span><h2>2. awk</h2></div>
+<section class="ch" id="awk" data-ch="awk" data-est="4">
+  <div class="ch-h"><span class="ch-n">02</span><h2>2. awk</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈4 分钟</span></div>
   <p><strong>awk 实操热身</strong>：</p>
 <p>1、进入家目录；2、创建文件 test_awk.txt，写入以下内容：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">aaaa bbbb cccc</span><span class="ln ">1111;2222;3333</span><span class="ln ">qqqq:wwww:eeee</span></code></pre></div>
@@ -107,8 +107,8 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">awk '{print $1}'  file.txt                    # 打印文件第 1 列</span><span class="ln ">awk '{print $1, $3}'  file.txt                # 打印第 1、3 列（空格分隔）</span><span class="ln ">awk '{print $2}'  file.txt | sort -u          # 打印第 2 列且去重</span><span class="ln ">awk '$3&gt;100 {print $0}'  file.txt             # 按条件筛选（第 3 列 &gt; 100 才打印）</span><span class="ln ">awk '$1==&quot;root&quot; &amp;&amp; $2&gt;50 {print $0}'  file.txt    # 多条件筛选</span><span class="ln ">awk 'END{print NR}'  file.txt                 # 统计文件行数</span><span class="ln ">awk '/test/ {count++} END{print count}'  file.txt # 统计符合条件的行数（第 4 列包含 test）</span><span class="ln ">awk -F ',' '{print $2}'  file.csv             # 自定义分隔符（逗号，取第 2 列）</span><span class="ln ">awk 'NR==2{print $3}'  file                   # 输出指定行指定列</span><span class="ln ">awk 'NR==3{print $0}'  file                   # 输出指定行</span></code></pre></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="gvim" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="gvim" data-ch="gvim">
-  <div class="ch-h"><span class="ch-n">03</span><h2>3. gvim 常用命令</h2></div>
+<section class="ch" id="gvim" data-ch="gvim" data-est="4">
+  <div class="ch-h"><span class="ch-n">03</span><h2>3. gvim 常用命令</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈4 分钟</span></div>
   <p>gvim 和 vim 功能完全一致，多了 GUI 界面。下面几张表是<strong>日常后端工作真正高频</strong>的命令——每个都动手敲一遍，形成肌肉记忆。</p>
 <h3>3.1 常用设置（:set 系列）</h3>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">:set nu      显示行号          :set nonu   取消行号</span><span class="ln ">:set wrap    分行显示          :set ic     搜索忽略大小写</span><span class="ln ">:set noic    搜索区分大小写</span><span class="ln ">:set paste   粘贴模式（防止从别处粘代码时自动缩进错乱，粘完 :set nopaste 恢复）</span><span class="ln ">:set noh     取消搜索高亮</span></code></pre></div>
@@ -135,8 +135,8 @@
 <p>用 <code>g + f</code> 从 t1 里跳到 t2，<code>ctrl+o</code> 返回原文件。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">04</span><h2>动手练：awk 练习</h2></div>
+<section class="ch" id="lab" data-ch="lab" data-est="4">
+  <div class="ch-h"><span class="ch-n">04</span><h2>动手练：awk 练习</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈4 分钟</span></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>awk 练习（10 题）</div><div class="lab-b"><p>1、回到家目录 2、创建文件 demo_awk.txt 3、在 demo_awk.txt 中输入以下内容： demo  111  222  333 clock 444  555  666 test:777:888:999 run;1;2;3 icc/4/5/6 4、取出第五行的 6 5、取出 222 6、取出 999 7、根据冒号分割，取出第 2 列大于 400 且第 4 列小于 1000 的行的第 2 列 8、根据空格分割，取出第 2 列大于 100 小于 200 的行的第 3 列 9、根据冒号分割，取出第 2 列等于 777 的第 3 列 10、根据空格分割，取出第 3 列不等于 222 的整行</p></div></div>
 <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>sed 怎么才真正修改文件？</div>
@@ -177,9 +177,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=67b471dfef4a"></script>
-<script src="/assets/tcl.js?v=67b471dfef4a"></script>
-<script src="/assets/app.js?v=67b471dfef4a"></script>
-<script src="/assets/aiwidget.js?v=67b471dfef4a" defer></script>
+<script src="/assets/shell.js?v=78d29e0cecbc"></script>
+<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
+<script src="/assets/app.js?v=78d29e0cecbc"></script>
+<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
 </body>
 </html>

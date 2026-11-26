@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PR 全流程九步：从 init 到 chipfinish，以及一个项目怎么排期 · 22 | IC 后端学院</title>
 <meta name="description" content="把 init → floorplan → powerplan → place → cts → optcts → route → optroute → chipfinish 九个阶段逐个拆开，说清每步在干什么、产出什么、做完看哪个指标判断好坏；再讲清楚 run 是什么、PR → FINALPR → ECO → BTO/MTO 的项目时间线，以及 log 里 pre/post 命名的含义。">
-<link rel="icon" href="/assets/logo.svg?v=67b471dfef4a" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=67b471dfef4a">
+<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
 </head>
 <body data-page="lesson" data-lesson="02-03-pr-flow">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=67b471dfef4a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -62,8 +62,8 @@
         <span class="pill tag">PR</span><span class="pill tag">流程</span><span class="pill tag">floorplan</span><span class="pill tag">powerplan</span><span class="pill tag">cts</span><span class="pill tag">route</span><span class="pill tag">ECO</span><span class="pill tag">run</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="table" data-ch="table">
-  <div class="ch-h"><span class="ch-n">01</span><h2>九步流程总表：先记住骨架</h2></div>
+    <article id="article"><section class="ch" id="table" data-ch="table" data-est="2">
+  <div class="ch-h"><span class="ch-n">01</span><h2>九步流程总表：先记住骨架</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈2 分钟</span></div>
   <div class="goal"><span>本章目标</span>能按顺序背出 PR 九个阶段并说出每步的产出；能解释 run、ECO、BTO/MTO 是什么；看到 log 里的 PrePlace / PostCts 能判断它在流程哪个位置。</div>
 <p>下面这张表是整课的骨架，建议先扫一遍，再逐节看细节：</p>
 <div class="tbl"><table><thead><tr><th>#</th><th>阶段</th><th>一句话在干什么</th><th>主要产出</th><th>做完先看什么</th></tr></thead><tbody><tr><td>1</td><td>init</td><td>导入 netlist、lef、lib、sdc、MMMC</td><td>一个&quot;认得清设计&quot;的数据库</td><td>有没有 error、单元数对不对</td></tr><tr><td>2</td><td>floorplan</td><td>定芯片面积，摆 mem/macro，加物理约束与物理单元</td><td>die 尺寸、mem 位置、port 位置（def）</td><td>利用率、通道够不够、mem 摆得顺不顺</td></tr><tr><td>3</td><td>powerplan</td><td>打供电网络</td><td>电源 mesh/strap、via 阵列</td><td>IR drop、有没有断电的单元</td></tr><tr><td>4</td><td>placement</td><td>摆放所有 stdcell（并做一次 global route 试算）</td><td>合法化的单元位置</td><td>拥塞（congestion）、时序初值</td></tr><tr><td>5</td><td>cts</td><td>时钟树综合，绕时钟线</td><td>时钟树、clock net</td><td>skew、insertion delay、时钟功耗</td></tr><tr><td>6</td><td>optcts</td><td>针对 cts 结果做优化</td><td>优化后的时序/面积</td><td>setup/hold 违例数、DRV</td></tr><tr><td>7</td><td>route</td><td>信号线正式绕线</td><td>完整布线（detail route）</td><td>DRC、绕通率、时序</td></tr><tr><td>8</td><td>optroute</td><td>针对 route 结果做优化（必要时 reroute）</td><td>收敛后的布线与时序</td><td>违例是否清零、DRC 是否可签核</td></tr><tr><td>9</td><td>chipfinish</td><td>吐出所有交付文件</td><td>GDSII、def、报告、数据库</td><td>文件齐不齐、版本对不对</td></tr></tbody></table></div>
@@ -74,15 +74,15 @@
 <p>所以 PR <strong>不是&quot;跑五步就完&quot;，而是&quot;跑一步、修一轮&quot;的循环</strong>。这也是为什么课表里 cts 给了 14 学时——时钟树出来之后那几轮优化，才是真正磨时序的地方（第 6 讲还会细讲）。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="init" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="init" data-ch="init">
-  <div class="ch-h"><span class="ch-n">02</span><h2>1. init：把数据喂进去</h2></div>
+<section class="ch" id="init" data-ch="init" data-est="1">
+  <div class="ch-h"><span class="ch-n">02</span><h2>1. init：把数据喂进去</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>init（初始化）要做的事只有一件：<strong>让工具认识这个设计</strong>。需要导入的东西就是下一课要细讲的那几样：</p>
 <ul><li><code>netlist</code>：门级网表（<code>.v.gz</code>），告诉工具有哪些单元、怎么连；</li><li><code>lef</code>：tech lef（工艺规则）+ cell lef（单元形状与引脚）；</li><li><code>lib</code>：单元的时序/功耗库，工具算延迟要用；</li><li><code>sdc</code>：时序约束，工具优化的目标；</li><li><code>MMMC</code>：多模式多端角环境（<code>viewDefinition.tcl</code>）。</li></ul>
 <p>init 做完的判断标准很朴素：<strong>没有 error，单元数和网表对得上，工具能报出设计的面积估算</strong>。这时候如果报 <code>Cannot find library</code> 或 <code>Cannot find cell</code>，八成是 lef/lib 路径或名字对不上，别急着往下走。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="floorplan" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="floorplan" data-ch="floorplan">
-  <div class="ch-h"><span class="ch-n">03</span><h2>2. floorplan：定面积、摆 mem、加物理约束</h2></div>
+<section class="ch" id="floorplan" data-ch="floorplan" data-est="3">
+  <div class="ch-h"><span class="ch-n">03</span><h2>2. floorplan：定面积、摆 mem、加物理约束</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈3 分钟</span></div>
   <p>floorplan（布局规划）是整个 PR 里<strong>最像&quot;设计&quot;的一步</strong>，因为它决定了后面所有阶段的天花板。</p>
 <p>要做四件事：</p>
 <ol><li><strong>定芯片面积</strong>（die size）：面积给大了浪费成本，给小了后面绕不开。核心指标是 <strong>utilization（利用率）</strong>＝单元总面积 ÷ 可用面积，通常从 60%~70% 起步，太高的留给布线的地方就不够了。</li><li><strong>摆 mem/macro</strong>：上一课讲过，这些第三方 IP 必须人工确定位置与朝向，还要留 halo、加 routing blockage。</li><li><strong>定物理约束</strong>：哪些区域禁止放单元、哪些层禁止走线、port（引脚）放在哪条边上。</li><li><strong>加物理单元</strong>：tap cell、endcap 这些&quot;没有逻辑但必须存在&quot;的单元，floorplan 阶段就按规则铺好。</li></ol>
@@ -104,15 +104,15 @@
 </div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="powerplan" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="powerplan" data-ch="powerplan">
-  <div class="ch-h"><span class="ch-n">04</span><h2>3. powerplan：先把电送到每个单元</h2></div>
+<section class="ch" id="powerplan" data-ch="powerplan" data-est="1">
+  <div class="ch-h"><span class="ch-n">04</span><h2>3. powerplan：先把电送到每个单元</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>powerplan（供电规划）主要工作是<strong>打供电的绕线</strong>：把电源/地从 pad 引进来，做成网格（mesh）或条带（strap），一层层用 via 往下打到每个 stdcell 的电源轨上。</p>
 <p>它排在 place 前面的原因很实际：<strong>电源线又宽又占层</strong>，先把它们占好位置，后面的信号线才知道自己还剩多少资源。如果反过来先绕信号，电源线就没地方走了。</p>
 <p>判断好坏看两个东西：<strong>IR drop</strong>（电压掉得太多，单元会变慢甚至不工作）和<strong>电迁移</strong>（电流密度太大，线会&quot;烧断&quot;）。这两项是阶段七功耗分析课的正题，这里先知道名字。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="placement" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="placement" data-ch="placement">
-  <div class="ch-h"><span class="ch-n">05</span><h2>4. placement：自动摆 stdcell</h2></div>
+<section class="ch" id="placement" data-ch="placement" data-est="1">
+  <div class="ch-h"><span class="ch-n">05</span><h2>4. placement：自动摆 stdcell</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>placement 把网表里成千上万个 stdcell 摆到 row 上，目标是<strong>线短、拥塞低、时序好</strong>。这一步工具会自动做，但同时会做一次 <strong>global route（全局布线）试算</strong>——不是真的绕线，而是估算&quot;这些连接大概要走哪、会不会堵&quot;。</p>
 <div class="term open">
   <div class="term-h"><span class="term-en">global route</span><span class="term-zh">全局布线（试算）</span></div>
@@ -121,8 +121,8 @@
 <p>所以 place 结束后你要看的是<strong>拥塞图</strong>和<strong>时序初值</strong>，而不是&quot;单元摆得整不整齐&quot;。单元摆得再漂亮，绕不通就是废的。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="cts" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="cts" data-ch="cts">
-  <div class="ch-h"><span class="ch-n">06</span><h2>5. cts：时钟树综合</h2></div>
+<section class="ch" id="cts" data-ch="cts" data-est="1">
+  <div class="ch-h"><span class="ch-n">06</span><h2>5. cts：时钟树综合</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>cts（Clock Tree Synthesis，时钟树综合）专门解决一件事：<strong>让时钟同时到达所有触发器</strong>。</p>
 <p>理想情况下，时钟到每个触发器的延迟应该完全一样；现实中不会，这个偏差叫 <strong>skew（偏斜）</strong>：</p>
 <div class="term open">
@@ -136,13 +136,13 @@
 <p>cts 阶段的产物是一棵真实的时钟树（一堆 buffer/inverter 加上连线）。它只绕<strong>时钟线</strong>，不碰信号线——这也是为什么 cts 能单独成为一个 14 学时的大章节：时钟树的结构、buffer 数量、层级、skew/latency 的取舍，全是经验活。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="optcts" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="optcts" data-ch="optcts">
-  <div class="ch-h"><span class="ch-n">07</span><h2>6. optcts：给时钟树擦屁股</h2></div>
+<section class="ch" id="optcts" data-ch="optcts" data-est="1">
+  <div class="ch-h"><span class="ch-n">07</span><h2>6. optcts：给时钟树擦屁股</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>cts 做完，时序通常会更差（多了 buffer、多了延迟）。optcts 就是<strong>针对 cts 的结果做优化</strong>：修 setup/hold 违例、修 DRV（max transition / max capacitance / max fanout 这类电气规则违例），同时尽量不把时钟树搞乱。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="route" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="route" data-ch="route">
-  <div class="ch-h"><span class="ch-n">08</span><h2>7. route：信号线正式绕线</h2></div>
+<section class="ch" id="route" data-ch="route" data-est="1">
+  <div class="ch-h"><span class="ch-n">08</span><h2>7. route：信号线正式绕线</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>route 阶段把剩下所有信号连接真正绕出来（detail route），落到具体的金属层和 track 上。这是计算量最大的一步，也是 DRC 的主要来源。</p>
 <p>判断标准就三条：<strong>绕通率</strong>、<strong>DRC 数量</strong>、<strong>时序是否还活着</strong>。</p>
 <p>绕线的两类硬错误，必须分清：</p>
@@ -150,8 +150,8 @@
 <p><strong>open 会让信号根本传不过去（功能直接错），short 会让两个网络短接（逻辑错乱 + 可能烧毁）</strong>。这两类必须在 route 阶段清零，而绕不通的通常要回到 floorplan/placement 找原因（通道不够、mem 摆得太挤），不是在 route 里硬修。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="optroute" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="optroute" data-ch="optroute">
-  <div class="ch-h"><span class="ch-n">09</span><h2>8. optroute：收敛与 reroute</h2></div>
+<section class="ch" id="optroute" data-ch="optroute" data-est="1">
+  <div class="ch-h"><span class="ch-n">09</span><h2>8. optroute：收敛与 reroute</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>optroute 针对 route 的结果做优化：修时序、修 DRC、减少绕线长度。如果优化过程中把线拆了重绕，就叫 <strong>reroute</strong>。</p>
 <div class="note"><div class="note-h">这一步的另一个名字：OBT</div><p>有的公司/文档把&quot;布线之后的这轮优化&quot;叫 <strong>OBT</strong>（<strong>O</strong>ptimization <strong>B</strong>efore <strong>T</strong>apeout，流片前优化），有的叫 <strong>postRoute opt</strong>，说的都是同一件事：<strong>在真实 RC 下把最后的时序和 DRC 修干净。</strong></p>
 <p>听到 OBT 别以为是新阶段——它就是我们这张表里的第 8 步。</p></div>
@@ -162,8 +162,8 @@
 </div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="chipfinish" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="chipfinish" data-ch="chipfinish">
-  <div class="ch-h"><span class="ch-n">10</span><h2>9. chipfinish：把所有文件吐出来</h2></div>
+<section class="ch" id="chipfinish" data-ch="chipfinish" data-est="1">
+  <div class="ch-h"><span class="ch-n">10</span><h2>9. chipfinish：把所有文件吐出来</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>chipfinish 是收尾：导出 GDSII、def、各种报告（时序、面积、DRC、功耗），整理交付目录。这一步技术含量不高但最容易出事——<strong>文件版本错、漏导一层、报告和数据库对不上</strong>，都会让下游白跑一轮。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/pr-chipfinish-netlist.png" data-fig="pr-chipfinish-netlist"><img src="/fig/pr-chipfinish-netlist.png" alt="chipfinish 阶段吐出的一版网表：ORCA_TOP_09_icc2_chipfinish.v.gz" loading="lazy" decoding="async"></a><figcaption>chipfinish 阶段吐出的一版网表：ORCA_TOP_09_icc2_chipfinish.v.gz</figcaption></figure>
 <p>注意这个文件名，它把三件事写在了名字里，这也是工程上的通行做法：</p>
@@ -171,8 +171,8 @@
 <p><strong>看到这种命名就放心一大半</strong>：谁的、第几版、哪个工具、哪个阶段，一目了然。反过来，如果你的目录里全是 <code>top.v</code>、<code>top_new.v</code>、<code>top_final.v</code>、<code>top_final2.v</code>——那就等着出事故。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="run" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="run" data-ch="run">
-  <div class="ch-h"><span class="ch-n">11</span><h2>run 是什么：一句行话</h2></div>
+<section class="ch" id="run" data-ch="run" data-est="1">
+  <div class="ch-h"><span class="ch-n">11</span><h2>run 是什么：一句行话</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>面试和日常沟通里高频出现的词：</p>
 <div class="term open">
   <div class="term-h"><span class="term-en">run</span><span class="term-zh">一轮完整跑</span></div>
@@ -184,8 +184,8 @@
 <p>于是工作方式变成：<strong>手动做完 floorplan → 丢进 Queue → 等 → 看报告 → 改参数 → 再丢一版</strong>。等待期不是空转，而是分析上一批结果、加新约束、再提交（这套流程在阶段三的「项目环境」那一课细讲）。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="project" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="project" data-ch="project">
-  <div class="ch-h"><span class="ch-n">12</span><h2>一个真实项目的时间线</h2></div>
+<section class="ch" id="project" data-ch="project" data-est="3">
+  <div class="ch-h"><span class="ch-n">12</span><h2>一个真实项目的时间线</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈3 分钟</span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">ECO</span><span class="term-zh">工程变更单（改版）</span></div>
   <div class="term-b"><p>Engineering Change Order。芯片流片前（甚至流片后）发现要改的地方，用最小的改动去打补丁：只动几个单元、几条线，而不是重跑全流程。</p></div>
@@ -210,15 +210,15 @@
 <div class="note"><div class="note-h">为什么 PR 要吃四版网表？</div><p>因为前端也在改。第一版网表通常是&quot;功能刚通&quot;，面积和时序都很差；后面每一版修 bug、加功能、做低功耗，网表一直在变。<strong>你这一版辛苦收敛的结果，下一版网表来了可能全崩</strong>——所以流程必须脚本化、可复现，这也是为什么本站先讲 Linux 和 Tcl。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="prepost" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="prepost" data-ch="prepost">
-  <div class="ch-h"><span class="ch-n">13</span><h2>pre / post：log 和报告名里的位置标记</h2></div>
+<section class="ch" id="prepost" data-ch="prepost" data-est="1">
+  <div class="ch-h"><span class="ch-n">13</span><h2>pre / post：log 和报告名里的位置标记</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>看 log、看报告目录时，你会反复看到这两组词：</p>
 <ul><li><code>pre</code> = 在……之前；<code>post</code> = 在……之后；</li><li><code>PrePlace</code> / <code>PostPlace</code>：placement 之前 / 之后；</li><li><code>PreCts</code> / <code>PostCts</code>：cts 之前 / 之后；</li><li><code>PreRoute</code> / <code>PostRoute</code>：route 之前 / 之后。</li></ul>
 <p>所以 <code>postRoute_timing.rpt</code> 就是&quot;绕完线之后的时序报告&quot;，<code>preCts_area.rpt</code> 是&quot;cts 之前的面积报告&quot;。搞不清这个，就会拿 cts 之前的报告去解释 cts 之后的问题——这是新人最常犯的错之一。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="eda" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="eda" data-ch="eda">
-  <div class="ch-h"><span class="ch-n">14</span><h2>EDA 公司与其工具：一张对照表</h2></div>
+<section class="ch" id="eda" data-ch="eda" data-est="7">
+  <div class="ch-h"><span class="ch-n">14</span><h2>EDA 公司与其工具：一张对照表</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈7 分钟</span></div>
   <div class="tbl"><table><thead><tr><th>公司</th><th>布局布线</th><th>综合</th><th>时序</th><th>寄生提取</th><th>功耗</th></tr></thead><tbody><tr><td>Cadence</td><td><strong>Encounter</strong>（老）、<strong>Innovus</strong>（主流）</td><td>Genus</td><td>Tempus</td><td>QRC</td><td>Voltus</td></tr><tr><td>Synopsys</td><td><strong>ICC</strong>（老）、<strong>ICC2</strong>（主流）、Fusion Compiler</td><td>Design Compiler（DC）</td><td><strong>PrimeTime</strong></td><td><strong>StarRC</strong></td><td>RedHawk（Ansyst 系）</td></tr></tbody></table></div>
 <p>记两条就够用：</p>
 <ol><li><strong>90nm 以上工艺</strong>常见 Encounter / ICC；<strong>先进工艺</strong>是 Innovus / ICC2 的天下——工艺越先进，老架构越跑不动（最直观的差别是运行时间）。</li><li>本站阶段三用 <strong>Innovus + 40nm</strong>，阶段四用 <strong>ICC2 + 32nm</strong>：同一套方法论，换工具再走一遍，这是最快建立&quot;工具只是壳、方法是内核&quot;认知的方式。</li></ol>
@@ -285,9 +285,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=67b471dfef4a"></script>
-<script src="/assets/tcl.js?v=67b471dfef4a"></script>
-<script src="/assets/app.js?v=67b471dfef4a"></script>
-<script src="/assets/aiwidget.js?v=67b471dfef4a" defer></script>
+<script src="/assets/shell.js?v=78d29e0cecbc"></script>
+<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
+<script src="/assets/app.js?v=78d29e0cecbc"></script>
+<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
 </body>
 </html>

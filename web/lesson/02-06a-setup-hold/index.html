@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Setup 与 Hold：两条红线与四种 Corner · 28 | IC 后端学院</title>
 <meta name="description" content="时序检查只有两件事：数据不能太晚（setup），也不能太早（hold）。这一课把这两条红线的判据写清楚，然后讲清它们各自该在什么条件下检查——corner 为什么分 FF/SS/TT、RC corner 的 Cmax/Cmin/RCmax/RCmin 由线宽 W、厚度 T、介质厚 H、间距 S 怎么决定、为什么 setup 看 SS+RCmax 而 hold 看 FF+RCmin，最后讲 OCV 与 POCV 这两种片上偏差建模。">
-<link rel="icon" href="/assets/logo.svg?v=67b471dfef4a" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=67b471dfef4a">
+<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
 </head>
 <body data-page="lesson" data-lesson="02-06a-setup-hold">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=67b471dfef4a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -62,16 +62,16 @@
         <span class="pill tag">setup</span><span class="pill tag">hold</span><span class="pill tag">corner</span><span class="pill tag">FF</span><span class="pill tag">SS</span><span class="pill tag">TT</span><span class="pill tag">RC corner</span><span class="pill tag">PVT</span><span class="pill tag">WCS</span><span class="pill tag">BCF</span><span class="pill tag">OCV</span><span class="pill tag">POCV</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="why" data-ch="why">
-  <div class="ch-h"><span class="ch-n">01</span><h2>时序检查只有两件事</h2></div>
+    <article id="article"><section class="ch" id="why" data-ch="why" data-est="1">
+  <div class="ch-h"><span class="ch-n">01</span><h2>时序检查只有两件事</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="goal"><span>本章目标</span>能写出 setup 与 hold 的 slack 判据；能说出 setup 查最慢、hold 查最快的理由；能解释 FF/SS/TT 与 PVT 的对应关系；能说出 Cmax/Cmin/RCmax/RCmin 分别由 W/T/H/S 怎么组合出来；能说清 WCS 与 BCF 各是什么组合；知道 OCV 与 POCV 的区别。</div>
 <p>上一课（SDC）给的是&quot;要求&quot;：周期多长、外部给多少延迟。这一课讲的是<strong>怎么判合格</strong>——工具算出到达时间（arrival）和需求时间（required），两者一比，就是 slack。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">setup:  slack = required(下一个时钟沿) - arrival(数据最晚到)     必须 ≥ 0</span><span class="ln ">hold:   slack = arrival(数据最早到)   - required(当前时钟沿之后)  必须 ≥ 0</span></code></pre></div>
 <p>一句话记：<strong>数据必须在 T1 到 T2 这个窗口里到，早了晚了都是错。</strong></p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="setup" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="setup" data-ch="setup">
-  <div class="ch-h"><span class="ch-n">02</span><h2>Setup：不能太晚</h2></div>
+<section class="ch" id="setup" data-ch="setup" data-est="1">
+  <div class="ch-h"><span class="ch-n">02</span><h2>Setup：不能太晚</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">setup</span><span class="term-zh">建立时间</span></div>
   <div class="term-b"><p>数据必须在<strong>下一个时钟沿到来之前</strong>稳定一段时间，这段提前量要求就是 setup 检查。<strong>不满足 = 数据来不及被采到。</strong></p></div>
@@ -79,8 +79,8 @@
 <ul><li>物理含义：这一拍的数据，要在下一拍的时钟沿&quot;抓&quot;之前就位；</li><li>检查的是<strong>最慢</strong>的情况——所以用<strong>延迟最大</strong>的库与 RC（慢 corner）；</li><li>表现：频率提不上去、WNS 为负、报告里一堆 <code>setup violation</code>；</li><li>修法（后端手段）：插 buffer 打拍不行（那是前端），能做的是换大驱动单元、缩短走线、调整位置、降密度。</li></ul>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="hold" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="hold" data-ch="hold">
-  <div class="ch-h"><span class="ch-n">03</span><h2>Hold：不能太早</h2></div>
+<section class="ch" id="hold" data-ch="hold" data-est="1">
+  <div class="ch-h"><span class="ch-n">03</span><h2>Hold：不能太早</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">hold</span><span class="term-zh">保持时间</span></div>
   <div class="term-b"><p>数据在<strong>当前时钟沿之后</strong>还必须保持一段时间不变，否则会把该采的旧值冲掉。<strong>不满足 = 数据跑太快，把上一拍冲了。</strong></p></div>
@@ -91,8 +91,8 @@
 <p><strong>记住</strong>：<strong>setup 决定&quot;能跑多快&quot;，hold 决定&quot;能不能活&quot;。</strong></p></div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="corner" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="corner" data-ch="corner">
-  <div class="ch-h"><span class="ch-n">04</span><h2>Corner：为什么要分 FF / SS / TT</h2></div>
+<section class="ch" id="corner" data-ch="corner" data-est="1">
+  <div class="ch-h"><span class="ch-n">04</span><h2>Corner：为什么要分 FF / SS / TT</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">corner</span><span class="term-zh">工艺角</span></div>
   <div class="term-b"><p>制造偏差导致晶体管有快有慢。<strong>FF / SS / TT</strong> 是三种典型组合：取决于 NMOS 和 PMOS 各自偏快还是偏慢。</p></div>
@@ -104,8 +104,8 @@
 <p>只查 TT 等于假设&quot;每颗芯片都完美&quot;，这在量产里不成立。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="rc" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="rc" data-ch="rc">
-  <div class="ch-h"><span class="ch-n">05</span><h2>RC corner：线也有四种极端</h2></div>
+<section class="ch" id="rc" data-ch="rc" data-est="1">
+  <div class="ch-h"><span class="ch-n">05</span><h2>RC corner：线也有四种极端</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>线延迟不只看工艺，还要看<strong>金属的几何偏差</strong>。四个几何量决定一切：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">        ← W（线宽）→  ← S（线间距）→</span><span class="ln ">    ┌────────────────┐  ┌──────────┐</span><span class="ln ">    │   metal  ▔▔▔▔  │  │  metal   │   ↕ T（金属厚度）</span><span class="ln ">    └────────────────┘  └──────────┘</span><span class="ln ">    ─────────────────────────────────  ↕ H（层间介质厚度）</span></code></pre></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/pr-rc-corner.png" data-fig="pr-rc-corner"><img src="/fig/pr-rc-corner.png" alt="各种不同的 RC 环境：Cmax / Cmin / RCmax / RCmin 由 W、T、H、S 决定" loading="lazy" decoding="async"></a><figcaption>各种不同的 RC 环境：Cmax / Cmin / RCmax / RCmin 由 W、T、H、S 决定</figcaption></figure>
@@ -114,8 +114,8 @@
 <ul><li><strong>电容</strong>主要由&quot;两块金属面对面&quot;决定：<strong>W、T 大（金属截面大）+ H、S 小（离得近）→ C 大</strong>；</li><li><strong>电阻</strong>由&quot;细、薄、长&quot;决定：<strong>W、T、H 小（截面小）→ R 大</strong>。</li></ul>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="pvt" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="pvt" data-ch="pvt">
-  <div class="ch-h"><span class="ch-n">06</span><h2>PVT：三个字母锁死一个 corner</h2></div>
+<section class="ch" id="pvt" data-ch="pvt" data-est="1">
+  <div class="ch-h"><span class="ch-n">06</span><h2>PVT：三个字母锁死一个 corner</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="tbl"><table><thead><tr><th>字母</th><th>含义</th><th>极端取值</th></tr></thead><tbody><tr><td><strong>P</strong></td><td>Process 工艺</td><td>FF（快）/ SS（慢）/ TT（典型）</td></tr><tr><td><strong>V</strong></td><td>Voltage 电压</td><td>高压（快）/ 低压（慢）</td></tr><tr><td><strong>T</strong></td><td>Temperature 温度</td><td>低温（快）/ 高温（慢，先进工艺可能反转）</td></tr></tbody></table></div>
 <p>组合出来的两条&quot;最坏线&quot;：</p>
 <div class="term open">
@@ -132,8 +132,8 @@
 <p>（先进工艺的低温反转会让&quot;低温 setup&quot;也变坏，所以低温 corner 也要单独跑——lib 课讲过。）</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="mmc" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="mmc" data-ch="mmc">
-  <div class="ch-h"><span class="ch-n">07</span><h2>MMC：为什么还要乘上&quot;模式&quot;</h2></div>
+<section class="ch" id="mmc" data-ch="mmc" data-est="1">
+  <div class="ch-h"><span class="ch-n">07</span><h2>MMC：为什么还要乘上&quot;模式&quot;</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">MMC / MMMC</span><span class="term-zh">Multi-Mode Multi-Corner</span></div>
   <div class="term-b"><p>多模式多角。<strong>光有工艺角还不够</strong>——同一颗芯片在不同工作模式下（功能 / 扫描测试 / 超频），时钟结构与频率都不一样，所以 corner 还要再乘上 mode，得到一组 analysis view。</p></div>
@@ -142,8 +142,8 @@
 <p><strong>MMC 的要求是：所有 corner × mode 的组合都收敛</strong>，而不只是主 corner 好看。具体怎么配（library set / rc corner / view），下一课 MMMC 专讲。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="ocv" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="ocv" data-ch="ocv">
-  <div class="ch-h"><span class="ch-n">08</span><h2>OCV 与 POCV：同一颗芯片内部也有快慢</h2></div>
+<section class="ch" id="ocv" data-ch="ocv" data-est="1">
+  <div class="ch-h"><span class="ch-n">08</span><h2>OCV 与 POCV：同一颗芯片内部也有快慢</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>前面讲的 corner 是&quot;<strong>芯片之间</strong>的偏差&quot;（这颗快那颗慢）。但<strong>同一颗芯片内部</strong>，不同位置的器件也会有快慢差——比如靠近时钟源的和角落里的。</p>
 <div class="term open">
   <div class="term-h"><span class="term-en">OCV</span><span class="term-zh">On-Chip Variation 片上偏差</span></div>
@@ -159,8 +159,8 @@
 <p><strong>做法</strong>：先确认&quot;这个 view 是哪个 mode × 哪个 corner&quot;，再看数字（下一课有专门讲 view 的命名与配置）。</p></div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">09</span><h2>动手：算一次 slack</h2></div>
+<section class="ch" id="lab" data-ch="lab" data-est="7">
+  <div class="ch-h"><span class="ch-n">09</span><h2>动手：算一次 slack</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈7 分钟</span></div>
   <p>把下面几个数改掉，体会&quot;晚一点 / 早一点&quot;对两条红线的影响。<strong>注意这里全部用 ps 的整数</strong>——真实签核数据也常以 ps 为单位，避免浮点误差（0.35 + 1.2 在浮点里会变成 1.5499999…）：</p>
 <div class="tsbx has-code" data-code="# ---- setup 检查：数据最晚到达 vs 下一个时钟沿（单位：ps）----
 set period 2000                               ;# 时钟周期 2000ps = 2ns
@@ -257,9 +257,9 @@ puts &quot;逻辑慢 300ps 后 setup slack=[expr {$required - $arrival2}] ps&quo
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=67b471dfef4a"></script>
-<script src="/assets/tcl.js?v=67b471dfef4a"></script>
-<script src="/assets/app.js?v=67b471dfef4a"></script>
-<script src="/assets/aiwidget.js?v=67b471dfef4a" defer></script>
+<script src="/assets/shell.js?v=78d29e0cecbc"></script>
+<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
+<script src="/assets/app.js?v=78d29e0cecbc"></script>
+<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
 </body>
 </html>

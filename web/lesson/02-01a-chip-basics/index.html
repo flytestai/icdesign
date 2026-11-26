@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>数字电路基础：从晶体管到 CPU · 18 | IC 后端学院</title>
 <meta name="description" content="后端工程师不必设计电路，但必须知道自己在摆的是什么东西。这一课从最底层的晶体管讲起：NMOS 的三个极怎么控制电流、28nm 指的是沟道多宽、为什么沟道太短会漏电、FinFET 为什么要三面包裹；再往上讲到与或非门、二进制与半加器/全加器，最后拼成 ALU 与 CPU 的模块图，说清"晶体管→逻辑门→功能模块→CPU"这条认知链。">
-<link rel="icon" href="/assets/logo.svg?v=67b471dfef4a" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=67b471dfef4a">
+<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
 </head>
 <body data-page="lesson" data-lesson="02-01a-chip-basics">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=67b471dfef4a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -62,15 +62,15 @@
         <span class="pill tag">晶体管</span><span class="pill tag">NMOS</span><span class="pill tag">FinFET</span><span class="pill tag">短沟道效应</span><span class="pill tag">逻辑门</span><span class="pill tag">二进制</span><span class="pill tag">加法器</span><span class="pill tag">ALU</span><span class="pill tag">DFF</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="why" data-ch="why">
-  <div class="ch-h"><span class="ch-n">01</span><h2>为什么后端也要懂电路</h2></div>
+    <article id="article"><section class="ch" id="why" data-ch="why" data-est="1">
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么后端也要懂电路</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="goal"><span>本章目标</span>能画出 NMOS 的三个极并说出栅极怎么控制导通；能解释&quot;28nm 指的是沟道长度&quot;以及短沟道效应为什么会漏电；能说出 FinFET 相比平面 MOS 的关键差别；能用与或非门推出半加器/全加器；能说出 CPU 由哪几类模块组成、后端通常负责其中哪一部分。</div>
 <p>你每天在做的事，是把几百万个晶体管摆到硅片上、用金属线连起来、让它们在正确的时刻翻转。如果不知道这些器件是什么、为什么这样连，你看到的就是一堆缩写和坐标。</p>
 <p>这一课不要求你会设计电路，只要求你<strong>能对上号</strong>：看到 <code>NAND2_X1</code> 知道它是&quot;两个输入做与再取反&quot;，看到 <code>DFF</code> 知道它是&quot;存 1 bit 的触发器&quot;，看到&quot;28nm 工艺&quot;知道那个 28 指的是什么。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="transistor" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="transistor" data-ch="transistor">
-  <div class="ch-h"><span class="ch-n">02</span><h2>晶体管：一个能被电压控制的开关</h2></div>
+<section class="ch" id="transistor" data-ch="transistor" data-est="1">
+  <div class="ch-h"><span class="ch-n">02</span><h2>晶体管：一个能被电压控制的开关</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">晶体管</span><span class="term-zh">transistor / MOSFET</span></div>
   <div class="term-b"><p>半导体芯片里最基础的单元，一个<strong>用栅极电压控制电流通断</strong>的器件。芯片里几百万、几十亿个这样的开关，组合出全部功能。</p></div>
@@ -84,8 +84,8 @@
 </div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="node" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="node" data-ch="node">
-  <div class="ch-h"><span class="ch-n">03</span><h2>&quot;28nm&quot;到底指什么</h2></div>
+<section class="ch" id="node" data-ch="node" data-est="1">
+  <div class="ch-h"><span class="ch-n">03</span><h2>&quot;28nm&quot;到底指什么</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="tip"><div class="tip-h">小技巧</div><p>所谓 28nm、16nm、7nm 工艺，指的是<strong>沟道（栅极下方那条通道）的长度</strong>，不是芯片面积、也不是线宽。</p>
 <p>工艺越先进 → 沟道越短 → 晶体管占的面积越小 → 同样面积能塞更多器件。</p></div>
 <p>但沟道不能无限缩短，因为会出现<strong>短沟道效应</strong>：</p>
@@ -97,8 +97,8 @@
 <figure class="fig-img"><a class="fig-a" href="/fig/chip-28nm-channel.jpg" data-fig="chip-28nm-channel.jpg"><img src="/fig/chip-28nm-channel.jpg" alt="&quot;28nm&quot; 说的是栅极下方沟道的长度，不是芯片大小。沟道越短 → 晶体管越小 → 同样大的芯片能放更多开关；但不能一直变短：太短了门关不严、电子偷偷跑过去，芯片就更耗电、更容易发热。" loading="lazy" decoding="async"></a><figcaption>&quot;28nm&quot; 说的是栅极下方沟道的长度，不是芯片大小。沟道越短 → 晶体管越小 → 同样大的芯片能放更多开关；但不能一直变短：太短了门关不严、电子偷偷跑过去，芯片就更耗电、更容易发热。</figcaption></figure>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="finfet" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="finfet" data-ch="finfet">
-  <div class="ch-h"><span class="ch-n">04</span><h2>FinFET：把沟道立起来，三面包裹</h2></div>
+<section class="ch" id="finfet" data-ch="finfet" data-est="1">
+  <div class="ch-h"><span class="ch-n">04</span><h2>FinFET：把沟道立起来，三面包裹</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">FinFET</span><span class="term-zh">鳍式场效应晶体管</span></div>
   <div class="term-b"><p>把硅的沟道<strong>竖起来做成鱼鳍状</strong>，让栅极从<strong>顶部、左侧、右侧三面</strong>包住沟道的器件结构。</p></div>
@@ -110,8 +110,8 @@
 <p>所以你在招聘里看到&quot;做过 16nm FinFET 项目&quot;，说的是他用过这一代器件和配套的库/规则，而不是他会设计器件。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="gate" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="gate" data-ch="gate">
-  <div class="ch-h"><span class="ch-n">05</span><h2>逻辑门：几个晶体管搭出一个功能</h2></div>
+<section class="ch" id="gate" data-ch="gate" data-est="1">
+  <div class="ch-h"><span class="ch-n">05</span><h2>逻辑门：几个晶体管搭出一个功能</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">逻辑门</span><span class="term-zh">logic gate</span></div>
   <div class="term-b"><p>由多个晶体管组合而成、实现一个基本逻辑功能的电路单元。芯片里所有复杂功能，最终都是它们的组合。</p></div>
@@ -121,8 +121,8 @@
 <div class="tip"><div class="tip-h">小技巧</div><p>同样功能，NAND 用更少的晶体管、面积更小、速度更快。所以标准单元库里 NAND2_X1 这类单元满天飞，而纯 AND 门反而不多——<strong>这是&quot;逻辑等价但物理代价不同&quot;的第一个例子</strong>，后面布局布线里到处都是这种取舍。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="binary" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="binary" data-ch="binary">
-  <div class="ch-h"><span class="ch-n">06</span><h2>二进制与加法器：0 和 1 怎么算加法</h2></div>
+<section class="ch" id="binary" data-ch="binary" data-est="2">
+  <div class="ch-h"><span class="ch-n">06</span><h2>二进制与加法器：0 和 1 怎么算加法</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈2 分钟</span></div>
   <p>二进制<strong>逢二进一</strong>，第 n 位（从 0 数）的权重是 2ⁿ：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">二进制 1 1 1 1</span><span class="ln ">权重   8 4 2 1   →  8+4+2+1 = 15（十进制）</span></code></pre></div>
 <p>用门电路实现加法，分两步走：</p>
@@ -133,8 +133,8 @@
 <p>后端看到的所有 instance，都落在这条链的中间层：你摆的是&quot;逻辑门级的标准单元&quot;，服务的是&quot;模块级的功能&quot;。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="cpu" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="cpu" data-ch="cpu">
-  <div class="ch-h"><span class="ch-n">07</span><h2>从加法器到 CPU：模块级视角</h2></div>
+<section class="ch" id="cpu" data-ch="cpu" data-est="1">
+  <div class="ch-h"><span class="ch-n">07</span><h2>从加法器到 CPU：模块级视角</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>CPU 由几类模块组成（文档列举的）：</p>
 <div class="tbl"><table><thead><tr><th>模块</th><th>作用</th></tr></thead><tbody><tr><td><strong>ALU</strong>（算术逻辑单元）</td><td>做加减、与或、比较等运算</td></tr><tr><td><strong>Register</strong>（寄存器）</td><td>存中间结果，由大量 DFF 组成</td></tr><tr><td><strong>控制单元</strong>（Control）</td><td>产生控制信号，指挥各模块按节拍动作</td></tr><tr><td><strong>高速存储</strong>（Cache/SRAM）</td><td>缓存数据，通常是硬 macro</td></tr><tr><td><strong>总线接口</strong>（Bus/IO）</td><td>与外部交换数据</td></tr></tbody></table></div>
 <div class="term open">
@@ -144,8 +144,8 @@
 <p><strong>对后端的意义</strong>：一个 CPU 项目动辄几千万门，不可能一个人做。<strong>你会被分配其中一两个模块（block）</strong>，比如 ALU 或某个 Cache 控制逻辑——这也是为什么后面所有课程都在讲&quot;模块级（block）设计&quot;。你做的那一块，就是一个有边界、有端口的独立小芯片。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="terms" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="terms" data-ch="terms">
-  <div class="ch-h"><span class="ch-n">08</span><h2>术语与英文名：这是硬门槛</h2></div>
+<section class="ch" id="terms" data-ch="terms" data-est="1">
+  <div class="ch-h"><span class="ch-n">08</span><h2>术语与英文名：这是硬门槛</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p>文档里反复强调要<strong>背术语</strong>，因为课程里 80%~90% 的内容都由这些名词承载。最基础的一批：</p>
 <div class="tbl"><table><thead><tr><th>缩写</th><th>全称</th><th>中文</th></tr></thead><tbody><tr><td>MOS / NMOS / PMOS</td><td>Metal-Oxide-Semiconductor</td><td>金属氧化物半导体 / N 型 / P 型</td></tr><tr><td>FinFET</td><td>Fin Field-Effect Transistor</td><td>鳍式场效应晶体管</td></tr><tr><td>AND / OR / NOT</td><td>—</td><td>与 / 或 / 非</td></tr><tr><td>NAND / NOR / XOR</td><td>—</td><td>与非 / 或非 / 异或</td></tr><tr><td>INV / BUF</td><td>Inverter / Buffer</td><td>反相器 / 缓冲器</td></tr><tr><td>ALU</td><td>Arithmetic Logic Unit</td><td>算术逻辑单元</td></tr><tr><td>DFF</td><td>D Flip-Flop</td><td>D 触发器</td></tr><tr><td>SDC</td><td>Synopsys Design Constraints</td><td>时序约束文件（后面专门讲）</td></tr><tr><td>CDC</td><td>Clock Domain Crossing</td><td>跨时钟域（前端关注，后端要配合约束）</td></tr></tbody></table></div>
 <div class="pit"><div class="pit-h">常见坑 · 把&quot;工艺节点&quot;当成实际尺寸</div><div class="pit-b"><p><strong>现象</strong>：算面积时把 28nm 当成线宽，或者以为 7nm 芯片的线真的只有 7nm 宽。</p>
@@ -153,8 +153,8 @@
 <p><strong>记住</strong>：<strong>节点名是代际，物理尺寸一律查 lef/lib。</strong></p></div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">09</span><h2>动手：把逻辑门和二进制跑一遍</h2></div>
+<section class="ch" id="lab" data-ch="lab" data-est="7">
+  <div class="ch-h"><span class="ch-n">09</span><h2>动手：把逻辑门和二进制跑一遍</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈7 分钟</span></div>
   <p>下面的练习台可以直接运行，也可以把数字改掉（0 改 1）看结果怎么变：</p>
 <div class="tsbx has-code" data-code="# 与门：全 1 才输出 1
 puts &quot;1 AND 1 = [expr {1 &amp;&amp; 1}]&quot;
@@ -248,9 +248,9 @@ puts &quot;1111(2) = [expr {8 + 4 + 2 + 1}]&quot;</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=67b471dfef4a"></script>
-<script src="/assets/tcl.js?v=67b471dfef4a"></script>
-<script src="/assets/app.js?v=67b471dfef4a"></script>
-<script src="/assets/aiwidget.js?v=67b471dfef4a" defer></script>
+<script src="/assets/shell.js?v=78d29e0cecbc"></script>
+<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
+<script src="/assets/app.js?v=78d29e0cecbc"></script>
+<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
 </body>
 </html>

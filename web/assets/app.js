@@ -30,6 +30,47 @@
   var below = {};                        // 章 → 底边是否已在视口 65% 线上方（跨越检测基线）
   var reanchor = null;                   // 服务器进度回填后校正落点（课程页赋值）
 
+  /* ---------------- 共享工具：当前所在章 / 轻提示 ---------------- */
+  function curSection() {
+    if (!sections.length) return null;
+    var y = window.scrollY + 140, cur = sections[0];
+    sections.forEach(function (s) { if (s.offsetTop <= y) cur = s; });
+    return cur;
+  }
+  function showToast(msg) {
+    var t = document.createElement('div');
+    t.className = 'aiw-toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function () { t.classList.add('show'); }, 10);
+    setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 400); }, 2800);
+  }
+
+  /* ---------------- 章级预计时长 + 有效学习时间（防刷分） ----------------
+     每章在构建时估算预计学习分钟数（section 的 data-est）。
+     打卡校验：本章服务器已确认的有效学习秒数 ≥ max(30, 预计分钟×60×30%)。
+     只认服务器已确认的秒数（knownCh），前后端口径完全一致，避免上报竞态。 */
+  function estOf(ch) {
+    var s = document.querySelector('section.ch[data-ch="' + ch + '"]');
+    return s ? (parseInt(s.getAttribute('data-est'), 10) || 1) : 1;
+  }
+  var knownCh = {};            // 章 → 服务器已确认的累计秒数
+  var pendCh = {};             // 章 → 本地未上报的秒数（studyTimer 维护）
+  var lastBlockAt = {};        // 章 → 上次"学太快"提示时间（节流 10 秒）
+  function chNeed(ch) { return Math.max(30, Math.round(estOf(ch) * 60 * 0.3)); }
+  function chHave(ch) { return knownCh[ch] || 0; }
+  function canMark(ch) { return chHave(ch) >= chNeed(ch); }
+  function fmtSec(s) { return s >= 60 ? Math.round(s / 60 * 10) / 10 + ' 分钟' : s + ' 秒'; }
+  function blockToast(ch, need, have) {
+    var now = Date.now();
+    if (lastBlockAt[ch] && now - lastBlockAt[ch] < 10000) return;
+    lastBlockAt[ch] = now;
+    var h2 = document.querySelector('section.ch[data-ch="' + ch + '"] h2');
+    showToast('「' + (h2 ? h2.textContent : '本章') + '」预计 ' + estOf(ch) +
+      ' 分钟，本章有效学习 ' + fmtSec(have) + ' / 至少 ' + fmtSec(need) +
+      '，时间不够暂不计分，看完再打卡哦');
+  }
+
   /* ---------------- 进度（滚动自动记录，无需手动标记） ---------------- */
   function key(ch) { return lessonId + '/' + ch; }
   function isDone(ch) { return !!done[key(ch)]; }
@@ -60,6 +101,16 @@
     var body = { items: items };
     fetch(API + '/progress', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      if (!d || !d.rejected || !d.rejected.length) return;
+      /* 服务端校验未通过（本章有效学习时长不足）：回滚本地打卡并提示 */
+      var touched = false;
+      d.rejected.forEach(function (x) {
+        if (x.lesson !== lessonId) return;
+        if (isDone(x.chapter)) { delete done[key(x.chapter)]; touched = true; }
+        blockToast(x.chapter, x.need, x.have);
+      });
+      if (touched) { saveDone(done); paint(); }
     }).catch(function () { queue(body); });
   }
 
@@ -135,9 +186,10 @@
         var t = known + Math.floor(acc);
         timeEl.textContent = t > 0 ? '⏱ ' + fmt(t) : '';
       }
-      /* 读取本课已有累计时长（重学也保留） */
+      /* 读取本课已有累计时长（重学也保留）+ 章级秒数（防刷分校验用） */
       fetch(API + '/study-time').then(function (r) { return r.json(); }).then(function (d) {
         known = (d.by_lesson || {})[lessonId] || 0;
+        knownCh = (d.by_ch || {})[lessonId] || {};
         paintTime();
       }).catch(function () { });
       function idle() { return Date.now() - last > 120000; }   // 2 分钟无操作视为挂机
@@ -148,15 +200,35 @@
         var s = Math.floor(acc);
         if (s <= 0) return;
         acc -= s;
+        /* 归集各章未上报的整秒数 */
+        var byCh = {}, chs = [];
+        Object.keys(pendCh).forEach(function (c) {
+          var v = Math.floor(pendCh[c]);
+          if (v > 0) { byCh[c] = v; chs.push(c); pendCh[c] -= v; }
+          if (pendCh[c] < 1) delete pendCh[c];
+        });
         fetch(API + '/study-time', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lesson: lessonId, seconds: s })
+          body: JSON.stringify({ lesson: lessonId, seconds: s, by_chapter: byCh })
         }).then(function (r) {
-          if (r.ok) { known += s; paintTime(); } else { acc += s; }
-        }).catch(function () { acc += s; });     // 失败下次补报
+          if (r.ok) {
+            known += s; paintTime();
+            chs.forEach(function (c) { knownCh[c] = (knownCh[c] || 0) + byCh[c]; });
+          } else { acc += s; chs.forEach(function (c) { pendCh[c] = (pendCh[c] || 0) + byCh[c]; }); }
+        }).catch(function () {          // 失败下次补报
+          acc += s;
+          chs.forEach(function (c) { pendCh[c] = (pendCh[c] || 0) + byCh[c]; });
+        });
       }
       setInterval(function () {
-        if (document.visibilityState === 'visible' && !idle()) { acc += 1; paintTime(); }
+        if (document.visibilityState === 'visible' && !idle()) {
+          acc += 1; paintTime();
+          var cur = curSection();               // 秒数归属当前所在章
+          if (cur) {
+            var c = cur.getAttribute('data-ch');
+            pendCh[c] = (pendCh[c] || 0) + 1;
+          }
+        }
         if (acc >= 30) flush();
       }, 1000);
       setInterval(flush, 60000);
@@ -175,25 +247,12 @@
     var LS_POS = 'icl.pos.' + lessonId;
     var lastPosSave = 0;
 
-    function curSection() {
-      var y = window.scrollY + 140, cur = sections[0];
-      sections.forEach(function (s) { if (s.offsetTop <= y) cur = s; });
-      return cur;
-    }
     function savePos() {
       var now = Date.now();
       if (now - lastPosSave < 800) return;
       lastPosSave = now;
       var s = curSection();
       if (s) { try { localStorage.setItem(LS_POS, s.getAttribute('data-ch')); } catch (e) { } }
-    }
-    function showToast(msg) {
-      var t = document.createElement('div');
-      t.className = 'aiw-toast';
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(function () { t.classList.add('show'); }, 10);
-      setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 400); }, 2800);
     }
     /* 定位目标：优先本地位置记录；没有（换设备/清缓存）则按进度推导 =
        第一个未完成的章节；全部完成则停在最后一章。 */
@@ -279,8 +338,14 @@
         var was = below[ch];
         below[ch] = isBelow;
         if (dy > 0 && isBelow && !was && !isDone(ch)) {
-          done[key(ch)] = 1;
-          items.push({ lesson: lessonId, chapter: ch, done: true });
+          /* 防刷分：本章有效学习时长不足时不打卡（基线归位，滚回来重读后可再触发） */
+          if (canMark(ch)) {
+            done[key(ch)] = 1;
+            items.push({ lesson: lessonId, chapter: ch, done: true });
+          } else {
+            below[ch] = false;
+            blockToast(ch, chNeed(ch), chHave(ch));
+          }
         }
       });
       if (items.length) { saveDone(done); paint(); push(items); }
@@ -447,10 +512,16 @@
   /* ---------------- 每章底部「继续下一章」 ---------------- */
   document.querySelectorAll('.ch-next-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      /* 先把当前这一章标记为已学（即使用户没滚够 65% 也认） */
+      /* 当前章未打卡时先尝试打卡（防刷分：时长不够则提示且不计分） */
       var sec = btn.closest('section.ch');
       var ch = sec && sec.getAttribute('data-ch');
-      if (ch && !isDone(ch)) setDone(ch, true);
+      if (ch && !isDone(ch)) {
+        if (canMark(ch)) {
+          setDone(ch, true);
+        } else {
+          blockToast(ch, chNeed(ch), chHave(ch));
+        }
+      }
 
       var nextCh = btn.getAttribute('data-next');
       if (nextCh) {

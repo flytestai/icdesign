@@ -437,6 +437,23 @@ def split_chapters(body):
     return out
 
 
+def chapter_est_min(raw):
+    """估算一章的预计学习时长（分钟），防刷分与展示共用。
+
+    口径：学习场景的慢读 ~220 字/分钟；每个代码块 +0.5 分钟（要跟着敲），
+    每个练习/沙箱/测验块 +1 分钟。下限 1 分钟。
+    只数中文字符（代码、缩写不按字数算时长），避免图配多了把时长撑虚。"""
+    txt = re.sub(r"```.*?```", "", raw, flags=re.S)          # 代码不按字数
+    txt = re.sub(r"^:::[a-z]+[^\n]*$", "", txt, flags=re.M)   # 块标记行
+    txt = re.sub(r"^---.*?^---$", "", txt, flags=re.S | re.M)
+    cn = len(re.findall(r"[\u4e00-\u9fff]", txt))
+    code = len(re.findall(r"^[ \t]*```", raw, re.M)) // 2
+    quiz = len(re.findall(r"^:::quiz", raw, re.M))
+    lab = len(re.findall(r"^:::(?:lab|sandbox|tclsh|tclrun|check)", raw, re.M))
+    m = cn / 220.0 + code * 0.5 + quiz * 1.0 + lab * 1.0
+    return max(1, round(m))
+
+
 def parse_lesson(path):
     fn = os.path.basename(path)[:-3]
     src = open(path, encoding="utf-8").read()
@@ -444,7 +461,8 @@ def parse_lesson(path):
     meta.setdefault("id", fn)
     meta["chapters"] = []
     for cid, ctitle, raw in split_chapters(body):
-        meta["chapters"].append({"id": cid, "title": ctitle, "raw": raw, "html": md(raw)})
+        meta["chapters"].append({"id": cid, "title": ctitle, "raw": raw, "html": md(raw),
+                                 "est": chapter_est_min(raw)})
     return meta
 
 
@@ -697,8 +715,8 @@ def build_lesson(L, idx, all_lessons):
     art = []
     for i, c in enumerate(chs):
         is_last = (i == len(chs) - 1)
-        art.append(f"""<section class="ch" id="{c['id']}" data-ch="{c['id']}">
-  <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2></div>
+        art.append(f"""<section class="ch" id="{c['id']}" data-ch="{c['id']}" data-est="{c.get('est', 1)}">
+  <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈{c.get('est', 1)} 分钟</span></div>
   {c['html']}
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="{'' if is_last else chs[i+1]['id']}" data-last="{1 if is_last else 0}">{'学完本课 · 下一课 →' if is_last else '学完这章，继续下一章 →'}</button></div>
 </section>""")
@@ -960,7 +978,7 @@ def main():
             "title": L.get("title", ""), "en": L.get("en", ""), "desc": L.get("summary", ""),
             "tags": L.get("tags", []), "status": "live", "minutes": int(L.get("minutes", 40)),
             "hours": str(L.get("hours", "")),
-            "chapters": [{"id": c["id"], "title": c["title"]} for c in L["chapters"]],
+            "chapters": [{"id": c["id"], "title": c["title"], "est": c.get("est", 1)} for c in L["chapters"]],
         } for L in lessons],
         "counts": {"lessons": len(lessons), "chapters": sum(len(L["chapters"]) for L in lessons),
                    "quizzes": len(quiz), "terms": len(gloss)},

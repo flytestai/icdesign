@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 4 讲 · 数组：键-值对（相当于 Python 的字典） · 10 | IC 后端学院</title>
 <meta name="description" content="数组是"键-值对"集合，对应 Python 的字典。定义与访问、array set 批量赋值与两个易错点、嵌套列表写法与 dict get、增改、unset 删除与两种报错、foreach 两种遍历、{} "" [] 原理复用、文档原题 fruit 练习。">
-<link rel="icon" href="/assets/logo.svg?v=67b471dfef4a" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=67b471dfef4a">
+<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
 </head>
 <body data-page="lesson" data-lesson="01-10-tcl-04-array">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=67b471dfef4a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -62,8 +62,8 @@
         <span class="pill tag">Tcl</span><span class="pill tag">数组</span><span class="pill tag">array</span><span class="pill tag">dict</span><span class="pill tag">unset</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="define" data-ch="define">
-  <div class="ch-h"><span class="ch-n">01</span><h2>数组是什么、怎么定义</h2></div>
+    <article id="article"><section class="ch" id="define" data-ch="define" data-est="2">
+  <div class="ch-h"><span class="ch-n">01</span><h2>数组是什么、怎么定义</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈2 分钟</span></div>
   <div class="goal"><span>本章目标</span>会用 set arr(key) 定义并访问数组；会用 array set 批量赋值并避开两个易错点；会用嵌套列表写法 + dict get 取嵌套字段；会用 unset 删元素/删数组并认识两种报错；会两种 foreach 遍历。</div>
 <p>数组是&quot;键 - 值对&quot;的集合，键（索引）可以是字符串或数字，值可以是任意数据类型，适合存储关联数据（如学生姓名-学号、产品编号-价格）。<strong>它对应 Python 的 dict</strong>。</p>
 <p><strong>定义与访问：<code>set 数组名(键名) 值</code></strong></p>
@@ -95,8 +95,8 @@ puts &quot;班级：$student(class)&quot;      ;# 输出：班级：三年级2�
 </div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="arrayset" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="arrayset" data-ch="arrayset">
-  <div class="ch-h"><span class="ch-n">02</span><h2>批量赋值：array set（标准写法）</h2></div>
+<section class="ch" id="arrayset" data-ch="arrayset" data-est="3">
+  <div class="ch-h"><span class="ch-n">02</span><h2>批量赋值：array set（标准写法）</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈3 分钟</span></div>
   <div class="tsbx has-code" data-code=";# 标准写法：array set 数组名 {key1 val1 key2 val2}  批量一次性赋值
 array set person  {name zhangsan age 20}  ;# person 是数组名称 {}里为键值key/val
 puts [array get person]   ;# 返回 name zhangsan age 20
@@ -139,13 +139,13 @@ puts [dict get $person(002) name]   ;# 取嵌套字段：lisi</textarea>
 </div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="change" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="change" data-ch="change">
-  <div class="ch-h"><span class="ch-n">03</span><h2>数组增加 / 修改</h2></div>
+<section class="ch" id="change" data-ch="change" data-est="1">
+  <div class="ch-h"><span class="ch-n">03</span><h2>数组增加 / 修改</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
   <p><strong>增加：<code>set 数组名(键) 值</code></strong>——存在已有的键就是<strong>修改</strong>，不存在就是<strong>新增</strong>。（和 Python 的 dict 赋值一模一样。）</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="unset" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="unset" data-ch="unset">
-  <div class="ch-h"><span class="ch-n">04</span><h2>数组删除（unset）</h2></div>
+<section class="ch" id="unset" data-ch="unset" data-est="2">
+  <div class="ch-h"><span class="ch-n">04</span><h2>数组删除（unset）</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈2 分钟</span></div>
   <p>使用 <code>unset</code> 删除数组中的某个元素或整个数组：</p>
 <p><strong>语法</strong>：<code>unset 数组名(键名)</code>（删除单个元素）/ <code>unset 数组名</code>（删除整个数组）</p>
 <div class="tsbx has-code" data-code="array set person  {name zhangsan age 20}
@@ -173,8 +173,8 @@ puts [array get person]   ;# 返回空值</textarea>
 <div class="note"><div class="note-h">两种报错的区别</div><p><code>no such element in array</code> = 数组还在、键没了；<code>no such array</code> = 整个数组没了。看到报错能立刻分清删的是键还是整个数组，调试就快一半。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="iterate" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="iterate" data-ch="iterate">
-  <div class="ch-h"><span class="ch-n">05</span><h2>数组遍历（foreach + array names / array get）</h2></div>
+<section class="ch" id="iterate" data-ch="iterate" data-est="4">
+  <div class="ch-h"><span class="ch-n">05</span><h2>数组遍历（foreach + array names / array get）</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈4 分钟</span></div>
   <p>通过 <code>array names 数组名</code> 获取所有键名，再用 foreach 遍历；<code>array names</code> 是 Tcl 内置数组专用命令，属于固定语法。</p>
 <p><strong>方法 1：foreach + array names（拿到 key，再用 key 取值）</strong></p>
 <div class="tsbx has-code" data-code=";# 重新定义数组
@@ -249,8 +249,8 @@ foreach key [array names product] { puts $key }             ;# 循环获取key</
 <div class="note"><div class="note-h">小结速查（文档原文）</div><p><code>array names 数组</code> 获取 key；<code>array get 数组</code> 获取 key 和 val。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
+<section class="ch" id="lab" data-ch="lab" data-est="6">
+  <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈6 分钟</span></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>文档原题：fruit 数组</div><div class="lab-b"><p>定义一个数组 <code>fruit</code>，里面编号为 001、002、003，分别是 apple、banana、orange。遍历它的键、遍历它的值。</p></div></div>
 <div class="tsbx" data-code="">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">参考写法在下面，先自己写，再对照（练习台里改改玩）</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
@@ -312,9 +312,9 @@ foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值</text
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=67b471dfef4a"></script>
-<script src="/assets/tcl.js?v=67b471dfef4a"></script>
-<script src="/assets/app.js?v=67b471dfef4a"></script>
-<script src="/assets/aiwidget.js?v=67b471dfef4a" defer></script>
+<script src="/assets/shell.js?v=78d29e0cecbc"></script>
+<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
+<script src="/assets/app.js?v=78d29e0cecbc"></script>
+<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
 </body>
 </html>
