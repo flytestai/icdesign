@@ -366,6 +366,49 @@
       }).catch(startCatalog);
     })();
 
+    /* 首页学习排行榜预览：我的排名 + TOP5 */
+    (function homeLeaderboard() {
+      var list = document.getElementById('hlb-list');
+      var me = document.getElementById('hlb-me');
+      if (!list) return;
+      function fmtTime(sec) {
+        if (!sec) return '—';
+        if (sec < 60) return sec + ' 秒';
+        var m = Math.round(sec / 60);
+        if (m < 60) return m + ' 分钟';
+        return Math.floor(m / 60) + ' 时 ' + (m % 60) + ' 分';
+      }
+      fetch(API + '/leaderboard').then(function (r) {
+        return r.json().then(function (j) { return { ok: r.ok, j: j }; });
+      }).then(function (res) {
+        if (!res.ok) {
+          list.innerHTML = '<div class="hlb-empty">登录后查看排行榜</div>';
+          return;
+        }
+        var rows = res.j.rows || [];
+        if (!rows.length) { list.innerHTML = '<div class="hlb-empty">还没有数据</div>'; return; }
+        var medal = ['🥇', '🥈', '🥉'];
+        list.innerHTML = rows.slice(0, 5).map(function (r) {
+          var rk = r.rank <= 3 ? medal[r.rank - 1] : r.rank;
+          return '<a class="hlb-row' + (r.is_me ? ' me' : '') + '" href="/leaderboard/">' +
+            '<span class="h-rk">' + rk + '</span>' +
+            '<span class="h-nm">' + esc(r.name) + (r.is_me ? '<b class="h-you">我</b>' : '') + '</span>' +
+            '<span class="h-pg">' + r.done + '/' + r.total + ' 章</span>' +
+            '<span class="h-qz">' + r.answered + ' 题</span>' +
+            '<span class="h-sc">' + r.score + '</span></a>';
+        }).join('');
+        var mine = rows.filter(function (r) { return r.is_me; })[0];
+        if (mine && me) {
+          me.hidden = false;
+          me.innerHTML = '我的排名 <b>第 ' + mine.rank + ' 名</b> / 共 ' + rows.length +
+            ' 人 · 综合 <b>' + mine.score + '</b> 分 · 完成 ' + mine.done + ' 章 · 刷题 ' +
+            mine.answered + ' 题 · 学习 ' + fmtTime(mine.seconds);
+        }
+      }).catch(function () {
+        list.innerHTML = '<div class="hlb-empty">排行榜加载失败</div>';
+      });
+    })();
+
     /* 首页主按钮改为「继续学习」：按账号真实进度决定去哪 */
     (function continueBtn() {
       var btn = document.getElementById('hh-continue');

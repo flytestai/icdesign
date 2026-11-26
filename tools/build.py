@@ -619,8 +619,20 @@ HOME = HEAD + """
   </div>
 </section>
 
+<section class="home-lb" id="home-lb">
+  <div class="hlb-in">
+    <div class="hlb-h">
+      <h2>学习排行榜</h2>
+      <a class="hlb-more" href="/leaderboard/">查看完整榜单 →</a>
+    </div>
+    <div class="hlb-me" id="hlb-me" hidden></div>
+    <div class="hlb-list" id="hlb-list"><div class="hlb-loading">加载中…</div></div>
+  </div>
+</section>
+
 <section class="quick">
   <div class="qgrid">
+    <a class="qcard qcard-lb" href="/leaderboard/"><b>🏆 学习排行榜</b><span>进度 + 刷题 + 时长综合排名 · 看看自己排第几</span></a>
     <a class="qcard" href="/playground/"><b>代码练习场</b><span>Linux 命令 + Tcl 代码 · 按课程顺序练 · 浏览器里直接跑</span></a>
     <a class="qcard" href="/quiz/"><b>题库</b><span>{nquiz} 道自测题 · 随机抽题 · 错题本</span></a>
     <a class="qcard" href="/glossary/"><b>术语表</b><span>{nterm} 条中英对照 · 按阶段筛选</span></a>
