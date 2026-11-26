@@ -404,8 +404,9 @@
             ' 人 · 综合 <b>' + mine.score + '</b> 分 · 完成 ' + mine.done + ' 章 · 刷题 ' +
             mine.answered + ' 题 · 学习 ' + fmtTime(mine.seconds);
         }
-      }).catch(function () {
-        list.innerHTML = '<div class="hlb-empty">排行榜加载失败</div>';
+      }).catch(function (e) {
+        list.innerHTML = '<div class="hlb-empty">排行榜加载失败，请刷新页面重试</div>';
+        if (window.console) console.warn('[排行榜]', e);
       });
     })();
 

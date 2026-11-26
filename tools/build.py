@@ -30,6 +30,7 @@
    :::sandbox 预设名 | 提示语
    :::svg         （块内直接写 <svg>...</svg>）\n   :::fig <id> | 图注   （引用 web/fig/<id>.png，点击可放大）
 """
+import hashlib
 import json
 import os
 import re
@@ -58,13 +59,23 @@ STAGE_COLOR = {s[0]: s[3] for s in STAGES}
 STAGE_SHORT = {s[0]: s[1].split("· ")[-1] for s in STAGES}
 
 def asset_ver():
-    """取 assets 目录下最新的 mtime 作为版本号，改了样式/脚本能立刻生效。"""
+    """资源版本号 = 关键静态文件的「内容哈希」。
+
+    早期用 mtime，问题是：改名/移动后 mtime 不变、多文件取最大值时
+    某文件内容变了但版本号可能不变（本次踩过：app.js 改了 bug 修复，
+    但 app.css 的 mtime 更大，版本号没变 → 浏览器继续用缓存的旧 app.js）。
+    改用内容哈希后，只要任一文件内容变化，版本号必然变化。
+    """
     d = os.path.join(WEB, "assets")
-    try:
-        v = max(os.path.getmtime(os.path.join(d, f)) for f in os.listdir(d))
-    except (OSError, ValueError):
-        v = 0
-    return str(int(v))
+    names = ["app.css", "app.js", "shell.js", "page.js", "tcl.js", "playground.js", "aiwidget.js"]
+    h = hashlib.sha1()
+    for n in names:
+        p = os.path.join(d, n)
+        try:
+            h.update(open(p, "rb").read())
+        except OSError:
+            h.update(b"-")
+    return h.hexdigest()[:12]
 
 
 def bust(html):
