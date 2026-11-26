@@ -913,23 +913,26 @@ def quiz_stats_get(request: Request):
             "exam_passed": r["exam_passed"], "best_exam": r["best_exam"]}
 
 
+PRACTICE_TIME_KEY = "_playground"
+
+
 class StudyTimeIn(BaseModel):
-    lesson: str = Field("", max_length=64)
-    seconds: int = Field(..., ge=0, le=7200)      # 单次上报：最多 2 小时
+    lesson: str = Field(..., max_length=64)
+    seconds: int = Field(..., ge=0, le=60)
     by_chapter: Dict[str, int] = Field(default_factory=dict)  # 章级秒数（防刷分校验用）
 
 
 @app.post("/api/study-time")
 def study_time_add(r: StudyTimeIn, request: Request):
-    """课程页停留时间上报（按用户 + 课程累计），用于排行榜的“学习时长”项。"""
+    """累计课程页和练习场上报的有效学习时间。"""
     u = current_user(request)
     if not u:
         raise HTTPException(401, "not logged in")
     if not r.seconds:
         return {"ok": True, "added": 0}
     lesson = (r.lesson or "").strip()
-    if lesson and not KEY_RE.match(lesson):
-        raise HTTPException(400, "bad lesson")
+    if lesson != PRACTICE_TIME_KEY and lesson not in _lesson_catalog():
+        raise HTTPException(400, "unknown study page")
     now = int(time.time())
     with closing(db()) as c:
         c.execute(
@@ -968,110 +971,26 @@ def study_time_mine(request: Request):
 
 @app.get("/api/leaderboard")
 def leaderboard(request: Request):
-    """排行榜：综合分 = 学习进度 50% + 刷题进度 30% + 学习时长 20%。
-
-    进度分：已完成章节数 / 全站章节总数
-    刷题分：已作答题目数 / 题库总题数
-    时长分：学习秒数 / 全站最长学习秒数（无记录则为 0）
-    只统计 approved / admin 用户，不暴露账号与手机号。
-    """
+    """仅按已发布课程及练习场的累计学习秒数排名。"""
     u = current_user(request)
     if not u:
         raise HTTPException(401, "not logged in")
-    total_chapters = _total_chapters()
-    total_quizzes = _total_quizzes()
-    total_stages = _total_stages()
+    study_pages = (*_lesson_catalog(), PRACTICE_TIME_KEY)
+    slots = ",".join("?" for _ in study_pages)
     with closing(db()) as c:
-        users = c.execute(
-            "SELECT id,name,role FROM users WHERE status='approved' OR role='admin'").fetchall()
-        # 进度直接按账号统计（progress_u 主键含 user_id，天然去重）
-        prog = c.execute(
-            "SELECT user_id, COUNT(*) n FROM progress_u WHERE done=1 GROUP BY user_id").fetchall()
-        times = c.execute("SELECT user_id, SUM(seconds) s FROM study_time GROUP BY user_id").fetchall()
-        time_by_lesson = c.execute(
-            "SELECT user_id, lesson, SUM(seconds) s FROM study_time GROUP BY user_id, lesson").fetchall()
-        qstats = c.execute("SELECT * FROM quiz_stats").fetchall()
-    prog_by_user = {p["user_id"]: p["n"] for p in prog}
-    time_by_user = {t["user_id"]: t["s"] for t in times}
-    tl = {}
-    for r0 in time_by_lesson:
-        tl.setdefault(r0["user_id"], {})[r0["lesson"]] = r0["s"]
-    quiz_by_user = {r["user_id"]: r for r in qstats}
-
-    rows = []
-    for us in users:
-        done = prog_by_user.get(us["id"], 0)
-        secs = time_by_user.get(us["id"], 0)
-        qs = quiz_by_user.get(us["id"])
-        answered = qs["answered"] if qs else 0
-        correct = qs["correct"] if qs else 0
-        exam_passed = qs["exam_passed"] if qs else 0
-        rows.append({
-            "_uid": us["id"],
-            "name": us["name"], "role": us["role"],
-            "done": min(done, total_chapters), "total": total_chapters,
-            "seconds": secs,
-            "answered": answered, "correct": correct,
-            "total_quizzes": total_quizzes,
-            "exam_passed": exam_passed, "total_stages": total_stages,
-        })
-    # ---- 时长分：分遍折算，总计 2 倍封顶 ----
-    # 每门课计划时长记作 P。同一门课：
-    #   第 1 遍：按实际时长计（最多计到 1.0 P）
-    #   第 2~5 遍：每遍只计 0.25 P，4 遍合计 1.0 P
-    #   合计上限 = 2.0 P（学满 5 遍即封顶，第 6 遍起不再加分）
-    # 总分 = Σ有效时长 / Σ计划时长 * 100（上限 100）
-    FIRST_FULL = 1.0        # 第 1 遍计满 1 倍
-    REPEAT_COUNT = 4        # 之后还有 4 遍（共 5 遍）
-    REPEAT_EACH = 0.25      # 每遍计 0.25 倍
-    plan_min = _plan_minutes_by_lesson()          # {lesson_id: minutes}
-    plan_secs = sum(v * 60 for v in plan_min.values()) or 1
-    for r in rows:
-        p_score = (r["done"] / r["total"] * 100) if r["total"] else 0
-        q_score = (r["answered"] / r["total_quizzes"] * 100) if r["total_quizzes"] else 0
-        mine = tl.get(r.get("_uid"), {})
-        eff = 0.0
-        for lid, pm in plan_min.items():
-            P = pm * 60
-            got = mine.get(lid, 0)
-            # 第 1 遍：0~1P 区间，按 1.0 计（至多 1P）
-            v = min(got, P * FIRST_FULL)
-            # 第 2~5 遍：1P 之后的每 P 秒算「一遍」，每遍计 0.25，最多 4 遍
-            if got > P:
-                extra = got - P
-                n_rep = min(extra / P, float(REPEAT_COUNT))   # 已完成的复学遍数（可带小数）
-                v += n_rep * P * REPEAT_EACH
-            eff += v
-        t_score = min(100.0, eff / plan_secs * 100)
-        r["progress_pct"] = round(p_score, 1)
-        r["quiz_pct"] = round(q_score, 1)
-        r["time_pct"] = round(t_score, 1)
-        # 权重：进度 50% + 刷题 30% + 时长 20%
-        r["score"] = round(p_score * 0.5 + q_score * 0.3 + t_score * 0.2, 1)
-    rows.sort(key=lambda x: (-x["score"], -x["done"], -x["answered"], -x["seconds"], x["name"]))
-    me = u["name"]
-    for i, r in enumerate(rows):
-        r["rank"] = i + 1
-        r["is_me"] = (r["name"] == me)
-        r.pop("_uid", None)
-    return {"rows": rows, "me": me, "total_chapters": total_chapters,
-            "total_quizzes": total_quizzes, "total_stages": total_stages,
-            "weights": {"progress": 0.5, "quiz": 0.3, "time": 0.2}}
-
-
-def _plan_minutes_by_lesson() -> dict:
-    """每门课的计划时长（分钟），用于逐课计算有效学习时长。"""
-    p = WEB / "data" / "catalog.json"
-    try:
-        data = json.loads(p.read_text(encoding="utf-8"))
-        out = {}
-        for L in (data.get("lessons") or []):
-            mins = int(L.get("minutes") or 0)
-            if mins > 0:
-                out[L["id"]] = mins
-        return out or {"_": 1}
-    except Exception:
-        return {"_": 1}
+        ranked = c.execute(f"""
+            SELECT u.id, u.name, u.role, COALESCE(t.seconds, 0) AS seconds
+            FROM users u LEFT JOIN (
+                SELECT user_id, SUM(seconds) AS seconds FROM study_time
+                WHERE lesson IN ({slots}) GROUP BY user_id
+            ) t ON t.user_id = u.id
+            WHERE u.status = 'approved' OR u.role = 'admin'
+            ORDER BY seconds DESC, u.name, u.id
+        """, study_pages).fetchall()
+    rows = [{"name": row["name"], "role": row["role"], "seconds": row["seconds"],
+             "rank": rank, "is_me": row["id"] == u["id"]}
+            for rank, row in enumerate(ranked, 1)]
+    return {"rows": rows, "me": u["name"]}
 
 
 _EST_CACHE: Dict[str, dict] = {}

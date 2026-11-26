@@ -634,7 +634,7 @@ SUB = HEAD + """
 <script src="/assets/tcl.js"></script>
 <script src="/assets/page.js"></script>
 <script src="/assets/playground.js"></script>
-<script src="/assets/aiwidget.js" defer></script>
+{study_script}<script src="/assets/aiwidget.js" defer></script>
 </body>
 </html>"""
 
@@ -675,7 +675,7 @@ HOME = HEAD + """
 
 <section class="quick">
   <div class="qgrid">
-    <a class="qcard qcard-lb" href="/leaderboard/"><b>🏆 学习排行榜</b><span>进度 + 刷题 + 时长综合排名 · 看看自己排第几</span></a>
+    <a class="qcard qcard-lb" href="/leaderboard/"><b>🏆 学习排行榜</b><span>按累计学习时长排名 · 看看自己排第几</span></a>
     <a class="qcard" href="/playground/"><b>代码练习场</b><span>Linux 命令 + Tcl 代码 · 按课程顺序练 · 浏览器里直接跑</span></a>
     <a class="qcard" href="/quiz/"><b>题库</b><span>{nquiz} 道自测题 · 随机抽题 · 错题本</span></a>
     <a class="qcard" href="/glossary/"><b>术语表</b><span>{nterm} 条中英对照 · 按阶段筛选</span></a>
@@ -803,6 +803,7 @@ def subpage(slug, title, lead, body, active=""):
         lesson=slug, nav=nav_html(active or f"/{slug}/"),
         right='<a class="ghost" href="/">← 课程</a>',
         body=f'<div class="sub-h"><h1>{title}</h1><p>{lead}</p></div>' + body,
+        study_script='<script src="/assets/app.js"></script>\n' if slug == "playground" else "",
     ).replace("%%AUTHCHIP%%", AUTH_CHIP)
     d = os.path.join(WEB, slug)
     os.makedirs(d, exist_ok=True)
@@ -851,15 +852,15 @@ EXAM_BODY = """
 LEADERBOARD_BODY = """
 <div class="lb-wrap">
   <div class="lb-hero">
-    <div class="lb-h-l"><h2>学习排行榜</h2><p>综合分 = 学习进度 50% + 刷题进度 30% + 学习时长 20%。进度按已完成章节数，刷题按题库中已作答过的题目数，时长按课程页实际停留时间（挂机不计）。</p></div>
-    <div class="lb-h-r"><div class="lb-legend"><span class="lg-p">■ 进度 50%</span><span class="lg-q">■ 刷题 30%</span><span class="lg-t">■ 时长 20%</span></div></div>
+    <h2>学习排行榜</h2>
+    <p>仅统计课程页和代码练习场在前台的学习时长，连续 2 分钟无操作后暂停计时。</p>
   </div>
   <div class="lb-me" id="lb-me" hidden></div>
   <div class="lb-card">
-    <div class="lb-thead"><span class="c-rk">排名</span><span class="c-nm">学习者</span><span class="c-pg">课程进度</span><span class="c-qz">刷题</span><span class="c-tm">学习时长</span><span class="c-sc">综合分</span></div>
+    <div class="lb-thead"><span class="c-rk">名次</span><span class="c-nm">学员</span><span class="c-tm">学习时长</span></div>
     <div id="lb-rows" class="lb-rows"><div class="lb-loading">加载中…</div></div>
   </div>
-  <div class="lb-note">只显示已审核通过的同学。所有学习数据（进度、笔记、刷题、时长、AI 对话）都保存在你的账号下，换电脑、换浏览器登录同一个账号即可无缝接续。</div>
+  <div class="lb-note">榜单包含已审核通过的学员和管理员。</div>
 </div>
 """
 
@@ -938,7 +939,7 @@ def build_subpages(lessons, nquiz, nterm):
     subpage("glossary", "术语表", f"全站 {nterm} 条术语，英文原名 + 中文 + 白话解释 + 出处。", GLOSS_BODY)
     subpage("search", "搜索", "全站章节级搜索，命中后直接跳到对应小节。", SEARCH_BODY)
     subpage("progress", "学习进度", "按阶段看完成度，知道下一步该学哪一章。", PROGRESS_BODY)
-    subpage("leaderboard", "排行榜", "看所有同学的学习进度与时长综合排名，知道自己排在哪。", LEADERBOARD_BODY)
+    subpage("leaderboard", "排行榜", "按累计学习时长排名，看看自己排第几。", LEADERBOARD_BODY)
     build_playground()
     build_cheatsheet()
     build_abbr()

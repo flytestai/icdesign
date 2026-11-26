@@ -25,7 +25,7 @@
 
   var done = loadDone();
   var lessonId = document.body.getAttribute('data-lesson') || '';
-  var isLesson = lessonId !== 'home' && lessonId !== '';
+  var isLesson = document.body.getAttribute('data-page') === 'lesson' && !!lessonId;
   var sections = [].slice.call(document.querySelectorAll('section.ch'));
   var below = {};                        // 章 → 底边是否已在视口 65% 线上方（跨越检测基线）
   var reanchor = null;                   // 服务器进度回填后校正落点（课程页赋值）
@@ -171,11 +171,20 @@
     });
   })();
 
-  /* ---------------- 学习时长统计（排行榜用） ---------------- */
-  if (isLesson && sections.length) {
+  function formatStudyTime(seconds) {
+    var s = Math.max(0, Math.floor(Number(seconds) || 0));
+    var h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60;
+    return h ? h + ' 小时' + (m ? ' ' + m + ' 分钟' : '') : m + ' 分钟';
+  }
+
+  /* 只在课程和代码练习场记录前台有效学习时间。 */
+  var studyKey = isLesson && sections.length ? lessonId :
+    (document.body.getAttribute('data-page') === 'playground' ? '_playground' : '');
+  if (studyKey) {
     (function studyTimer() {
       var acc = 0;                      // 未上报的秒数
-      var last = Date.now();
+      var last = performance.now();
+      var tickAt = last;
       var timeEl = document.getElementById('lp-time');
       function fmt(sec) {
         if (!sec) return '';
@@ -191,31 +200,50 @@
       }
       /* 读取本课已有累计时长（重学也保留；防刷分校验用同一口径） */
       fetch(API + '/study-time').then(function (r) { return r.json(); }).then(function (d) {
-        known = (d.by_lesson || {})[lessonId] || 0;
+        known = Math.max(known, (d.by_lesson || {})[studyKey] || 0);
         paintTime();
       }).catch(function () { });
-      function idle() { return Date.now() - last > 120000; }   // 2 分钟无操作视为挂机
-      ['scroll', 'keydown', 'mousemove', 'touchstart', 'click'].forEach(function (ev) {
-        window.addEventListener(ev, function () { last = Date.now(); }, { passive: true });
+      function active() { return !document.hidden && document.hasFocus(); }
+      function sample(now) {
+        if (active()) acc += Math.max(0, Math.min(now - tickAt, last + 120000 - tickAt, 1000)) / 1000;
+        tickAt = now;
+      }
+      ['scroll', 'keydown', 'input', 'pointerdown', 'touchstart', 'wheel'].forEach(function (ev) {
+        window.addEventListener(ev, function (e) {
+          if (!e.isTrusted || !active()) return;
+          var now = performance.now();
+          sample(now);
+          last = now;
+        }, { passive: true, capture: true });
       });
       function flush() {
-        var s = Math.floor(acc);
+        var s = Math.min(60, Math.floor(acc + 1e-6));
         if (s <= 0) return;
         acc -= s;
         fetch(API + '/study-time', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lesson: lessonId, seconds: s })
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+          body: JSON.stringify({ lesson: studyKey, seconds: s })
         }).then(function (r) {
           if (r.ok) { known += s; paintTime(); } else { acc += s; }
         }).catch(function () { acc += s; });     // 失败下次补报
       }
       setInterval(function () {
-        if (document.visibilityState === 'visible' && !idle()) { acc += 1; paintTime(); }
+        sample(performance.now());
+        paintTime();
         if (acc >= 30) flush();
       }, 1000);
       setInterval(flush, 60000);
       window.addEventListener('pagehide', flush);
-      document.addEventListener('visibilitychange', function () { if (document.hidden) flush(); });
+      ['focus', 'blur'].forEach(function (ev) {
+        window.addEventListener(ev, function () {
+          tickAt = performance.now();
+          if (ev === 'blur') flush();
+        });
+      });
+      document.addEventListener('visibilitychange', function () {
+        tickAt = performance.now();
+        if (document.hidden) flush();
+      });
     })();
   }
 
@@ -424,13 +452,6 @@
       var list = document.getElementById('hlb-list');
       var me = document.getElementById('hlb-me');
       if (!list) return;
-      function fmtTime(sec) {
-        if (!sec) return '—';
-        if (sec < 60) return sec + ' 秒';
-        var m = Math.round(sec / 60);
-        if (m < 60) return m + ' 分钟';
-        return Math.floor(m / 60) + ' 时 ' + (m % 60) + ' 分';
-      }
       fetch(API + '/leaderboard').then(function (r) {
         return r.json().then(function (j) { return { ok: r.ok, j: j }; });
       }).then(function (res) {
@@ -446,16 +467,13 @@
           return '<a class="hlb-row' + (r.is_me ? ' me' : '') + '" href="/leaderboard/">' +
             '<span class="h-rk">' + rk + '</span>' +
             '<span class="h-nm">' + esc2(r.name) + (r.is_me ? '<b class="h-you">我</b>' : '') + '</span>' +
-            '<span class="h-pg">' + r.done + '/' + r.total + ' 章</span>' +
-            '<span class="h-qz">' + r.answered + ' 题</span>' +
-            '<span class="h-sc">' + r.score + '</span></a>';
+            '<span class="h-tm">' + formatStudyTime(r.seconds) + '</span></a>';
         }).join('');
         var mine = rows.filter(function (r) { return r.is_me; })[0];
         if (mine && me) {
           me.hidden = false;
           me.innerHTML = '我的排名 <b>第 ' + mine.rank + ' 名</b> / 共 ' + rows.length +
-            ' 人 · 综合 <b>' + mine.score + '</b> 分 · 完成 ' + mine.done + ' 章 · 刷题 ' +
-            mine.answered + ' 题 · 学习 ' + fmtTime(mine.seconds);
+            ' 人 · 学习时长 <b>' + formatStudyTime(mine.seconds) + '</b>';
         }
       }).catch(function (e) {
         list.innerHTML = '<div class="hlb-empty">排行榜加载失败，请刷新页面重试</div>';

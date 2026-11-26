@@ -40,7 +40,7 @@
   function initQuiz() {
     var all = [], wrong = load(LS_WRONG, '[]'), stage = '', mode = 'draw', round = [];
     var panel = q('#quiz-panel'), sel = q('#q-stage'), cnt = q('#wrong-n');
-    /* 刷题进度：本地记录已作答过的题目（去重），并上报服务器用于排行榜 */
+    /* 刷题进度：本地记录已作答过的题目（去重），并同步到服务器 */
     var LS_ANSWERED = 'icl.answered', LS_CORRECT = 'icl.correct';
     var answered = load(LS_ANSWERED, '[]'), correctList = load(LS_CORRECT, '[]');
     function pushQuizStats() {
@@ -441,7 +441,7 @@
           save(examKey(run.stage), { score: score, right: n, total: t, date: Date.now() });
         }
       }
-      /* 上报验收成绩到排行榜（通过阶段数 / 最高分） */
+      /* 同步验收统计（通过阶段数 / 最高分） */
       (function () {
         var passed = 0, best = 0;
         for (var s = 1; s <= 9; s++) {
@@ -532,11 +532,10 @@
   function initLeaderboard() {
     var box = q('#lb-rows');
     if (!box) return;
-    function fmtTime(sec) {
-      if (!sec || sec < 60) return (sec || 0) + ' 秒';
-      var m = Math.round(sec / 60);
-      if (m < 60) return m + ' 分钟';
-      return Math.floor(m / 60) + ' 小时 ' + (m % 60) + ' 分';
+    function fmtTime(seconds) {
+      var s = Math.max(0, Math.floor(Number(seconds) || 0));
+      var h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60;
+      return h ? h + ' 小时' + (m ? ' ' + m + ' 分钟' : '') : m + ' 分钟';
     }
     fetch('/api/leaderboard', { credentials: 'same-origin' })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
@@ -551,28 +550,19 @@
         var medal = ['🥇', '🥈', '🥉'];
         box.innerHTML = rows.map(function (r) {
           var rk = r.rank <= 3 ? medal[r.rank - 1] : r.rank;
-          var pct = Math.min(100, r.progress_pct || 0);
-          var qpct = Math.min(100, r.quiz_pct || 0);
           return '<div class="lb-row' + (r.is_me ? ' me' : '') + '">' +
             '<span class="c-rk">' + rk + '</span>' +
             '<span class="c-nm">' + esc(r.name) + (r.is_me ? '<b class="lb-you">我</b>' : '') +
             (r.role === 'admin' ? '<i class="lb-adm">管理员</i>' : '') + '</span>' +
-            '<span class="c-pg"><b>' + r.done + '</b>/' + r.total +
-            '<i class="lb-mini"><s style="width:' + pct + '%"></s></i></span>' +
-            '<span class="c-qz"><b>' + r.answered + '</b>/' + r.total_quizzes +
-            (r.exam_passed ? '<em class="lb-ex">验收 ' + r.exam_passed + ' 阶段</em>' : '') +
-            '<i class="lb-mini q"><s style="width:' + qpct + '%"></s></i></span>' +
             '<span class="c-tm">' + fmtTime(r.seconds) + '</span>' +
-            '<span class="c-sc">' + r.score + '</span>' +
             '</div>';
         }).join('');
         var mine = rows.filter(function (r) { return r.is_me; })[0];
         var me = q('#lb-me');
         if (mine && me) {
           me.hidden = false;
-          me.innerHTML = '我的排名：第 <b>' + mine.rank + '</b> / ' + rows.length +
-            ' 名 · 综合分 <b>' + mine.score + '</b> · 完成 ' + mine.done + ' 章 · 刷题 ' +
-            mine.answered + ' 道（正确 ' + mine.correct + '）· 学习 ' + fmtTime(mine.seconds);
+          me.innerHTML = '我的排名：第 <b>' + mine.rank + '</b> 名 / 共 ' + rows.length +
+            ' 人 · 学习时长 <b>' + fmtTime(mine.seconds) + '</b>';
         }
       })
       .catch(function () { box.innerHTML = '<p class="qempty">数据没加载出来，刷新试试。</p>'; });

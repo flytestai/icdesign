@@ -597,20 +597,15 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 
 /* ==================== 排行榜 ==================== */
 .lb-wrap{max-width:1000px;margin:0 auto;padding:32px 24px 90px}
-.lb-hero{display:flex;gap:20px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px}
-.lb-h-l h2{margin:0 0 6px;font-size:23px}
-.lb-h-l p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.7;max-width:640px}
-.lb-h-r{margin-left:auto}
-.lb-legend{display:flex;gap:14px;font-size:12px;color:var(--muted)}
-.lb-legend .lg-p{color:#2f7fd0}
-.lb-legend .lg-t{color:#18a07a}
-.lb-legend .lg-q{color:#8b5cf6}
+.lb-hero{margin-bottom:20px}
+.lb-hero h2{margin:0 0 6px;font-size:23px}
+.lb-hero p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.7;max-width:640px}
 .lb-me{background:linear-gradient(135deg,#eef4ff,#f2fbf7);border:1px solid #d8e5fb;
   border-radius:12px;padding:11px 16px;font-size:13px;color:var(--ink2);margin-bottom:14px}
 .lb-me b{color:#1d6fd0;font-size:15px}
 .lb-card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;
   box-shadow:0 2px 10px rgba(20,40,70,.05)}
-.lb-thead,.lb-row{display:grid;grid-template-columns:56px minmax(0,1fr) 108px 108px 96px 66px;
+.lb-thead,.lb-row{display:grid;grid-template-columns:56px minmax(0,1fr) minmax(108px,max-content);
   align-items:center;gap:10px;padding:11px 18px}
 .lb-thead{background:#f6f9fd;border-bottom:1px solid var(--line);font-size:12px;color:var(--dim);
   font-weight:600}
@@ -618,33 +613,20 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .lb-row{border-bottom:1px solid #f0f3f9;font-size:13.5px;transition:background .15s}
 .lb-row:last-child{border-bottom:none}
 .lb-row:hover{background:#fafcff}
-.lb-row.me{background:linear-gradient(90deg,#eff6ff,#f7fbff);border-left:3px solid #2f7fd0}
+.lb-row.me{background:linear-gradient(90deg,#eff6ff,#f7fbff);box-shadow:inset 3px 0 0 #2f7fd0}
 .c-rk{font-family:var(--mono);font-size:15px;font-weight:700;color:#5a657a;text-align:center}
 .lb-row:nth-child(1) .c-rk{font-size:19px}
 .c-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--ink)}
 .lb-you{display:inline-block;margin-left:7px;background:#2f7fd0;color:#fff;font-size:10.5px;
   border-radius:99px;padding:1px 7px;font-weight:600}
 .lb-adm{display:inline-block;margin-left:7px;color:#98a1b8;font-size:10.5px;font-style:normal}
-.c-pg{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
-.c-pg b{color:var(--ink2);font-size:13.5px}
-.lb-mini{display:block;height:4px;border-radius:2px;background:#edf1f7;overflow:hidden}
-.lb-mini s{display:block;height:100%;background:linear-gradient(90deg,#2f7fd0,#18a07a);
-  text-decoration:none}
-.c-tm{font-size:12.5px;color:var(--muted);text-align:right}
-.c-sc{font-family:var(--mono);font-size:15px;font-weight:700;color:#18a07a;text-align:right}
-.c-qz{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
-.c-qz b{color:var(--ink2);font-size:13.5px}
-.lb-mini.q s{background:linear-gradient(90deg,#8b5cf6,#6366f1)}
-.lb-ex{display:block;color:#7c3aed;font-size:10.5px;font-style:normal}
+.c-tm{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+.lb-row .c-tm{color:#167a5e;font-weight:700}
 .lb-loading,.lb-card .qempty{padding:30px;text-align:center;color:var(--dim);font-size:13px}
 .lb-note{margin-top:14px;color:var(--dim);font-size:12px;line-height:1.8}
 @media (max-width:820px){
-  .lb-thead,.lb-row{grid-template-columns:38px minmax(0,1fr) 72px 64px 56px;gap:6px;padding:10px 12px;
+  .lb-thead,.lb-row{grid-template-columns:38px minmax(0,1fr) minmax(96px,max-content);gap:6px;padding:10px 12px;
     font-size:12.5px}
-  .c-tm{display:none}
-  .lb-thead .c-tm{display:none}
-  .c-sc{font-size:13px}
-  .c-qz{font-size:11px}
 }
 
 /* ---------- 认领历史进度 ---------- */
@@ -698,8 +680,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   line-height:1.65}
 .hlb-me b{color:#1d6fd0}
 .hlb-list{display:flex;flex-direction:column;gap:1px}
-/* 右侧紧凑行：排名 / 姓名 / 章 / 分 */
-.hlb-row{display:grid;grid-template-columns:26px minmax(0,1fr) 54px 40px;align-items:center;
+/* 右侧紧凑行：名次 / 学员 / 学习时长 */
+.hlb-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(88px,max-content);align-items:center;
   gap:7px;padding:7px 6px;border-radius:7px;text-decoration:none;color:var(--ink2);font-size:12.5px;
   transition:background .15s}
 .hlb-row:hover{background:#f6faff;text-decoration:none}
@@ -709,9 +691,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .h-nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
 .h-you{display:inline-block;margin-left:5px;background:#2f7fd0;color:#fff;font-size:9.5px;
   border-radius:99px;padding:0 5px;font-weight:600;vertical-align:1px}
-.h-pg{font-size:11px;color:var(--muted);white-space:nowrap;text-align:right}
-.h-qz{display:none}                          /* 右侧栏空间有限，隐藏刷题列 */
-.h-sc{font-family:var(--mono);font-size:13px;font-weight:700;color:#18a07a;text-align:right}
+.h-tm{font-size:12px;font-weight:700;color:#167a5e;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .hlb-loading,.hlb-empty{padding:14px;text-align:center;color:var(--dim);font-size:12px}
 .qcard-lb{background:linear-gradient(135deg,#fffbf0,#fff6e0);border-color:#f5e3b8}
 .qcard-lb b{color:#8a6a1e}
@@ -724,8 +704,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media (max-width:960px){
   .home-main{display:block;padding:24px 16px 0}
   .hm-side{position:static;margin-top:22px}
-  .hlb-row{grid-template-columns:30px minmax(0,1fr) 66px 46px}
-  .h-pg,.h-sc{font-size:12px}
+  .hlb-row{grid-template-columns:30px minmax(0,1fr) minmax(88px,max-content)}
 }
 
 
