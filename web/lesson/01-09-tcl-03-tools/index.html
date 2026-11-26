@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 3 讲 · 变量操作三剑客：append / incr / expr · 09 | IC 后端学院</title>
 <meta name="description" content="字符串拼接用 append（两种方法 + 与普通拼接对比）、整数加减用 incr（默认 1 / 正负步长）、一切数学运算交给 expr（含整数除法陷阱）。三剑客是写任何 TCL 脚本都绕不开的三个命令。">
-<link rel="icon" href="/assets/logo.svg?v=5613773bf540" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=5613773bf540">
+<link rel="icon" href="/assets/logo.svg?v=3ce1e293101d" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=3ce1e293101d">
 </head>
 <body data-page="lesson" data-lesson="01-09-tcl-03-tools">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5613773bf540" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3ce1e293101d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -77,7 +77,7 @@ puts $str                          ;# 输出：Hello World!">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set str &quot;Hello&quot;
 append str &quot;空格&quot;  &quot;World&quot;  &quot;!&quot;   ;# 可一次性追加多个内容
 puts $str                          ;# 输出：Hello World!</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -91,7 +91,7 @@ puts $str">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set str hello
 append str { world!}
 puts $str</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -105,7 +105,7 @@ puts $str2                ;# 输出：Hello World!">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set str2 &quot;Hello&quot;
 set str2 &quot;$str2 World!&quot;   ;# 旧办法：读出旧值自己拼自己
 puts $str2                ;# 输出：Hello World!</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -137,7 +137,7 @@ puts &quot;num1最终值：$num1&quot;   ;# 输出：num1最终值：13
 set num2 0
 incr num2 -1     ;# 递减为-1
 puts &quot;num2：$num2&quot;   ;# 输出：num2：-1</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -162,7 +162,7 @@ expr {$a * 2}      ;# 乘
 expr {$b - $a}     ;# 减
 expr {$b / $a}     ;# 整数除法：5/3=1（整数相除结果仍是整数！）
 expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -202,9 +202,9 @@ expr {5.0 / 3}     ;# 浮点数除法，想得到小数至少一边要是小数<
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=5613773bf540"></script>
-<script src="/assets/tcl.js?v=5613773bf540"></script>
-<script src="/assets/app.js?v=5613773bf540"></script>
-<script src="/assets/aiwidget.js?v=5613773bf540" defer></script>
+<script src="/assets/shell.js?v=3ce1e293101d"></script>
+<script src="/assets/tcl.js?v=3ce1e293101d"></script>
+<script src="/assets/app.js?v=3ce1e293101d"></script>
+<script src="/assets/aiwidget.js?v=3ce1e293101d" defer></script>
 </body>
 </html>

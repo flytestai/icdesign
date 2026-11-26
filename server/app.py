@@ -16,6 +16,7 @@ import os
 import re
 import secrets
 import sqlite3
+import subprocess
 import time
 import urllib.error
 import urllib.parse
@@ -1098,6 +1099,91 @@ def _catalog() -> dict:
 def _first_lesson() -> str:
     lessons = _catalog().get("lessons") or []
     return lessons[0]["id"] if lessons else ""
+
+
+class TclRunIn(BaseModel):
+    code: str = Field(..., max_length=20000)
+    stdin: str = Field("", max_length=8000)
+
+
+# 服务器上的真实 Tcl 解释器路径（优先 9.1，回退系统 8.6）
+TCL_CANDIDATES = ["/usr/local/tcl9.1/bin/tclsh9.1", "/usr/local/bin/tclsh9.1", "/usr/bin/tclsh"]
+
+
+def _tclsh_path() -> Optional[str]:
+    for p in TCL_CANDIDATES:
+        if os.path.isfile(p) and os.access(p, os.X_OK):
+            return p
+    return None
+
+
+@app.get("/api/tcl/version")
+def tcl_version():
+    """返回服务器真实 Tcl 版本（前端展示 / 判断真机模式可用性）。"""
+    p = _tclsh_path()
+    if not p:
+        return {"available": False, "version": "", "path": ""}
+    try:
+        out = subprocess.run([p], input='puts [info patchlevel]\n', capture_output=True,
+                             text=True, timeout=10).stdout.strip()
+        return {"available": True, "version": out, "path": p}
+    except Exception as e:
+        return {"available": False, "version": "", "path": p, "error": str(e)[:100]}
+
+
+@app.post("/api/tcl/run")
+def tcl_run(r: TclRunIn, request: Request):
+    """在服务器上用真实 tclsh 执行 Tcl（沙箱限制，用于课程「真机模式」）。"""
+    u = current_user(request)
+    if not u:
+        raise HTTPException(401, "not logged in")
+    p = _tclsh_path()
+    if not p:
+        raise HTTPException(503, "服务器未安装 tclsh")
+    # 安全：禁用危险命令，限制执行时间与输出大小
+    guard = (
+        "rename exec {}\n"
+        "rename open {}\n"
+        "rename socket {}\n"
+        "rename source {}\n"
+        "rename load {}\n"
+        "rename glob {}\n"
+        "rename file {}\n"
+        "rename cd {}\n"
+        "rename pwd {}\n"
+        "rename exit {}\n"
+    )
+    script = guard + r.code + "\n"
+    try:
+        # 定位 Tcl 脚本库目录（含 init.tcl）。各版本布局不同：
+        # 8.6 是 lib/tcl8.6/init.tcl；9.x 可能是 lib/tcl9/init.tcl 或 lib/tcl9/9.1/init.tcl
+        base = os.path.dirname(os.path.dirname(p))       # .../tcl9.1
+        libdir = ""
+        for cand in ("lib/tcl9/9.1", "lib/tcl9", "lib/tcl9.1", "lib/tcl8.6"):
+            d = os.path.join(base, cand)
+            if os.path.isfile(os.path.join(d, "init.tcl")):
+                libdir = d
+                break
+        if not libdir:
+            for root, dirs, files in os.walk(os.path.join(base, "lib")):
+                if "init.tcl" in files:
+                    libdir = root
+                    break
+        env = {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": "/tmp", "LANG": "C.UTF-8"}
+        if libdir:
+            env["TCL_LIBRARY"] = libdir
+        pr = subprocess.run([p], input=script, capture_output=True, text=True,
+                            timeout=5, cwd="/tmp", env=env)
+        out = (pr.stdout or "")[:20000]
+        err = (pr.stderr or "")[:4000]
+        return {"ok": pr.returncode == 0, "stdout": out, "stderr": err,
+                "code": pr.returncode,
+                "version": subprocess.run([p], input='puts [info patchlevel]', capture_output=True,
+                                          text=True, timeout=5).stdout.strip()}
+    except subprocess.TimeoutExpired:
+        raise HTTPException(408, "执行超时（5 秒上限）")
+    except Exception as e:
+        raise HTTPException(500, "执行失败：%s" % str(e)[:120])
 
 
 def _total_chapters() -> int:

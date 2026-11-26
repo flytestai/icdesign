@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>lib 与 rc tech：延迟到底是怎么算出来的 · 27 | IC 后端学院</title>
 <meta name="description" content="时序数据只有两份文件：lib 负责单元延迟，rc tech 负责线延迟。这一课打开 lib 看它到底存了什么、工具怎么用查表的方式算出一个 cell 的 delay，讲清 input transition 与 output load 这两个决定性变量，再把 lib 文件名的每一段（台积电/lvt/ssg/0p81v/125c）拆开读，最后讲 PVT 与先进工艺的温度反转效应。">
-<link rel="icon" href="/assets/logo.svg?v=5613773bf540" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=5613773bf540">
+<link rel="icon" href="/assets/logo.svg?v=3ce1e293101d" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=3ce1e293101d">
 </head>
 <body data-page="lesson" data-lesson="02-06-pr-lib-rctech">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5613773bf540" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3ce1e293101d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -207,9 +207,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=5613773bf540"></script>
-<script src="/assets/tcl.js?v=5613773bf540"></script>
-<script src="/assets/app.js?v=5613773bf540"></script>
-<script src="/assets/aiwidget.js?v=5613773bf540" defer></script>
+<script src="/assets/shell.js?v=3ce1e293101d"></script>
+<script src="/assets/tcl.js?v=3ce1e293101d"></script>
+<script src="/assets/app.js?v=3ce1e293101d"></script>
+<script src="/assets/aiwidget.js?v=3ce1e293101d" defer></script>
 </body>
 </html>

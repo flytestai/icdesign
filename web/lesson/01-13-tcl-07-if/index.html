@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 7 讲 · 流程控制（上）：if 条件判断与用户输入 · 13 | IC 后端学院</title>
 <meta name="description" content="if-elseif-else 语法与四大语法铁律（文档强调的初学者大坑）、比较与逻辑运算符、gets stdin 用户输入、rand() 随机数、成绩等级判断与猜数字游戏（文档原题）。">
-<link rel="icon" href="/assets/logo.svg?v=5613773bf540" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=5613773bf540">
+<link rel="icon" href="/assets/logo.svg?v=3ce1e293101d" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=3ce1e293101d">
 </head>
 <body data-page="lesson" data-lesson="01-13-tcl-07-if">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5613773bf540" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3ce1e293101d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -94,7 +94,7 @@ if {$score &gt;= 90} {
     puts &quot;成绩等级：D（不及格）&quot;
 }
 ;# 输出：成绩等级：B（良好）</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -132,7 +132,7 @@ if {$score &gt;= 90} {
 } else {
     puts &quot;jiayou&quot;
 }</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -149,7 +149,7 @@ puts [expr {int(rand()*100)}]   ;# 0-99 的整数随机数（多跑几次看变�
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">puts [expr {rand()}]
 puts [expr {int(rand()*100)}]   ;# 0-99 的整数随机数（多跑几次看变化）</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -197,7 +197,7 @@ if {$com_num == $ply_ch} {
     puts &quot;You lose!&quot;
 }
 ;# 输入行敲 0 / 1 / 2 之一，回车运行。多玩几局看结果变化</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -249,7 +249,7 @@ while {1} {
         puts &quot;小了&quot;
     }
 }</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -285,9 +285,9 @@ while {1} {
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=5613773bf540"></script>
-<script src="/assets/tcl.js?v=5613773bf540"></script>
-<script src="/assets/app.js?v=5613773bf540"></script>
-<script src="/assets/aiwidget.js?v=5613773bf540" defer></script>
+<script src="/assets/shell.js?v=3ce1e293101d"></script>
+<script src="/assets/tcl.js?v=3ce1e293101d"></script>
+<script src="/assets/app.js?v=3ce1e293101d"></script>
+<script src="/assets/aiwidget.js?v=3ce1e293101d" defer></script>
 </body>
 </html>

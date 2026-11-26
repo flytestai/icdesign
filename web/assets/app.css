@@ -746,3 +746,15 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .stage-toggle::after{content:attr(data-count);font-size:11.5px;color:var(--dim);
   font-weight:400;margin-left:8px;opacity:.75;display:none}
 .stage.collapsed .stage-toggle::after{display:inline}
+
+/* ---------- Tcl 真机模式开关 ---------- */
+.tcl-real{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:#7d8fa6;
+  cursor:pointer;user-select:none;padding:2px 6px;border-radius:6px;transition:background .15s}
+.tcl-real:hover{background:#16222e;color:#a9bdd2}
+.tcl-real input{accent-color:#18a07a;width:13px;height:13px;cursor:pointer;margin:0}
+.tcl-real input:disabled{cursor:not-allowed;opacity:.5}
+.tcl-ver{font-style:normal;font-family:var(--mono);font-size:10.5px;color:#4d6379}
+.tcl-real:hover .tcl-ver{color:#7d8fa6}
+.tsbx.real-on .tcl-edit-f{background:#0d1f1a}
+.tsbx.real-on .tcl-real{color:#8fe0b0}
+.tsbx.real-on .tcl-ver{color:#5f8f78}

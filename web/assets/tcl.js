@@ -1034,6 +1034,24 @@ function mountTsbx(root) {
   function runEditor() {
     var code = ed ? ed.value : '';
     if (!/\S/.test(code)) return;
+    /* 真机模式：把代码发到服务器，用真实 tclsh 执行 */
+    var cb = root.querySelector('.tcl-real-cb');
+    if (cb && cb.checked) {
+      con.print('(真机 tclsh) 执行中…', 'dim');
+      fetch('/api/tcl/run', {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code })
+      }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (res) {
+          if (!res.ok) { con.print('✗ ' + (res.j.detail || '执行失败'), 'err'); return; }
+          if (res.j.stdout) con.print(res.j.stdout.replace(/\n$/, ''), '');
+          if (res.j.stderr) con.print(res.j.stderr.replace(/\n$/, ''), 'err');
+          if (!res.j.stdout && !res.j.stderr) con.print('(无输出)', 'dim');
+        })
+        .catch(function (e) { con.print('✗ 网络异常：' + (e.message || e), 'err'); });
+      return;
+    }
     con.runScript(code, true);
     con.print('', '');
   }
@@ -1087,6 +1105,34 @@ function mountTsbx(root) {
   }
 
   // 给外部（练习场的「跑整段 / 执行下一行」）用的接口：和手动敲共用同一个解释器
+  /* 真机模式：查询服务器 Tcl 版本，显示在开关旁边；不可用则禁用 */
+  (function realMode() {
+    var cb = root.querySelector('.tcl-real-cb');
+    var verEl = root.querySelector('.tcl-ver');
+    if (!cb) return;
+    if (!cb.__bound) {
+      cb.__bound = 1;
+      cb.addEventListener('change', function () {
+        if (verEl) verEl.textContent = cb.checked ? '' : '';   // 切换时只更新样式
+        root.classList.toggle('real-on', cb.checked);
+      });
+    }
+    if (root.__realVerLoaded) return;
+    root.__realVerLoaded = 1;
+    fetch('/api/tcl/version', { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.available) {
+          if (verEl) verEl.textContent = d.version;
+        } else {
+          if (verEl) verEl.textContent = '不可用';
+          cb.disabled = true;
+          cb.parentNode.title = '服务器未安装 tclsh';
+        }
+      })
+      .catch(function () { if (verEl) verEl.textContent = ''; });
+  })();
+
   root.__tsbx = {
     run: function (code, echoResult) { con.runScript(code, !!echoResult); },
     echo: function (text) { con.print(text, 'in'); },
