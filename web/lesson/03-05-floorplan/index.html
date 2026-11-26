@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Floorplan：芯片尺寸、端口、宏与约束 · 35 | IC 后端学院</title>
+<meta name="description" content="视图与布局规划基础；定义芯片尺寸与异形 Die；摆放端口与引脚约束；摆放 Memory、SRAM 与宏单元；添加物理单元；布局与布线约束练习；导入导出与质量评估；常见问题；实操：定义形状与抓取、摆放端口。按《04 innovus项目(1).docx》原文顺序整理，保留原图。">
+<link rel="icon" href="/assets/logo.svg?v=f53c4b47f35a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=f53c4b47f35a">
+</head>
+<body data-page="lesson" data-lesson="03-05-floorplan">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=f53c4b47f35a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Floorplan：芯片尺寸、端口、宏与约束</b></div>
+    <div class="hero">
+      <div class="hero-no">35</div>
+      <h1>Floorplan：芯片尺寸、端口、宏与约束</h1>
+      <p class="hero-en">Floorplan</p>
+      <p class="hero-sum">视图与布局规划基础；定义芯片尺寸与异形 Die；摆放端口与引脚约束；摆放 Memory、SRAM 与宏单元；添加物理单元；布局与布线约束练习；导入导出与质量评估；常见问题；实操：定义形状与抓取、摆放端口。按《04 innovus项目(1).docx》原文顺序整理，保留原图。</p>
+      <div class="hero-meta">
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈10 分钟</span>
+        <span class="pill">课表学时 0</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span>
+      </div>
+    </div>
+    <article id="article" data-est-min="10"><section class="ch" id="source-01" data-ch="source-01">
+  <div class="ch-h"><span class="ch-n">01</span><h2>视图与布局规划基础</h2></div>
+  <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">三、Floorplan</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus的几种视图</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-09.png" data-fig="innovus-doc-09.png"><img src="/fig/innovus-doc-09.png" alt="原文图 09 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 09 · 视图与布局规划基础</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）一些floorplan的概念</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">site:  placement的最小单位，任何cell的宽度一定是site的整数倍</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-10.png" data-fig="innovus-doc-10.png"><img src="/fig/innovus-doc-10.png" alt="原文图 10 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 10 · 视图与布局规划基础</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">row： 约束cell的摆放，必须摆在row上，高度等于stdcell的高度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果不在row上会有什么问题？</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果不在row上，就是没有legalize， 会导致底层color不对 ，引发basedrc问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">dobulepattern </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">解决方法：  如果数量不多，可以手动legalize,手动挪动cell到row上</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果数量较多，用Legalize placement 自动legalize</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-11.png" data-fig="innovus-doc-11.png"><img src="/fig/innovus-doc-11.png" alt="原文图 11 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 11 · 视图与布局规划基础</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">port:  是整个模块的端口、信号接口</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-12.png" data-fig="innovus-doc-12.png"><img src="/fig/innovus-doc-12.png" alt="原文图 12 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 12 · 视图与布局规划基础</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">pin：标准单元或者mem的输入端口输出端口</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-13.png" data-fig="innovus-doc-13.png"><img src="/fig/innovus-doc-13.png" alt="原文图 13 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 13 · 视图与布局规划基础</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">terminal：为了将port的逻辑连接，变成物理连接，需要创建metalshape，也就是一段金属，这就是terminal</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-14.png" data-fig="innovus-doc-14.png"><img src="/fig/innovus-doc-14.png" alt="原文图 14 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 14 · 视图与布局规划基础</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">cell density  单元的密度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果density过高，会导致什么问题？会导致routing resource（绕线的资源） 不足</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">出现short</p></div>
+  
+</section>
+<section class="ch" id="source-02" data-ch="source-02">
+  <div class="ch-h"><span class="ch-n">02</span><h2>定义芯片尺寸与异形 Die</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2） floorplan的流程</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">教学版：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、定义芯片的大小</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">页面上的操作</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-15.png" data-fig="innovus-doc-15.png"><img src="/fig/innovus-doc-15.png" alt="原文图 15 · 定义芯片尺寸与异形 Die" loading="lazy" decoding="async"></a><figcaption>原文图 15 · 定义芯片尺寸与异形 Die</figcaption></figure>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-16.png" data-fig="innovus-doc-16.png"><img src="/fig/innovus-doc-16.png" alt="原文图 16 · 定义芯片尺寸与异形 Die" loading="lazy" decoding="async"></a><figcaption>原文图 16 · 定义芯片尺寸与异形 Die</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">定义异形die（针对die区域剪切的）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">界面：</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-17.png" data-fig="innovus-doc-17.png"><img src="/fig/innovus-doc-17.png" alt="原文图 17 · 定义芯片尺寸与异形 Die" loading="lazy" decoding="async"></a><figcaption>原文图 17 · 定义芯片尺寸与异形 Die</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置支持异型剪切：setPreference EnableRectilinearDesign 1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">剪切命令：addObjFPlanCutBox cell leon 0 0 20 80</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">吐出die的命令：writeFPlanScript -fileName box.tcl -sections {boundary block pins}</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-18.png" data-fig="innovus-doc-18.png"><img src="/fig/innovus-doc-18.png" alt="原文图 18 · 定义芯片尺寸与异形 Die" loading="lazy" decoding="async"></a><figcaption>原文图 18 · 定义芯片尺寸与异形 Die</figcaption></figure>
+  
+</section>
+<section class="ch" id="source-03" data-ch="source-03">
+  <div class="ch-h"><span class="ch-n">03</span><h2>摆放端口与引脚约束</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、摆放port</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-19.png" data-fig="innovus-doc-19.png"><img src="/fig/innovus-doc-19.png" alt="原文图 19 · 摆放端口与引脚约束" loading="lazy" decoding="async"></a><figcaption>原文图 19 · 摆放端口与引脚约束</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">单层摆port命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editPin -pinWidth 0.08  pin宽</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pinDepth 0.32              pin深</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-fixOverlap 1   禁止重叠</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-unit TRACK  对齐track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-spreadDirection clockwise  顺时针</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-layer 5      摆pin的层数</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-spreadType start 从开始点摆</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-spacing 2 间隔2个track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-start 0 220 开始摆port坐标</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pin $input_ports 指定摆放的port </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-fixedPin 固定port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-side LEFT 摆放方位</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">多层摆port命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editPin -fixOverlap 1 -fixedPin 1 -layer {M6 M8 M10} -pin &quot;$exif $sif&quot; -pinDepth 0.6 -pinWidth 0.038 -edge 3 -snap TRACK -spreadDirection counterclockwise -offsetStart 609 -unit TRACK -spacing 1 -pattern fill_checkerboard</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">解析</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editPin -fixOverlap 1 自动修复引脚重叠</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-fixedPin 1 锁定引脚位置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-layer {M6 M8 M10} 摆放金属层配置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pin &quot;$exif $sif&quot; 操作对象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pinDepth 0.6 引脚深度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pinWidth 0.038 引脚宽度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-edge 3 摆放位置（0左 1上 2右 3下）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-snap TRACK 对齐track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-spreadDirection counterclockwise 排布方向逆时针（clockwise 顺时针）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-offsetStart 609 从起点开始偏移多少个track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-unit TRACK -spacing 1 间隔2个track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pattern fill_checkerboard 交错排布</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">man 命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">命令 -help  查看命令详细使用方法</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">port 面宽计算：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">（port数量-1）* track间距/摆port层数</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例：（51-1）*（0.2*2）/3     单位都是um</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">多层摆port 上下必须同一层（5 7 9）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere"> 左右必须同一层（6 8 10）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">port的约束  pinBlkage</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-20.png" data-fig="innovus-doc-20.png"><img src="/fig/innovus-doc-20.png" alt="原文图 20 · 摆放端口与引脚约束" loading="lazy" decoding="async"></a><figcaption>原文图 20 · 摆放端口与引脚约束</figcaption></figure>
+  
+</section>
+<section class="ch" id="source-04" data-ch="source-04">
+  <div class="ch-h"><span class="ch-n">04</span><h2>摆放 Memory、SRAM 与宏单元</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、摆放mem/sram/macro</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">摆放mem的规则</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）所有的mem需要根据模块进行划分、标记, 同模块的要尽量摆在一块</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-21.png" data-fig="innovus-doc-21.png"><img src="/fig/innovus-doc-21.png" alt="原文图 21 · 摆放 Memory、SRAM 与宏单元" loading="lazy" decoding="async"></a><figcaption>原文图 21 · 摆放 Memory、SRAM 与宏单元</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）所有的mem尽量贴边摆放，先摆较大的，再摆较小的</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）mem和mem之间一定留有channel（沟道）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.如果mem很多，可以用marchlearning跑一版，建议每个阶段都用它跑一版</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">marchlearning可以通过配置文件约束边界要求，间距要求，自动摆一版floorplan</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.先摆一版导出，基于这一版做调整</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4）mem摆放尽量避开io的port位置，mem出pin尽量朝里面</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">摆放fp的工具栏</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-22.png" data-fig="innovus-doc-22.png"><img src="/fig/innovus-doc-22.png" alt="原文图 22 · 摆放 Memory、SRAM 与宏单元" loading="lazy" decoding="async"></a><figcaption>原文图 22 · 摆放 Memory、SRAM 与宏单元</figcaption></figure>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-23.png" data-fig="innovus-doc-23.png"><img src="/fig/innovus-doc-23.png" alt="原文图 23 · 摆放 Memory、SRAM 与宏单元" loading="lazy" decoding="async"></a><figcaption>原文图 23 · 摆放 Memory、SRAM 与宏单元</figcaption></figure>
+  
+</section>
+<section class="ch" id="source-05" data-ch="source-05">
+  <div class="ch-h"><span class="ch-n">05</span><h2>添加物理单元</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、添加physicalcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">概念：什么是physical only cell？  只有物理信息，没有时序信息的单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）endcap cell（boundary cell）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 防止边缘效应，防止过刻蚀的情况出现，打在core四周以及mem的四周</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">需要检查：打完之后有没有缺失的情况</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）tap cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 为了防止闩锁效应（Latch-up）,（闩锁效应： VDD和VSS形成一个低阻通路，容易造成短路、烧毁）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）tiecell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：为了防止一些pin出现floating悬空的情况，需要插入tiecell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">tiecell种类分为两种</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">TieHigh   始终为1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">TieLow   始终为0</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4）Decap   cell   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：为了防止IRDROP的问题，相当于一个小电容，需要额外的电荷时提供电荷，不需要额外电荷时，进行充电到最大</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">IRDROP:电压降，电压经过导线的传输，随着距离的加大，会出现电压降低的现象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5）Filler Cell </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 用于填充空白区域，方便进行生产，形成完整的井连接</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">6）ESD cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：防止静电的影响，通过esd释放静电电流</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">特别的单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">spare cell    inv最多，buf次之， flop较少  预备单元，在eco阶段使用</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">延伸：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">抓取所有的endcap</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">selectInst [dbGet top.insts.name ENDCAP_*]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">抓取所有的tapcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">selectInst [dbGet top.insts.name WELLTAP_*]</p></div>
+  
+</section>
+<section class="ch" id="source-06" data-ch="source-06">
+  <div class="ch-h"><span class="ch-n">06</span><h2>布局与布线约束练习</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、添加布局约束布线约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5.1摆放stdcell的约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">guide   可进可出：属于该模块的可以放在guide里面，也可以不放在guide里面，其他模块也可以放guide里面</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">region  可进不可出：属于该模块的stdcell只能放在region里面，不属于的可以放也可以不放  bound</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">fence   不可进不可出：属于该模块的stdcell只能放在fence里面，不属于的不可以放在fence区域</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">创建的命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setup.tcl </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">post init {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">prefloorplan {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postfloorplan {    }</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">preplace {  }</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postplace {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">prects {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postcts {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPlaceMode -place_hard_fence true 强制布局阶段，将region视为强约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setOptMode -opt_honor_fence true  强制优化阶段，遵循region/fence 约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">根据group创建约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group1 -fence {58 343 180 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addInstToInstGroup group1 {proc0/iu0/FE_OCP_DRV_C1140_n_1 proc0/iu0/FE_OFC1055_n_1376}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例子</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group1 -fence {58 343 180 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group2 -guide  {221 343 347 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group3 -region   {385 343 520 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除fence</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteInstGroup group1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5.2阻止工具在区域内摆放单元 placement blockage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">soft   place阶段不能摆放cell,但是optcts、route等阶段可以</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">hard  任何阶段都不能摆放stdcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">partial 需要设置百分比，控制区域内的cell的密度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Macro_only  不允许摆放macro，stdcell可以摆放</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">使用命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createPlaceBlockage -box {37 149 156 218} -type hard  -name hard_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createPlaceBlockage -box {238 153 390 218} -type soft -density 50 -name soft_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createPlaceBlockage -box {478 167 674 228} -type partial   -density 50  -name part_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">页面</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-24.png" data-fig="innovus-doc-24.png"><img src="/fig/innovus-doc-24.png" alt="原文图 24 · 布局与布线约束练习" loading="lazy" decoding="async"></a><figcaption>原文图 24 · 布局与布线约束练习</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">快捷键： shift+y    </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">切换placementblkage 类型:  F3</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除palcementblkage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deletePlaceBlockage -all</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deletePlaceBlockage name</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deletePlaceBlockage  -type  soft</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5.3 halo  一般flow自带会打halo</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">在mem四周打一圈halo，不允许在mem的halo范围内摆cell</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-25.png" data-fig="innovus-doc-25.png"><img src="/fig/innovus-doc-25.png" alt="原文图 25 · 布局与布线约束练习" loading="lazy" decoding="async"></a><figcaption>原文图 25 · 布局与布线约束练习</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5.4布线的约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">概念：routing blockage 不允许工具在指定的范围内走线</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createRouteBlk  -box {743 173 876 228} -layer {M3 M5} -name route_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">页面</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-26.png" data-fig="innovus-doc-26.png"><img src="/fig/innovus-doc-26.png" alt="原文图 26 · 布局与布线约束练习" loading="lazy" decoding="async"></a><figcaption>原文图 26 · 布局与布线约束练习</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">快捷键： shift+b</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除routeblkage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteRouteBlk -all   删除所有</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteRouteBlk -name   blk的name</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteRouteBlk -layer  {M1 M3}  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteRouteBlk -box  {}   删除指定区域的blkage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">练习：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、创建一个fence    </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、创建一个hard  placeblkage（用命令）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、创建partial placeblkage（用命令）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、创建soft  blkage （用界面）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、创建routing blkage  (用命令)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">6、删除hardblkage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7、写一个tcl实现上面的操作， 加上注释</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">8、删除之前的所有约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">9、执行自己的脚本</p></div>
+  
+</section>
+<section class="ch" id="source-07" data-ch="source-07">
+  <div class="ch-h"><span class="ch-n">07</span><h2>导入导出与质量评估</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">6、吐出flooplan的tcl文件/产生一个fp.tcl文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">产生fp的tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">writeFPlanScript  -selected    -fileName ../scripts/stu_0131_placemem.tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">吃fp的tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">source  ../scripts/stu_0131_placemem.tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">吐出def文件(innovus)        注：01版本只动了mem</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">defOut -floorplan  data/floorplan_01.def </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">读入def文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">defIn data/floorplan_01.def</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7 如何评估floorplan的好坏</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7.1 整体看上去整齐，美观</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7.2 要根据place的结果来评判，place的setup时序是否有违例， congestion map是否有大量红色， cell density是否有较高的地方</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion map:  会有个图层可以查看congestion分布，颜色深度就是严重程度，颜色越深，越严重</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion：绕线资源的拥塞程度，congestion越严重，线就越绕不通</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion可以通过命令查看overflow的值  H(横向)和V(纵向)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">overflow的值不要超过1%    0.1%-0.2%(3nm)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">reportCongestion -hotSpot -overflow  </p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-27.png" data-fig="innovus-doc-27.png"><img src="/fig/innovus-doc-27.png" alt="原文图 27 · 导入导出与质量评估" loading="lazy" decoding="async"></a><figcaption>原文图 27 · 导入导出与质量评估</figcaption></figure>
+  
+</section>
+<section class="ch" id="source-08" data-ch="source-08">
+  <div class="ch-h"><span class="ch-n">08</span><h2>常见问题</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">8 floorplan的一些问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">8.1 init design之后有很多mem/分给自己的模块有很多mem/mcaro，怎么更快的进行fp</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）使用工具自动摆放macro的界面，但是这种方法较为粗糙</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">或者使用命令   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Set_fp_stragety  -macros_on_edge  on  </p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-28.png" data-fig="innovus-doc-28.png"><img src="/fig/innovus-doc-28.png" alt="原文图 28 · 常见问题" loading="lazy" decoding="async"></a><figcaption>原文图 28 · 常见问题</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）使用marchlearning</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置fp的一些约束规则，让工具ai自动摆放mem</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、macro之间Chanel的计算方法？ </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如何确定mem之间的chanel是足够的？依据是什么？</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">通常你们工作中mem之间chanel留多大？为什么？</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">根据mem的摆放出pin情况，以及pin的数量，以及要走的metal层的pitch，计算得出总线宽</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例如：有一个mem，出pin为30个，走M6，M8，假设pitch是0.1um</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">30*0.1/2= 1.5um</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、除了通常的摆放mem方法还有什么方法可以摆放</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">背靠背摆法，chanel可以减小到最低，节省大量面积</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">上下结构，左右结构</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">注意：背靠背，中间也会有chanel，只是很小，需要特定的角度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、关于dontuse cell 的list</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">在PR每个阶段，flow会设置dontusecell,禁止工具使用一些指定的cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">在eco阶段，会有一个检查，是否有dontuse的cell在design中，需要进行替换</p></div>
+  
+</section>
+<section class="ch" id="source-09" data-ch="source-09">
+  <div class="ch-h"><span class="ch-n">09</span><h2>实操：定义形状与抓取、摆放端口</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5）实操</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.定义形状</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">floorplan -noSnapToGrid -b 0 0 935.712 456.456  0 0 935.712 456.456</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.2 1.2285 934.512 455.2275 #die 坐标 IO 坐标 core 坐标</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addObjFPlanCutBox cell bpu40_vae_top_wrapper  0 0 566.352 228.228</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">#切角坐标。</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-29.png" data-fig="innovus-doc-29.png"><img src="/fig/innovus-doc-29.png" alt="原文图 29 · 实操：定义形状与抓取、摆放端口" loading="lazy" decoding="async"></a><figcaption>原文图 29 · 实操：定义形状与抓取、摆放端口</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.抓取port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">--抓取所有 port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set all_ports [dbget top.terms.name]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set fh [open &quot;ports_from_db.txt&quot; w]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">puts $fh [join $all_ports &quot;\n&quot;]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">close $fh</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">--抓取 unplace 的 port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set unplaced [dbget [dbget -p top.terms.pStatus unplaced].name]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set f [open &quot;unplaced_terms.txt&quot; w]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">foreach t $unplaced { puts $f $t }</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">close $f</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">redirect -file physicalcell_name.txt {puts [dbget top.physInsts.name ]}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">--抓取 input/output port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">get_ports -filter &quot;direction == in/out&quot;</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">--取消摆放</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">dbset top.terms.pStatus unplaced</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">dbset selected.pStatus unplaced</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3.摆放port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置变量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set A  [get_object_name [get_ports A*]]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editPin -fixOverlap 1  -fixedPin 1    -layer {M6 M8 M10}    -pin &quot;$exif $sif&quot;    -pinDepth 0.6   -pinWidth 0.038 -edge 3   -snap TRACK -spreadDirection counterclockwise  -offsetStart 609    -unit TRACK -spacing 1   -pattern fill_checkerboard</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">解析</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editPin -fixOverlap 1        自动修复引脚重叠</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-fixedPin 1                  锁定引脚位置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-layer {M6 M8 M10}           摆放金属层配置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pin &quot;$exif $sif&quot;            操作对象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pinDepth 0.6                引脚深度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pinWidth 0.038              引脚宽度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-edge 3                      摆放位置（0左 1上 2右 3下）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-snap TRACK                  对齐track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-spreadDirection counterclockwise  排布方向逆时针（clockwise 顺时针）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-offsetStart 609             从起点开始偏移多少个track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-unit TRACK -spacing 1       间隔2个track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pattern fill_checkerboard   交错排布</p></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-03-innovus-init/">← init_design：把数据导进 Innovus，并证明它导对了</a><a class="nav-btn" href="/lesson/03-06-powerplan/">PowerPlan：供电结构与检查 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=f53c4b47f35a"></script>
+<script src="/assets/tcl.js?v=f53c4b47f35a"></script>
+<script src="/assets/app.js?v=f53c4b47f35a"></script>
+<script src="/assets/aiwidget.js?v=f53c4b47f35a" defer></script>
+</body>
+</html>

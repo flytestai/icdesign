@@ -113,6 +113,8 @@ def slug(s):
 
 def strip_md(s):
     """把 md 正文压成纯文本，用于术语释义与搜索索引。"""
+    s = re.sub(r"^:::source\n(.*?)^:::[ \t]*$",
+               lambda m: "\n".join(json.loads(line) for line in m.group(1).splitlines()), s, flags=re.M | re.S)
     s = re.sub(r"^:::.*$", " ", s, flags=re.M)
     s = re.sub(r"^```[a-zA-Z]*$", " ", s, flags=re.M)
     s = re.sub(r"[#>*`]", " ", s)
@@ -193,6 +195,14 @@ def render_sandbox(arg):
 
 
 def render_block(name, arg, body):
+    if name == "source":
+        # Imported handout text: preserve command syntax, spacing, and line breaks.
+        paragraphs = []
+        for record in body:
+            text = json.loads(record)
+            encoded = esc(text).replace("\n", "&#10;")
+            paragraphs.append(f'<p style="white-space:pre-wrap;overflow-wrap:anywhere">{encoded}</p>')
+        return '<div class="lesson-source">' + ''.join(paragraphs) + '</div>'
     if name == "goal":
         return f'<div class="goal"><span>本章目标</span>{inline(arg or chr(10).join(body).strip())}</div>'
     if name == "scene":

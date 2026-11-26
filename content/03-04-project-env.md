@@ -1,6 +1,6 @@
 ---
 id: 03-04-project-env
-no: 34
+no: 32
 stage: 3
 title: 项目环境：目录规范、Run 与 Queue
 en: Project Environment: Directories, Runs and Queues
@@ -9,6 +9,35 @@ minutes: 30
 tags: [work, scripts, data, library, report, log, run, queue, VNC, 终端]
 summary: 上机第一件事不是敲 innovus，而是搞清楚自己在哪个目录、该把东西放哪。这一课给出标准的项目目录结构（work/scripts/data/library/report/logs 各放什么）、终端多窗口与命名习惯、Run 的命名规范，以及真实项目里怎么把多版 floorplan 丢进集群 Queue、在等待的三四天里做什么。
 ---
+
+## 项目目录与流程脚本 {#source-01}
+
+:::note 资料来源
+以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。
+:::
+
+:::source
+"一、了解和认识每个目录"
+"data：存放所有的db数据、网表、sdc、lib、lef、techfile"
+"rpts: 存放所有的报告，时序报告、drc报告、lvs报告"
+"logs：工具在运行过程中产生的日志文件"
+"scripts ： 存放工具用到的所有的脚本"
+"work：之后做项目练习都在该目录启动innovus（实际工作不会有该目录，仅在课程学习中使用）"
+:::
+
+:::fig innovus-doc-01.png | 原文图 01 · 项目目录与流程脚本
+:::
+
+:::source
+"flow、scripts 就是code就是脚本  "
+"flow就是跑整个PR的流程的脚本，flow有专门部门会编写维护"
+:::
+
+## 补充复习：原站课程内容 {#previous-material}
+
+:::note 来源区分
+以下为网站此前根据 PR 理论材料整理的补充内容；与上方本次上传的 Word 原文区分。
+:::
 
 ## 先有环境，再谈操作 {#why}
 

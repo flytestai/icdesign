@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>按流程阶段诊断时序与噪声 · 31h | IC 后端学院</title>
+<meta name="description" content="在不同实现阶段判断时序报告可信度，并用寄生与噪声报告定位问题、验证修复。">
+<link rel="icon" href="/assets/logo.svg?v=f53c4b47f35a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=f53c4b47f35a">
+</head>
+<body data-page="lesson" data-lesson="03-01h-timing-noise">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=f53c4b47f35a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>按流程阶段诊断时序与噪声</b></div>
+    <div class="hero">
+      <div class="hero-no">31h</div>
+      <h1>按流程阶段诊断时序与噪声</h1>
+      <p class="hero-en">Timing and Noise Closure</p>
+      <p class="hero-sum">在不同实现阶段判断时序报告可信度，并用寄生与噪声报告定位问题、验证修复。</p>
+      <div class="hero-meta">
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
+        <span class="pill">课表学时 0</span>
+        <span class="pill tag">STA</span><span class="pill tag">Setup</span><span class="pill tag">Hold</span><span class="pill tag">DRV</span><span class="pill tag">PrimeTime</span>
+      </div>
+    </div>
+    <article id="article" data-est-min="4"><section class="ch" id="timing-stages" data-ch="timing-stages">
+  <div class="ch-h"><span class="ch-n">01</span><h2>按阶段读 Setup 和 Hold</h2></div>
+  <div class="note"><div class="note-h">课程来源</div><p>本讲是网站原创专题；钉钉目录第 12 项仅用于确定主题与顺序，不转载原文、项目参数或图片。可另看上传 Word 整理的 <a href="/lesson/03-08-cts/#source-05">CTS 时序检查</a> 和 <a href="/lesson/03-11-eco/#source-03">时序 ECO</a>。</p></div>
+<p>Setup 检查数据是否能在捕获边沿前及时稳定；Hold 检查数据是否会在捕获之后过早改变。布局后时钟通常仍按理想模型分析，寄生也是估算值：先核对路径是否受正确约束，再用 Setup 报告找过长的逻辑链和高延迟网络，Hold 只作初筛而不据此定案。CTS 后改用传播时钟，看发射、捕获延迟和偏斜如何改变两类裕量。布线后以提取寄生为基础，按签核要求复核各模式、各角。读每条违例路径先记端点、分析视图和检查类型，再分辨数据路径贡献与时钟路径贡献，不只抄最差裕量。</p>
+  
+</section>
+<section class="ch" id="design-rules" data-ch="design-rules">
+  <div class="ch-h"><span class="ch-n">02</span><h2>分清负载、边沿和扇出</h2></div>
+  <p>Max Cap 检查驱动端看到的负载电容；Max Tran 检查信号边沿的转换时间；Max Fanout 检查扇出负载，通常按库定义的负载值计，不一定等于引脚个数。报告里同时看实际值、限值、出问题的引脚与角。宏单元输入转换超限时，应核对宏模型的限值和上游驱动，检查长线、寄生和支路负载；不要试图直接放大宏内部的标准单元。把大负载拆成几支或局部加缓冲之前，也要核对主路径时序和驱动单元剩余裕量。</p>
+  
+</section>
+<section class="ch" id="primetime-noise" data-ch="primetime-noise">
+  <div class="ch-h"><span class="ch-n">03</span><h2>用 PrimeTime Noise 找到主要施扰网</h2></div>
+  <p>使用 PrimeTime SI 的噪声分析时，先确认分析视图、库噪声模型和包含耦合电容的寄生数据已正确加载。对毛刺违例，读取受害引脚、毛刺极性、高度、宽度和报告采用的接收判据，再找主要施扰网、耦合段和相关活动窗口。受害网稳定时的毛刺与切换时的串扰延迟不是同一个检查；后者还要从考虑串扰的时序报告验证。候选修复可以是增距或换层，改完要重新提取寄生，并对比噪声、Setup、Hold 和设计规则报告。</p>
+  
+</section>
+<section class="ch" id="timing-check" data-ch="timing-check">
+  <div class="ch-h"><span class="ch-n">04</span><h2>小练习：判断一笔时序修复能否合入</h2></div>
+  <p>练习：同一签核视图中，调整线路后某 Hold 路径裕量由负转正，但同一接收端的 Setup 裕量由正转负；该支路仍有宏输入转换超限。能否因 Hold 已通过就合入？</p>
+<p>答案：不能。应对比两类路径的延迟分项、宏输入转换实际值和限值，确认改动是否把原来的迟到余量用完，另找兼顾 Setup 和 Hold 的调整点。重新提取后，在相关视图回归三项检查；若改动影响耦合，还要比较修前修后的噪声和串扰时序。通过一条路径不能替代其余签核结果。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01g-route-debug/">← Route：检查天线、串扰、短路与开路</a><a class="nav-btn" href="/lesson/03-01i-calibre-drc/">Calibre DRC：手修与复查 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=f53c4b47f35a"></script>
+<script src="/assets/tcl.js?v=f53c4b47f35a"></script>
+<script src="/assets/app.js?v=f53c4b47f35a"></script>
+<script src="/assets/aiwidget.js?v=f53c4b47f35a" defer></script>
+</body>
+</html>

@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>启动 Innovus：版本、常用选项与帮助系统 · 32 | IC 后端学院</title>
+<title>启动 Innovus：版本、常用选项与帮助系统 · 33 | IC 后端学院</title>
 <meta name="description" content="从 Encounter/ICC 到 Innovus/ICC2 的换代原因讲起，然后真刀真枪地启动工具：怎么确认版本、九个最常用的启动选项（写 log、自动跑脚本、无界面、定时、多核、帮助、GUI 开关）、CPU 该给多少核以及为什么不能给太多、启动后怎么调核数，最后把界面分成四块认识一遍。">
-<link rel="icon" href="/assets/logo.svg?v=0c1243ec983b" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=0c1243ec983b">
+<link rel="icon" href="/assets/logo.svg?v=f53c4b47f35a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=f53c4b47f35a">
 </head>
 <body data-page="lesson" data-lesson="03-02-innovus-start">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=0c1243ec983b" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=f53c4b47f35a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -52,18 +52,55 @@
   <main class="main">
     <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>启动 Innovus：版本、常用选项与帮助系统</b></div>
     <div class="hero">
-      <div class="hero-no">32</div>
+      <div class="hero-no">33</div>
       <h1>启动 Innovus：版本、常用选项与帮助系统</h1>
       <p class="hero-en">Starting Innovus: Options and Help</p>
       <p class="hero-sum">从 Encounter/ICC 到 Innovus/ICC2 的换代原因讲起，然后真刀真枪地启动工具：怎么确认版本、九个最常用的启动选项（写 log、自动跑脚本、无界面、定时、多核、帮助、GUI 开关）、CPU 该给多少核以及为什么不能给太多、启动后怎么调核数，最后把界面分成四块认识一遍。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈21 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈26 分钟</span>
         <span class="pill">课表学时 2</span>
         <span class="pill tag">Innovus</span><span class="pill tag">启动</span><span class="pill tag">-log</span><span class="pill tag">-files</span><span class="pill tag">-no_gui</span><span class="pill tag">-cpus</span><span class="pill tag">SetMultiCpuUsage</span><span class="pill tag">Tab</span><span class="pill tag">help</span>
       </div>
     </div>
-    <article id="article" data-est-min="21"><section class="ch" id="tools" data-ch="tools">
-  <div class="ch-h"><span class="ch-n">01</span><h2>为什么是 Innovus / ICC2</h2></div>
+    <article id="article" data-est-min="26"><section class="ch" id="source-01" data-ch="source-01">
+  <div class="ch-h"><span class="ch-n">01</span><h2>启动命令、核心数与任务队列</h2></div>
+  <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">二、Innovus工具的使用</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）innovus的启动</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">启动命令：  innovus</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">启动的选项：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.1 自定义指定日志的前缀名  -log</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus  -log   test_0125.log</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.2 启动之后运行指定的脚本 -files</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus  -files   脚本路径</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.3 设置运行innovus的核心数 -cpus</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus  -cpus  2</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">启动innovus之后如果需要改变核心数</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setMultiCpuUsage -localCpu 2</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">公司的服务器是任务job提交的形式</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">会有一个job的id</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">查询job的id ：    bjobs   -w  |  grep  linux账号名</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">杀死不需要的job ：   bkill    job的id</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">bqueues 查看服务器集群使用情况</p></div>
+  
+</section>
+<section class="ch" id="source-02" data-ch="source-02">
+  <div class="ch-h"><span class="ch-n">02</span><h2>启动后生成的三个文件</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）启动产生的文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus每次启动会产生3个文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus.cmd   记录innovus使用过程中使用的命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus.log     记录工具行为日志</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus.logv   详细日志文件</p></div>
+  
+</section>
+<section class="ch" id="source-03" data-ch="source-03">
+  <div class="ch-h"><span class="ch-n">03</span><h2>快捷键与常用窗口</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）innovus的一些快捷键</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">z  放大</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">shift+z  缩小</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">u  回退操作</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">shift  + u  撤销回退</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">q  打开cell、net等任何对象的属性栏</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">f  恢复自动适应大小</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">shift+g   拆分模块group</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">g            合并模块</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">shift+R  可以移动object</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">使用尺子   k</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除尺子  shift+k</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">关闭尺子   a</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">关闭innovus     exit</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">一些常用窗口</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">做fp的工具箱</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-02.png" data-fig="innovus-doc-02.png"><img src="/fig/innovus-doc-02.png" alt="原文图 02 · 快捷键与常用窗口" loading="lazy" decoding="async"></a><figcaption>原文图 02 · 快捷键与常用窗口</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">设计的结构浏览</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-03.png" data-fig="innovus-doc-03.png"><img src="/fig/innovus-doc-03.png" alt="原文图 03 · 快捷键与常用窗口" loading="lazy" decoding="async"></a><figcaption>原文图 03 · 快捷键与常用窗口</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">查看vio的违例窗口，例如drc、short、power的问题</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-04.png" data-fig="innovus-doc-04.png"><img src="/fig/innovus-doc-04.png" alt="原文图 04 · 快捷键与常用窗口" loading="lazy" decoding="async"></a><figcaption>原文图 04 · 快捷键与常用窗口</figcaption></figure>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-05.png" data-fig="innovus-doc-05.png"><img src="/fig/innovus-doc-05.png" alt="原文图 05 · 快捷键与常用窗口" loading="lazy" decoding="async"></a><figcaption>原文图 05 · 快捷键与常用窗口</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">定义global的power connect</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-06.png" data-fig="innovus-doc-06.png"><img src="/fig/innovus-doc-06.png" alt="原文图 06 · 快捷键与常用窗口" loading="lazy" decoding="async"></a><figcaption>原文图 06 · 快捷键与常用窗口</figcaption></figure>
+  
+</section>
+<section class="ch" id="source-04" data-ch="source-04">
+  <div class="ch-h"><span class="ch-n">04</span><h2>保存和恢复设计数据</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">4) innovus的数据的保存和读取</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">saveDesign    保存路径/db名字.enc</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">保存完成会有两个文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">恢复数据</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">source    enc文件</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-07.png" data-fig="innovus-doc-07.png"><img src="/fig/innovus-doc-07.png" alt="原文图 07 · 保存和恢复设计数据" loading="lazy" decoding="async"></a><figcaption>原文图 07 · 保存和恢复设计数据</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">restoreDesign   enc.dat    当前tile名称</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-08.png" data-fig="innovus-doc-08.png"><img src="/fig/innovus-doc-08.png" alt="原文图 08 · 保存和恢复设计数据" loading="lazy" decoding="async"></a><figcaption>原文图 08 · 保存和恢复设计数据</figcaption></figure>
+  
+</section>
+<section class="ch" id="previous-material" data-ch="previous-material">
+  <div class="ch-h"><span class="ch-n">05</span><h2>补充复习：原站课程内容</h2></div>
+  <div class="note"><div class="note-h">来源区分</div><p>以下为网站此前根据 PR 理论材料整理的补充内容；与上方本次上传的 Word 原文区分。</p></div>
+  
+</section>
+<section class="ch" id="tools" data-ch="tools">
+  <div class="ch-h"><span class="ch-n">06</span><h2>为什么是 Innovus / ICC2</h2></div>
   <div class="goal"><span>本章目标</span>能说出 Innovus/ICC2 各自替代的老工具与换代原因；能用一条命令完成&quot;无界面启动 + 自动跑脚本 + 写 log&quot;；能解释 -log / -files / -no_gui / -wait / -cpus 五个选项的真实语义与风险；能用 which、nproc、help *关键字* 三件事把环境摸清。</div>
 <div class="tbl"><table><thead><tr><th>时代</th><th>Cadence</th><th>Synopsys</th><th>适用工艺</th></tr></thead><tbody><tr><td>老一代</td><td><strong>Encounter</strong></td><td><strong>ICC</strong></td><td>90nm 及以上</td></tr><tr><td>主流</td><td><strong>Innovus</strong></td><td><strong>ICC2</strong></td><td>65nm 及以下，28/16/7nm</td></tr></tbody></table></div>
 <p>文档给的理由很实在：<strong>&quot;工艺越来越先进，原有的架构已经无法满足新的架构&quot;</strong>，具体对比就是<strong>运行时间</strong>。</p>
@@ -73,7 +110,7 @@
   
 </section>
 <section class="ch" id="start" data-ch="start">
-  <div class="ch-h"><span class="ch-n">02</span><h2>第一步：启动与确认版本</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>第一步：启动与确认版本</h2></div>
   <p>在 Linux 终端里，进入你的工作目录，直接敲工具名：</p>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 启动 Innovus（图形界面模式），前提是环境变量已由公司/学校的 module 或 cshrc 配好</span><span class="ln ">innovus</span><span class="ln "> </span><span class="ln cmt"># 如果提示 command not found，先用 which 确认工具在不在 PATH 里</span><span class="ln ">which innovus</span></code></pre></div>
 <p><code>which innovus</code> 的返回值一举两得，文档说得很清楚：<strong>&quot;结果会显示 innovus 所在目录以及 innovus 的版本&quot;</strong>：</p>
@@ -92,7 +129,7 @@
   
 </section>
 <section class="ch" id="options" data-ch="options">
-  <div class="ch-h"><span class="ch-n">03</span><h2>九个常用启动选项</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>九个常用启动选项</h2></div>
   <p>文档列了九条，我按&quot;一定会用到的程度&quot;重排，并补上实际工作中的注意点。</p>
 <h3 id="log">1. <code>-log</code>：把这一趟的全部输出记下来</h3>
 <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 启动时指定 log 文件名，工具的所有输出都会写进 test.log</span><span class="ln ">innovus -log test.log</span></code></pre></div>
@@ -153,7 +190,7 @@
   
 </section>
 <section class="ch" id="gui" data-ch="gui">
-  <div class="ch-h"><span class="ch-n">04</span><h2>界面分四块认识</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>界面分四块认识</h2></div>
   <p>启动后（不带 <code>-no_gui</code>）你会看到一个典型的三段式布局，先认地方再学操作：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">┌────────────────────────────────────────────────────────────┐</span><span class="ln ">│  菜单栏 File / Edit / View / Design / Timing / ...          │</span><span class="ln ">├──────────────────────────────────────────────┬─────────────┤</span><span class="ln ">│                                              │  右侧面板    │</span><span class="ln ">│           版图显示区（Layout View）           │  ├ Design   │</span><span class="ln ">│                                              │  ├ Physical │</span><span class="ln ">│   · 左边是 Design Browser（层次树）           │  └ Timing   │</span><span class="ln ">│   · 中间是芯片版图，滚轮缩放、中键平移         │             │</span><span class="ln ">│                                              │             │</span><span class="ln ">├──────────────────────────────────────────────┴─────────────┤</span><span class="ln ">│  命令行（Command Line）：所有 Tcl 命令在这里敲               │</span><span class="ln ">├────────────────────────────────────────────────────────────┤</span><span class="ln ">│  输出窗（Log / Console）：命令的返回、warning、error 都在这 │</span><span class="ln ">└────────────────────────────────────────────────────────────┘</span></code></pre></div>
 <p>四个地方必须会用：</p>
@@ -202,14 +239,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01-innovus-plan/">← 阶段三导读：40nm Innovus 项目实操路线</a><a class="nav-btn" href="/lesson/03-03-innovus-init/">init_design：把数据导进 Innovus，并证明它导对了 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-04-project-env/">← 项目环境：目录规范、Run 与 Queue</a><a class="nav-btn" href="/lesson/03-03-innovus-init/">init_design：把数据导进 Innovus，并证明它导对了 →</a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=0c1243ec983b"></script>
-<script src="/assets/tcl.js?v=0c1243ec983b"></script>
-<script src="/assets/app.js?v=0c1243ec983b"></script>
-<script src="/assets/aiwidget.js?v=0c1243ec983b" defer></script>
+<script src="/assets/shell.js?v=f53c4b47f35a"></script>
+<script src="/assets/tcl.js?v=f53c4b47f35a"></script>
+<script src="/assets/app.js?v=f53c4b47f35a"></script>
+<script src="/assets/aiwidget.js?v=f53c4b47f35a" defer></script>
 </body>
 </html>

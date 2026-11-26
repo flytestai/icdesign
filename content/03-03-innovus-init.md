@@ -1,6 +1,6 @@
 ---
 id: 03-03-innovus-init
-no: 33
+no: 34
 stage: 3
 title: init_design：把数据导进 Innovus，并证明它导对了
 en: init_design: Importing Data into Innovus

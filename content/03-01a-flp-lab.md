@@ -1,0 +1,59 @@
+---
+id: 03-01a-flp-lab
+no: 31a
+stage: 3
+title: Floorplan 实操：看懂芯片切角与端口清单
+en: Floorplan Lab
+hours: 0
+tags: [Innovus, Floorplan, 实操, Tcl]
+summary: 第一讲对应知识库第 01 项主题，用上传 Word 的实操原文和原图理解 Die、Core、切角，以及全部端口与未摆放端口的区别。
+---
+
+## 先认地图：Die、Core 和切角 {#shape}
+
+:::note 资料来源
+本讲按钉钉目录第 01 项《flp实操》的主题编排。下面的原文命令和截图来自你上传的《04 innovus项目(1).docx》Floorplan 实操部分，不是钉钉原文或原图的转载。为保留上下文，原站 [Floorplan 完整课](/lesson/03-05-floorplan/#source-09) 仍保留原来的实操小节，首次学习任选一个入口即可。
+:::
+
+把芯片平面想成一张地图：**Die 是整块芯片的外轮廓，Core 是主要摆放电路单元的内部区域**。做异形轮廓时，先定义初始边界，再在指定坐标范围切掉一块。先认清这两个动作，再去读参数；不要一上来就记项目里的坐标。
+
+:::source
+"1.定义形状"
+"floorplan -noSnapToGrid -b 0 0 935.712 456.456  0 0 935.712 456.456"
+"1.2 1.2285 934.512 455.2275 #die 坐标 IO 坐标 core 坐标"
+"addObjFPlanCutBox cell bpu40_vae_top_wrapper  0 0 566.352 228.228"
+"#切角坐标。"
+:::
+
+:::fig innovus-doc-29.png | 上传 Word 原图 29 · Floorplan 形状实操
+:::
+
+原课件把 `floorplan` 的参数分成两行展示：从 `floorplan -noSnapToGrid` 到下一行的 Core 坐标，属于同一条命令。示例中的设计名、坐标都与该项目绑定；不要复制到其他项目直接运行。实际操作应先存一份测试数据库，执行后在 GUI 比对切角前后的外轮廓和 Core，确认切掉的是预期区域。
+
+## 再查门牌：导出全部端口与未摆放端口 {#ports}
+
+顶层端口是该模块和外部信号相连的接口。**全部端口**回答「设计有哪些接口」，**未摆放端口**回答「还有哪些接口没有在版图上分配位置」。后者应该是前者的子集，不是另一份不相关的名单。
+
+:::source
+"2.抓取port"
+"--抓取所有 port"
+"set all_ports [dbget top.terms.name]"
+"set fh [open \"ports_from_db.txt\" w]"
+"puts $fh [join $all_ports \"\\n\"]"
+"close $fh"
+"--抓取 unplace 的 port"
+"set unplaced [dbget [dbget -p top.terms.pStatus unplaced].name]"
+"set f [open \"unplaced_terms.txt\" w]"
+"foreach t $unplaced { puts $f $t }"
+"close $f"
+:::
+
+第一段直接取顶层端口名，再写入 `ports_from_db.txt`。第二段先挑出状态是 `unplaced` 的端口，再取名字，写入 `unplaced_terms.txt`。这两段查询不改端口摆放状态；`open ... w` 会覆盖同名文件，练习时请在自己的输出目录操作。
+
+没有 Innovus 也可以完成本节的检查练习：假设全部端口是 `clk rst_n data_in data_out`，只有 `data_in` 和 `data_out` 尚未摆放，那么第一份清单有 4 行，第二份清单有 2 行。若第二份清单出现了完全不在第一份里的端口，应先核对两份报告是否来自同一个设计和运行版本。
+
+## 自检：你是在读数据库，还是在改版图？ {#review}
+
+- 能在原图上区分芯片外轮廓和切角，并说明切角并不是摆放引脚。
+- 能说清两份清单各回答什么问题，并检查未摆放清单是否属于全部清单。
+- 能区分读取端口、修改端口状态和实际摆放这三件事。本课先完成读取与检查；按金属层、边和轨道摆放端口的原文示例，可接着看 [Floorplan 完整实操](/lesson/03-05-floorplan/#source-09)。

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DRV 修复：先分清是哪条电气规则超限 · 31n | IC 后端学院</title>
+<meta name="description" content="区分最大转换时间、电容与扇出，按物理原因和实现阶段选择修法，并在修改后复查时序与几何规则。">
+<link rel="icon" href="/assets/logo.svg?v=f53c4b47f35a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=f53c4b47f35a">
+</head>
+<body data-page="lesson" data-lesson="03-01n-drv-repair">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=f53c4b47f35a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>DRV 修复：先分清是哪条电气规则超限</b></div>
+    <div class="hero">
+      <div class="hero-no">31n</div>
+      <h1>DRV 修复：先分清是哪条电气规则超限</h1>
+      <p class="hero-en">Electrical Design Rule Repair</p>
+      <p class="hero-sum">区分最大转换时间、电容与扇出，按物理原因和实现阶段选择修法，并在修改后复查时序与几何规则。</p>
+      <div class="hero-meta">
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
+        <span class="pill">课表学时 0</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">DRV</span><span class="pill tag">电气规则</span><span class="pill tag">时序</span>
+      </div>
+    </div>
+    <article id="article" data-est-min="4"><section class="ch" id="rule-types" data-ch="rule-types">
+  <div class="ch-h"><span class="ch-n">01</span><h2>同一条网，可能违反三种不同的规则</h2></div>
+  <div class="note"><div class="note-h">原创专题</div><p>本讲按钉钉目录第 18 项的主题编排。术语解释、排查流程和自检均为原创，不使用原文、原图或项目参数。</p></div>
+<p><strong>Max transition</strong> 限制信号的上升或下降时间，回答「边沿是否太慢」；<strong>max capacitance</strong> 限制驱动端所带的电容，回答「这一级带的电容是否太大」；<strong>max fanout</strong> 限制扇出负载，回答「这一级带的接收端是否太多」。扇出报告可能统计引脚数，也可能累加库定义的扇出负载，不能把它当成电容。电容通常来自接收引脚和连线，实际读数以报告所用模型为准。即使接收端只有一个，长线也可能让电容或转换时间超限。</p>
+  
+</section>
+<section class="ch" id="diagnosis" data-ch="diagnosis">
+  <div class="ch-h"><span class="ch-n">02</span><h2>从报告走到版图，再决定怎么改</h2></div>
+  <ol><li>在报告中找到违例类型、引脚、网络和分析视图，记下实际值、限值及单位；转换时间还要分清上升、下降和测量位置。</li><li>看原驱动的输入边沿和输出负载，再看接收点分布、线长、绕路与拥塞。驱动偏弱且负载集中时，可试着换更强的单元；也要检查新单元是否给上一级增加了过多电容。若是长线主导，可在合适位置插入缓冲器，把长线分段。若接收端多且分散，可按位置拆成几组，让各组由独立的缓冲分支驱动，并重新检查源端和各分支的扇出。</li><li>如果网络绕过宏单元或被挤进拥塞通道，先确认走线能否缩短、走线层能否调整，或布局是否有余地。盲目增驱动或插缓冲器不一定能消除绕路，还可能恶化拥塞。</li></ol>
+  
+</section>
+<section class="ch" id="optimization-stages" data-ch="optimization-stages">
+  <div class="ch-h"><span class="ch-n">03</span><h2>用当前阶段的数据做优化</h2></div>
+  <p><code>optDesign</code> 要按当前实现阶段使用。CTS 前，连线寄生通常是估算值，时钟通常仍按理想网络分析，适合优先处理明显的数据网问题；CTS 后，时钟已传播，应在实际时钟到达关系下兼顾 setup 和 hold；布线后，用布线和提取后的寄生检查残余违例，修复时尽量把改动限制在局部，并重新布线或更新寄生。具体选项与启用的检查以项目脚本和工具版本为准，见 <a href="/lesson/03-07-place/">Place</a> 与 <a href="/lesson/03-10-optroute/">OptRoute</a>。</p>
+  
+</section>
+<section class="ch" id="review" data-ch="review">
+  <div class="ch-h"><span class="ch-n">04</span><h2>自检：违例少了就能交付吗？</h2></div>
+  <p><strong>题一：</strong> 一条网只有一个接收端，扇出正常，但长线使电容和转换时间超限。先做什么？<strong>答：</strong> 先确认线长与绕路；能缩短就先缩短，否则试着合理插缓冲器分段，再分别看每一级的电容和边沿。</p>
+<p><strong>题二：</strong> 修复后报告不再有这条 DRV，可以结束吗？<strong>答：</strong> 不可以。对比原视图及其他签核视图，重查 DRV、setup 和 hold；涉及布局或走线改动时按阶段复查合法性、连通性和几何 DRC，确认没有把问题转移到邻近网络。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01m-eco-commands/">← ECO 命令：从局部修改到签核验收</a><a class="nav-btn" href="/lesson/03-01o-clock-skew/">时钟偏斜：从时钟树指标定位到具体路径 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=f53c4b47f35a"></script>
+<script src="/assets/tcl.js?v=f53c4b47f35a"></script>
+<script src="/assets/app.js?v=f53c4b47f35a"></script>
+<script src="/assets/aiwidget.js?v=f53c4b47f35a" defer></script>
+</body>
+</html>

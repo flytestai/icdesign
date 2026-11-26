@@ -1,6 +1,6 @@
 ---
 id: 03-02-innovus-start
-no: 32
+no: 33
 stage: 3
 title: 启动 Innovus：版本、常用选项与帮助系统
 en: Starting Innovus: Options and Help
@@ -9,6 +9,116 @@ minutes: 0
 tags: [Innovus, 启动, -log, -files, -no_gui, -cpus, SetMultiCpuUsage, Tab, help]
 summary: 从 Encounter/ICC 到 Innovus/ICC2 的换代原因讲起，然后真刀真枪地启动工具：怎么确认版本、九个最常用的启动选项（写 log、自动跑脚本、无界面、定时、多核、帮助、GUI 开关）、CPU 该给多少核以及为什么不能给太多、启动后怎么调核数，最后把界面分成四块认识一遍。
 ---
+
+## 启动命令、核心数与任务队列 {#source-01}
+
+:::note 资料来源
+以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。
+:::
+
+:::source
+"二、Innovus工具的使用"
+"1）innovus的启动"
+"启动命令：  innovus"
+"启动的选项："
+"1.1 自定义指定日志的前缀名  -log"
+"innovus  -log   test_0125.log"
+"1.2 启动之后运行指定的脚本 -files"
+"innovus  -files   脚本路径"
+"1.3 设置运行innovus的核心数 -cpus"
+"innovus  -cpus  2"
+"启动innovus之后如果需要改变核心数"
+"setMultiCpuUsage -localCpu 2"
+"公司的服务器是任务job提交的形式"
+"会有一个job的id"
+"查询job的id ：    bjobs   -w  |  grep  linux账号名"
+"杀死不需要的job ：   bkill    job的id"
+"bqueues 查看服务器集群使用情况"
+:::
+
+## 启动后生成的三个文件 {#source-02}
+
+:::source
+"2）启动产生的文件"
+"innovus每次启动会产生3个文件"
+"innovus.cmd   记录innovus使用过程中使用的命令"
+"innovus.log     记录工具行为日志"
+"innovus.logv   详细日志文件"
+:::
+
+## 快捷键与常用窗口 {#source-03}
+
+:::source
+"3）innovus的一些快捷键"
+"z  放大"
+"shift+z  缩小"
+"u  回退操作"
+"shift  + u  撤销回退"
+"q  打开cell、net等任何对象的属性栏"
+"f  恢复自动适应大小"
+"shift+g   拆分模块group"
+"g            合并模块"
+"shift+R  可以移动object"
+"使用尺子   k"
+"删除尺子  shift+k"
+"关闭尺子   a"
+"关闭innovus     exit"
+"一些常用窗口"
+"做fp的工具箱"
+:::
+
+:::fig innovus-doc-02.png | 原文图 02 · 快捷键与常用窗口
+:::
+
+:::source
+"设计的结构浏览"
+:::
+
+:::fig innovus-doc-03.png | 原文图 03 · 快捷键与常用窗口
+:::
+
+:::source
+"查看vio的违例窗口，例如drc、short、power的问题"
+:::
+
+:::fig innovus-doc-04.png | 原文图 04 · 快捷键与常用窗口
+:::
+
+:::fig innovus-doc-05.png | 原文图 05 · 快捷键与常用窗口
+:::
+
+:::source
+"定义global的power connect"
+:::
+
+:::fig innovus-doc-06.png | 原文图 06 · 快捷键与常用窗口
+:::
+
+## 保存和恢复设计数据 {#source-04}
+
+:::source
+"4) innovus的数据的保存和读取"
+"saveDesign    保存路径/db名字.enc"
+"保存完成会有两个文件"
+"恢复数据"
+"source    enc文件"
+:::
+
+:::fig innovus-doc-07.png | 原文图 07 · 保存和恢复设计数据
+:::
+
+:::source
+"restoreDesign   enc.dat    当前tile名称"
+:::
+
+:::fig innovus-doc-08.png | 原文图 08 · 保存和恢复设计数据
+:::
+
+## 补充复习：原站课程内容 {#previous-material}
+
+:::note 来源区分
+以下为网站此前根据 PR 理论材料整理的补充内容；与上方本次上传的 Word 原文区分。
+:::
 
 ## 为什么是 Innovus / ICC2 {#tools}
 

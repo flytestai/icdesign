@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Floorplan 进阶：从 Die Size 输入到 Kick-Off Run · 31d | IC 后端学院</title>
+<meta name="description" content="核对 Die Size 上游条件，按连接关系安排引脚和 Memory，再把 GUI 验证结果固化为可复跑的脚本。">
+<link rel="icon" href="/assets/logo.svg?v=f53c4b47f35a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=f53c4b47f35a">
+</head>
+<body data-page="lesson" data-lesson="03-01d-floorplan-advanced">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=f53c4b47f35a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Floorplan 进阶：从 Die Size 输入到 Kick-Off Run</b></div>
+    <div class="hero">
+      <div class="hero-no">31d</div>
+      <h1>Floorplan 进阶：从 Die Size 输入到 Kick-Off Run</h1>
+      <p class="hero-en">Advanced Floorplan Preparation</p>
+      <p class="hero-sum">核对 Die Size 上游条件，按连接关系安排引脚和 Memory，再把 GUI 验证结果固化为可复跑的脚本。</p>
+      <div class="hero-meta">
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
+        <span class="pill">课表学时 0</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">Floorplan</span><span class="pill tag">IO Pin</span><span class="pill tag">Memory</span><span class="pill tag">Kick-Off Run</span>
+      </div>
+    </div>
+    <article id="article" data-est-min="4"><section class="ch" id="die-size" data-ch="die-size">
+  <div class="ch-h"><span class="ch-n">01</span><h2>Die Size：先核对谁提供了什么</h2></div>
+  <div class="note"><div class="note-h">资料来源</div><p>本讲参考钉钉目录第 08 项的主题安排，正文与练习为原创，不转载钉钉原文、图片或项目参数。TAUREN 仅保留为资料中的名词；这里不推断其内部流程，不提供其定制命令。</p></div>
+<p>Die Size 不是把单元面积除以目标利用率就能定下来。先区分哪些是上游硬约束、哪些是暂定值：例如顶层给子模块的占位与长宽比、关联模块的接口边、宏与标准单元面积估算、电源与布线预留。若是整芯片，还要核对封装与芯片边界相关要求。把每项的来源、版本、单位和坐标原点一并记录。输入冲突时，先与约束提供方确认，不要用摆放工具静默覆盖。</p>
+  
+</section>
+<section class="ch" id="pin-and-memory" data-ch="pin-and-memory">
+  <div class="ch-h"><span class="ch-n">02</span><h2>先对齐 IO Pin，再按层级看 Memory</h2></div>
+  <p>先按信号对接方向划分端口边，核对允许层、轨道对齐和组内次序。对于总线，既核对端口名称是否齐全，也核对排列方向和邻接关系，避免与相邻模块反向对接。Memory 则可先按所属层级建组，在 GUI 中分组染色，观察同一子模块的宏与逻辑或端口是否隔得过远，再按真实连接确认是否需要重新分组。颜色只用来识别，不会改变摆放约束。决定宏的朝向时，还要留出电源接入和信号引脚逃逸空间；把宏排得整齐不是验收标准。</p>
+  
+</section>
+<section class="ch" id="kickoff-run" data-ch="kickoff-run">
+  <div class="ch-h"><span class="ch-n">03</span><h2>脚本化：让 Kick-Off Run 能从头重复</h2></div>
+  <p>GUI 用来试方案，交付要能从干净的初始数据库复现。把 Die/Core、端口分配和宏位置/朝向放进受版本管理的脚本或输入文件，同时保存上游清单和对照报告。把教学中的 Kick-Off Run 当作一次最小试跑：从固定输入导入、应用 Floorplan 约束并保存检查点，验证设计坐标、端口状态、宏位置和任何未应用的约束。用报告把试跑结果与预期逐项核对，不只检查脚本是否报错。边界、切角和端口清单的基本检查可回看 <a href="/lesson/03-01a-flp-lab/">Floorplan 实操</a>。</p>
+  
+</section>
+<section class="ch" id="exercise" data-ch="exercise">
+  <div class="ch-h"><span class="ch-n">04</span><h2>练习：GUI 正确，重跑却偏移</h2></div>
+  <p><strong>题目</strong>：GUI 手调时端口位置正确；同样的坐标写进脚本重跑后，一整组端口沿边统一偏移。你会先比对什么？</p>
+<p><strong>参考作答</strong>：先比对两次运行的 Die/Core 边界、坐标原点和单位，再查有无自动吸附或后续脚本覆盖。选总线首尾两个端口，记录预期位置、数据库实际位置及差值；确认原因后修正输入或脚本，并从干净数据库重跑验收，不能只在 GUI 把端口挪回去。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01c-project-details/">← Innovus 项目细节：算清 Memory 面积，看懂布局报告</a><a class="nav-btn" href="/lesson/03-01e-placement-diagnostics/">Place 诊断：从一条坏路径找到布局热点 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=f53c4b47f35a"></script>
+<script src="/assets/tcl.js?v=f53c4b47f35a"></script>
+<script src="/assets/app.js?v=f53c4b47f35a"></script>
+<script src="/assets/aiwidget.js?v=f53c4b47f35a" defer></script>
+</body>
+</html>

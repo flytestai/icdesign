@@ -5,71 +5,48 @@ stage: 3
 title: 阶段三导读：40nm Innovus 项目实操路线
 en: Stage 3 Guide: Innovus 40nm Project Lab
 hours: 0
-minutes: 15
 tags: [导读, 阶段三, Innovus, 学习路线]
-summary: 阶段三是全课程的重头戏（课表 41 学时）。本页给出完整的工序清单与学时分配，标出已上线与在建的部分，并说明每一道工序在动手前必须先想清楚什么——避免"照抄步骤跑完一遍，却不知道自己在干什么"。
+summary: 以钉钉知识库的 20 项资料顺序为主线，串起 Floorplan 实操、Innovus 全流程和进阶专题，另列上传的 Word 课件入口。
 ---
 
-## 这一阶段要干什么 {#plan}
+## 课程顺序：以钉钉知识库为准 {#plan}
 
-:::goal 知道 41 学时怎么分到九道工序上；知道每一道工序的产出物是什么、判断好坏的指标是什么；明白为什么"先上机跑一遍"不如"先想清楚这一步要解决什么问题"。
-:::
+先做 [第 01 项：Floorplan 实操](/lesson/03-01a-flp-lab/)，认清芯片轮廓、切角与端口清单。下表保留知识库原顺序：已有网站课件的，可从对应入口先学；未成课的条目保留位置，不用其他资料替代。
 
-阶段二讲的是"文件和数据是什么"，阶段三开始动工具。课表给的 **41 学时**分配如下：
-
-| 工序 | 课表学时 | 本站进度 | 这一关的核心问题 |
-|---|---|---|---|
-| innovus 的使用 | 2 | [已上线](/lesson/03-02-innovus-start/) | 怎么启动、怎么自动化、怎么查帮助 |
-| 项目环境 | — | [已上线](/lesson/03-04-project-env/) | 目录怎么建、Run 怎么命名、Queue 怎么用 |
-| floorplan | 10 | 在建 | 芯片多大、macro 摆哪、约束怎么打 |
-| powerplan | 2 | 在建 | 电源怎么送到每个单元 |
-| Placement / setup 与 hold | 4 | 在建 | stdcell 怎么摆、时序违例怎么读 |
-| CTS | 14 | 在建 | 时钟树怎么建、skew 与 insertion delay |
-| OptCTS | 2 | 在建 | 时钟树建完怎么收敛 |
-| Route | 4 | 在建 | 信号线怎么绕通、DRC 怎么清 |
-| OptRoute | 1 | 在建 | 绕完怎么把时序修回来 |
-| ChipFinish | 2 | 在建 | 最后要吐哪些文件给签核 |
-
-:::note 学时说明
-本页只作路线导读，不占教学学时。阶段三已上线 **6 学时**三讲：
-
-1. [启动 Innovus：版本、常用选项与帮助系统](/lesson/03-02-innovus-start/)（2 学时）
-2. [init_design：把数据导进 Innovus](/lesson/03-03-innovus-init/)（2 学时）
-3. [项目环境：目录规范、Run 与 Queue](/lesson/03-04-project-env/)（2 学时）
-
-其余工序随课程建设陆续补齐；全部上线后本阶段合计 41 学时。
-:::
-
-## 九道工序的产出物 {#output}
-
-**判断自己有没有真跑通，看的不是"没报错"，而是"这一步该有的产出物有没有、对不对"。**
-
-| 工序 | 产出物 | 判断指标 |
+| 知识库顺序 | 资料主题 | 网站课件安排 |
 |---|---|---|
-| init | 数据库（`.enc`） | instance 数、时钟数、unconstrained 端点为 0 |
-| floorplan | 带尺寸与 macro 的 def | 利用率、长宽比、通道宽度、pin 位置 |
-| powerplan | power mesh | IR drop、EM、电源连通性（无孤立单元） |
-| place | 摆好 stdcell 的 def | 拥塞（congestion）、setup WNS、密度 |
-| CTS | 时钟树 | skew、insertion delay、时钟 latency |
-| OptCTS | 优化后的时钟树 | setup/hold 双修后的 WNS、时钟 DRC |
-| route | 全绕通的版图 | DRC 数、short/open 数、via 数 |
-| OptRoute | 修完时序的版图 | 最终 WNS/TNS、DRC 归零 |
-| chipfinish | GDSII / DEF / SPEF / 报告 | 交给签核（PT/PV/PA）的文件齐全 |
+| 01 | flp实操 | [第一讲：芯片切角与端口清单](/lesson/03-01a-flp-lab/)，原文和图来自上传的 Word |
+| 02 | 教案-何济达 | 原资料正文待核实 |
+| 03 | 芯片后端理论 | 原资料正文待核实 |
+| 04 | 数字后端理论及实践-Innovus教程终极版.docx | WPS 预览正文待核实 |
+| 05 | INNOVUS项目 | [项目主线：从准备到 ECO](/lesson/03-01b-innovus-flow/) |
+| 06 | 新版floorplan | 独立保留，原资料正文待核实 |
+| 07 | INNOVUS项目基础 | [补充实操：Memory 面积、Floorplan 评估与密度检查](/lesson/03-01c-project-details/) |
+| 08 | Floorplan | [进阶 Floorplan：按层级摆放宏单元](/lesson/03-01d-floorplan-advanced/) |
+| 09 | Placement | [Placement：从布局流程到密度与拥塞诊断](/lesson/03-01e-placement-diagnostics/) |
+| 10 | Cts | [CTS：从前置检查到时钟树验收](/lesson/03-01f-cts-practice/) |
+| 11 | Route | [Route：检查天线、串扰、短路与开路](/lesson/03-01g-route-debug/) |
+| 12 | Setup、Hold、Max Cap、Max Tran、Max Fanout、Noise 优化 | [按流程阶段诊断时序与噪声](/lesson/03-01h-timing-noise/) |
+| 13 | 手动修复 Calibre DRC（Innovus） | [Calibre DRC：手修与复查](/lesson/03-01i-calibre-drc/) |
+| 14 | dbGet 用法详细教程 | [dbGet：只读查询与结果验证](/lesson/03-01j-dbget/) |
+| 15 | 闩锁效应（Latch-up） | [闩锁效应：理解触发与预防](/lesson/03-01k-latch-up/) |
+| 16 | Overflow | [Overflow：算 GCell 溢出、读拥塞热力图](/lesson/03-01l-overflow/) |
+| 17 | ECO 常用命令 | [ECO 命令：变更、合法化与验证](/lesson/03-01m-eco-commands/) |
+| 18 | 修复 DRV | [修复 DRV：分类、修改与复查](/lesson/03-01n-drv-repair/) |
+| 19 | 分析 Clock Skew | [Clock Skew：从三类报告定位偏斜](/lesson/03-01o-clock-skew/) |
+| 20 | 先进工艺 | [双重图形化：光刻分解与签核](/lesson/03-01p-double-patterning/) |
 
-## 上手前的三个提醒 {#tips}
+## 补充课：按需要回看，不改变主线顺序 {#supplement}
 
-1. **每道工序都是"配置 → 执行 → 报告 → 判断"四步**。新人常只做前两步（敲了命令、跑完了），不读报告就往下走，错误一路累积到 route 才发现，重跑代价是几小时到几天。
-2. **一定要写脚本，不要在界面里点**。界面操作无法复现、无法 diff、无法交给同事。阶段二讲的每一份数据文件，最后都要通过脚本喂给工具。
-3. **时序报告要看"前提"**。同一个 design 在不同 corner 下结论可能完全相反——报告第一行写的那个 view 名字，决定你看到的数字意味着什么（见 [MMMC](/lesson/02-07-pr-mmmc/)）。
+第 05 项讲完整流程：项目准备 → Innovus 启动 → Floorplan → PowerPlan → Place → CTS → Route / OptRoute → ECO。现有补充材料按这条流程定位；第 07 项不另讲一遍流程。
 
-:::quiz
-阶段三课表总学时是多少？九道工序里学时最多的是哪一道？| 41 学时；CTS 占 14 学时，是重头戏。
-为什么"跑完没报错"不能作为工序完成的判断标准？| 工具对很多问题只给 warning 甚至完全静默（如缺时钟），必须靠产出物和报告指标判断。
-现在阶段三已上线哪几讲？| Innovus 启动与常用选项、init_design 与数据导入，共 2 讲 4 学时。
-:::
+| 学到哪里 | 可回看的已有课件 |
+|---|---|
+| 上机前 | [项目环境](/lesson/03-04-project-env/)、[Innovus 工具使用](/lesson/03-02-innovus-start/)、[init_design](/lesson/03-03-innovus-init/) |
+| 布局前 | [Floorplan](/lesson/03-05-floorplan/)、[PowerPlan](/lesson/03-06-powerplan/) |
+| 布局与时钟 | [Place](/lesson/03-07-place/)、[CTS](/lesson/03-08-cts/) |
+| 布线与收尾 | [Route](/lesson/03-09-route/)、[OptRoute](/lesson/03-10-optroute/)、[ECO](/lesson/03-11-eco/) |
 
-:::check
-- 能按顺序说出九道工序，并说出每一道的产出物
-- 能说出 floorplan、place、CTS、route 各自最关键的一个判断指标
-- 明确"配置 → 执行 → 报告 → 判断"四步缺一不可
+:::note 资料来源
+知识库决定主题与顺序。第 01 项使用上传的 Word 对应示例；第 05、07–20 项是依据核实主题编写的原创专题，案例用于教学，不是钉钉原文或原图。已导入的九个 Word 主题仍保留原文及随文图；init_design 是原站补充课。第 02、03、04、06 项暂保留目录位置，不用猜测补写原资料。
 :::

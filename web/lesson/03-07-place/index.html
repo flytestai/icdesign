@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Place：标准单元布局、时序与利用率 · 37 | IC 后端学院</title>
+<meta name="description" content="布局目标与摆放流程；分析模式、OCV 与路径分组；布局命令及静态时序分析；布局摘要与设计规则违例；利用率与面积计算脚本；布局后检查与修复。按《04 innovus项目(1).docx》原文顺序整理，保留原图。">
+<link rel="icon" href="/assets/logo.svg?v=f53c4b47f35a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=f53c4b47f35a">
+</head>
+<body data-page="lesson" data-lesson="03-07-place">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=f53c4b47f35a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Place：标准单元布局、时序与利用率</b></div>
+    <div class="hero">
+      <div class="hero-no">37</div>
+      <h1>Place：标准单元布局、时序与利用率</h1>
+      <p class="hero-en">Placement</p>
+      <p class="hero-sum">布局目标与摆放流程；分析模式、OCV 与路径分组；布局命令及静态时序分析；布局摘要与设计规则违例；利用率与面积计算脚本；布局后检查与修复。按《04 innovus项目(1).docx》原文顺序整理，保留原图。</p>
+      <div class="hero-meta">
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈6 分钟</span>
+        <span class="pill">课表学时 0</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span>
+      </div>
+    </div>
+    <article id="article" data-est-min="6"><section class="ch" id="source-01" data-ch="source-01">
+  <div class="ch-h"><span class="ch-n">01</span><h2>布局目标与摆放流程</h2></div>
+  <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">五、Place</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）主要的目标</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">合理规范摆放标准单元：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">stdcell的方向正确</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">stdcell不能出现overlap(单元重叠的情况)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">stdcell必须在row上，基于site进行摆放</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">没有违反fp的constrain(布局约束 region partial 等)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）place的流程</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.1 global place</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">全局性摆放单元，确定大致的位置,比较粗糙的走线，主要目的为了评估congestion是否有问题，以及density是否合理</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.2 Scan Reorder 扫描链重组</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">扫描链Scan Chain  DFT(design for test)部门设计专门网表</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">一种测试的手段，验证芯片功能是否满足要求</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">认识cell的常见pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">D pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Q pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">SI pin  scan input</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">SO pin scan output</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">SE pin scan exable</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">CK pin</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-31.png" data-fig="innovus-doc-31.png"><img src="/fig/innovus-doc-31.png" alt="原文图 31 · 布局目标与摆放流程" loading="lazy" decoding="async"></a><figcaption>原文图 31 · 布局目标与摆放流程</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">DFF = D Flip-Flop，D 触发器（后端最核心时序单元，也常叫寄存器 reg）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">MUX选择器  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.3 detail place</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">globalroute 全局布线  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">MultuiBit  Banking   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">将多个完全相同的cell进行合并，</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-32.png" data-fig="innovus-doc-32.png"><img src="/fig/innovus-doc-32.png" alt="原文图 32 · 布局目标与摆放流程" loading="lazy" decoding="async"></a><figcaption>原文图 32 · 布局目标与摆放流程</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">inst的数量越多，runtime就越长</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">runtime也看服务器的配置，256G内存，核心16 </p></div>
+  
+</section>
+<section class="ch" id="source-02" data-ch="source-02">
+  <div class="ch-h"><span class="ch-n">02</span><h2>分析模式、OCV 与路径分组</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">关于analysis mode</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">onChipVariation  简称OCV 偏上芯片误差</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">不同区域的单元的PVT环境不一样</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">OCV会引入derate（一个系数）的设置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">OCV的弊端：设置统一的dreate,会导致，path越长，时序越悲观</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">为了解决OCV，设置CPPR（共同路径悲观去除）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">AOCV 自动的OCV</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">更加智能，根据cell的级数，电路结构(距离) 设置不同derate</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">和电路级数成反比，级数越多，derate就越小</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">和距离distance 成正比, 距离越远，dreate越大</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">SOCV/POCV   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">相比较AOCV更乐观</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">引入正态分布的思想，计算不同cell的延迟落在不同区间的概率，设置derate，尽量覆盖大部分场景</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">CPPR： 公共路径悲观去除</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">修复时序方法--设置group组</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">create path groups (reg2reg, in2reg, reg2out, in2out  reg2mem  mem2mem  mem2reg  reg2cg  )</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">group_path -name reg2reg -from [all_registers] -to [all_registers]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">group_path -name in2reg -from [all_inputs] -to [all_registers]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">group_path -name reg2out -from [all_registers] -to [all_outputs]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">group_path -name in2out -from [all_inputs] -to [all_outputs]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPathGroupOptions reg2reg -effortLevel high</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPathGroupOptions in2reg -effortLevel low</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPathGroupOptions reg2out -effortLevel low</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPathGroupOptions in2out -effortLevel low</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">group_path -name CLKM -from   [get_ports UFF0/CK ]  -to  [get_ports UFF1/D]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPathGroupOptions CLKM -effortLevel high</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_interactive_constraint_modes [all_constraint_modes -active]    开启约束的修改</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_max_transition -clock_path 200 [all_clocks ] -override</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_max_transition -data_path 400 [all_clocks ] -override</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_interactive_constraint_modes {}   结束约束的修改</p></div>
+  
+</section>
+<section class="ch" id="source-03" data-ch="source-03">
+  <div class="ch-h"><span class="ch-n">03</span><h2>布局命令及静态时序分析</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">跑place的超级指令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">place_opt_design</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">STA静态时序分析</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-33.png" data-fig="innovus-doc-33.png"><img src="/fig/innovus-doc-33.png" alt="原文图 33 · 布局命令及静态时序分析" loading="lazy" decoding="async"></a><figcaption>原文图 33 · 布局命令及静态时序分析</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">建立时间检查 setup检查</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">第一次数据到达时间要比第一次检查时间要快</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Trequire - Tarrive &gt; 0</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Trequire &gt; Tarrive</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Tarrive 数据到达时间</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">= Tlunch +Tck2q+Tdatapath </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Trequire第一次检查时间</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">= Tcapture+Tck时钟周期-Tsetup(uncertainty)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">保持时间检查 hold检查</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">第二次数据到达时间要比第一次检查时间要慢</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Tarrive2 - Trequire &gt; 0 </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Tarrive2 &gt; Trequire</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">第二次数据到达时间应该比第一次到达时间多一个周期</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Tarrive2 = Tlunch +Tck2q+Tdatapath + Tcycle</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Trequire = Tcapture+Tcycle +Thold(uncertainty)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Tlunch +Tck2q+Tdatapath - (Tcapture+Thold(uncertainty)) &gt; 0</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Tlunch +Tck2q+Tdatapath &gt; Tcaputure + Tuncertainty</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">注意：place阶段不看hold，因为clock的idea的，此时hld天生就满足</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">延伸：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addInstancePrefix</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">添加的实例的名字前缀</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">作用： debug一些单元在什么时候插入的</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">为了修复什么问题才添加的这个缓冲器</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Instance  实例化的对象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">fanout   扇出</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-34.png" data-fig="innovus-doc-34.png"><img src="/fig/innovus-doc-34.png" alt="原文图 34 · 布局命令及静态时序分析" loading="lazy" decoding="async"></a><figcaption>原文图 34 · 布局命令及静态时序分析</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置grouppath</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">对时序路径进行分组</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">group_path -name in2out -from [all_inputs] -to [all_outputs]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPathGroupOptions in2out -effortLevel low</p></div>
+  
+</section>
+<section class="ch" id="source-04" data-ch="source-04">
+  <div class="ch-h"><span class="ch-n">04</span><h2>布局摘要与设计规则违例</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">placement summary</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-35.png" data-fig="innovus-doc-35.png"><img src="/fig/innovus-doc-35.png" alt="原文图 35 · 布局摘要与设计规则违例" loading="lazy" decoding="async"></a><figcaption>原文图 35 · 布局摘要与设计规则违例</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">DRV  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">design rule vertation</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设计规则违反</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">基本四种drv</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">max_transtion   最大转换时间</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">分为data transtion  和clock transtion</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">max_fanout    最大扇出</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">max_length   最大长度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">max_cap     最大负载电容</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">其他的drv：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setup、hold、dontuse、clock transtion</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">min_pluse</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_interactive_constraint_modes [all_constraint_modes -active]  开始设置约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_max_transition -clock_path 200 [all_clocks ] -override</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_max_transition -data_path 400 [all_clocks ] -override</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_interactive_constraint_modes {}  结束设置约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">place的summary</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">WNS 表示最差的结果    一般place阶段不要超过 -100ps  /   -0.1ns</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">TNS  所有违例的总和</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-36.png" data-fig="innovus-doc-36.png"><img src="/fig/innovus-doc-36.png" alt="原文图 36 · 布局摘要与设计规则违例" loading="lazy" decoding="async"></a><figcaption>原文图 36 · 布局摘要与设计规则违例</figcaption></figure>
+  
+</section>
+<section class="ch" id="source-05" data-ch="source-05">
+  <div class="ch-h"><span class="ch-n">05</span><h2>利用率与面积计算脚本</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）利用率</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">一般Place的利用率在45%-50% </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postroute不超过60%</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-37.png" data-fig="innovus-doc-37.png"><img src="/fig/innovus-doc-37.png" alt="原文图 37 · 利用率与面积计算脚本" loading="lazy" decoding="async"></a><figcaption>原文图 37 · 利用率与面积计算脚本</figcaption></figure>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">根据利用率调整die的面积</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus计算面积的脚本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">计算整个模块中std+mem的总面积</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set all_cells [dbGet top.insts.name * -p]   #抓到所有的单元，包括mem和stdcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set all_cells_area 0   #定义所有单元面积之和为0</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">foreach cell $all_cells {</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set cell_area [dbGet ${cell}.area]   #获取单个遍历取到的单元的面积</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set all_cells_area [expr $all_cells_area+$cell_area]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">echo &quot;The total area of all cells is $all_cells_area um^2.&quot;</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">计算所有的mem的总面积</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set all_macros [dbGet top.insts.cell.subClass block -p2]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set all_macros_area 0</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">foreach macrocell $all_macros {</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set macro_area [dbGet ${macrocell}.area]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set all_macros_area [expr $all_macros_area+$macro_area]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">echo &quot;The total area of all macro cells is $all_macros_area um^2.&quot;</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">计算所有的stdcell的总面积</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set all_stdcells_area [expr $all_cells_area - $all_macros_area]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">echo &quot;The total area of all std cells is $all_stdcells_area um^2.&quot;</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">计算出当前模块应该设置的大小</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set total_estimate_area [expr $all_stdcells_area / 0.6 + $all_macros_area / 0.7]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">echo &quot;The estimated area is $total_estimate_area um^2.&quot;</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">icc版本计算面积的脚本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ICC2 :</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">area</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set stdcell_areas 0</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set cells [get_cells -q -hier -filter &quot;@is_hierarchical == false &quot;]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set stdcells [get_cells -q -hier -filter &quot;@is_hierarchical == false &amp;&amp; @is_hard_macro == false &quot;]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">foreach_in_coll cell $stdcells {</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set stdcell_area [get_attr $cell area]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set stdcell_areas [expr $stdcell_areas +$stdcell_area]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">puts &quot;area of standard cell is $stdcell_areas&quot;</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">##macro cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set macro_areas 0</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set macro_cells [filter_coll $cells &quot;@design_type =~ macro&quot;]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">foreach_in_coll cell $macro_cells {</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set macro_area [get_attr $cell area]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set macro_name [get_object_name $cell]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set macro_areas [expr $macro_areas +$macro_area]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">puts &quot;area of $macro_name is $macro_area&quot;</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">puts &quot;area of macro is $macro_areas&quot;</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set total_estimate_area [expr $stdcell_areas / 0.65 + $macro_areas / 0.82]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">puts &quot;The estimated area is $total_estimate_area um^2.</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置display能显示的最大行数量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set enc_tcl_return_display_limit 99999</p></div>
+  
+</section>
+<section class="ch" id="source-06" data-ch="source-06">
+  <div class="ch-h"><span class="ch-n">06</span><h2>布局后检查与修复</h2></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">跑完place需要check什么</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）检查setup的时序是否符合预期，一般在-100ps左右都是合理的，需要关注reg2reg  reg2cg  reg2mem(除了In\out那些)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）检查是否有congestion的问题，先看congestion map,其次看overflow的值是否符合要求，一般在1.5%</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）cell 的density (单元摆放密度)不要超过80%</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4）检查设计的ut利用率（随着步骤往后，利用率是不断上升的，place阶段利用率大概在45%左右）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5）检查DRV是否有违例(四种基本DRV)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">修复setup</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置group单独对有违例的path进行优化</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">group_path -name  gp1  -from  [get_cells {cell1 cell2 cell3}]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">group_path -name gp2  -to [get_cells {cell1 cell2 cell3}]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPathGroupOptions gp1 -effortLevel high</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPathGroupOptions gp2 -effortLevel high</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置pathmargin/input_delay </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例如：  原本违例  -20ps, 设置pathmargin, 会变成-120或者-220ps，工具修复到-80ps</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">等工具修完之后，在拿掉这个margin，违例可能就修复掉了</p></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-06-powerplan/">← PowerPlan：供电结构与检查</a><a class="nav-btn" href="/lesson/03-08-cts/">CTS：时钟树综合、约束与检查 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=f53c4b47f35a"></script>
+<script src="/assets/tcl.js?v=f53c4b47f35a"></script>
+<script src="/assets/app.js?v=f53c4b47f35a"></script>
+<script src="/assets/aiwidget.js?v=f53c4b47f35a" defer></script>
+</body>
+</html>

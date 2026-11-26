@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Place 诊断：从一条坏路径找到布局热点 · 31e | IC 后端学院</title>
+<meta name="description" content="区分布局阶段，沿着时序、密度和布线资源定位热点，并选择范围合适的布局约束验证原因。">
+<link rel="icon" href="/assets/logo.svg?v=f53c4b47f35a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=f53c4b47f35a">
+</head>
+<body data-page="lesson" data-lesson="03-01e-placement-diagnostics">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=f53c4b47f35a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Place 诊断：从一条坏路径找到布局热点</b></div>
+    <div class="hero">
+      <div class="hero-no">31e</div>
+      <h1>Place 诊断：从一条坏路径找到布局热点</h1>
+      <p class="hero-en">Placement Diagnostics</p>
+      <p class="hero-sum">区分布局阶段，沿着时序、密度和布线资源定位热点，并选择范围合适的布局约束验证原因。</p>
+      <div class="hero-meta">
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
+        <span class="pill">课表学时 0</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">Place</span><span class="pill tag">STA</span><span class="pill tag">拥塞</span><span class="pill tag">Padding</span>
+      </div>
+    </div>
+    <article id="article" data-est-min="4"><section class="ch" id="placement-stages" data-ch="placement-stages">
+  <div class="ch-h"><span class="ch-n">01</span><h2>Global、Detail 和 Scan Reorder 各做什么</h2></div>
+  <div class="note"><div class="note-h">资料来源</div><p>本讲参考钉钉目录第 09 项的主题安排，正文与案例为原创教学示例，不是钉钉原文、截图或项目参数的转载。</p></div>
+<p>Global placement（全局布局）决定单元的大致位置，权衡线长、时序和密度；详细摆放会在合法摆放位置上细调，消除重叠、对齐合法摆放行等工作由合法化完成。检查具体工具或流程时，应区分这些阶段，不把全局布局的中间状态当成最终布局。Scan reorder（扫描链重排）可依据布局调整允许重排的扫描单元连接顺序，减少测试链的绕线。它不是一般信号的时序修复；执行前要确认扫描链约束，执行后要核对链完整性并同步测试相关交付物。</p>
+  
+</section>
+<section class="ch" id="timing-to-congestion" data-ch="timing-to-congestion">
+  <div class="ch-h"><span class="ch-n">02</span><h2>从 STA 路径追到密度图和拥塞图</h2></div>
+  <p>看到负裕量，先记下模式、工艺角、起终点以及主要延迟来自单元还是网络，并确认本阶段寄生参数的估算口径。把延迟占比较高的网络定位到版图，观察它是否经过宏边、狭窄通道或高扇出区域。密度图描述局部摆放压力；拥塞图描述布线需求与资源的关系，还应比较有问题的层和方向。高密不必然拥塞，低密也不保证有足够布线轨道。当热点位置和坏路径重合时，仍需用改动前后结果验证因果。</p>
+  
+</section>
+<section class="ch" id="targeted-controls" data-ch="targeted-controls">
+  <div class="ch-h"><span class="ch-n">03</span><h2>选对干预范围：Padding 或 Partial Blockage</h2></div>
+  <p>Padding 的用途是给特定对象留出额外摆放间距：按 <strong>cell</strong> 作用于某库单元类型的适用实例，按 <strong>instance</strong> 只处理已经定位的某些实例，按 <strong>module</strong> 则把层级模块范围内的一组单元作为干预对象。实际设置粒度和优先级以工具版本、流程为准。<strong>Partial blockage</strong> 面向一块地理区域，对该区域的可摆放容量设限，不负责移动阻挡走线的宏或恢复金属轨道。先用范围最小且与原因相符的措施，同时检查热点是否被挤到了别处。</p>
+  
+</section>
+<section class="ch" id="exercise" data-ch="exercise">
+  <div class="ch-h"><span class="ch-n">04</span><h2>练习：只做一项修改，怎么验证？</h2></div>
+  <p><strong>题目</strong>：一个坏路径穿过两块 Memory 之间的通道；通道中高度集中的是某子模块的若干组合单元，但没有证据表明某库单元类型普遍出问题。若当前判断是通道摆放过密，会先试什么？如何验收？</p>
+<p><strong>参考作答</strong>：先做小范围的通道 partial blockage，而非给所有同类库单元加 padding。在同一输入、分析场景及报告设置下，对比局部密度、分层拥塞、该路径裕量和周边区域，并复查摆放合法性。若密度下降而拥塞不变，优先检查通道物理宽度、供电占轨和宏引脚可达性，而不是继续压低摆放容量。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01d-floorplan-advanced/">← Floorplan 进阶：从 Die Size 输入到 Kick-Off Run</a><a class="nav-btn" href="/lesson/03-01f-cts-practice/">CTS：从前置检查到时钟树验收 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=f53c4b47f35a"></script>
+<script src="/assets/tcl.js?v=f53c4b47f35a"></script>
+<script src="/assets/app.js?v=f53c4b47f35a"></script>
+<script src="/assets/aiwidget.js?v=f53c4b47f35a" defer></script>
+</body>
+</html>

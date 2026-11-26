@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>dbGet：从对象关系查找宏实例 · 31j | IC 后端学院</title>
+<meta name="description" content="用对象路径和回溯定位宏实例，判断空结果，并区分数据库读取与状态修改。">
+<link rel="icon" href="/assets/logo.svg?v=f53c4b47f35a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=f53c4b47f35a">
+</head>
+<body data-page="lesson" data-lesson="03-01j-dbget">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=f53c4b47f35a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>dbGet：从对象关系查找宏实例</b></div>
+    <div class="hero">
+      <div class="hero-no">31j</div>
+      <h1>dbGet：从对象关系查找宏实例</h1>
+      <p class="hero-en">Innovus Legacy Database Queries</p>
+      <p class="hero-sum">用对象路径和回溯定位宏实例，判断空结果，并区分数据库读取与状态修改。</p>
+      <div class="hero-meta">
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
+        <span class="pill">课表学时 0</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">dbGet</span><span class="pill tag">Tcl</span><span class="pill tag">数据库</span>
+      </div>
+    </div>
+    <article id="article" data-est-min="4"><section class="ch" id="objects" data-ch="objects">
+  <div class="ch-h"><span class="ch-n">01</span><h2>先画对象关系，再写查询</h2></div>
+  <div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 14 项的主题独立编写，不转载原文、图或项目参数。命令用于讲解 Innovus legacy <code>dbGet</code> 的查询思路，未在 Innovus 中实测，属性名和选项以本机版本帮助为准。</p></div>
+<p>先区分<strong>实例</strong>和<strong>库单元</strong>。<code>top</code> 指当前顶层设计；<code>top.insts</code> 是实例集合；实例的 <code>name</code> 是设计中的名字，实例的 <code>cell</code> 则指向所引用的库单元。同一个库单元可以被多次实例化，所以库单元名与实例名不能混用。若要核对一个宏在版图中出现几次，该数的是实例，不是库单元。</p>
+  
+</section>
+<section class="ch" id="macro-query" data-ch="macro-query">
+  <div class="ch-h"><span class="ch-n">02</span><h2>查询宏实例：筛选属性，再回溯</h2></div>
+  <p>以下查询以 <code>baseClass</code> 为 <code>block</code> 作为示例筛选条件。先读取全部实例名，再沿实例到库单元的路径筛选，最后对筛中的实例取名。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">dbGet top.insts.name</span><span class="ln ">set blocks [dbGet -p2 top.insts.cell.baseClass block]</span><span class="ln ">if {$blocks ne &quot;0x0&quot; &amp;&amp; [llength $blocks] &gt; 0} {</span><span class="ln ">    puts [dbGet $blocks.name]</span><span class="ln ">} else {</span><span class="ln ">    puts &quot;未匹配到宏实例&quot;</span><span class="ln ">}</span></code></pre></div>
+<p><code>-p</code> 回溯一层：在该筛选路径上得到符合条件的库单元对象；<code>-p2</code> 回溯两层，得到引用这些库单元的实例。<strong>筛选发生在哪层，和最终返回哪层，是两件事。</strong> 假设 <code>u_buf</code> 引用 <code>BUFX2</code>，<code>u_sram0</code> 与 <code>u_sram1</code> 都引用同一个 <code>SRAM_TINY</code>，且只有后者的库单元类别为 <code>block</code>，则结果应包含两个 SRAM 实例名，而不是把它们合并为一个库单元名。</p>
+  
+</section>
+<section class="ch" id="empty-results" data-ch="empty-results">
+  <div class="ch-h"><span class="ch-n">03</span><h2>空结果不等于设计里没有宏</h2></div>
+  <p>碰到空列表、<code>0x0</code> 或报错，先分开处理。报错优先核对是否加载了设计、路径属性是否可用；空结果则先看 <code>top.insts</code> 是否有对象，再查 <code>top.insts.cell.baseClass</code> 的实际取值，确认既没有筛错类别，也没有查错设计快照或层级范围。如果已知至少有一个 SRAM，也可先按它的实例名定位，单独查看其库单元名字和类别；这样能判断范围有误还是筛选条件不合适。将原始返回中的空指针标记识别出来后再计数：Tcl 的 <code>llength 0x0</code> 是 <code>1</code>，却不是一个有效实例。示例中的查询和 <code>puts</code> 不改设计数据库；排查阶段不要混入 <code>dbSet</code> 等修改操作。端口的类似读取见 <a href="/lesson/03-01a-flp-lab/#ports">Floorplan 实操</a>。</p>
+  
+</section>
+<section class="ch" id="review" data-ch="review">
+  <div class="ch-h"><span class="ch-n">04</span><h2>自检：你数的是哪一层对象？</h2></div>
+  <p><strong>题目：</strong> 两个 SRAM 实例引用同一个库单元。要导出两个实例名，筛选后为什么不能停在 <code>-p</code>？如果结果只有 <code>0x0</code>，可以记为找到一个宏吗？</p>
+<p><strong>答案：</strong> <code>-p</code> 停在库单元层，不能用库单元名替代实例名；要用 <code>-p2</code> 回到实例层再取 <code>name</code>。<code>0x0</code> 是空指针标记，不计为宏；应核对当前设计与类别，再判断是否真无匹配。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01i-calibre-drc/">← Calibre DRC：手修与复查</a><a class="nav-btn" href="/lesson/03-01k-latch-up/">Latch-up：从寄生回路检查阱与衬底连接 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=f53c4b47f35a"></script>
+<script src="/assets/tcl.js?v=f53c4b47f35a"></script>
+<script src="/assets/app.js?v=f53c4b47f35a"></script>
+<script src="/assets/aiwidget.js?v=f53c4b47f35a" defer></script>
+</body>
+</html>
