@@ -987,12 +987,16 @@ def leaderboard(request: Request):
             "total_quizzes": total_quizzes,
             "exam_passed": exam_passed, "total_stages": total_stages,
         })
-    max_secs = max([r["seconds"] for r in rows] or [0]) or 1
+    # 时长分的分母用「课表计划总学时」，不用排行榜里的最长时长。
+    # 旧做法 max_secs = 全站最长，会导致别人学得多时自己的时长分反而下降
+    # （用户反馈"怎么还减分"），属于设计缺陷。
+    plan_secs = _plan_total_seconds() or 1
     for r in rows:
         # 三个维度各自归一化到 0~100
         p_score = (r["done"] / r["total"] * 100) if r["total"] else 0
         q_score = (r["answered"] / r["total_quizzes"] * 100) if r["total_quizzes"] else 0
-        t_score = (r["seconds"] / max_secs * 100) if max_secs else 0
+        # 学习时长达到课表计划学时即满分；上限 100，不会因他人而波动
+        t_score = min(100.0, (r["seconds"] / plan_secs * 100)) if plan_secs else 0
         r["progress_pct"] = round(p_score, 1)
         r["quiz_pct"] = round(q_score, 1)
         r["time_pct"] = round(t_score, 1)
@@ -1006,6 +1010,17 @@ def leaderboard(request: Request):
     return {"rows": rows, "me": me, "total_chapters": total_chapters,
             "total_quizzes": total_quizzes, "total_stages": total_stages,
             "weights": {"progress": 0.5, "quiz": 0.3, "time": 0.2}}
+
+
+def _plan_total_seconds() -> int:
+    """课表计划总学时（秒）：所有课程 minutes 之和。用作学习时长分的绝对基准。"""
+    p = WEB / "data" / "catalog.json"
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        mins = sum(int(L.get("minutes") or 0) for L in (data.get("lessons") or []))
+        return mins * 60
+    except Exception:
+        return 0
 
 
 def _total_quizzes() -> int:
