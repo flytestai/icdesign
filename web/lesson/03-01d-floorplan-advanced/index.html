@@ -57,31 +57,71 @@
       <p class="hero-en">Advanced Floorplan Preparation</p>
       <p class="hero-sum">核对 Die Size 上游条件，按连接关系安排引脚和 Memory，再把 GUI 验证结果固化为可复跑的脚本。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈11 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">Floorplan</span><span class="pill tag">IO Pin</span><span class="pill tag">Memory</span><span class="pill tag">Kick-Off Run</span>
       </div>
     </div>
-    <article id="article" data-est-min="4"><section class="ch" id="die-size" data-ch="die-size">
+    <article id="article" data-est-min="11"><section class="ch" id="die-size" data-ch="die-size">
   <div class="ch-h"><span class="ch-n">01</span><h2>Die Size：先核对谁提供了什么</h2></div>
-  <div class="note"><div class="note-h">资料来源</div><p>本讲参考钉钉目录第 08 项的主题安排，正文与练习为原创，不转载钉钉原文、图片或项目参数。TAUREN 仅保留为资料中的名词；这里不推断其内部流程，不提供其定制命令。</p></div>
-<p>Die Size 不是把单元面积除以目标利用率就能定下来。先区分哪些是上游硬约束、哪些是暂定值：例如顶层给子模块的占位与长宽比、关联模块的接口边、宏与标准单元面积估算、电源与布线预留。若是整芯片，还要核对封装与芯片边界相关要求。把每项的来源、版本、单位和坐标原点一并记录。输入冲突时，先与约束提供方确认，不要用摆放工具静默覆盖。</p>
+  <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-d.svg" data-fig="innovus-practice-d.svg"><img src="/fig/innovus-practice-d.svg" alt="原创教学示意图 · 宏单元摆放先看连接再看位置" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 宏单元摆放先看连接再看位置</figcaption></figure>
+<div class="note"><div class="note-h">资料来源</div><p>本讲参考钉钉目录第 08 项的主题安排，正文与练习为原创，不转载钉钉原文、图片或项目参数。TAUREN 仅保留为资料中的名词；这里不推断其内部流程，不提供其定制命令。</p></div>
+<p>Die Size 不是把标准单元面积除以目标利用率就能定下来。先向上游确认模块占位和长宽比、相邻模块的接口方向、宏面积和标准单元面积估算，以及电源与布线预留。整芯片还要检查封装对边界的要求。把每项标为硬约束或待确认假设，记录来源、版本、单位及坐标原点。输入冲突时找提供方确认，不用工具静默覆盖。</p>
+<p>把 Die 与 Core 分开记。Die 是外边界，Core 定义摆放与相关物理规划的工作区；四侧间距不一定相同。若上游只给宽高，还要补齐原点和边界归属；若相邻模块给的是顶层坐标，先写清模块坐标到顶层坐标的变换。不要把接口边和摆放行边界视为同一组坐标。</p>
   
 </section>
 <section class="ch" id="pin-and-memory" data-ch="pin-and-memory">
   <div class="ch-h"><span class="ch-n">02</span><h2>先对齐 IO Pin，再按层级看 Memory</h2></div>
-  <p>先按信号对接方向划分端口边，核对允许层、轨道对齐和组内次序。对于总线，既核对端口名称是否齐全，也核对排列方向和邻接关系，避免与相邻模块反向对接。Memory 则可先按所属层级建组，在 GUI 中分组染色，观察同一子模块的宏与逻辑或端口是否隔得过远，再按真实连接确认是否需要重新分组。颜色只用来识别，不会改变摆放约束。决定宏的朝向时，还要留出电源接入和信号引脚逃逸空间；把宏排得整齐不是验收标准。</p>
+  <p>端口先按信号对接方向划边，再核对允许的金属层、轨道对齐、组内顺序和占用区。总线不仅要位号齐全，也要写出「沿哪条边、从哪端到哪端」的顺序。例如东边从下往上是位号零到三，不能由 GUI 当前缩放视角或名字排序决定。若项目允许吸附，说明吸到什么轨道，以及吸附后是否仍属于原定端口组。</p>
+<p>Memory 可以先按实例所属层级分组，GUI 上色后查看同组宏、控制逻辑和端口是否相距太远，再按真实连线和高扇出控制网调整。颜色只帮助识别，不施加物理约束。宏朝向改变的不只是外形，也会改变实际信号脚和电源脚的位置；翻转前核对允许朝向、供电接入以及宏间通道，不要以排得整齐作为验收依据。</p>
   
 </section>
 <section class="ch" id="kickoff-run" data-ch="kickoff-run">
   <div class="ch-h"><span class="ch-n">03</span><h2>脚本化：让 Kick-Off Run 能从头重复</h2></div>
-  <p>GUI 用来试方案，交付要能从干净的初始数据库复现。把 Die/Core、端口分配和宏位置/朝向放进受版本管理的脚本或输入文件，同时保存上游清单和对照报告。把教学中的 Kick-Off Run 当作一次最小试跑：从固定输入导入、应用 Floorplan 约束并保存检查点，验证设计坐标、端口状态、宏位置和任何未应用的约束。用报告把试跑结果与预期逐项核对，不只检查脚本是否报错。边界、切角和端口清单的基本检查可回看 <a href="/lesson/03-01a-flp-lab/">Floorplan 实操</a>。</p>
+  <p>GUI 用于试方案，正式交付需从干净的初始数据库复现。把 Die/Core、端口分配、宏的位置和朝向放进受版本管理的脚本或输入文件，保存上游清单和对照报告。Kick-Off Run 作为一次最小试跑，只承诺导入、应用 Floorplan、保存检查点并核对实际结果，不代表已经完成配电、时序或布线签核。边界与端口基本检查可回看 <a href="/lesson/03-01a-flp-lab/">Floorplan 实操</a>。</p>
+<p>应用顺序应写清：建立边界，放置固定对象，再执行端口分配，最后导出实际坐标和朝向。若后续还有自动引脚脚本，控制谁对同一端口有最终写入权；否则某次导出恰好发生在覆盖前，会把并未生效的设置误当成结果。没有项目工具环境时，可以用下面的教学清单纸面验证变换和判定规则。</p>
+  
+</section>
+<section class="ch" id="practice-step-04" data-ch="practice-step-04">
+  <div class="ch-h"><span class="ch-n">04</span><h2>实训起点：把坐标系写进交接清单</h2></div>
+  <p>例中上游给模块 Die 局部坐标 <code>(0,0)–(800,600)</code> µm、Core <code>(20,20)–(780,580)</code> µm，东边是四位总线 DATA。接口表同时说明总线纵坐标以 Core 左下的纵坐标为参考，偏移为 180、200、220、240 µm，因此在 Die 坐标系应得到 y=200、220、240、260 µm。脚本固定 x=800，沿东边由下往上排列。此例约定这些点都在指定的合法轨道上，不涉及额外吸附。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">原创坐标示意（不按比例，箭头表示总线位号递增）</span><span class="ln ">              Die 局部坐标</span><span class="ln ">(0,600) +--------------------------------+ (800,600)</span><span class="ln ">        |       Core                     |</span><span class="ln ">        |     +------------------+       | 东边</span><span class="ln ">        |     | [MEM0]  [MEM1]   |       | ↑ DATA[3]</span><span class="ln ">        |     |                  |       | | DATA[0]</span><span class="ln ">        |     +------------------+       |</span><span class="ln ">        +--------------------------------+ (800,0)</span><span class="ln "> (0,0)  Core 左下 (20,20)</span></code></pre></div>
+<p>合成输入另列 MEM0 <code>(80,100)</code>、MEM1 <code>(340,100)</code> µm，均以 Die 局部坐标表示，用各自外框左下为参考，尺寸都为 160 × 120 µm，朝向固定为 R0。它们的右侧与左侧之间有 100 µm 外框净距，尚未扣除宏留白和布线占用。由此能检查脚本是否误把宏坐标也做了一次 Core 偏移。</p>
+  
+</section>
+<section class="ch" id="practice-step-05" data-ch="practice-step-05">
+  <div class="ch-h"><span class="ch-n">05</span><h2>实训执行：找出 20 µm 偏移的来源</h2></div>
+  <p>从干净检查点跑第一次，端口顺序正确但全组比预期低 20 µm。先看 DATA 首尾和中间点的差值，判断是组整体平移还是镜像、排序、单位错误；再核对宏位置没变、是否发生吸附及后续脚本覆盖。本例审查发现端口脚本把 Core 相对偏移当作 Die 绝对 y 使用，修正时只给这组 y 加上 Core 左下的 y，不移动东边的 x，也不移动宏。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">教学伪代码（不对应 Innovus 命令，不能直接执行）</span><span class="ln ">对 DATA 的每一位 i：</span><span class="ln ">  y_die = core_y_min + y_relative[i]</span><span class="ln ">  x_die = die_x_max</span><span class="ln ">  断言 点位于东边允许区，且落在指定轨道</span><span class="ln ">  用 Die 局部坐标写入端口位置</span><span class="ln ">导出实际端口坐标与宏外框；逐项对照接口清单</span></code></pre></div>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成回归 (um，全部为 Die 局部坐标)</span><span class="ln ">项目           预期           第一次         修正后</span><span class="ln ">DATA[0]        (800,200)      (800,180)      (800,200)</span><span class="ln ">DATA[3]        (800,260)      (800,240)      (800,260)</span><span class="ln ">MEM0 外框左下   (80,100)       (80,100)       (80,100)</span><span class="ln ">MEM1 外框左下   (340,100)      (340,100)      (340,100)</span><span class="ln ">坐标不符端口数  0              4              0</span><span class="ln ">端口未分配数    0              0              0</span></code></pre></div>
+<p>未分配数两次都是零，说明「已分配」不能代替坐标验收。修正后比对全部四位，而不只抽样首尾；确认边、层、顺序和每位坐标都一致，再将清单和生成物交给下一阶段。若要交给顶层，还应按声明的变换再输出顶层坐标，不能把这组局部坐标直接传过去。</p>
+  
+</section>
+<section class="ch" id="practice-step-06" data-ch="practice-step-06">
+  <div class="ch-h"><span class="ch-n">06</span><h2>再跑一次：验证交付不依赖 GUI 状态</h2></div>
+  <p>把修正后的输入和脚本交给另一位同学，从相同导入步骤在新目录重跑。让他只读上游清单，不参考你的 GUI 截图。先按对象名排序再比较结果，忽略报告生成时间这类变化，但绝不忽略坐标、朝向、约束未应用和警告。对象若缺了，不要仅比较两份清单的交集，否则缺失对象会被自动藏掉。</p>
+<p>在交接单标清三类位置：上游冻结的接口、允许有限调整的初始宏点、工具根据工艺网格推导出的点。只有上游已允许偏差的对象才按公差验收；本练习的四个端口应在明确的合法轨道上，直接比较位置即可。若后续 PowerPlan 需要挪宏来改善供电接入，把变更回填到 Floorplan 输入，并按来源重新核对信号脚和电源脚，不能只在下游数据库里留一份特例。</p>
+<p>若需向顶层报告差异，先用一个已知参考点检查平移方向，再用第二点验证轴向是否被交换或镜像。平移能解释全组恒定差值，而翻转或交换轴通常会改变点间向量。把这两个判断分开，可避免用一个正确的首点掩盖整条总线方向错误。</p>
+  
+</section>
+<section class="ch" id="kickoff-rollback" data-ch="kickoff-rollback">
+  <div class="ch-h"><span class="ch-n">07</span><h2>失败与回滚：未应用的约束也要有记录</h2></div>
+  <ul><li>整组位移固定：核对原点、轴和偏移；差值各不相同：优先查逐位吸附与组顺序；两次结果不能混为同一错误。</li><li>若修正后违反接入区或轨道要求，暂停合入，核对上游输入与合法轨道的冲突；不能强塞到最近位置。</li><li>若宏的位置或朝向同次发生改变，恢复干净分支，限制变更只作用于特定端口坐标转换。</li><li>交付保存输入版本、两次实际坐标、修正记录、约束未应用列表和成功检查点；不要只保存成功后的 GUI 截图。</li></ul>
   
 </section>
 <section class="ch" id="exercise" data-ch="exercise">
-  <div class="ch-h"><span class="ch-n">04</span><h2>练习：GUI 正确，重跑却偏移</h2></div>
-  <p><strong>题目</strong>：GUI 手调时端口位置正确；同样的坐标写进脚本重跑后，一整组端口沿边统一偏移。你会先比对什么？</p>
-<p><strong>参考作答</strong>：先比对两次运行的 Die/Core 边界、坐标原点和单位，再查有无自动吸附或后续脚本覆盖。选总线首尾两个端口，记录预期位置、数据库实际位置及差值；确认原因后修正输入或脚本，并从干净数据库重跑验收，不能只在 GUI 把端口挪回去。</p>
+  <div class="ch-h"><span class="ch-n">08</span><h2>练习：GUI 正确，重跑却偏移</h2></div>
+  <p>GUI 手调正确而脚本重跑时整组沿边偏移，先对照 Die/Core、原点和单位，再查自动吸附或后写脚本。用首尾点的预期值和实际值做差是定位手段，不是全组验收；修正后必须从干净数据库重跑。</p>
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么本例只给端口 y 加 20 µm，不给 x 也加 20 µm？</div>
+  <div class="q-a">y 输入以 Core 左下为参考；x 来自 Die 东边，是已处于目标坐标系的绝对边界。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>第一次全部端口都已分配，为何仍验收失败？</div>
+  <div class="q-a">四位已落点但坐标都不符合接口清单，已分配状态不验证位置正确。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>GUI 给两个 Memory 同色是否会改变它们的合法位置？</div>
+  <div class="q-a">不会；颜色只是分组标记，实际位置由约束和数据库对象状态决定。</div>
+</div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

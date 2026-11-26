@@ -57,31 +57,69 @@
       <p class="hero-en">CMOS Latch-up and Layout Checks</p>
       <p class="hero-sum">理解寄生双极管的触发与维持，并把阱接触和保护环落实到版图检查。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈10 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">CMOS</span><span class="pill tag">Latch-up</span><span class="pill tag">Well Tap</span><span class="pill tag">Guard Ring</span>
       </div>
     </div>
-    <article id="article" data-est-min="4"><section class="ch" id="parasitics" data-ch="parasitics">
+    <article id="article" data-est-min="10"><section class="ch" id="parasitics" data-ch="parasitics">
   <div class="ch-h"><span class="ch-n">01</span><h2>正常 CMOS 为什么会有寄生回路？</h2></div>
-  <div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 15 项的主题独立编写。以下为简化的体硅 CMOS 解释，不转载原文、图或项目参数；具体版图规则以项目工艺文件为准。</p></div>
-<p>以 P 型衬底、N 阱里的 PMOS 和衬底上的 NMOS 为例。PMOS 的 P+ 扩散区、N 阱、P 型衬底可组成寄生 PNP；NMOS 的 N+ 扩散区、P 型衬底、N 阱可组成寄生 NPN。两只寄生管的集电极电流能影响对方的基极。满足条件时，这个正反馈回路会在电源和地之间形成低阻导通路径，称为闩锁效应（Latch-up）。</p>
+  <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-k.svg" data-fig="innovus-practice-k.svg"><img src="/fig/innovus-practice-k.svg" alt="原创教学示意图 · 闩锁：触发不等于能持续自锁" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 闩锁：触发不等于能持续自锁</figcaption></figure>
+<div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 15 项的主题独立编写。下文简化说明体硅 CMOS，不转载原文、图或项目参数。桌面演练的规则、版图对象与报告均为合成，不能替代真实 PDK 或用于器件上电试验。</p></div>
+<p>以 P 型衬底、N 阱里的 PMOS 和衬底上的 NMOS 为例。PMOS 的 P+ 扩散区、N 阱、P 型衬底可组成寄生 PNP；NMOS 的 N+ 扩散区、P 型衬底、N 阱可组成寄生 NPN。衬底和阱对局部电流不是理想零阻抗节点：即便远处接到了电源，局部电位仍可能向不同方向偏移。两只寄生管的集电极电流能影响对方的基极，满足条件时反馈会在电源和地之间形成低阻通路，这就是闩锁效应（Latch-up）。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Perturbation --&gt; local P-substrate potential rises --&gt; parasitic NPN conducts</span><span class="ln ">                    ^                                      |</span><span class="ln ">                    |                                      v</span><span class="ln ">             parasitic PNP conducts &lt;-- local N-well potential falls</span><span class="ln "> </span><span class="ln ">Reference paths: P-substrate -- Rsub -- low bias</span><span class="ln ">                 N-well      -- Rwell - high bias</span></code></pre></div>
+<p>这是反馈框图，不是截面尺寸示意，也不代表所有工艺都用相同的阱结构。它解释了为何缩短有效接触路径能降低局部电位漂移，但无法直接给出接触间距或闩锁裕量。</p>
   
 </section>
 <section class="ch" id="trigger-hold" data-ch="trigger-hold">
   <div class="ch-h"><span class="ch-n">02</span><h2>分清触发条件与维持条件</h2></div>
-  <p>例如 I/O 过冲造成电流注入衬底，电流流经衬底等效电阻，令局部电位升高，可能使寄生 NPN 的基极—发射极结正向偏置。NPN 导通后取走的电流又能在 N 阱等效电阻上产生压降，使局部阱电位相对其电源下降，进而促使寄生 PNP 导通。PNP 再向衬底注入电流，反馈闭合。<strong>触发</strong>指扰动使回路开始导通；<strong>维持</strong>指扰动离开后，电源仍能提供足够电流让回路保持导通。高电流不一定就是闩锁，但扰动撤除后仍存在的大电流值得按此方向排查。</p>
+  <p>I/O 过冲造成电流注入衬底，是教材中的一种触发情形。电流经过衬底等效电阻可抬高局部电位，可能使寄生 NPN 的基极—发射极结正向偏置；NPN 导通后引起的阱压降又可能使 PNP 开始导通，并向衬底继续注入电流。<strong>触发</strong>指扰动让反馈开始，<strong>维持</strong>指扰动消失后，电源仍能使反馈保持导通。触发过不代表必能维持，异常电流也可能来自短路等其他原因。不要从几何超限推断硅片一定会闩锁，也不要把异常电流当成唯一判据。</p>
+<p>本讲不施加电压、注入电流或试探实物边界。桌面能回答的是：一个需要覆盖的区域是否有合规接点，接点是否导向正确偏置参考，以及哪些检查仍需要补做。量产前的测试与版图签核是不同工作，不互相替代。</p>
   
 </section>
 <section class="ch" id="layout-checks" data-ch="layout-checks">
   <div class="ch-h"><span class="ch-n">03</span><h2>版图前后分别检查什么？</h2></div>
-  <ul><li><strong>布局前：</strong> 核对 PDK 的 tap 最大间距、域内偏置连接和敏感区保护环规则；预留宏边、I/O 附近和电源域交界处的放置空间。Well tap 为阱提供偏置接点，衬底 tap 则连接衬底；增加合规接点、缩短电流路径，可以减小局部等效电阻。典型做法是同一供电域内 N 阱接该域的高电位、P 型衬底接适用的低电位，但不能把这条经验套用到独立偏置域。</li><li><strong>布局后：</strong> 按工艺要求检查 tap 的实际覆盖、间距和电气连通性，尤其检查被宏、阻挡或切断行隔开的区域。Guard ring 可收集注入载流子；核对接触、所接偏置网及规则要求的连续性，不能只看 GUI 中是否画出了一个环。分别检查几何规则和供电连接，保护环也不能代替规定的 tap。</li></ul>
+  <p>布局前从 PDK 和项目签核流程确认适用的 tap 最大间距、距离量测定义、适用区域和目标偏置网；保护环规则要另列。Well tap 为阱提供偏置接点，衬底 tap 为衬底提供接点。典型同域中 N 阱接该域的高电位、P 型衬底接适用的低电位；遇到独立偏置井或不同隔离结构，应回到该域的偏置定义，不能把所有同名电源当成电气等价。规划宏边或 I/O 附近空间时，不仅要留 tap 位置，也要留偏置连接走向。</p>
+<p>布局后重点查宏角、行端和电源域边界。宏、阻挡或切断行会影响 tap 能否放下，<strong>仅凭行中断不能推断衬底本身电气断开</strong>。保护环可以收集注入载流子，但要核对接触、目标网和规则要求的连续性；除非规则明确认可某类环接触兼作覆盖点，不能拿“有环”代替 tap 验收。几何合规和电气连通性分别核对：画得近而接错网，不算有效覆盖。</p>
+  
+</section>
+<section class="ch" id="lab-input" data-ch="lab-input">
+  <div class="ch-h"><span class="ch-n">04</span><h2>桌面输入：宏边哪一段失去覆盖？</h2></div>
+  <p>合成布局 <code>T17</code> 中，宏 <code>U_MEM</code> 把 <code>PD_A</code> 域的标准单元行截出一段 <code>R19-E</code>；对照段 <code>R18-E</code> 没有被这次摆放改动。课堂规则把覆盖距离定义为该段所有检查点中，到最近<strong>同域、同类型且已连接</strong>接触的最大抽取距离，衬底和 N 阱上限均为 18 微米；等于 18 合格。它不是相邻 tap 中心距，也不是一条可搬到其他工艺的公式。项目方给定 <code>PD_A</code> 的目标网为 <code>VSS_A</code> 和 <code>VDD_A</code>，<code>GR_MEM</code> 保护环不计入本练习的 tap 覆盖。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成报告 T17 / 单位 um                    最大距  上限  命中接触    抽取偏置  结果</span><span class="ln ">R18-E  P-SUB                              14     18    TAP_P18    VSS_A     PASS</span><span class="ln ">R19-E  P-SUB                              26     18    TAP_P19W   VSS_A     FAIL</span><span class="ln ">R19-E  N-WELL                             13     18    TAP_N19    VDD_A     PASS</span><span class="ln ">GR_MEM ring_check: continuity PASS; bias VSS_A; tap_credit NO</span><span class="ln ">R19-E 候选点: SITE_E1 / PD_A / clear / 接线可达 VSS_A</span><span class="ln ">R19-E 候选点: SITE_E2 / PD_B / clear / 接线可达 VSS_B</span></code></pre></div>
+  
+</section>
+<section class="ch" id="lab-diagnosis" data-ch="lab-diagnosis">
+  <div class="ch-h"><span class="ch-n">05</span><h2>定位根因：先追坐标，再追偏置网</h2></div>
+  <p>先按报告定位 <code>R19-E</code> 上产生最大距离的检查点，查看它与宏边的关系。对照摆放记录发现原计划的接触位点落入宏阻挡，没有合法实例；抽取报告只承认西侧仍接对网的 <code>TAP_P19W</code>，导致最远点超过上限 8 微米。再查 N 阱和保护环报告：两者都通过，不能解释或抵消衬底超限。这是局部接触覆盖不足的版图根因，不是根据报告宣称真实器件已经闩锁。</p>
+<p>优先选 <code>SITE_E1</code>，在课堂修订图上登记一个项目认可的 <code>TAP_P19E</code> 并接到 <code>VSS_A</code>；保留既有 <code>TAP_P19W</code>、N 阱接触和保护环。拒绝更近也可能摆得下的 <code>SITE_E2</code>，因为它归 <code>PD_B</code>，其 <code>VSS_B</code> 不是 <code>PD_A</code> 的覆盖参考。再检查该位点不会侵入保留通道；这里不靠移动宏或修改保护环来同时改变多个因素。</p>
+  
+</section>
+<section class="ch" id="lab-verify" data-ch="lab-verify">
+  <div class="ch-h"><span class="ch-n">06</span><h2>比较抽取结果并准备回退</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成复核 T17 -&gt; T18                    修订前         修订后</span><span class="ln ">R18-E P-SUB 最大覆盖距离               14 PASS         14 PASS</span><span class="ln ">R19-E P-SUB 最大覆盖距离               26 FAIL         12 PASS</span><span class="ln ">R19-E N-WELL 最大覆盖距离              13 PASS         13 PASS</span><span class="ln ">GR_MEM 连续性 / 抽取偏置               PASS / VSS_A    PASS / VSS_A</span><span class="ln ">TAP_P19E 抽取连接                      未存在          VSS_A</span><span class="ln ">局部阻挡 / 跨域短接                    无 / 无         无 / 无</span></code></pre></div>
+<p>复核应扫描整段及相邻行，不仅重算原失败点；新增接触后，全段最远点可能换到其他位置。以上表格只代表桌面练习的预期。实际项目仍按流程做几何规则检查、抽取连接检查和必要签核，确认没有错网、悬空或跨域短接。</p>
+<ul><li>改动前保存布局快照、规则版本、失败标记及域网映射，记录候选点为何获选。</li><li>改动后按同口径比对覆盖、偏置、保护环和受影响邻区；不能用“报告无标记”代替对新接点的连接核对。</li><li>如果新接点接错网、引入阻挡冲突或邻区退化，撤销 <code>TAP_P19E</code> 及随附连接，复核回到 <code>T17</code> 并保留原失败项，另选合规域内位点。</li></ul>
+  
+</section>
+<section class="ch" id="handoff" data-ch="handoff">
+  <div class="ch-h"><span class="ch-n">07</span><h2>把异常记录写成能复核的交接项</h2></div>
+  <p>只写“宏边缺 tap”会给下一位工程师留下三个未知：是哪一种接触、是哪里超限、现有接触到底连到哪里。此例的记录应明确为“宏 U_MEM 东侧 R19-E 段，衬底覆盖最大距离 26 微米，抽取命中的西侧接点偏置正确但超出上限”。随后附上供电域、行段边界、对应规则、最远检查点、命中的接点及其抽取网名，注明保护环只是独立通过。这样，新的接点如果已经画在版图里却未被抽取到，可以查合法单元类型或连接路径，而不是再随意多插一个接点。</p>
+<p>如果正式报告仍报超限，先区分新增点被排除与新增点有效但遗漏了另一段。前者看名称是否正确还不够，应核对抽取边界、域归属和实际网连通；后者以更新后的最远位置重新定位，不要重复处理旧标记。反过来，若所有几何项都通过，却出现同域偏置网错接或保护环断开，也应阻止交付。终点是几何规则、连接和审查证据彼此一致，不是某个失败标记消失。</p>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">04</span><h2>自检：有保护环就能跳过 tap 检查吗？</h2></div>
-  <p><strong>题目：</strong> 某宏周围有保护环，但一侧的行被切断。其中一段标准单元行与最近衬底接点的距离超过 PDK 上限。只补查保护环能否通过验收？</p>
-<p><strong>答案：</strong> 不能。需要为异常区域提供符合规则的衬底接触，核对其连接到正确偏置网，并重跑相关几何和连接检查。保护环收集载流子，并不自动缩短该区域到衬底接点的路径。</p>
+  <div class="ch-h"><span class="ch-n">08</span><h2>自检：有保护环就能跳过 tap 检查吗？</h2></div>
+  <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>保护环通过而 R19-E 的衬底覆盖距离超限，可以交付吗？</div>
+  <div class="q-a">不可以；规则未给予保护环覆盖资格，必须补足符合间距和偏置要求的衬底接触。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>离检查点更近的 SITE_E2 为什么不能算进覆盖？</div>
+  <div class="q-a">它在另一供电域且接 VSS_B，不是该区域要求的 VSS_A，距离合格不等于连接合格。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>修订后原失败点已合格，为什么要扫描整段？</div>
+  <div class="q-a">原失败点未必仍是修订后的最远点，还要确认其他检查点及邻区没有新问题。</div>
+</div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

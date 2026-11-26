@@ -57,12 +57,12 @@
       <p class="hero-en">Floorplan Lab</p>
       <p class="hero-sum">第一讲对应知识库第 01 项主题，用上传 Word 的实操原文和原图理解 Die、Core、切角，以及全部端口与未摆放端口的区别。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈3 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">Floorplan</span><span class="pill tag">实操</span><span class="pill tag">Tcl</span>
       </div>
     </div>
-    <article id="article" data-est-min="3"><section class="ch" id="shape" data-ch="shape">
+    <article id="article" data-est-min="4"><section class="ch" id="shape" data-ch="shape">
   <div class="ch-h"><span class="ch-n">01</span><h2>先认地图：Die、Core 和切角</h2></div>
   <div class="note"><div class="note-h">资料来源</div><p>本讲按钉钉目录第 01 项《flp实操》的主题编排。下面的原文命令和截图来自你上传的《04 innovus项目(1).docx》Floorplan 实操部分，不是钉钉原文或原图的转载。为保留上下文，原站 <a href="/lesson/03-05-floorplan/#source-09">Floorplan 完整课</a> 仍保留原来的实操小节，首次学习任选一个入口即可。</p></div>
 <p>把芯片平面想成一张地图：<strong>Die 是整块芯片的外轮廓，Core 是主要摆放电路单元的内部区域</strong>。做异形轮廓时，先定义初始边界，再在指定坐标范围切掉一块。先认清这两个动作，再去读参数；不要一上来就记项目里的坐标。</p>
@@ -79,8 +79,15 @@
 <p>没有 Innovus 也可以完成本节的检查练习：假设全部端口是 <code>clk rst_n data_in data_out</code>，只有 <code>data_in</code> 和 <code>data_out</code> 尚未摆放，那么第一份清单有 4 行，第二份清单有 2 行。若第二份清单出现了完全不在第一份里的端口，应先核对两份报告是否来自同一个设计和运行版本。</p>
   
 </section>
+<section class="ch" id="compare-snapshots" data-ch="compare-snapshots">
+  <div class="ch-h"><span class="ch-n">03</span><h2>跟做：比较两次端口快照</h2></div>
+  <p>用下面两份<strong>虚构报告</strong>练习交付检查。两次放置都使用教学顶层 <code>lab_top</code> 和同一份网表；只调整 <code>data_in</code> 的放置状态，不改接口定义。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Snapshot     Total ports    Unplaced ports      Notes</span><span class="ln ">FP_BEFORE    4              data_in data_out    baseline</span><span class="ln ">FP_AFTER     4              data_out            placed data_in only</span></code></pre></div>
+<ol><li>先比较总端口数，再逐一比对名字；相同的条数不能证明名字完全一致。接着计算未摆放集合的差：本例只少了 <code>data_in</code>，符合本轮目标。</li><li>在 GUI 定位 <code>data_in</code>，检查所在边、金属层、轨道和项目允许的引脚间距。状态不再是 <code>unplaced</code> 并不代表引脚一定放对了；如果落在禁止区域，仍不能认可这一版。</li><li>只在练习副本修改。保存 <code>FP_BEFORE</code>，记录本轮唯一变动，输出 <code>FP_AFTER</code> 并复查。出现意外新增端口、其他 Port 状态被改动或重复间距违例，就恢复 <code>FP_BEFORE</code>，不要在未知状态上继续改。</li></ol>
+  
+</section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">03</span><h2>自检：你是在读数据库，还是在改版图？</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>自检：你是在读数据库，还是在改版图？</h2></div>
   <ul><li>能在原图上区分芯片外轮廓和切角，并说明切角并不是摆放引脚。</li><li>能说清两份清单各回答什么问题，并检查未摆放清单是否属于全部清单。</li><li>能区分读取端口、修改端口状态和实际摆放这三件事。本课先完成读取与检查；按金属层、边和轨道摆放端口的原文示例，可接着看 <a href="/lesson/03-05-floorplan/#source-09">Floorplan 完整实操</a>。</li></ul>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>

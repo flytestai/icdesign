@@ -52,6 +52,20 @@ summary: 第一讲对应知识库第 01 项主题，用上传 Word 的实操原�
 
 没有 Innovus 也可以完成本节的检查练习：假设全部端口是 `clk rst_n data_in data_out`，只有 `data_in` 和 `data_out` 尚未摆放，那么第一份清单有 4 行，第二份清单有 2 行。若第二份清单出现了完全不在第一份里的端口，应先核对两份报告是否来自同一个设计和运行版本。
 
+## 跟做：比较两次端口快照 {#compare-snapshots}
+
+用下面两份**虚构报告**练习交付检查。两次放置都使用教学顶层 `lab_top` 和同一份网表；只调整 `data_in` 的放置状态，不改接口定义。
+
+```text
+Snapshot     Total ports    Unplaced ports      Notes
+FP_BEFORE    4              data_in data_out    baseline
+FP_AFTER     4              data_out            placed data_in only
+```
+
+1. 先比较总端口数，再逐一比对名字；相同的条数不能证明名字完全一致。接着计算未摆放集合的差：本例只少了 `data_in`，符合本轮目标。
+2. 在 GUI 定位 `data_in`，检查所在边、金属层、轨道和项目允许的引脚间距。状态不再是 `unplaced` 并不代表引脚一定放对了；如果落在禁止区域，仍不能认可这一版。
+3. 只在练习副本修改。保存 `FP_BEFORE`，记录本轮唯一变动，输出 `FP_AFTER` 并复查。出现意外新增端口、其他 Port 状态被改动或重复间距违例，就恢复 `FP_BEFORE`，不要在未知状态上继续改。
+
 ## 自检：你是在读数据库，还是在改版图？ {#review}
 
 - 能在原图上区分芯片外轮廓和切角，并说明切角并不是摆放引脚。

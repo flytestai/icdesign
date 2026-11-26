@@ -57,31 +57,70 @@
       <p class="hero-en">Innovus ECO Command Workflow</p>
       <p class="hero-sum">对照常用 legacy ECO 命令理解修改、摆放和布线，再按前后掩膜约束完成验收。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈11 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">ECO</span><span class="pill tag">时序</span><span class="pill tag">等价检查</span>
       </div>
     </div>
-    <article id="article" data-est-min="4"><section class="ch" id="command-roles" data-ch="command-roles">
+    <article id="article" data-est-min="11"><section class="ch" id="command-roles" data-ch="command-roles">
   <div class="ch-h"><span class="ch-n">01</span><h2>把每条命令放回 ECO 流程</h2></div>
-  <div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 17 项的主题独立编写，不转载原文、图或项目参数。这里说明命令职责，不给未经核对的参数；执行前请核对本机版本帮助和项目流程。</p></div>
-<p>先保存修改前的设计快照，记录目标实例或网络、问题时序视图以及允许修改的范围。<code>setEcoMode</code> 用于设置 ECO 工作模式，而不是执行具体修复。<code>ecoChangeCell</code> 用于变更指定实例所引用的库单元，例如换成逻辑功能相同、驱动能力不同的型号；<code>ecoAddRepeater</code> 用于在指定网络连接上加入中继单元。换大驱动不一定让路径变快，因其输入电容也可能增加；插入单元时须核对它影响的是整网还是指定分支，并检查信号极性。</p>
+  <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-m.svg" data-fig="innovus-practice-m.svg"><img src="/fig/innovus-practice-m.svg" alt="原创教学示意图 · ECO 只改必要对象，仍要完整复查" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · ECO 只改必要对象，仍要完整复查</figcaption></figure>
+<div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 17 项的主题独立编写，不转载原文、图或项目参数。只说明 Innovus legacy 命令职责，不给未经核对的参数。网络、单元、报告及结果均是合成算例，未在 Innovus 或签核工具中实测。</p></div>
+<p>ECO 是已经有基线时做的受控修改。先保存设计快照，记录目标实例或网络、时序视图、要求的裕量和允许改动范围。<code>setEcoMode</code> 设置 ECO 工作模式，它本身不会修正一条路径。<code>ecoChangeCell</code> 改变实例引用的库单元，例如改成逻辑相同、驱动能力不同的型号；大驱动可能带来更高输入电容，不能只看输出端。<code>ecoAddRepeater</code> 在指定网络连接上加中继单元；执行前应确认选的是目标分支还是整网，并检查极性、单元用途及合法工作条件。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Baseline snapshot + reports</span><span class="ln ">           |</span><span class="ln ">           v</span><span class="ln ">Scope -&gt; logical delta -&gt; legal placement -&gt; incremental routing</span><span class="ln ">                                                    |</span><span class="ln ">                                                    v</span><span class="ln ">Accept or roll back &lt;- review &lt;- extracted STA + physical checks</span></code></pre></div>
+<p>每个箭头都要有前后证据：目标连接、摆放位置、受影响网络或签核结果。如此才能判断坏结果来自选错分支、合法化移动了邻居，还是布线寄生改变了路径。</p>
   
 </section>
 <section class="ch" id="place-route" data-ch="place-route">
   <div class="ch-h"><span class="ch-n">02</span><h2>改完网表不等于改完版图</h2></div>
-  <p>以一条假设的保持时间违例路径为例，确认只需给其中一个数据分支增加延迟后，先评估能否放入功能合适的延迟单元或缓冲器，再检查其他分支是否不应改变。在提供 <code>ecoPlace</code> 的流程中，它承担 ECO 摆放及合法化；其他流程以项目指定步骤为准。<code>ecoRoute</code> 处理 ECO 布线，需确认受影响的网络正确重连。即使某些模式会自动处理其中一部分，也要查执行日志和前后差异，不能从命令名推断哪些实例、走线和过孔已经改完。</p>
+  <p>网表确认新单元已串接在目标分支，不代表它已合法放置或走线已重连。在提供 <code>ecoPlace</code> 的流程中，由这个步骤处理 ECO 摆放与合法化；其他版本按项目指定命令操作。<code>ecoRoute</code> 负责 ECO 布线，需要复查重连范围、过孔、保留走线以及有无新开路。工具模式可能自动处理部分摆放或布线，仍要查日志与物理差异，不应从命令名称推断执行结果。</p>
+<p>对单分支修复，优先建立允许变化的引脚清单和附近保护对象：新单元要落在授权供电域和合法位点，未选分支应仍由原网驱动。逻辑不动不代表物理完全不变，例如增缓冲会改变原网负载，原支路时序也可能随之变化，必须对照检查。</p>
   
 </section>
 <section class="ch" id="post-mask" data-ch="post-mask">
   <div class="ch-h"><span class="ch-n">03</span><h2>Post-mask ECO 不能沿用任意换单元的假设</h2></div>
-  <p>掩膜冻结前，项目通常允许在约束内改变单元及布线；Post-mask ECO 则须遵守已经冻结的层和允许修改的掩膜清单。若只允许改部分金属及过孔层，通常应先寻找已合法摆放且接好电源的备用单元，或使用工艺与项目准许的可编程资源，再核对可达的连接层。即使放得下，若直接替换会改到冻结层，也不可执行。以两份物理数据的差异核对修改是否只落在批准范围内。</p>
+  <p><strong>Pre-mask</strong> 是掩膜冻结前的变更，仍受摆放、供电、保留区域和项目流程约束，但经许可可以新增标准单元及调整走线。<strong>Post-mask</strong> 必须读取已经冻结的层和批准修改的掩膜清单。若仅允许改部分金属和过孔，通常先找已经摆好、接好电源的备用单元，或使用工艺与项目准许的可编程资源，再判断其端口能否在许可层连接。一个备用单元“靠得近”不代表端口一定可达；若需要改冻结层，就不能执行该分支。</p>
+<p>例如下文的做法需要在空白合法位点新放一枚延迟单元，因此只用于 Pre-mask。若收到的是仅改上层金属的任务书，就要重制 ECO 方案，检查备用单元的逻辑、供电、连接层、掩膜差异以及相同的时序和物理验收。不能把 Pre-mask 的结果直接标记成 Post-mask 通过。</p>
+  
+</section>
+<section class="ch" id="lab-input" data-ch="lab-input">
+  <div class="ch-h"><span class="ch-n">04</span><h2>实验输入：只有哪一个分支需要加延迟？</h2></div>
+  <p>合成基线 <code>E10</code> 内，<code>u_launch/Q</code> 经 <code>n_data</code> 同时驱动 <code>u_fast/D</code> 和 <code>u_peer/D</code>。在最小延迟视图 <code>V_MIN</code>，只有 <code>u_fast</code> 的 hold 失败，<code>u_peer</code> 仍为正裕量；最大延迟视图 <code>V_MAX</code> 下，两条路径 setup 都为正。假设已核实所有时钟和约束，报告表明 <code>u_fast</code> 的分支数据延迟偏短，不是时钟漏约束或路径误分组。项目批准只在 <code>u_fast/D</code> 分支加非反相延迟，不能动 <code>u_peer/D</code> 的逻辑连接。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成基线 E10 / slack ps / 同一组约束</span><span class="ln ">path                            hold V_MIN      setup V_MAX</span><span class="ln ">u_launch/Q -&gt; u_fast/D                 -20               70</span><span class="ln ">u_launch/Q -&gt; u_peer/D                  32               65</span><span class="ln ">connectivity: n_data -&gt; {u_fast/D, u_peer/D}</span><span class="ln ">allowed region: PD_CORE / SITE_21 (vacant), mask state: PRE</span></code></pre></div>
+<p>先复核失败路径的发射、捕获引脚及模式，尤其不要把 <code>-20 ps</code> 当作全设计都需要加 20 ps 的证据。若用换驱动大小或整网插入，未选分支也被改变，且可能把 hold 问题换成 setup 问题；本例因此选择只切分目标分支。</p>
+  
+</section>
+<section class="ch" id="lab-change" data-ch="lab-change">
+  <div class="ch-h"><span class="ch-n">05</span><h2>执行变更：核对分支、位点与走线</h2></div>
+  <p>按本机版本帮助设置工作模式并执行针对目标引脚的插入。新单元 <code>u_eco_dly</code> 输入保留在 <code>n_data</code>，输出由新网 <code>n_data_fast</code> 只连接 <code>u_fast/D</code>，<code>u_peer/D</code> 仍留在 <code>n_data</code>。确认该非反相型号在约定角落可用，再按项目流程把它摆在 <code>PD_CORE</code> 的合法位点 <code>SITE_21</code>；做增量布线并保存逻辑、摆放和布线差异。即使某一步不报警，也应核对目标引脚图，防止命令匹配了整网或错误层级。</p>
+<p>在归档差异中，原网不需要保留到 <code>u_fast/D</code> 的旧连线；新网也不应接到 <code>u_peer/D</code>。确认新增单元供电、无邻居越界且走线变化在批准区域。再重新提取寄生参数，以相同约束和多角视图做时序比较，不能直接用布线前的估算替代验收。</p>
+  
+</section>
+<section class="ch" id="lab-verify" data-ch="lab-verify">
+  <div class="ch-h"><span class="ch-n">06</span><h2>对比签核并决定是否回退</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成复核 E10 -&gt; E11                              基线       改后</span><span class="ln ">u_fast/D hold V_MIN / setup V_MAX (ps)            -20/70      +5/39</span><span class="ln ">u_peer/D hold V_MIN / setup V_MAX (ps)            +32/65     +30/63</span><span class="ln ">目标外新增负裕量端点                               0           0</span><span class="ln ">物理连接 / 新增 DRC                               正常/0      正常/0</span><span class="ln ">功能保持等价比较                                   参考         通过</span><span class="ln ">批准范围外的实例/网络逻辑差异                      0           0</span></code></pre></div>
+<p>结果符合本例设定的目标 hold 至少 <code>+5 ps</code>，两条路径 setup 仍为正，<code>u_peer</code> 的时序变化也已记录。还须核查所有约定模式角落、最大转换时间和电容等适用约束，并按项目签核要求执行 DRC、连通性及 LVS。功能保持类 ECO 用前后形式等价比较；若有意改功能，则应以获批的新逻辑为参考。Post-mask 另比对物理数据的层差异，而不只核对网表。签核概览见 <a href="/lesson/03-11-eco/">ECO 课程</a>。</p>
+<ul><li>改动前锁定 <code>E10</code> 数据库、网表、寄生、约束和基线报告，登记获批范围。</li><li>改动后保留操作记录、新旧连接、图层差异和同口径报告；若任何验收门槛失败，隔离候选，不交付混合版本。</li><li>回退时从 <code>E10</code> 恢复关联产物，确认无残留 <code>u_eco_dly</code> 或 <code>n_data_fast</code>，复算原有分支连接和 hold 状态，再择案处理。</li></ul>
+  
+</section>
+<section class="ch" id="failure-triage" data-ch="failure-triage">
+  <div class="ch-h"><span class="ch-n">07</span><h2>由失败的验收项反推该查哪一步</h2></div>
+  <p>如果 <code>u_fast</code> 的 hold 达标却出现 setup 负裕量，先核查提取后的单元和走线延迟各贡献多少，再判断是否有符合批准范围的较小延迟候选，不能在失败方案上再随手改一项让表面数字转正。如果 <code>u_peer</code> 的连线没变却有时序恶化，应查原网新增负载及其寄生变化；若 <code>u_peer</code> 真的被接到新网，则是逻辑选择错误，先恢复基线并纠正插入目标，不应靠摆放或布线掩盖。</p>
+<p>如果物理检查通过但功能等价失败，先确认参考网表版本与设计意图，再看新增单元极性及连接变化；功能保持场景不得仅凭“单元不反相”就假定等价。若时序和功能都通过、但新布线越过批准边界，仍不能交付。批准范围和时序门槛是独立条件，不是可互相抵消的分数。回退复核时按同一套视图和快照标识比对，避免恢复了布局却仍引用候选版寄生文件。若恢复之后基线数字与原记录不一致，先排查分析输入版本，不能把差异当成这次修改的收益。</p>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">04</span><h2>自检：一条 hold 路径修好就能交付吗？</h2></div>
-  <p><strong>题目：</strong> ECO 后目标场景的 hold 由 <code>-20 ps</code> 变为 <code>+5 ps</code>，GUI 中新增单元也已放好。能否直接交付？</p>
-<p><strong>答案：</strong> 不能。先重新提取寄生参数，在约定的多模式多角下检查 setup、hold 与适用的电气约束；再核对连通性和 DRC，按签核要求执行 LVS。若变更旨在保持功能，做 ECO 前后形式等价检查；若有意改变功能，则用获批的更新版逻辑作为验收基准。Post-mask 场景还要核对冻结层差异。相关签核问题见 <a href="/lesson/03-11-eco/">ECO 课程</a>。</p>
+  <div class="ch-h"><span class="ch-n">08</span><h2>自检：一条 hold 路径修好就能交付吗？</h2></div>
+  <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>在 n_data 上对整网加延迟为什么不符合本例授权？</div>
+  <div class="q-a">可能同时改变 u_peer 的逻辑连接；本例只批准切分 u_fast 分支，仍需复查 u_peer 的时序。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>哪里有空白合法位置，就能在 Post-mask 加一枚单元吗？</div>
+  <div class="q-a">不能；新增单元可能涉及冻结层，需核对允许层清单和可达的已授权资源。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>目标 hold 从 -20 ps 变成 +5 ps，可以直接交付吗？</div>
+  <div class="q-a">不可只凭单项交付；还要根据验收清单核查全视图时序、电气、连接、物理与功能证据。</div>
+</div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

@@ -57,33 +57,71 @@
       <p class="hero-en">Innovus Legacy Database Queries</p>
       <p class="hero-sum">用对象路径和回溯定位宏实例，判断空结果，并区分数据库读取与状态修改。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈12 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">dbGet</span><span class="pill tag">Tcl</span><span class="pill tag">数据库</span>
       </div>
     </div>
-    <article id="article" data-est-min="4"><section class="ch" id="objects" data-ch="objects">
+    <article id="article" data-est-min="12"><section class="ch" id="objects" data-ch="objects">
   <div class="ch-h"><span class="ch-n">01</span><h2>先画对象关系，再写查询</h2></div>
-  <div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 14 项的主题独立编写，不转载原文、图或项目参数。命令用于讲解 Innovus legacy <code>dbGet</code> 的查询思路，未在 Innovus 中实测，属性名和选项以本机版本帮助为准。</p></div>
-<p>先区分<strong>实例</strong>和<strong>库单元</strong>。<code>top</code> 指当前顶层设计；<code>top.insts</code> 是实例集合；实例的 <code>name</code> 是设计中的名字，实例的 <code>cell</code> 则指向所引用的库单元。同一个库单元可以被多次实例化，所以库单元名与实例名不能混用。若要核对一个宏在版图中出现几次，该数的是实例，不是库单元。</p>
+  <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-j.svg" data-fig="innovus-practice-j.svg"><img src="/fig/innovus-practice-j.svg" alt="原创教学示意图 · dbGet：筛选的位置不等于返回的对象" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · dbGet：筛选的位置不等于返回的对象</figcaption></figure>
+<div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 14 项的主题独立编写，不转载原文、图或项目参数。实例名、报告和验收数据均为合成。Innovus legacy <code>dbGet</code> 命令用于讲解查询思路，未在 Innovus 中实测，属性名和选项以本机版本帮助为准。</p></div>
+<p>先区分<strong>实例</strong>和<strong>库单元</strong>。<code>top</code> 指当前顶层设计；<code>top.insts</code> 是实例集合；实例的 <code>name</code> 是设计中的名字，实例的 <code>cell</code> 则指向所引用的库单元。一个库单元可以被多个实例引用。核对宏的放置数量时，计数单位是实例；核对设计用了几种宏时，计数单位才是库单元类型。前者可以发现漏放一份宏，后者无法发现漏掉一个同型号的副本。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">                         +--&gt; inst: u_sram0 --+</span><span class="ln ">top: core_demo -- insts -+--&gt; inst: u_sram1 --+--&gt; cell: SRAM_TINY --&gt; baseClass: block</span><span class="ln ">                         +--&gt; inst: u_buf --------&gt; cell: BUFX2 -----&gt; baseClass: core</span></code></pre></div>
+<p>读取链条时，给每一段标注它返回的是对象还是值：<code>insts</code>、<code>cell</code> 指向对象，<code>name</code>、<code>baseClass</code> 是属性值。GUI 里看到的一个名字也可能来自层级、实例或母版。先确定交付物每行代表什么，再选具体属性，避免在导出后用去重掩盖对象选错的问题。</p>
   
 </section>
 <section class="ch" id="macro-query" data-ch="macro-query">
   <div class="ch-h"><span class="ch-n">02</span><h2>查询宏实例：筛选属性，再回溯</h2></div>
-  <p>以下查询以 <code>baseClass</code> 为 <code>block</code> 作为示例筛选条件。先读取全部实例名，再沿实例到库单元的路径筛选，最后对筛中的实例取名。</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">dbGet top.insts.name</span><span class="ln ">set blocks [dbGet -p2 top.insts.cell.baseClass block]</span><span class="ln ">if {$blocks ne &quot;0x0&quot; &amp;&amp; [llength $blocks] &gt; 0} {</span><span class="ln ">    puts [dbGet $blocks.name]</span><span class="ln ">} else {</span><span class="ln ">    puts &quot;未匹配到宏实例&quot;</span><span class="ln ">}</span></code></pre></div>
-<p><code>-p</code> 回溯一层：在该筛选路径上得到符合条件的库单元对象；<code>-p2</code> 回溯两层，得到引用这些库单元的实例。<strong>筛选发生在哪层，和最终返回哪层，是两件事。</strong> 假设 <code>u_buf</code> 引用 <code>BUFX2</code>，<code>u_sram0</code> 与 <code>u_sram1</code> 都引用同一个 <code>SRAM_TINY</code>，且只有后者的库单元类别为 <code>block</code>，则结果应包含两个 SRAM 实例名，而不是把它们合并为一个库单元名。</p>
+  <p>示例用 <code>baseClass == block</code> 界定本练习的宏。先读全部实例名判断当前范围，再检查设计中确实存在该类别；最后沿库单元属性筛选并回到实例层。不要把“项目要盘点的宏”直接等同于数据库的某个值：真实项目还可能需要按母版清单纳入或排除特定单元。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">dbGet top.insts.name</span><span class="ln ">dbGet top.insts.cell.baseClass</span><span class="ln ">set blocks [dbGet -p2 top.insts.cell.baseClass block]</span><span class="ln ">set macroNames {}</span><span class="ln ">foreach inst $blocks {</span><span class="ln ">    if {$inst eq &quot;0x0&quot;} { continue }</span><span class="ln ">    set name [dbGet ${inst}.name]</span><span class="ln ">    if {$name eq &quot;&quot; || $name eq &quot;0x0&quot;} {</span><span class="ln ">        error &quot;macro instance name unavailable: $inst&quot;</span><span class="ln ">    }</span><span class="ln ">    lappend macroNames $name</span><span class="ln ">}</span><span class="ln ">puts [lsort $macroNames]</span></code></pre></div>
+<p><code>-p</code> 回溯一层：在这个路径上返回库单元对象；<code>-p2</code> 回溯两层，返回引用这些库单元的实例对象。<strong>在哪一层筛选，与要返回哪一层，是两件事。</strong> <code>lsort</code> 只让清单顺序稳定，不能去掉错误重复项；若报告出现重复实例名，应先核查作用范围以及名字是不是真正的全名，而不是默默压成一行。</p>
   
 </section>
 <section class="ch" id="empty-results" data-ch="empty-results">
   <div class="ch-h"><span class="ch-n">03</span><h2>空结果不等于设计里没有宏</h2></div>
-  <p>碰到空列表、<code>0x0</code> 或报错，先分开处理。报错优先核对是否加载了设计、路径属性是否可用；空结果则先看 <code>top.insts</code> 是否有对象，再查 <code>top.insts.cell.baseClass</code> 的实际取值，确认既没有筛错类别，也没有查错设计快照或层级范围。如果已知至少有一个 SRAM，也可先按它的实例名定位，单独查看其库单元名字和类别；这样能判断范围有误还是筛选条件不合适。将原始返回中的空指针标记识别出来后再计数：Tcl 的 <code>llength 0x0</code> 是 <code>1</code>，却不是一个有效实例。示例中的查询和 <code>puts</code> 不改设计数据库；排查阶段不要混入 <code>dbSet</code> 等修改操作。端口的类似读取见 <a href="/lesson/03-01a-flp-lab/#ports">Floorplan 实操</a>。</p>
+  <p>将“工具报错”“查询成功但无匹配”“核对完成后确实没有宏”分成三种状态。报错优先检查设计是否加载、路径和属性是否受本机版本支持，不能捕获错误后输出一份看似正常的空清单。无匹配先检查 <code>top.insts</code> 和实际类别分布，再用一个已知的实例名反查母版与类别。已知宏也找不到时，先核对设计快照、层级范围和名字匹配方式；实例找得到但不属 <code>block</code> 时，再跟目录维护者确认分类标准。</p>
+<p>Tcl 的 <code>llength 0x0</code> 是 <code>1</code>，但 <code>0x0</code> 是空指针标记，不能认作一个实例。若报告显示零行，仍应保留快照标识、基准实例总数及类别检查结果，让复核者能分辨“有效的零”和“漏查”。设计查询和 <code>puts</code> 不修改数据库，别为排查混入 <code>dbSet</code> 等写操作。类似的端口读取见 <a href="/lesson/03-01a-flp-lab/#ports">Floorplan 实操</a>。</p>
+  
+</section>
+<section class="ch" id="lab-input" data-ch="lab-input">
+  <div class="ch-h"><span class="ch-n">04</span><h2>实验输入：实例清单为什么少了一行？</h2></div>
+  <p>练习从交接表开始：<code>F07</code> 快照内有三条实例记录，宏清单应列出 <code>u_sram0</code>、<code>u_sram1</code>，两者母版均为 <code>SRAM_TINY</code>，另有 <code>u_buf</code> 引用 <code>BUFX2</code>。旧脚本的导出只有一行 <code>SRAM_TINY</code>，列名却是“宏实例”，导致下游只登记了一个放置对象。另提供 <code>F06_stdonly</code> 对照快照，里面只有 <code>u_buf</code>，预期宏清单为空。两个快照分开判读，不能拿对照快照的零行解释 <code>F07</code> 的缺行。</p>
+<p>操作顺序：先写出交接表的预期实例名，再核对旧脚本查询从哪个对象取 <code>.name</code>。然后分别列出全部实例、筛中库单元和筛中实例，记下每一步的对象粒度。旧结果不一定是筛选失败：它筛对了类别，但错把母版当成交付对象，随后对母版名称去重，只剩一行。这条证据比“重新运行一次得到两行”更能说明根因。</p>
+  
+</section>
+<section class="ch" id="lab-tcl" data-ch="lab-tcl">
+  <div class="ch-h"><span class="ch-n">05</span><h2>本地练习：只用 Tcl 复现清单差异</h2></div>
+  <p>下方是可单独交给 <code>tclsh</code> 的教学 mock，只依赖标准 Tcl。它用三列记录模拟对象引用，不调用 Innovus，也不模拟 <code>dbGet</code> 的语法、空指针或真实数据库结构。<code>legacy</code> 模拟旧导出对母版去重，<code>fixed</code> 模拟修正后取实例名；两者看相同的原始输入。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proc inventory {rows} {</span><span class="ln ">    set legacy {}</span><span class="ln ">    set fixed {}</span><span class="ln ">    foreach row $rows {</span><span class="ln ">        lassign $row inst cell baseClass</span><span class="ln ">        if {$baseClass ne &quot;block&quot;} { continue }</span><span class="ln ">        lappend legacy $cell</span><span class="ln ">        lappend fixed $inst</span><span class="ln ">    }</span><span class="ln ">    return [list [lsort -unique $legacy] [lsort $fixed]]</span><span class="ln ">}</span><span class="ln ">set f07 {{u_buf BUFX2 core} {u_sram0 SRAM_TINY block} {u_sram1 SRAM_TINY block}}</span><span class="ln ">set f06 {{u_buf BUFX2 core}}</span><span class="ln ">foreach {snapshot rows} [list F07 $f07 F06_stdonly $f06] {</span><span class="ln ">    lassign [inventory $rows] legacy fixed</span><span class="ln ">    puts &quot;$snapshot legacy=[list $legacy] ([llength $legacy]) fixed=[list $fixed] ([llength $fixed])&quot;</span><span class="ln ">}</span></code></pre></div>
+<p>阅读输出时先对清单再对数量。即使新版凑巧输出两条，如果第二条属于其他实例，还是不合格。可把对照中的 <code>u_buf</code> 换成一个类别同为 <code>block</code> 的测试记录，再预测新旧两种输出；这只是改变 mock 输入，不代表生产数据库或真实工艺属性发生变化。</p>
+  
+</section>
+<section class="ch" id="lab-verify" data-ch="lab-verify">
+  <div class="ch-h"><span class="ch-n">06</span><h2>对照验收与回退清单</h2></div>
+  <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成验收预期                     旧列值 (数量)          新列值 (数量)</span><span class="ln ">F07: 宏实例清单                  SRAM_TINY (1)         u_sram0 u_sram1 (2)</span><span class="ln ">F06_stdonly: 宏实例清单          &lt;空&gt; (0)              &lt;空&gt; (0)</span><span class="ln ">F07: 输入实例总数                3                     3</span><span class="ln ">F06_stdonly: 输入实例总数        1                     1</span></code></pre></div>
+<p>验收时再随机挑一个输出实例反查母版：这里两条均指向 <code>SRAM_TINY</code>，所以一套完整的交接记录可以同时包含“两个宏实例”和“一种宏母版”，但不能把这两个统计字段互换。另检查排序、列名和上一版消费脚本的读取方式；若下游确实要的是唯一母版列表，应保留原口径并另交付实例清单，而不是让同名字段悄悄变义。</p>
+<ul><li>改动前：保留旧查询、导出、所用设计标识和预期清单，确认它们不是来自不同快照。</li><li>改动后：同快照双跑，保留准确名单、错误输出和有效零结果；确认 <code>u_buf</code> 没混入宏清单。</li><li>若实例范围或下游契约未获确认：撤回新导出，恢复原查询版本并标注原口径的已知缺陷，暂停用旧结果做放置判断。这里只更改脚本与报告，无需回滚物理设计。</li></ul>
+  
+</section>
+<section class="ch" id="lab-triage" data-ch="lab-triage">
+  <div class="ch-h"><span class="ch-n">07</span><h2>扩展排查：清单对不上时从哪里下手？</h2></div>
+  <p>在实际交接中，可以把预期和实际清单并列，标出“只在预期”“只在实际”和“双方都有但母版不同”三类差异。第一类优先确认快照标识、设计名和层级范围；第二类复核筛选条件是否把交接表未纳入的单元类型也抓进来；第三类检查实例是否被合法换版，以及工程清单的母版列是否尚未更新。这三类证据指向不同责任方，不能用一句“数量差一”代替。也不要拿同名但不同层级的对象凑齐清单；若数据库返回的名称和交接表层级表示不同，应先明确各自的命名规则，再对照一条实际对象记录。</p>
+<p>对象引用适合留在当前工具查询中，不宜作为跨快照的交接主键；清单至少应带上设计标识、实例名称和母版名称。对于本例，可以借 <code>F06_stdonly</code> 测空清单，再使旧脚本和新脚本在 <code>F07</code> 看同一份输入：前者检查正常的零行不会被误报为故障，后者检查同一母版的多个实例不会被折叠。若交接表本身有错，先修订预期并让责任人确认，再回到实例查询验收，不要为了让结果看起来对齐而改筛选。</p>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">04</span><h2>自检：你数的是哪一层对象？</h2></div>
-  <p><strong>题目：</strong> 两个 SRAM 实例引用同一个库单元。要导出两个实例名，筛选后为什么不能停在 <code>-p</code>？如果结果只有 <code>0x0</code>，可以记为找到一个宏吗？</p>
-<p><strong>答案：</strong> <code>-p</code> 停在库单元层，不能用库单元名替代实例名；要用 <code>-p2</code> 回到实例层再取 <code>name</code>。<code>0x0</code> 是空指针标记，不计为宏；应核对当前设计与类别，再判断是否真无匹配。</p>
+  <div class="ch-h"><span class="ch-n">08</span><h2>自检：你数的是哪一层对象？</h2></div>
+  <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>两个 SRAM 实例引用同一母版，筛选后为什么不能停在 -p？</div>
+  <div class="q-a">在该查询路径上，-p 返回库单元层；需用 -p2 返回实例层，再读取各实例的 name。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>查询返回 0x0，为什么不能把 Tcl 列表长度记作宏数量？</div>
+  <div class="q-a">0x0 是空指针标记；应先过滤哨兵，再核对设计、范围及类别后判断是否确实无匹配。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>新版清单恰好有两行，为什么还要逐名对照？</div>
+  <div class="q-a">数量正确也可能包含错误实例或重复记录；要核对实际实例名及其母版，必要时检查快照和层级范围。</div>
+</div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
