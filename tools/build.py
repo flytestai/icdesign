@@ -239,7 +239,8 @@ def render_tclsh(arg, code):
   <div class="sbx-body"><div class="sbx-out"></div></div>
   <div class="tcl-edit">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">{codeattr}</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{{}} 可把换行当分隔符。</div>
 </div>"""
@@ -886,6 +887,7 @@ PLAYGROUND_BODY = """
         <div class="sbx-body"><div class="sbx-out"></div></div>
         <div class="tcl-edit">
           <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" placeholder="在上面写 Tcl 代码，支持多行；Ctrl/⌘+Enter 运行" aria-label="Tcl 多行编辑器"></textarea>
+          <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
           <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
         </div>
         <div class="sbx-f">变量和 proc 都留在环境里：先 set 一个变量，后面直接用它；多行结构（if / while / proc）一次贴进来就能整段跑。</div>

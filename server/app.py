@@ -17,6 +17,7 @@ import re
 import secrets
 import sqlite3
 import subprocess
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -1172,8 +1173,14 @@ def tcl_run(r: TclRunIn, request: Request):
         env = {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": "/tmp", "LANG": "C.UTF-8"}
         if libdir:
             env["TCL_LIBRARY"] = libdir
-        pr = subprocess.run([p], input=script, capture_output=True, text=True,
-                            timeout=5, cwd="/tmp", env=env)
+        # 关键：脚本必须走「文件名参数」，不能塞进 stdin，
+        # 否则 gets stdin 会读到脚本自身内容（或 EOF），无法交互输入。
+        with tempfile.TemporaryDirectory(dir="/tmp") as td:
+            sp = os.path.join(td, "user.tcl")
+            with open(sp, "w", encoding="utf-8") as f:
+                f.write(script)
+            pr = subprocess.run([p, sp], input=r.stdin or "", capture_output=True,
+                                text=True, timeout=5, cwd=td, env=env)
         out = (pr.stdout or "")[:20000]
         err = (pr.stderr or "")[:4000]
         return {"ok": pr.returncode == 0, "stdout": out, "stderr": err,

@@ -758,3 +758,14 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .tsbx.real-on .tcl-edit-f{background:#0d1f1a}
 .tsbx.real-on .tcl-real{color:#8fe0b0}
 .tsbx.real-on .tcl-ver{color:#5f8f78}
+
+/* ---------- Tcl 真机模式 stdin 输入 ---------- */
+.tcl-stdin{background:#0b1420;border-top:1px solid #1b2836;padding:8px 12px 0}
+.tcl-stdin-l{display:block;font-size:11px;color:#5d728a;margin-bottom:4px;
+  font-family:var(--mono);letter-spacing:.3px}
+.tcl-stdin-in{display:block;width:100%;box-sizing:border-box;min-height:30px;max-height:120px;
+  resize:vertical;background:#0e1a28;border:1px solid #1e3040;border-radius:7px;outline:none;
+  color:#cfe0f0;font-family:var(--mono);font-size:12.5px;line-height:1.6;padding:6px 9px;
+  white-space:pre;overflow:auto}
+.tcl-stdin-in::placeholder{color:#42586e;font-size:11.5px}
+.tcl-stdin-in:focus{border-color:#2f6f9e;background:#101f2e}

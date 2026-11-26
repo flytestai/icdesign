@@ -1037,11 +1037,13 @@ function mountTsbx(root) {
     /* 真机模式：把代码发到服务器，用真实 tclsh 执行 */
     var cb = root.querySelector('.tcl-real-cb');
     if (cb && cb.checked) {
+      var stdinEl = root.querySelector('.tcl-stdin-in');
+      var stdinVal = stdinEl ? stdinEl.value : '';
       con.print('(真机 tclsh) 执行中…', 'dim');
       fetch('/api/tcl/run', {
         method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code })
+        body: JSON.stringify({ code: code, stdin: stdinVal })
       }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
         .then(function (res) {
           if (!res.ok) { con.print('✗ ' + (res.j.detail || '执行失败'), 'err'); return; }
@@ -1112,9 +1114,17 @@ function mountTsbx(root) {
     if (!cb) return;
     if (!cb.__bound) {
       cb.__bound = 1;
+      var stdBox = root.querySelector('.tcl-stdin');
+      var stdIn = root.querySelector('.tcl-stdin-in');
+      if (stdIn) {
+        stdIn.addEventListener('input', function () {
+          stdIn.style.height = 'auto';
+          stdIn.style.height = Math.min(120, Math.max(30, stdIn.scrollHeight + 2)) + 'px';
+        });
+      }
       cb.addEventListener('change', function () {
-        if (verEl) verEl.textContent = cb.checked ? '' : '';   // 切换时只更新样式
         root.classList.toggle('real-on', cb.checked);
+        if (stdBox) stdBox.hidden = !cb.checked;   // 只有真机模式才需要预填 stdin
       });
     }
     if (root.__realVerLoaded) return;

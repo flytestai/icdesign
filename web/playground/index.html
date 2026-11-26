@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>代码练习场（Linux + Tcl） | IC 后端学院</title>
 <meta name="description" content="按课程顺序练：Linux 命令跑在模拟终端里，Tcl 代码直接执行。上面写、下面看输出，报错行为与真实环境一致。">
-<link rel="icon" href="/assets/logo.svg?v=3ce1e293101d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3ce1e293101d">
+<link rel="icon" href="/assets/logo.svg?v=67b471dfef4a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=67b471dfef4a">
 </head>
 <body data-page="playground" data-lesson="playground">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3ce1e293101d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=67b471dfef4a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a class="on" href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><a class="ghost" href="/">← 课程</a>
 <div id="userchip" class="userchip" hidden>
@@ -73,6 +73,7 @@
         <div class="sbx-body"><div class="sbx-out"></div></div>
         <div class="tcl-edit">
           <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" placeholder="在上面写 Tcl 代码，支持多行；Ctrl/⌘+Enter 运行" aria-label="Tcl 多行编辑器"></textarea>
+          <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
           <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
         </div>
         <div class="sbx-f">变量和 proc 都留在环境里：先 set 一个变量，后面直接用它；多行结构（if / while / proc）一次贴进来就能整段跑。</div>
@@ -87,10 +88,10 @@
 </div>
 
 </main>
-<script src="/assets/shell.js?v=3ce1e293101d"></script>
-<script src="/assets/tcl.js?v=3ce1e293101d"></script>
-<script src="/assets/page.js?v=3ce1e293101d"></script>
-<script src="/assets/playground.js?v=3ce1e293101d"></script>
-<script src="/assets/aiwidget.js?v=3ce1e293101d" defer></script>
+<script src="/assets/shell.js?v=67b471dfef4a"></script>
+<script src="/assets/tcl.js?v=67b471dfef4a"></script>
+<script src="/assets/page.js?v=67b471dfef4a"></script>
+<script src="/assets/playground.js?v=67b471dfef4a"></script>
+<script src="/assets/aiwidget.js?v=67b471dfef4a" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 6 讲 · 列表（下）：增删改查、排序与转换 · 12 | IC 后端学院</title>
 <meta name="description" content="列表核心操作函数总表（concat/lindex/llength/lappend/lreplace/lsearch/lsort/split/join）+ 两个必考陷阱（谁改源数据、lsort 默认字典序）+ split/join 互逆转换 + 本讲练习。">
-<link rel="icon" href="/assets/logo.svg?v=3ce1e293101d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3ce1e293101d">
+<link rel="icon" href="/assets/logo.svg?v=67b471dfef4a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=67b471dfef4a">
 </head>
 <body data-page="lesson" data-lesson="01-12-tcl-06-list-b">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3ce1e293101d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=67b471dfef4a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -103,7 +103,8 @@ puts $num_list
 
 ;# lsearch：给值找索引
 puts [lsearch $num_list 3]</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -119,7 +120,8 @@ puts [lsort -integer -decreasing {10 9 2 100}]   ;# 降序：100 10 9 2">
 puts [lsort {10 9 2 100}]              ;# 字典序：10 100 2 9（不是你想要的）
 puts [lsort -integer {10 9 2 100}]     ;# 数字排序：2 9 10 100
 puts [lsort -integer -decreasing {10 9 2 100}]   ;# 降序：100 10 9 2</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -144,7 +146,8 @@ puts $lis                          ;# woai ue i（我爱学习）
 set lst  {hello world tcl}
 set res  [join $lst &quot;-&quot;]           ;# 接收结果
 puts $res                          ;# hello-world-tcl</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -160,7 +163,8 @@ puts &quot;单元：[lindex $parts 1]&quot;">
 set parts [split $path /]
 puts &quot;模块：[lindex $parts 0]&quot;
 puts &quot;单元：[lindex $parts 1]&quot;</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -201,9 +205,9 @@ puts &quot;单元：[lindex $parts 1]&quot;</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3ce1e293101d"></script>
-<script src="/assets/tcl.js?v=3ce1e293101d"></script>
-<script src="/assets/app.js?v=3ce1e293101d"></script>
-<script src="/assets/aiwidget.js?v=3ce1e293101d" defer></script>
+<script src="/assets/shell.js?v=67b471dfef4a"></script>
+<script src="/assets/tcl.js?v=67b471dfef4a"></script>
+<script src="/assets/app.js?v=67b471dfef4a"></script>
+<script src="/assets/aiwidget.js?v=67b471dfef4a" defer></script>
 </body>
 </html>

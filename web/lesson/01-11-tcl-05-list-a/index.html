@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 5 讲 · 列表（上）：定义与读取 · 11 | IC 后端学院</title>
 <meta name="description" content="列表是 TCL 最常用的数据结构。两种定义方法（大括号 {} 适合多行 / list 命令适合单行嵌套）、lindex 取元素、llength 求长度、嵌套列表的两种访问写法（双层 lindex 与多级连写）。">
-<link rel="icon" href="/assets/logo.svg?v=3ce1e293101d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3ce1e293101d">
+<link rel="icon" href="/assets/logo.svg?v=67b471dfef4a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=67b471dfef4a">
 </head>
 <body data-page="lesson" data-lesson="01-11-tcl-05-list-a">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3ce1e293101d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=67b471dfef4a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -87,7 +87,8 @@ puts [llength $fruit_list]   ;# 3 个元素
 set with_space {one &quot;two words&quot; three}
 puts $with_space
 puts [lindex $with_space 1]  ;# two words</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -109,7 +110,8 @@ puts &quot;共 [llength $cell_list] 个元素&quot;">
 }
 puts $cell_list
 puts &quot;共 [llength $cell_list] 个元素&quot;</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -132,7 +134,8 @@ puts $num_list   ;# 输出：1 2 3 4 5
 ;# 嵌套列表（列表中包含列表）
 set nested_list [list 10 {20 30} {40 50 60}]
 puts $nested_list   ;# 输出：10 {20 30} {40 50 60}</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -150,7 +153,8 @@ puts [llength $num_list]     ;# 获取列表长度（元素个数）→ 5">
     <textarea class="tcl-in" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" aria-label="Tcl 多行代码编辑器">set num_list [list 1 2 3 4 5]
 puts [lindex $num_list 2]    ;# 根据索引取元素：取第 3 个元素 → 3
 puts [llength $num_list]     ;# 获取列表长度（元素个数）→ 5</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -187,7 +191,8 @@ puts &quot;第2个学生姓名：$name&quot;    ;# 输出：第2个学生姓名�
 ;# 取第3个学生的成绩（索引2的子列表，索引2的元素）
 set score [lindex [lindex $class_list 2] 2]
 puts &quot;第3个学生成绩：$score&quot;   ;# 输出：第3个学生成绩：88</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -208,7 +213,8 @@ puts $name">
 }
 set name [lindex $class_list 1 1]   ;# 等价于 lindex [lindex $class_list 1] 1
 puts $name</textarea>
-    <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
+    <div class="tcl-stdin" hidden><span class="tcl-stdin-l">stdin 输入</span><textarea class="tcl-stdin-in" spellcheck="false" rows="1" placeholder="gets stdin 会按行读这里的内容（每行一条，如 85）"></textarea></div>
+          <div class="tcl-edit-f"><button class="tcl-go" type="button">▶ 运行这段代码</button><label class="tcl-real" title="改用服务器上的真实 tclsh 执行（完整 Tcl 语法）"><input type="checkbox" class="tcl-real-cb"> 真机模式 <i class="tcl-ver"></i></label><span class="tcl-kbd">Ctrl / ⌘ + Enter</span></div>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
@@ -247,9 +253,9 @@ puts $name</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3ce1e293101d"></script>
-<script src="/assets/tcl.js?v=3ce1e293101d"></script>
-<script src="/assets/app.js?v=3ce1e293101d"></script>
-<script src="/assets/aiwidget.js?v=3ce1e293101d" defer></script>
+<script src="/assets/shell.js?v=67b471dfef4a"></script>
+<script src="/assets/tcl.js?v=67b471dfef4a"></script>
+<script src="/assets/app.js?v=67b471dfef4a"></script>
+<script src="/assets/aiwidget.js?v=67b471dfef4a" defer></script>
 </body>
 </html>
