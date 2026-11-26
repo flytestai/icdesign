@@ -2,6 +2,12 @@
 (function () {
   'use strict';
   var API = '/api';
+  /* HTML 转义（放在最前面，供全文件使用；避免依赖文件末尾定义的顺序问题） */
+  function esc2(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
   var LS_UID = 'icl.uid', LS_DONE = 'icl.done', LS_QUEUE = 'icl.queue';
 
   function uid() {
@@ -677,7 +683,4 @@
     }
   }).catch(function () { /* 目录加载失败时静默：页面其余功能不受影响 */ });
 
-  function esc2(s) {
-    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
 })();
