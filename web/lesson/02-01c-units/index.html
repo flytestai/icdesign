@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>电学基础与单位换算：ps、um 与那些 1000 倍 · 20 | IC 后端学院</title>
 <meta name="description" content="后面所有课的每个数字都带单位，单位错了十倍，结论就全错。这一课把电压/电流/电阻/电容/功耗五个基本量讲清物理含义，再把两套必须形成肌肉记忆的换算练熟：时间 ps↔ns（时序报告用）、长度 um↔nm（lef 与工艺用），最后用真实的 lef 数字（pitch 0.2um、线宽 0.06um、面积 0.02um²）做一遍对号。">
-<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
+<link rel="icon" href="/assets/logo.svg?v=0cbf523ac91d" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=0cbf523ac91d">
 </head>
 <body data-page="lesson" data-lesson="02-01c-units">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=0cbf523ac91d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -57,20 +57,20 @@
       <p class="hero-en">Electrical Basics and Unit Conversion</p>
       <p class="hero-sum">后面所有课的每个数字都带单位，单位错了十倍，结论就全错。这一课把电压/电流/电阻/电容/功耗五个基本量讲清物理含义，再把两套必须形成肌肉记忆的换算练熟：时间 ps↔ns（时序报告用）、长度 um↔nm（lef 与工艺用），最后用真实的 lef 数字（pitch 0.2um、线宽 0.06um、面积 0.02um²）做一遍对号。</p>
       <div class="hero-meta">
-        <span class="pill">约 20 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈14 分钟</span>
         <span class="pill">课表学时 2</span>
         <span class="pill tag">电压</span><span class="pill tag">电流</span><span class="pill tag">电阻</span><span class="pill tag">电容</span><span class="pill tag">功耗</span><span class="pill tag">单位换算</span><span class="pill tag">ps</span><span class="pill tag">ns</span><span class="pill tag">um</span><span class="pill tag">nm</span><span class="pill tag">RC</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="why" data-ch="why" data-est="1">
-  <div class="ch-h"><span class="ch-n">01</span><h2>为什么单位要先讲</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+    <article id="article" data-est-min="14"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么单位要先讲</h2></div>
   <div class="goal"><span>本章目标</span>能说出电压/电流/电阻/电容/功耗各自的物理含义与单位；能秒换 ps↔ns、um↔nm（都是 1000 倍）；能说出为什么&quot;工艺说 nm、工具用 um&quot;；看到 lef 里的 <code>0.06</code>、<code>0.2</code>、<code>0.02</code> 能立刻判断它是什么量、多少 nm。</div>
 <p>时序报告里一个数字 <code>0.052</code>，是 52ps 还是 52ns？差 1000 倍。lef 里 <code>WIDTH 0.06</code>，是 0.06um 还是 60um？也差 1000 倍。</p>
 <p><strong>这类错误不会报错，只会让你得出完全相反的结论</strong>：以为时序余量很足，实际已经崩了。所以这一课必须先过关。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="basics" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="basics" data-ch="basics" data-est="3">
-  <div class="ch-h"><span class="ch-n">02</span><h2>五个基本量：物理含义比公式重要</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈3 分钟</span></div>
+<section class="ch" id="basics" data-ch="basics">
+  <div class="ch-h"><span class="ch-n">02</span><h2>五个基本量：物理含义比公式重要</h2></div>
   <h3 id="voltage">电压 V：推动电子的&quot;水位差&quot;</h3>
 <div class="term open">
   <div class="term-h"><span class="term-en">电压</span><span class="term-zh">voltage</span></div>
@@ -112,8 +112,8 @@
 <p>这就是为什么低功耗设计有三板斧：<strong>降电压、降频率/关时钟（clock gating）、换高阈值电压单元（hvt 漏电小）</strong>。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="convert" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="convert" data-ch="convert" data-est="3">
-  <div class="ch-h"><span class="ch-n">03</span><h2>两套必须背下来的换算</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈3 分钟</span></div>
+<section class="ch" id="convert" data-ch="convert">
+  <div class="ch-h"><span class="ch-n">03</span><h2>两套必须背下来的换算</h2></div>
   <h3 id="time">时间：ps ↔ ns（时序报告）</h3>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">1 ns = 1000 ps        （10³）</span><span class="ln ">1 ps = 0.001 ns</span></code></pre></div>
 <p>时序工具默认单位通常是 <strong>ps 或 ns</strong>，而 lib 文件里会写 <code>time_unit : &quot;1ns&quot;</code>。所以看到报告里的 <code>52</code>，先确认这个报告的表头单位——<strong>这是新人第一个&quot;看错十倍&quot;重灾区</strong>。</p>
@@ -132,8 +132,8 @@
 <ol><li>看报告先找<strong>表头单位</strong>（<code>Units: 1ps</code> 这类）；</li><li>看 lef 先看 <strong>UNITS 段</strong>（<code>DATABASE MICRONS 1000</code>）；</li><li><strong>写完约束自己反算一遍频率与周期</strong>，对不上就是单位错了。</li></ol></div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="lab" data-ch="lab" data-est="7">
-  <div class="ch-h"><span class="ch-n">04</span><h2>动手：把换算练成条件反射</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈7 分钟</span></div>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">04</span><h2>动手：把换算练成条件反射</h2></div>
   <p>下面这台 Tcl 练习台，改数字就能算——建议把 0.06、0.19 都换成你自己的项目数字试一遍：</p>
 <div class="tsbx has-code" data-code="# 时间：ns → ps（乘 1000）
 set ns 0.052                                  ;# 报告里的一个延迟值（ns）
@@ -234,9 +234,9 @@ puts &quot;引脚面积 [expr {0.06 * 0.33}] um2&quot;</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=78d29e0cecbc"></script>
-<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
-<script src="/assets/app.js?v=78d29e0cecbc"></script>
-<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
+<script src="/assets/shell.js?v=0cbf523ac91d"></script>
+<script src="/assets/tcl.js?v=0cbf523ac91d"></script>
+<script src="/assets/app.js?v=0cbf523ac91d"></script>
+<script src="/assets/aiwidget.js?v=0cbf523ac91d" defer></script>
 </body>
 </html>

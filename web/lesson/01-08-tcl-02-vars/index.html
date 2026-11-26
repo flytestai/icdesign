@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 2 讲 · 变量与替换规则（TCL 的灵魂） · 08 | IC 后端学院</title>
 <meta name="description" content="set 定义变量、$ 取变量、[ ] 执行命令、{} 和 "" 分组——三种替换是全课程最重要的一讲。还有特殊变量名的 ${} 包裹写法、set 一次只能定义一个变量的字典解法。掌握这一讲，后面所有语法都豁然开朗。">
-<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
+<link rel="icon" href="/assets/logo.svg?v=0cbf523ac91d" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=0cbf523ac91d">
 </head>
 <body data-page="lesson" data-lesson="01-08-tcl-02-vars">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=0cbf523ac91d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -57,13 +57,13 @@
       <p class="hero-en">Tcl 2 - Variables & Substitution</p>
       <p class="hero-sum">set 定义变量、$ 取变量、[ ] 执行命令、{} 和 &quot;&quot; 分组——三种替换是全课程最重要的一讲。还有特殊变量名的 ${} 包裹写法、set 一次只能定义一个变量的字典解法。掌握这一讲，后面所有语法都豁然开朗。</p>
       <div class="hero-meta">
-        <span class="pill">约 50 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈12 分钟</span>
         <span class="pill">课表学时 1</span>
         <span class="pill tag">Tcl</span><span class="pill tag">set</span><span class="pill tag">替换</span><span class="pill tag">${}</span><span class="pill tag">dict</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="set" data-ch="set" data-est="2">
-  <div class="ch-h"><span class="ch-n">01</span><h2>定义变量：set 命令</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈2 分钟</span></div>
+    <article id="article" data-est-min="12"><section class="ch" id="set" data-ch="set">
+  <div class="ch-h"><span class="ch-n">01</span><h2>定义变量：set 命令</h2></div>
   <div class="goal"><span>本章目标</span>会用 set 定义三种类型变量；建立&quot;名字绑一个值&quot;的心智模型；说清 {} &quot;&quot; [] 三种符号各自做什么；会用 ${} 调用特殊变量名；会用字典写法装多份信息。</div>
 <p><strong>语法：<code>set 变量名 变量值</code></strong></p>
 <div class="note"><div class="note-h">心智模型（文档原话）</div><p>变量就是一个名字绑一个值——<strong>名字给你看，值给机器用</strong>。比如定义一个人 person，名字叫张三：<code>person</code> 是我们（人）用的名字，&quot;张三&quot;是机器存的值。</p></div>
@@ -91,8 +91,8 @@ puts &quot;age=$age , name=$name&quot;</textarea>
 <p><strong>命名规则</strong>：变量名由字母、数字、下划线组成，建议见名知意（如 <code>age</code>、<code>user_name</code>），避免特殊字符（下划线除外）。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="substitution" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="substitution" data-ch="substitution" data-est="2">
-  <div class="ch-h"><span class="ch-n">02</span><h2>TCL 的三种&quot;替换&quot;——一句话原理（文档原文）</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈2 分钟</span></div>
+<section class="ch" id="substitution" data-ch="substitution">
+  <div class="ch-h"><span class="ch-n">02</span><h2>TCL 的三种&quot;替换&quot;——一句话原理（文档原文）</h2></div>
   <div class="note"><div class="note-h">一句话原理</div><p><code>{}</code>（不读变量）和 <code>&quot;&quot;</code>（读变量）是同一类——<strong>分组</strong>（把空格/换行粘成一个词），区别只在于&quot;里面做不做替换&quot;；<code>[]</code> 完全是另一类——<strong>替换</strong>（先跑命令，用结果把自己顶掉）。</p></div>
 <div class="tbl"><table><thead><tr><th>符号</th><th>叫什么</th><th>干什么</th><th>Python 类比</th></tr></thead><tbody><tr><td><code>$变量名</code></td><td>变量替换</td><td>把变量的值取出来放进去</td><td>直接写变量名</td></tr><tr><td><code>[命令]</code></td><td>命令替换</td><td>先执行命令，用结果替换整个 <code>[...]</code></td><td>表达式的返回值</td></tr><tr><td><code>{...}</code></td><td>分组</td><td>把一段内容&quot;原样打包&quot;，不读变量</td><td>原始字符串 <code>r&quot;...&quot;</code></td></tr><tr><td><code>&quot;...&quot;</code></td><td>分组</td><td>打包，但<strong>会</strong>做变量替换</td><td>f-string</td></tr></tbody></table></div>
 <p><strong>例子感受一下</strong>：</p>
@@ -117,13 +117,13 @@ puts $x</textarea>
 <p>读一遍输出，确认你能解释每一行为什么长这样——这一讲就算学通了。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="dollar" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="dollar" data-ch="dollar" data-est="1">
-  <div class="ch-h"><span class="ch-n">03</span><h2>调用变量：$变量名</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="dollar" data-ch="dollar">
+  <div class="ch-h"><span class="ch-n">03</span><h2>调用变量：$变量名</h2></div>
   <p>在字符串或命令里写 <code>$name</code> 就能取到变量的值。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="special" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="special" data-ch="special" data-est="2">
-  <div class="ch-h"><span class="ch-n">04</span><h2>特殊变量名：用 ${} 包裹（很少用，但要会）</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈2 分钟</span></div>
+<section class="ch" id="special" data-ch="special">
+  <div class="ch-h"><span class="ch-n">04</span><h2>特殊变量名：用 ${} 包裹（很少用，但要会）</h2></div>
   <p>当变量名里含特殊字符（如 <code>.</code>、<code>-</code>）时，定义照常，<strong>调用必须用 <code>${变量名}</code> 包裹</strong>，否则 TCL 解析失败：</p>
 <div class="tsbx has-code" data-code="set a.1 100      ;# 变量名含小数点，特殊定义
 set b-2 &quot;test&quot;   ;# 变量名含减号，特殊定义
@@ -146,8 +146,8 @@ puts ${b-2}      ;# 正确调用，输出：test</textarea>
 <div class="pit"><div class="pit-h">常见坑 · $a.1 不报语法错，但读的是另一个变量</div><div class="pit-b"><p><code>$a.1</code> 不读 <code>a.1</code>，而是读变量 <code>a</code> 再拼上字符串 <code>.1</code>。变量 <code>a</code> 不存在，所以报 <code>can't read &quot;a&quot;: no such variable</code>。看到这个报错，先想想是不是变量名里有特殊字符没用 <code>${}</code>。</p></div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="multi" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="multi" data-ch="multi" data-est="1">
-  <div class="ch-h"><span class="ch-n">05</span><h2>set 一次只能定义一个变量（想定义&quot;多个&quot;用字典）</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="multi" data-ch="multi">
+  <div class="ch-h"><span class="ch-n">05</span><h2>set 一次只能定义一个变量（想定义&quot;多个&quot;用字典）</h2></div>
   <p>TCL 的 <code>set</code> <strong>不支持一次定义多个变量</strong>。如果想要&quot;一个名字装多份信息&quot;，可以借助字典写法：</p>
 <div class="tsbx has-code" data-code="set info {age 20 name zhangsan}
 puts [dict get $info age]     ;# 取出 20
@@ -166,8 +166,8 @@ puts [dict get $info name]    ;# 取出 zhangsan</textarea>
 <p>原理：<code>{age 20 name zhangsan}</code> 是一个&quot;键 值 键 值&quot;交替排列的列表，<code>dict get</code> 按键取值。（字典的完整讲法在第 4 讲数组之后。）</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="lab" data-ch="lab" data-est="4">
-  <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈4 分钟</span></div>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（2 题）</div><div class="lab-b"><ol><li>定义变量 <code>user_name</code>、<code>age</code>，用一条 <code>puts</code> 同时打印它们。</li><li>解释为什么 <code>puts {age=$age}</code> 不会输出变量值。</li></ol></div></div>
 <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>练习 1 的写法？</div>
@@ -198,9 +198,9 @@ puts [dict get $info name]    ;# 取出 zhangsan</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=78d29e0cecbc"></script>
-<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
-<script src="/assets/app.js?v=78d29e0cecbc"></script>
-<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
+<script src="/assets/shell.js?v=0cbf523ac91d"></script>
+<script src="/assets/tcl.js?v=0cbf523ac91d"></script>
+<script src="/assets/app.js?v=0cbf523ac91d"></script>
+<script src="/assets/aiwidget.js?v=0cbf523ac91d" defer></script>
 </body>
 </html>

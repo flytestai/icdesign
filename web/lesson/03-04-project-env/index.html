@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>项目环境：目录规范、Run 与 Queue · 34 | IC 后端学院</title>
 <meta name="description" content="上机第一件事不是敲 innovus，而是搞清楚自己在哪个目录、该把东西放哪。这一课给出标准的项目目录结构（work/scripts/data/library/report/logs 各放什么）、终端多窗口与命名习惯、Run 的命名规范，以及真实项目里怎么把多版 floorplan 丢进集群 Queue、在等待的三四天里做什么。">
-<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
+<link rel="icon" href="/assets/logo.svg?v=0cbf523ac91d" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=0cbf523ac91d">
 </head>
 <body data-page="lesson" data-lesson="03-04-project-env">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=0cbf523ac91d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -57,21 +57,21 @@
       <p class="hero-en">Project Environment: Directories, Runs and Queues</p>
       <p class="hero-sum">上机第一件事不是敲 innovus，而是搞清楚自己在哪个目录、该把东西放哪。这一课给出标准的项目目录结构（work/scripts/data/library/report/logs 各放什么）、终端多窗口与命名习惯、Run 的命名规范，以及真实项目里怎么把多版 floorplan 丢进集群 Queue、在等待的三四天里做什么。</p>
       <div class="hero-meta">
-        <span class="pill">约 30 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈13 分钟</span>
         <span class="pill">课表学时 2</span>
         <span class="pill tag">work</span><span class="pill tag">scripts</span><span class="pill tag">data</span><span class="pill tag">library</span><span class="pill tag">report</span><span class="pill tag">log</span><span class="pill tag">run</span><span class="pill tag">queue</span><span class="pill tag">VNC</span><span class="pill tag">终端</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="why" data-ch="why" data-est="1">
-  <div class="ch-h"><span class="ch-n">01</span><h2>先有环境，再谈操作</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+    <article id="article" data-est-min="13"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>先有环境，再谈操作</h2></div>
   <div class="goal"><span>本章目标</span>能说出 work / scripts / data / library / report / logs 六个目录各放什么；能在服务器上建出这套结构并说出为什么脚本必须进 scripts；能说出 Run 命名的三要素；能解释 Queue 集群解决了什么问题、一个 run 为什么可能跑三四天、等待期间该干什么。</div>
 <p>课上有一句提醒很实在：<strong>实际工作几乎不用图形化桌面，全是开终端进目录干活。</strong> 所以你入职后第一批动作往往不是&quot;跑工具&quot;，而是：</p>
 <ol><li>登录（VNC / ssh）；</li><li>找到项目目录；</li><li>建自己的 work 目录；</li><li>确认 scripts / data / library 在哪。</li></ol>
 <p><strong>这四步做错，后面所有命令都会写错路径。</strong></p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="dirs" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="dirs" data-ch="dirs" data-est="2">
-  <div class="ch-h"><span class="ch-n">02</span><h2>六个目录，各管一件事</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈2 分钟</span></div>
+<section class="ch" id="dirs" data-ch="dirs">
+  <div class="ch-h"><span class="ch-n">02</span><h2>六个目录，各管一件事</h2></div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">/proj/&lt;项目名&gt;/          ← 也可能在 ~/work/&lt;项目名&gt;/</span><span class="ln ">├── work/               ← 你的工作目录：跑工具、放 run 的现场</span><span class="ln ">├── scripts/            ← 脚本（Flow）：所有 tcl、makefile、配置文件</span><span class="ln ">├── data/               ← 数据：网表、def、sdc 等输入</span><span class="ln ">├── library/            ← 库：lef / lib / rc tech / 内部库</span><span class="ln ">├── report/             ← 报告：每个阶段吐出的时序、面积、DRC 报告</span><span class="ln ">└── logs/               ← 日志：工具跑批的输出</span></code></pre></div>
 <div class="tbl"><table><thead><tr><th>目录</th><th>放什么</th><th>谁产生</th></tr></thead><tbody><tr><td><strong>work</strong></td><td>run 目录、临时文件、调试现场</td><td>你</td></tr><tr><td><strong>scripts</strong></td><td>所有脚本（<strong>也叫 Flow</strong>）</td><td>你 / 团队</td></tr><tr><td><strong>data</strong></td><td>netlist、def、io file、sdc</td><td>上游 release</td></tr><tr><td><strong>library</strong></td><td>tech lef / cell lef / lib / rc tech / 内部库</td><td>库组 / 工艺厂</td></tr><tr><td><strong>report</strong></td><td>时序报告、面积报告、DRC/LVS 报告</td><td>工具</td></tr><tr><td><strong>logs</strong></td><td>运行日志</td><td>工具</td></tr></tbody></table></div>
 <div class="term open">
@@ -86,8 +86,8 @@
 <ol><li>先 <code>ls -la</code> 看清里面有什么、属主是谁（<code>ls -l</code> 第三列）；</li><li><strong>有别人的东西，就在 work 下自建一个以自己名字命名的目录</strong>（如 <code>work/weizhen/</code>），不要清空公共目录；</li><li>删除前先 <code>ls</code> 确认，再删<strong>具体文件名</strong>，永远不要对着通配符按回车。</li></ol></div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="terminal" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="terminal" data-ch="terminal" data-est="1">
-  <div class="ch-h"><span class="ch-n">03</span><h2>终端：多窗口 + 改名，效率差一倍</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="terminal" data-ch="terminal">
+  <div class="ch-h"><span class="ch-n">03</span><h2>终端：多窗口 + 改名，效率差一倍</h2></div>
   <p>文档给的两个技巧，看着小，实际天天用：</p>
 <div class="tbl"><table><thead><tr><th>操作</th><th>作用</th></tr></thead><tbody><tr><td><strong><code>Ctrl+Shift+T</code></strong></td><td>新开一个终端标签页（同一个窗口里多任务）</td></tr><tr><td><strong>双击终端标题栏</strong></td><td>给这个终端改名（如 <code>Run1</code>、<code>Debug-ALU</code>）</td></tr></tbody></table></div>
 <p>为什么要改名？因为你可能同时开着：</p>
@@ -95,8 +95,8 @@
 <p><strong>标题不清，半小时后就分不清哪条命令发到哪个环境里了</strong>——把命令敲进正在跑批的窗口，是最容易让人崩溃的事故之一。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="run" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="run" data-ch="run" data-est="1">
-  <div class="ch-h"><span class="ch-n">04</span><h2>Run：一个 run 就是一个&quot;从头跑一遍的版本&quot;</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="run" data-ch="run">
+  <div class="ch-h"><span class="ch-n">04</span><h2>Run：一个 run 就是一个&quot;从头跑一遍的版本&quot;</h2></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">run</span><span class="term-zh">一次完整运行</span></div>
   <div class="term-b"><p>针对某一版数据/某一版配置，把流程从头跑一遍（或从某个阶段跑到底），看结果有没有变好。<strong>一个 run 对应一个目录、一份 log、一套报告。</strong></p></div>
@@ -106,8 +106,8 @@
 <p>为什么必须带日期和内容？因为<strong>一个 run 在集群上可能跑两三天</strong>，一周后你自己都想不起来&quot;run_1027 到底改了什么&quot;。命名是给未来的自己看的。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="queue" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="queue" data-ch="queue" data-est="1">
-  <div class="ch-h"><span class="ch-n">05</span><h2>Queue：把耗时的事丢给集群</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="queue" data-ch="queue">
+  <div class="ch-h"><span class="ch-n">05</span><h2>Queue：把耗时的事丢给集群</h2></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">Queue</span><span class="term-zh">队列 / 集群</span></div>
   <div class="term-b"><p>项目组的服务器集群把机器资源切成若干队列（如 <code>normal</code>、<code>abc</code>）。你把任务提交进去，调度器排队分配机器执行。<strong>所有&quot;自动跑&quot;的步骤都走这条路。</strong></p></div>
@@ -118,8 +118,8 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">      你手动做完 floorplan / 摆好 memory / 设好约束</span><span class="ln ">                     ↓</span><span class="ln ">      把任务提交进 Queue（跑 place → cts → route → 报告）</span><span class="ln ">                     ↓</span><span class="ln ">      集群排队、分配机器、自动跑（几小时到几天）</span><span class="ln ">                     ↓</span><span class="ln ">      你看 log、看 report，判断好坏，改参数，再提交</span></code></pre></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="try" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="try" data-ch="try" data-est="7">
-  <div class="ch-h"><span class="ch-n">06</span><h2>多版本并行：Try 机制</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈7 分钟</span></div>
+<section class="ch" id="try" data-ch="try">
+  <div class="ch-h"><span class="ch-n">06</span><h2>多版本并行：Try 机制</h2></div>
   <p>Memory 摆哪儿没有唯一答案（取决于数据流、通道、时序），所以标准做法是<strong>同时试几版</strong>：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">FLP1（memory 靠左）   ┐</span><span class="ln ">FLP2（memory 分两排）  ├─→ 依次/并行提交 Queue → 比较结果 → 选最好的一版做 Final</span><span class="ln ">FLP3（memory 靠上）   ┘</span></code></pre></div>
 <div class="tip"><div class="tip-h">小技巧</div><p>run 要跑三天，这三天你该干什么？文档的答案是：<strong>分析上一批 run 的结果，加新约束，再提交一批。</strong></p>
@@ -177,9 +177,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=78d29e0cecbc"></script>
-<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
-<script src="/assets/app.js?v=78d29e0cecbc"></script>
-<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
+<script src="/assets/shell.js?v=0cbf523ac91d"></script>
+<script src="/assets/tcl.js?v=0cbf523ac91d"></script>
+<script src="/assets/app.js?v=0cbf523ac91d"></script>
+<script src="/assets/aiwidget.js?v=0cbf523ac91d" defer></script>
 </body>
 </html>

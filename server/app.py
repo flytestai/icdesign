@@ -1077,25 +1077,39 @@ def _plan_minutes_by_lesson() -> dict:
 _EST_CACHE: Dict[str, dict] = {}
 
 
-def _est_by_chapter(lesson: str) -> dict:
-    """{lesson: {chapter: est_minutes}}，从 catalog.json 读取（build 时估算）。"""
-    if lesson in _EST_CACHE:
-        return _EST_CACHE[lesson]
+def _lesson_catalog() -> dict:
+    """{lesson: {"est_min": 分钟, "chapters": [章id 按顺序]}}，从 catalog.json 读取。
+
+    est_min 是构建时按阅读速度估算的本课总预计学习时长；
+    打卡校验：学完第 k/N 章时，本课累计学习秒数须 ≥ est_min*60/5 * k/N，
+    即学完整课至少要花预计时长的 1/5，刷太快不计分。"""
+    if _EST_CACHE:
+        return _EST_CACHE
     p = WEB / "data" / "catalog.json"
-    out = {}
     try:
         data = json.loads(p.read_text(encoding="utf-8"))
         for L in (data.get("lessons") or []):
-            out[L["id"]] = {c["id"]: int(c.get("est") or 1) for c in (L.get("chapters") or [])}
+            _EST_CACHE[L["id"]] = {
+                "est_min": int(L.get("est_min") or 0),
+                "chapters": [c["id"] for c in (L.get("chapters") or [])],
+            }
     except Exception:
-        out = {}
-    _EST_CACHE.update(out)
-    return out.get(lesson, {})
+        _EST_CACHE.clear()
+    return _EST_CACHE
 
 
-def _chapter_min_seconds(est_min: int) -> int:
-    """打卡所需的最少有效学习秒数：预计时长的 30%，下限 30 秒。"""
-    return max(30, int(est_min * 60 * 0.3))
+def _need_seconds(lesson: str, chapter: str) -> Optional[int]:
+    """打卡该章所需的本课最少累计学习秒数；课程不在课表中返回 None（不校验）。"""
+    info = _lesson_catalog().get(lesson)
+    if not info or not info["est_min"]:
+        return None
+    chs = info["chapters"]
+    try:
+        idx = chs.index(chapter) + 1          # 第几章（1-based）
+    except ValueError:
+        return None
+    n = max(1, len(chs))
+    return max(10, round(info["est_min"] * 60 / 5 * idx / n))
 
 
 def _plan_total_seconds() -> int:
@@ -1551,24 +1565,23 @@ def post_progress(p: ProgressIn, request: Request):
     rejected = []            # [{"lesson","chapter","reason"}] 打卡被拒（学习时长不足）
     saved = 0
     with closing(db()) as c:
-        # 一次性取出该用户本课相关章的章级累计秒数，避免逐条查询
+        # 一次性取出该用户相关课程的课级累计秒数（防刷分校验依据）
         lessons = {it.lesson for it in p.items if it.done}
-        ch_secs: Dict[tuple, int] = {}
+        les_secs: Dict[str, int] = {}
         if lessons:
             q = ",".join("?" for _ in lessons)
             for r in c.execute(
-                    f"SELECT lesson,chapter,seconds FROM study_time_ch "
+                    f"SELECT lesson,seconds FROM study_time "
                     f"WHERE user_id=? AND lesson IN ({q})", (u["id"], *lessons)).fetchall():
-                ch_secs[(r["lesson"], r["chapter"])] = r["seconds"]
+                les_secs[r["lesson"]] = r["seconds"]
         for it in p.items:
             if not (KEY_RE.match(it.lesson) and KEY_RE.match(it.chapter)):
                 continue
             if it.done:
-                # 防刷分校验：本章有效学习秒数须 ≥ max(30, 预计时长×30%)
-                est = _est_by_chapter(it.lesson).get(it.chapter)
-                if est is not None:
-                    have = ch_secs.get((it.lesson, it.chapter), 0)
-                    need = _chapter_min_seconds(est)
+                # 防刷分校验：学完第 k/N 章时，本课累计学习时长须 ≥ 预计时长×1/5×k/N
+                need = _need_seconds(it.lesson, it.chapter)
+                if need is not None:
+                    have = les_secs.get(it.lesson, 0)
                     if have < need:
                         rejected.append({"lesson": it.lesson, "chapter": it.chapter,
                                          "need": need, "have": have})

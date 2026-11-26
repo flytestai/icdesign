@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>lib 与 rc tech：延迟到底是怎么算出来的 · 27 | IC 后端学院</title>
 <meta name="description" content="时序数据只有两份文件：lib 负责单元延迟，rc tech 负责线延迟。这一课打开 lib 看它到底存了什么、工具怎么用查表的方式算出一个 cell 的 delay，讲清 input transition 与 output load 这两个决定性变量，再把 lib 文件名的每一段（台积电/lvt/ssg/0p81v/125c）拆开读，最后讲 PVT 与先进工艺的温度反转效应。">
-<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
+<link rel="icon" href="/assets/logo.svg?v=0cbf523ac91d" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=0cbf523ac91d">
 </head>
 <body data-page="lesson" data-lesson="02-06-pr-lib-rctech">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=0cbf523ac91d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -57,13 +57,13 @@
       <p class="hero-en">lib and RC Tech: How Delay Is Computed</p>
       <p class="hero-sum">时序数据只有两份文件：lib 负责单元延迟，rc tech 负责线延迟。这一课打开 lib 看它到底存了什么、工具怎么用查表的方式算出一个 cell 的 delay，讲清 input transition 与 output load 这两个决定性变量，再把 lib 文件名的每一段（台积电/lvt/ssg/0p81v/125c）拆开读，最后讲 PVT 与先进工艺的温度反转效应。</p>
       <div class="hero-meta">
-        <span class="pill">约 30 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈17 分钟</span>
         <span class="pill">课表学时 2</span>
         <span class="pill tag">lib</span><span class="pill tag">单元延迟</span><span class="pill tag">查表</span><span class="pill tag">transition</span><span class="pill tag">load</span><span class="pill tag">rc tech</span><span class="pill tag">寄生参数</span><span class="pill tag">PVT</span><span class="pill tag">温度反转</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="why" data-ch="why" data-est="1">
-  <div class="ch-h"><span class="ch-n">01</span><h2>两种延迟，两份文件</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+    <article id="article" data-est-min="17"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>两种延迟，两份文件</h2></div>
   <div class="goal"><span>本章目标</span>能说出&quot;路径延迟 = Σ cell delay + Σ net delay&quot;并指出两部分各由 lib 还是 rc tech 提供；能解释查表的两个索引、index 从 0 开始这件事；能逐段读出 lib 文件名里的工艺、阈值电压、快慢组、电压与温度；能说出温度反转效应的成因与后果。</div>
 <p>一条路径的延迟由两部分组成，缺一不可：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">路径延迟 = Σ 单元延迟（cell delay） + Σ 线延迟（net delay）</span><span class="ln ">                ↑                        ↑</span><span class="ln ">            由 lib 提供             由 rc tech 提供</span></code></pre></div>
@@ -71,8 +71,8 @@
 <p>前面几课讲的 netlist、def、lef 全是&quot;连接关系与几何形状&quot;，这一课才进到&quot;时间&quot;。<strong>PR 工具优化的目标就是这两项之和</strong>——所以你必须知道它们各自受什么影响，否则看到时序报告里的 violation 只会干瞪眼。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lib" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="lib" data-ch="lib" data-est="5">
-  <div class="ch-h"><span class="ch-n">02</span><h2>lib：单元延迟与功耗的字典</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈5 分钟</span></div>
+<section class="ch" id="lib" data-ch="lib">
+  <div class="ch-h"><span class="ch-n">02</span><h2>lib：单元延迟与功耗的字典</h2></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">lib</span><span class="term-zh">单元库时序功耗文件</span></div>
   <div class="term-b"><p>Liberty 格式的库文件，描述每个标准单元的：物理属性（面积、引脚电容）、功能（是 and 还是 or）、时序信息（延迟查表）、功耗信息（漏电、内部功耗）。<strong>一个 PVT 组合一份 lib</strong>，所以一个工艺往往有几十份 lib。</p></div>
@@ -107,8 +107,8 @@
 <ol><li><strong>输入端口的 transition 必须约束</strong>（SDC 里的 <code>set_input_transition</code>）——它是整条链的源头，源头不给值，后面全算不准；</li><li><strong>长链上串了太多级，transition 会逐级恶化</strong>，最后一级延迟暴增——这就是为什么工具要插 buffer 来&quot;重整&quot; transition，而不是只看级数。</li></ol>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="naming" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="naming" data-ch="naming" data-est="1">
-  <div class="ch-h"><span class="ch-n">03</span><h2>lib 文件名：一串密码，读懂就知快慢</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="naming" data-ch="naming">
+  <div class="ch-h"><span class="ch-n">03</span><h2>lib 文件名：一串密码，读懂就知快慢</h2></div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">tsc28_lvtssg0p81v125c.lib</span><span class="ln "> │     │   │  │     │</span><span class="ln "> │     │   │  │     └── 125c   = 125°C（m40c 就是 -40°C）</span><span class="ln "> │     │   │  └──────── 0p81v  = 0.81V（p 代表小数点）</span><span class="ln "> │     │   └─────────── ssg    = 慢速低压（slow-slow global）</span><span class="ln "> │     └─────────────── lvt    = 低阈值电压（low Vt）</span><span class="ln "> └───────────────────── tsc    = 台积电（TSMC）</span></code></pre></div>
 <p>逐个拆开：</p>
 <div class="tbl"><table><thead><tr><th>段</th><th>含义</th><th>说明</th></tr></thead><tbody><tr><td><code>tsc</code></td><td>台积电</td><td>不同晶圆厂的库前缀不同，S 家/中芯各有一套</td></tr><tr><td><code>lvt</code></td><td>阈值电压等级</td><td><code>lvt</code> 低阈值（快、漏电大）、<code>svt</code> 标准阈值、<code>hvt</code> 高阈值（慢、省电）</td></tr><tr><td><code>ssg</code> / <code>ffg</code></td><td>工艺快慢</td><td><code>ssg</code> 慢速低压、<code>ffg</code> 快速高压；<code>tt</code> 是典型（typical）</td></tr><tr><td><code>0p81v</code></td><td>电压</td><td>0.81V</td></tr><tr><td><code>125c</code> / <code>m40c</code></td><td>温度</td><td>125°C / -40°C（<code>m</code> = minus）</td></tr></tbody></table></div>
@@ -122,8 +122,8 @@
 <p>这张图是<strong>单调下降</strong>的曲线，没有反转——所以&quot;低压 = 最慢&quot;这条永远成立，低压 corner 必须查。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="temp" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="temp" data-ch="temp" data-est="1">
-  <div class="ch-h"><span class="ch-n">04</span><h2>温度：常规规律与温度反转</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="temp" data-ch="temp">
+  <div class="ch-h"><span class="ch-n">04</span><h2>温度：常规规律与温度反转</h2></div>
   <p>正常情况下，<strong>温度越高，delay 越大</strong>。原因是高温下晶格振动加剧，载流子迁移率下降，电流变小。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/pr-delay-temp.png" data-fig="pr-delay-temp"><img src="/fig/pr-delay-temp.png" alt="Delay vs Temperature：实线是常规（温度越高越慢），虚线是先进工艺的温度反转" loading="lazy" decoding="async"></a><figcaption>Delay vs Temperature：实线是常规（温度越高越慢），虚线是先进工艺的温度反转</figcaption></figure>
 <p>注意图里那条虚线和 <code>Temperature inversion</code> 的标注——它反过来向上走：<strong>温度越低，延迟越大</strong>。这就是文档特别点出的反直觉现象：</p>
@@ -133,8 +133,8 @@
 <p><strong>怎么用</strong>：看到库里同时有 <code>125c</code> 和 <code>m40c</code> 两个版本，就说明签核必须两端都跑。</p></div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="rctech" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="rctech" data-ch="rctech" data-est="3">
-  <div class="ch-h"><span class="ch-n">05</span><h2>rc tech file：线延迟从哪来</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈3 分钟</span></div>
+<section class="ch" id="rctech" data-ch="rctech">
+  <div class="ch-h"><span class="ch-n">05</span><h2>rc tech file：线延迟从哪来</h2></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">rc tech file</span><span class="term-zh">寄生参数工艺文件</span></div>
   <div class="term-b"><p>描述金属层与通孔的<strong>单位长度电阻、单位长度电容</strong>等寄生参数模型，工具用它把版图上的几何形状（多长、多宽、周围有什么）换算成实际的寄生 R 和 C，进而算出线延迟。</p></div>
@@ -159,8 +159,8 @@
 <p>所以 setup 用&quot;慢&quot;的 RC corner，hold 用&quot;快&quot;的 RC corner。这也是下一课 MMMC 要解决的核心问题。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="summary-table" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="summary-table" data-ch="summary-table" data-est="6">
-  <div class="ch-h"><span class="ch-n">06</span><h2>三份文件的分工，一张表看完</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈6 分钟</span></div>
+<section class="ch" id="summary-table" data-ch="summary-table">
+  <div class="ch-h"><span class="ch-n">06</span><h2>三份文件的分工，一张表看完</h2></div>
   <div class="tbl"><table><thead><tr><th>文件</th><th>管什么</th><th>决定什么</th><th>谁提供</th></tr></thead><tbody><tr><td><strong>lib</strong></td><td>每个 cell 的时序/功耗/功能</td><td>cell delay</td><td>库组 / 晶圆厂</td></tr><tr><td><strong>rc tech</strong></td><td>线上的寄生 R、C 模型</td><td>net delay</td><td>工艺厂 / 库组</td></tr><tr><td><strong>sdc</strong></td><td>时钟、输入输出延迟、假路径</td><td>优化的<strong>目标</strong></td><td>FCT 部门（下一课）</td></tr></tbody></table></div>
 <p>前三者提供&quot;事实&quot;，sdc 提供&quot;要求&quot;。<strong>没有 lib 和 rc tech，工具算不出时间；没有 sdc，工具不知道该往哪优化。</strong></p>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>在 lib 里查三样东西</div><div class="lab-b"><p>用课程页的练习终端（或真机）跑下面几条，边跑边看输出：</p>
@@ -207,9 +207,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=78d29e0cecbc"></script>
-<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
-<script src="/assets/app.js?v=78d29e0cecbc"></script>
-<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
+<script src="/assets/shell.js?v=0cbf523ac91d"></script>
+<script src="/assets/tcl.js?v=0cbf523ac91d"></script>
+<script src="/assets/app.js?v=0cbf523ac91d"></script>
+<script src="/assets/aiwidget.js?v=0cbf523ac91d" defer></script>
 </body>
 </html>

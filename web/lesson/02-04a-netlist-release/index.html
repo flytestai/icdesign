@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>网表版本、Release 路径与迭代协作 · 24 | IC 后端学院</title>
 <meta name="description" content="真实项目里网表不是"一份"，而是一串版本。这一课讲清网表怎么命名（模块名+后缀）、Release 路径在服务器上长什么样（项目/ME 或 DE/模块）、S1 与 S2 两版网表各用来干什么、instance 数量为什么会从 200 万跳到 400 万、模块形状从矩形变 L 型时为什么之前两个月的布局全废——以及最后一条：为什么必须在最后一版网表定下来之前把问题全抛出去。">
-<link rel="icon" href="/assets/logo.svg?v=78d29e0cecbc" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=78d29e0cecbc">
+<link rel="icon" href="/assets/logo.svg?v=0cbf523ac91d" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=0cbf523ac91d">
 </head>
 <body data-page="lesson" data-lesson="02-04a-netlist-release">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=78d29e0cecbc" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=0cbf523ac91d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -57,20 +57,20 @@
       <p class="hero-en">Netlist Versions, Release Paths and Iteration</p>
       <p class="hero-sum">真实项目里网表不是&quot;一份&quot;，而是一串版本。这一课讲清网表怎么命名（模块名+后缀）、Release 路径在服务器上长什么样（项目/ME 或 DE/模块）、S1 与 S2 两版网表各用来干什么、instance 数量为什么会从 200 万跳到 400 万、模块形状从矩形变 L 型时为什么之前两个月的布局全废——以及最后一条：为什么必须在最后一版网表定下来之前把问题全抛出去。</p>
       <div class="hero-meta">
-        <span class="pill">约 20 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈15 分钟</span>
         <span class="pill">课表学时 2</span>
         <span class="pill tag">网表</span><span class="pill tag">Release</span><span class="pill tag">ME</span><span class="pill tag">DE</span><span class="pill tag">S1</span><span class="pill tag">S2</span><span class="pill tag">instance</span><span class="pill tag">ECO</span><span class="pill tag">版本迭代</span><span class="pill tag">模块形状</span>
       </div>
     </div>
-    <article id="article"><section class="ch" id="why" data-ch="why" data-est="1">
-  <div class="ch-h"><span class="ch-n">01</span><h2>网表不是一份，是一串</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+    <article id="article" data-est-min="15"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>网表不是一份，是一串</h2></div>
   <div class="goal"><span>本章目标</span>能说出网表的命名规则与常见后缀；能画出 Release 路径结构（项目/ME|DE/模块/文件）；能说清 S1 与 S2 网表各用来干什么；能解释 instance 数量波动与模块形状变更对 PR 的影响；能说出&quot;最后一版网表定责&quot;这条规矩为什么重要。</div>
 <p>课上讲&quot;网表是前段综合之后给到后端的文件&quot;，听起来像一次性交付。实际项目里它是<strong>连续迭代的一串版本</strong>：V1.0、V1.1、V2.0……一直迭代到 V9.0 甚至更多。</p>
 <p><strong>你拿错版本、或者拿的是别人改过的旧版本，后面几周的活全白干</strong>——所以这一课的内容虽然不&quot;技术&quot;，却直接决定你会不会白加班。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="naming" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="naming" data-ch="naming" data-est="1">
-  <div class="ch-h"><span class="ch-n">02</span><h2>命名规则：模块名 + 后缀</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="naming" data-ch="naming">
+  <div class="ch-h"><span class="ch-n">02</span><h2>命名规则：模块名 + 后缀</h2></div>
   <p>网表文件的后缀常见三种：</p>
 <div class="tbl"><table><thead><tr><th>后缀</th><th>含义</th></tr></thead><tbody><tr><td><code>.v</code></td><td>明文 Verilog 网表</td></tr><tr><td><code>.v.gz</code></td><td>gzip 压缩的 Verilog（<strong>最常见</strong>，体积小）</td></tr><tr><td><code>.gz</code></td><td>压缩包（有的流程把多个文件打一起）</td></tr></tbody></table></div>
 <p>命名规则只有一条：<strong>文件名主体 = 模块名，小写</strong>。</p>
@@ -78,8 +78,8 @@
 <div class="tip"><div class="tip-h">小技巧</div><p>因为脚本里会拿模块名拼路径与变量（<code>set top alu</code>、<code>read_netlist ./data/${top}.v.gz</code>）。名字大小写混用或改名，脚本就找不到文件——<strong>而这类报错往往发生在半夜跑批的时候</strong>。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="release" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="release" data-ch="release" data-est="1">
-  <div class="ch-h"><span class="ch-n">03</span><h2>Release：一个动作，也是一个路径</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="release" data-ch="release">
+  <div class="ch-h"><span class="ch-n">03</span><h2>Release：一个动作，也是一个路径</h2></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">Release</span><span class="term-zh">交付/上传</span></div>
   <div class="term-b"><p>在项目语境里是个<strong>动作</strong>：把本地综合好的网表<strong>上传到服务器上约定的共享路径</strong>，让下游（后端）能取到。<br>注意它不是&quot;发个邮件&quot;，而是&quot;放到那个大家都能访问的目录里&quot;。</p></div>
@@ -92,8 +92,8 @@
 <p>接手别人的模块、或者前端 owner 找不到人时，第一件事不是要代码，而是要<strong>路径</strong>。有了路径，版本、时间戳、谁传的，一眼就能看出来。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="s1s2" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="s1s2" data-ch="s1s2" data-est="1">
-  <div class="ch-h"><span class="ch-n">04</span><h2>S1 与 S2：两版网表，两种用途</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="s1s2" data-ch="s1s2">
+  <div class="ch-h"><span class="ch-n">04</span><h2>S1 与 S2：两版网表，两种用途</h2></div>
   <p>项目里你会拿到两次&quot;正式&quot;网表：</p>
 <div class="tbl"><table><thead><tr><th>版本</th><th>内容</th><th>用来干什么</th></tr></thead><tbody><tr><td><strong>S1</strong></td><td><strong>纯功能（func）网表</strong>，没插扫描链</td><td>检查 RTL 从 v1.0 到 v2.0 时<strong>内部逻辑增长了多少</strong>（instance 数变化），先把面积与可行性摸清</td></tr><tr><td><strong>S2</strong></td><td>插入 <strong>scan chain</strong> 之后的最终版</td><td><strong>后续所有分析、签核都基于 S2</strong></td></tr></tbody></table></div>
 <div class="term open">
@@ -103,8 +103,8 @@
 <p>所以流程是：<strong>S1 到手先估算面积 → S2 到手才是真正要做的版本</strong>。很多新人拿到 S1 就开始认真做 floorplan，做完发现 S2 涨了 20% 逻辑，全部推翻。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="instance" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="instance" data-ch="instance" data-est="1">
-  <div class="ch-h"><span class="ch-n">05</span><h2>数量波动：200 万 → 400 万 → 300 万</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="instance" data-ch="instance">
+  <div class="ch-h"><span class="ch-n">05</span><h2>数量波动：200 万 → 400 万 → 300 万</h2></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">instance</span><span class="term-zh">实例</span></div>
   <div class="term-b"><p>网表里每一个&quot;被用到的单元&quot;就是一个 instance。<strong>instance 数直接对应面积</strong>，是判断&quot;这块能不能做下&quot;的第一指标。</p></div>
@@ -115,8 +115,8 @@
 <p><strong>正确做法</strong>：instance 数一超预算就<strong>立刻反馈</strong>，让前端/DFT 处理。<strong>面积是上游给的，不是你硬扛出来的</strong>——硬扛的结果是后期加班到凌晨还收不了敛。</p></div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="shape" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="shape" data-ch="shape" data-est="1">
-  <div class="ch-h"><span class="ch-n">06</span><h2>形状变更：为什么两个月的工作会重做</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="shape" data-ch="shape">
+  <div class="ch-h"><span class="ch-n">06</span><h2>形状变更：为什么两个月的工作会重做</h2></div>
   <p>文档里那段关于 L 型的描述，是后端最真实的痛：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">   矩形              长条形            L 型             两个 L</span><span class="ln "> ┌───────┐        ┌───────────┐     ┌─────┐          ┌───┬───┐</span><span class="ln "> │       │        │           │     │     │          │   │   │</span><span class="ln "> └───────┘        └───────────┘     │     └────┐     │   └───┤</span><span class="ln ">                                    └──────────┘     └───────┘</span></code></pre></div>
 <p>为什么会变形？因为<strong>顶层受面积和其他模块的限制</strong>，把你这一块的形状切成了 L 型、LU 型，或者干脆拆成两个：</p>
@@ -125,8 +125,8 @@
 <p>网表版本没变、RTL 一个字没改，但只要形状变了，你的 floorplan 就得重做。这是前期 PR 阶段（前七个月）的主要工作量来源。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="delay" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="delay" data-ch="delay" data-est="1">
-  <div class="ch-h"><span class="ch-n">07</span><h2>Delay 的两层意思</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="delay" data-ch="delay">
+  <div class="ch-h"><span class="ch-n">07</span><h2>Delay 的两层意思</h2></div>
   <p>课上专门提过：<code>Delay</code> 这个词在项目里有两层含义。</p>
 <div class="tbl"><table><thead><tr><th>含义</th><th>例子</th></tr></thead><tbody><tr><td><strong>技术延迟</strong></td><td>信号从 A 到 B 花了多少 ns（时序分析里的 delay）</td></tr><tr><td><strong>协作延迟</strong></td><td>周三反馈问题，前端说周五改完，你下周一才拿到网表——中间这几天就是 delay</td></tr></tbody></table></div>
 <div class="pit"><div class="pit-h">常见坑 · 项目后期还容许&quot;协作 delay&quot;</div><div class="pit-b"><p><strong>现象</strong>：临近版图冻结，你还在等前端的新网表，等到最后一周才拿到。</p>
@@ -134,8 +134,8 @@
 <p><strong>做法</strong>：<strong>后期必须把交付时间精确到天，问清楚&quot;最晚什么时候给我&quot;，并把不确定的 delay 提前暴露给 leader</strong>。技术 delay 可以优化，协作 delay 只能靠沟通提前锁死。</p></div></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="responsibility" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="responsibility" data-ch="responsibility" data-est="1">
-  <div class="ch-h"><span class="ch-n">08</span><h2>定责：最后一版网表之前，把问题全抛出去</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈1 分钟</span></div>
+<section class="ch" id="responsibility" data-ch="responsibility">
+  <div class="ch-h"><span class="ch-n">08</span><h2>定责：最后一版网表之前，把问题全抛出去</h2></div>
   <p>这是文档里最重要的一条职场经验，原文很直白：<strong>前端会提供最后一版网表，此后所有逻辑/约束问题都要在此前反馈，否则后端自己背锅。</strong></p>
 <p>拆分一下：</p>
 <ol><li><strong>最后一版网表之前</strong>：任何&quot;逻辑太长、面积不够、时钟定义不清、约束不合理&quot;的问题，<strong>立刻提</strong>，最好留邮件/群记录；</li><li><strong>最后一版之后</strong>：网表冻结，只能靠 PR 手段（换单元、加 pipeline 不行了、调约束）去凑；</li><li><strong>凑不出来</strong>：责任会落到&quot;你当时没说&quot;。</li></ol>
@@ -144,8 +144,8 @@
 <p><strong>有数字、有选项、有建议</strong>——这种反馈别人才会处理。空口说&quot;做不下&quot;没人理。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="rhythm" data-last="0">学完这章，继续下一章 →</button></div>
 </section>
-<section class="ch" id="rhythm" data-ch="rhythm" data-est="7">
-  <div class="ch-h"><span class="ch-n">09</span><h2>工作节奏：前期松、后期紧</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈7 分钟</span></div>
+<section class="ch" id="rhythm" data-ch="rhythm">
+  <div class="ch-h"><span class="ch-n">09</span><h2>工作节奏：前期松、后期紧</h2></div>
   <p>文档讲得很实：</p>
 <ul><li><strong>前期（PR 阶段前几个月）</strong>：模块做得顺、没有新网表时，确实比较轻松，有的项目不严格打卡；</li><li><strong>后期（ECO 两个月）</strong>：加班频繁，到晚上九点、十点甚至凌晨一两点都常见；</li><li><strong>决定因素是前期质量</strong>：前期问题清干净，后期 ECO 相对轻松；前期问题堆到最后一周，后期就是地狱。</li></ul>
 <p><strong>结论很朴素</strong>：这一行的&quot;累不累&quot;不取决于后期多拼，而取决于<strong>前期有没有把问题及时抛出去、把布局留够余量</strong>。</p>
@@ -196,9 +196,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=78d29e0cecbc"></script>
-<script src="/assets/tcl.js?v=78d29e0cecbc"></script>
-<script src="/assets/app.js?v=78d29e0cecbc"></script>
-<script src="/assets/aiwidget.js?v=78d29e0cecbc" defer></script>
+<script src="/assets/shell.js?v=0cbf523ac91d"></script>
+<script src="/assets/tcl.js?v=0cbf523ac91d"></script>
+<script src="/assets/app.js?v=0cbf523ac91d"></script>
+<script src="/assets/aiwidget.js?v=0cbf523ac91d" defer></script>
 </body>
 </html>

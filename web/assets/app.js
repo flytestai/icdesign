@@ -46,29 +46,33 @@
     setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 400); }, 2800);
   }
 
-  /* ---------------- 章级预计时长 + 有效学习时间（防刷分） ----------------
-     每章在构建时估算预计学习分钟数（section 的 data-est）。
-     打卡校验：本章服务器已确认的有效学习秒数 ≥ max(30, 预计分钟×60×30%)。
-     只认服务器已确认的秒数（knownCh），前后端口径完全一致，避免上报竞态。 */
-  function estOf(ch) {
-    var s = document.querySelector('section.ch[data-ch="' + ch + '"]');
-    return s ? (parseInt(s.getAttribute('data-est'), 10) || 1) : 1;
+  /* ---------------- 整课预计时长 + 打卡防刷分（课级 1/5 规则） ----------------
+     每课在构建时估算一个总预计学习分钟数（article 的 data-est-min）。
+     校验：打卡第 k/N 章时，本课累计有效学习秒数须 ≥ 预计×60/5 × k/N，
+     即学完整课至少要花预计时长的 1/5；刷太快，后面的章不计分。
+     只认服务器已确认的课级秒数（known），前后端口径一致，避免上报竞态。 */
+  var artEl = document.getElementById('article');
+  function lessonEstMin() {
+    var v = artEl ? parseInt(artEl.getAttribute('data-est-min'), 10) : 0;
+    return v > 0 ? v : Math.max(2, sections.length * 2);   // 兜底：每章约 2 分钟
   }
-  var knownCh = {};            // 章 → 服务器已确认的累计秒数
-  var pendCh = {};             // 章 → 本地未上报的秒数（studyTimer 维护）
-  var lastBlockAt = {};        // 章 → 上次"学太快"提示时间（节流 10 秒）
-  function chNeed(ch) { return Math.max(30, Math.round(estOf(ch) * 60 * 0.3)); }
-  function chHave(ch) { return knownCh[ch] || 0; }
-  function canMark(ch) { return chHave(ch) >= chNeed(ch); }
+  var known = 0;               // 本课服务器已确认的累计秒数（studyTimer 维护）
+  var lastBlockAt = 0;         // 上次"学太快"提示时间（节流 10 秒）
+  function markNeed(ch) {
+    var n = Math.max(1, sections.length), idx = 1;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].getAttribute('data-ch') === ch) { idx = i + 1; break; }
+    }
+    return Math.max(10, Math.round(lessonEstMin() * 60 / 5 * idx / n));
+  }
+  function canMark(ch) { return known >= markNeed(ch); }
   function fmtSec(s) { return s >= 60 ? Math.round(s / 60 * 10) / 10 + ' 分钟' : s + ' 秒'; }
   function blockToast(ch, need, have) {
     var now = Date.now();
-    if (lastBlockAt[ch] && now - lastBlockAt[ch] < 10000) return;
-    lastBlockAt[ch] = now;
-    var h2 = document.querySelector('section.ch[data-ch="' + ch + '"] h2');
-    showToast('「' + (h2 ? h2.textContent : '本章') + '」预计 ' + estOf(ch) +
-      ' 分钟，本章有效学习 ' + fmtSec(have) + ' / 至少 ' + fmtSec(need) +
-      '，时间不够暂不计分，看完再打卡哦');
+    if (now - lastBlockAt < 10000) return;
+    lastBlockAt = now;
+    showToast('本课预计学习 ' + lessonEstMin() + ' 分钟，学到这里至少需累计 ' + fmtSec(need) +
+      '，当前已学 ' + fmtSec(have) + ' —— 时间不够暂不计分，正常看完就够啦');
   }
 
   /* ---------------- 进度（滚动自动记录，无需手动标记） ---------------- */
@@ -172,7 +176,6 @@
     (function studyTimer() {
       var acc = 0;                      // 未上报的秒数
       var last = Date.now();
-      var known = 0;                    // 本课已累计（服务器）
       var timeEl = document.getElementById('lp-time');
       function fmt(sec) {
         if (!sec) return '';
@@ -186,10 +189,9 @@
         var t = known + Math.floor(acc);
         timeEl.textContent = t > 0 ? '⏱ ' + fmt(t) : '';
       }
-      /* 读取本课已有累计时长（重学也保留）+ 章级秒数（防刷分校验用） */
+      /* 读取本课已有累计时长（重学也保留；防刷分校验用同一口径） */
       fetch(API + '/study-time').then(function (r) { return r.json(); }).then(function (d) {
         known = (d.by_lesson || {})[lessonId] || 0;
-        knownCh = (d.by_ch || {})[lessonId] || {};
         paintTime();
       }).catch(function () { });
       function idle() { return Date.now() - last > 120000; }   // 2 分钟无操作视为挂机
@@ -200,35 +202,15 @@
         var s = Math.floor(acc);
         if (s <= 0) return;
         acc -= s;
-        /* 归集各章未上报的整秒数 */
-        var byCh = {}, chs = [];
-        Object.keys(pendCh).forEach(function (c) {
-          var v = Math.floor(pendCh[c]);
-          if (v > 0) { byCh[c] = v; chs.push(c); pendCh[c] -= v; }
-          if (pendCh[c] < 1) delete pendCh[c];
-        });
         fetch(API + '/study-time', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lesson: lessonId, seconds: s, by_chapter: byCh })
+          body: JSON.stringify({ lesson: lessonId, seconds: s })
         }).then(function (r) {
-          if (r.ok) {
-            known += s; paintTime();
-            chs.forEach(function (c) { knownCh[c] = (knownCh[c] || 0) + byCh[c]; });
-          } else { acc += s; chs.forEach(function (c) { pendCh[c] = (pendCh[c] || 0) + byCh[c]; }); }
-        }).catch(function () {          // 失败下次补报
-          acc += s;
-          chs.forEach(function (c) { pendCh[c] = (pendCh[c] || 0) + byCh[c]; });
-        });
+          if (r.ok) { known += s; paintTime(); } else { acc += s; }
+        }).catch(function () { acc += s; });     // 失败下次补报
       }
       setInterval(function () {
-        if (document.visibilityState === 'visible' && !idle()) {
-          acc += 1; paintTime();
-          var cur = curSection();               // 秒数归属当前所在章
-          if (cur) {
-            var c = cur.getAttribute('data-ch');
-            pendCh[c] = (pendCh[c] || 0) + 1;
-          }
-        }
+        if (document.visibilityState === 'visible' && !idle()) { acc += 1; paintTime(); }
         if (acc >= 30) flush();
       }, 1000);
       setInterval(flush, 60000);
@@ -338,13 +320,13 @@
         var was = below[ch];
         below[ch] = isBelow;
         if (dy > 0 && isBelow && !was && !isDone(ch)) {
-          /* 防刷分：本章有效学习时长不足时不打卡（基线归位，滚回来重读后可再触发） */
+          /* 防刷分：本课有效学习时长不足时不打卡（基线归位，滚回来重读后可再触发） */
           if (canMark(ch)) {
             done[key(ch)] = 1;
             items.push({ lesson: lessonId, chapter: ch, done: true });
           } else {
             below[ch] = false;
-            blockToast(ch, chNeed(ch), chHave(ch));
+            blockToast(ch, markNeed(ch), known);
           }
         }
       });
@@ -519,7 +501,7 @@
         if (canMark(ch)) {
           setDone(ch, true);
         } else {
-          blockToast(ch, chNeed(ch), chHave(ch));
+          blockToast(ch, markNeed(ch), known);
         }
       }
 

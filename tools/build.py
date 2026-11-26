@@ -597,12 +597,12 @@ PAGE = HEAD + """
       <p class="hero-en">{en}</p>
       <p class="hero-sum">{summary}</p>
       <div class="hero-meta">
-        <span class="pill">约 {minutes} 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈{estMin} 分钟</span>
         <span class="pill">课表学时 {hours}</span>
         {tagPills}
       </div>
     </div>
-    <article id="article">{article}</article>
+    <article id="article" data-est-min="{estMin}">{article}</article>
 
     <section class="notes" id="notes">
       <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
@@ -712,11 +712,12 @@ HOME = HEAD + """
 
 def build_lesson(L, idx, all_lessons):
     chs = L["chapters"]
+    lest = sum(int(c.get("est", 1)) for c in chs)   # 本课总预计学习时长（分钟）
     art = []
     for i, c in enumerate(chs):
         is_last = (i == len(chs) - 1)
-        art.append(f"""<section class="ch" id="{c['id']}" data-ch="{c['id']}" data-est="{c.get('est', 1)}">
-  <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2><span class="ch-est" title="按正常阅读速度估算的预计学习时长">≈{c.get('est', 1)} 分钟</span></div>
+        art.append(f"""<section class="ch" id="{c['id']}" data-ch="{c['id']}">
+  <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2></div>
   {c['html']}
   <div class="ch-next"><button class="ch-next-btn" type="button" data-next="{'' if is_last else chs[i+1]['id']}" data-last="{1 if is_last else 0}">{'学完本课 · 下一课 →' if is_last else '学完这章，继续下一章 →'}</button></div>
 </section>""")
@@ -742,6 +743,7 @@ def build_lesson(L, idx, all_lessons):
         stageAnchor=f"stage-{stage}", stageName=STAGE_NAME.get(stage, ""),
         lessonNo=L.get("no", ""), en=L.get("en", ""),
         summary=inline(L.get("summary", "")), minutes=L.get("minutes", 40),
+        estMin=lest,
         hours=L.get("hours", "—"), tagPills=tagPills, article="\n".join(art),
         prevNext=prev_next,
     ).replace("%%AUTHCHIP%%", AUTH_CHIP)
@@ -978,7 +980,8 @@ def main():
             "title": L.get("title", ""), "en": L.get("en", ""), "desc": L.get("summary", ""),
             "tags": L.get("tags", []), "status": "live", "minutes": int(L.get("minutes", 40)),
             "hours": str(L.get("hours", "")),
-            "chapters": [{"id": c["id"], "title": c["title"], "est": c.get("est", 1)} for c in L["chapters"]],
+            "chapters": [{"id": c["id"], "title": c["title"]} for c in L["chapters"]],
+            "est_min": sum(int(c.get("est", 1)) for c in L["chapters"]),
         } for L in lessons],
         "counts": {"lessons": len(lessons), "chapters": sum(len(L["chapters"]) for L in lessons),
                    "quizzes": len(quiz), "terms": len(gloss)},
