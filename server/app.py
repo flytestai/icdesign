@@ -966,9 +966,14 @@ def leaderboard(request: Request):
         prog = c.execute(
             "SELECT user_id, COUNT(*) n FROM progress_u WHERE done=1 GROUP BY user_id").fetchall()
         times = c.execute("SELECT user_id, SUM(seconds) s FROM study_time GROUP BY user_id").fetchall()
+        time_by_lesson = c.execute(
+            "SELECT user_id, lesson, SUM(seconds) s FROM study_time GROUP BY user_id, lesson").fetchall()
         qstats = c.execute("SELECT * FROM quiz_stats").fetchall()
     prog_by_user = {p["user_id"]: p["n"] for p in prog}
     time_by_user = {t["user_id"]: t["s"] for t in times}
+    tl = {}
+    for r0 in time_by_lesson:
+        tl.setdefault(r0["user_id"], {})[r0["lesson"]] = r0["s"]
     quiz_by_user = {r["user_id"]: r for r in qstats}
 
     rows = []
@@ -980,6 +985,7 @@ def leaderboard(request: Request):
         correct = qs["correct"] if qs else 0
         exam_passed = qs["exam_passed"] if qs else 0
         rows.append({
+            "_uid": us["id"],
             "name": us["name"], "role": us["role"],
             "done": min(done, total_chapters), "total": total_chapters,
             "seconds": secs,
@@ -987,16 +993,24 @@ def leaderboard(request: Request):
             "total_quizzes": total_quizzes,
             "exam_passed": exam_passed, "total_stages": total_stages,
         })
-    # 时长分的分母用「课表计划总学时」，不用排行榜里的最长时长。
-    # 旧做法 max_secs = 全站最长，会导致别人学得多时自己的时长分反而下降
-    # （用户反馈"怎么还减分"），属于设计缺陷。
-    plan_secs = _plan_total_seconds() or 1
+    # ---- 时长分：逐课封顶，重学多遍不再无限加分 ----
+    # 每门课的有效时长 = min(该课累计秒数, 该课计划分钟*60 * CAP_RATIO)
+    # 总分 = Σ有效时长 / Σ计划时长 * 100
+    # 这样：① 反复学同一课最多只算到计划时长的 CAP_RATIO 倍
+    #       ② 学新课才开始接近满分，体现"覆盖面"而不是"熬时间"
+    #       ③ 与别人无关，不会因他人学习而下降
+    CAP_RATIO = 1.5
+    plan_min = _plan_minutes_by_lesson()          # {lesson_id: minutes}
+    plan_secs = sum(v * 60 for v in plan_min.values()) or 1
     for r in rows:
-        # 三个维度各自归一化到 0~100
         p_score = (r["done"] / r["total"] * 100) if r["total"] else 0
         q_score = (r["answered"] / r["total_quizzes"] * 100) if r["total_quizzes"] else 0
-        # 学习时长达到课表计划学时即满分；上限 100，不会因他人而波动
-        t_score = min(100.0, (r["seconds"] / plan_secs * 100)) if plan_secs else 0
+        mine = tl.get(r.get("_uid"), {})
+        eff = 0.0
+        for lid, pm in plan_min.items():
+            cap = pm * 60 * CAP_RATIO
+            eff += min(mine.get(lid, 0), cap)
+        t_score = min(100.0, eff / plan_secs * 100)
         r["progress_pct"] = round(p_score, 1)
         r["quiz_pct"] = round(q_score, 1)
         r["time_pct"] = round(t_score, 1)
@@ -1007,9 +1021,25 @@ def leaderboard(request: Request):
     for i, r in enumerate(rows):
         r["rank"] = i + 1
         r["is_me"] = (r["name"] == me)
+        r.pop("_uid", None)
     return {"rows": rows, "me": me, "total_chapters": total_chapters,
             "total_quizzes": total_quizzes, "total_stages": total_stages,
             "weights": {"progress": 0.5, "quiz": 0.3, "time": 0.2}}
+
+
+def _plan_minutes_by_lesson() -> dict:
+    """每门课的计划时长（分钟），用于逐课计算有效学习时长。"""
+    p = WEB / "data" / "catalog.json"
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        out = {}
+        for L in (data.get("lessons") or []):
+            mins = int(L.get("minutes") or 0)
+            if mins > 0:
+                out[L["id"]] = mins
+        return out or {"_": 1}
+    except Exception:
+        return {"_": 1}
 
 
 def _plan_total_seconds() -> int:
