@@ -716,10 +716,13 @@ def build_lesson(L, idx, all_lessons):
     art = []
     for i, c in enumerate(chs):
         is_last = (i == len(chs) - 1)
+        # 每章底部的「学完这章，继续下一章」按钮已移除；仅最后一章保留「学完本课」跳转
+        next_html = (f'<div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>'
+                     if is_last else '')
         art.append(f"""<section class="ch" id="{c['id']}" data-ch="{c['id']}">
   <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2></div>
   {c['html']}
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="{'' if is_last else chs[i+1]['id']}" data-last="{1 if is_last else 0}">{'学完本课 · 下一课 →' if is_last else '学完这章，继续下一章 →'}</button></div>
+  {next_html}
 </section>""")
     prev_next = ""
     if idx > 0:

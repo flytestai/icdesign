@@ -67,7 +67,7 @@
   <div class="goal"><span>本章目标</span>能说出网表的命名规则与常见后缀；能画出 Release 路径结构（项目/ME|DE/模块/文件）；能说清 S1 与 S2 网表各用来干什么；能解释 instance 数量波动与模块形状变更对 PR 的影响；能说出&quot;最后一版网表定责&quot;这条规矩为什么重要。</div>
 <p>课上讲&quot;网表是前段综合之后给到后端的文件&quot;，听起来像一次性交付。实际项目里它是<strong>连续迭代的一串版本</strong>：V1.0、V1.1、V2.0……一直迭代到 V9.0 甚至更多。</p>
 <p><strong>你拿错版本、或者拿的是别人改过的旧版本，后面几周的活全白干</strong>——所以这一课的内容虽然不&quot;技术&quot;，却直接决定你会不会白加班。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="naming" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="naming" data-ch="naming">
   <div class="ch-h"><span class="ch-n">02</span><h2>命名规则：模块名 + 后缀</h2></div>
@@ -76,7 +76,7 @@
 <p>命名规则只有一条：<strong>文件名主体 = 模块名，小写</strong>。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模块叫 ALU   →   alu.v.gz</span><span class="ln ">模块叫 IOU   →   iou.v.gz</span></code></pre></div>
 <div class="tip"><div class="tip-h">小技巧</div><p>因为脚本里会拿模块名拼路径与变量（<code>set top alu</code>、<code>read_netlist ./data/${top}.v.gz</code>）。名字大小写混用或改名，脚本就找不到文件——<strong>而这类报错往往发生在半夜跑批的时候</strong>。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="release" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="release" data-ch="release">
   <div class="ch-h"><span class="ch-n">03</span><h2>Release：一个动作，也是一个路径</h2></div>
@@ -90,7 +90,7 @@
 <ul><li><strong>ME 放综合后的东西</strong>（网表为主），<strong>DE 放前端的东西</strong>（RTL、仿真模型等）；</li><li><strong>ME 下面是按模块名分的子目录</strong>，你的网表就躺在自己模块的目录里。</li></ul>
 <div class="tip"><div class="tip-h">小技巧</div><p>&quot;<strong>这个模块的 release 路径在哪？</strong>&quot;</p>
 <p>接手别人的模块、或者前端 owner 找不到人时，第一件事不是要代码，而是要<strong>路径</strong>。有了路径，版本、时间戳、谁传的，一眼就能看出来。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="s1s2" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="s1s2" data-ch="s1s2">
   <div class="ch-h"><span class="ch-n">04</span><h2>S1 与 S2：两版网表，两种用途</h2></div>
@@ -101,7 +101,7 @@
   <div class="term-b"><p>DFT 部门在网表里插入的测试结构：把大量触发器串成一条（或多条）移位链，让测试机能用少量引脚把内部状态扫进扫出。<strong>它会让网表变大、路径变长</strong>，所以 PR 必须专门为它做优化。</p></div>
 </div>
 <p>所以流程是：<strong>S1 到手先估算面积 → S2 到手才是真正要做的版本</strong>。很多新人拿到 S1 就开始认真做 floorplan，做完发现 S2 涨了 20% 逻辑，全部推翻。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="instance" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="instance" data-ch="instance">
   <div class="ch-h"><span class="ch-n">05</span><h2>数量波动：200 万 → 400 万 → 300 万</h2></div>
@@ -113,7 +113,7 @@
 <ol><li>S1 网表 200 万 instance，按面积算能放下；</li><li>插了 scan chain 的 S2 变成 <strong>400 万</strong>——面积做不下了；</li><li>后端反馈给顶层/前端：<strong>逻辑增长过多，面积装不下</strong>；</li><li>前端回去优化代码，出 V3.0，instance 回落到 <strong>300 万</strong>；</li><li>若 scan 插入导致门数异常激增（比如预估 250 万实际 300 万），要找 <strong>DFT 同事</strong>确认原因——<strong>DFT 有时能优化 scan 文件</strong>（文档提到 100 万优化到 50 万这种量级）。</li></ol>
 <div class="pit"><div class="pit-h">常见坑 · 闷头做，不反馈</div><div class="pit-b"><p><strong>现象</strong>：拿到 400 万的网表，硬着头皮把面积压到极限，密度打到 95%，最后 route 绕不通、时序全崩。</p>
 <p><strong>正确做法</strong>：instance 数一超预算就<strong>立刻反馈</strong>，让前端/DFT 处理。<strong>面积是上游给的，不是你硬扛出来的</strong>——硬扛的结果是后期加班到凌晨还收不了敛。</p></div></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="shape" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="shape" data-ch="shape">
   <div class="ch-h"><span class="ch-n">06</span><h2>形状变更：为什么两个月的工作会重做</h2></div>
@@ -123,7 +123,7 @@
 <ul><li>端口位置全变了（原来在左边，现在可能在上边）；</li><li>Memory 的摆法必须重排——<strong>不同形状下&quot;memory 摆哪&quot;的答案不一样</strong>，要看数据流怎么走；</li><li>形状不一样就<strong>没法复用</strong>上一版的布局，同一个 block 你可能要做<strong>多版 plan</strong>。</li></ul>
 <div class="tip"><div class="tip-h">小技巧</div><p><strong>&quot;代码是一样的，手工活是不一样的。&quot;</strong></p>
 <p>网表版本没变、RTL 一个字没改，但只要形状变了，你的 floorplan 就得重做。这是前期 PR 阶段（前七个月）的主要工作量来源。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="delay" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="delay" data-ch="delay">
   <div class="ch-h"><span class="ch-n">07</span><h2>Delay 的两层意思</h2></div>
@@ -132,7 +132,7 @@
 <div class="pit"><div class="pit-h">常见坑 · 项目后期还容许&quot;协作 delay&quot;</div><div class="pit-b"><p><strong>现象</strong>：临近版图冻结，你还在等前端的新网表，等到最后一周才拿到。</p>
 <p><strong>后果</strong>：所有问题堆到最后一周，加班到凌晨一两点也救不回来。</p>
 <p><strong>做法</strong>：<strong>后期必须把交付时间精确到天，问清楚&quot;最晚什么时候给我&quot;，并把不确定的 delay 提前暴露给 leader</strong>。技术 delay 可以优化，协作 delay 只能靠沟通提前锁死。</p></div></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="responsibility" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="responsibility" data-ch="responsibility">
   <div class="ch-h"><span class="ch-n">08</span><h2>定责：最后一版网表之前，把问题全抛出去</h2></div>
@@ -142,7 +142,7 @@
 <div class="tip"><div class="tip-h">小技巧</div><p>不是抱怨，而是<strong>带数据提问</strong>：</p>
 <ul><li>&quot;ALU 这条路径组合逻辑 32 级，周期 2ns 下最坏路径差 0.6ns，是否可以在 RTL 里打一拍？&quot;</li><li>&quot;S2 网表 instance 400 万，按当前面积密度 85% 需要 1.2 倍面积，能否优化 scan 或放宽面积？&quot;</li></ul>
 <p><strong>有数字、有选项、有建议</strong>——这种反馈别人才会处理。空口说&quot;做不下&quot;没人理。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="rhythm" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="rhythm" data-ch="rhythm">
   <div class="ch-h"><span class="ch-n">09</span><h2>工作节奏：前期松、后期紧</h2></div>
@@ -178,7 +178,7 @@
   <div class="q-a">最后一版网表给出之前，所有逻辑/约束/面积问题必须反馈清楚；之后再出问题，责任会落在没提前说的后端身上。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出网表命名规则与三种后缀</li><li>能画出 项目/ME|DE/模块/文件 的 release 结构</li><li>能说清 S1（评估增长）与 S2（正式做）的区别</li><li>能复述 200万→400万→300万 的迭代过程与应对动作</li><li>能解释形状变更（L 型/LU 型/拆块）为什么导致重做</li><li>能说出&quot;带数据提问&quot;的三要素（数字、选项、建议）</li><li>知道前期质量决定后期强度，别把问题堆到最后一周</li></ul></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">

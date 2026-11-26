@@ -77,14 +77,14 @@
 <h3>3）解析 ll 查看详细内容</h3>
 <p>以 <code>lrwxrwxrwx. 1 root root 7 Dec 18 2018</code> 为例：</p>
 <ul><li><strong>第一列：内容的类型</strong></li><li><code>-</code> 普通的文本文件、log 文件、脚本文件、包</li><li><code>d</code> 目录</li><li><code>l</code> 链接 Link</li><li><strong>第二列到第十列：权限</strong>（下一节细讲，先记住结构）</li><li><code>r</code> read　<code>w</code> write　<code>x</code> excute　<code>-</code> 无权限</li><li><code>rw-</code> 所属用户权限；<code>r--</code> 所属组的权限；<code>r--</code> 其他人的权限</li><li><strong>第 11 列</strong>：所属用户的用户名</li><li><strong>第 12 列</strong>：所属组的组名</li></ul>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="cd" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="cd" data-ch="cd">
   <div class="ch-h"><span class="ch-n">02</span><h2>2. 切换目录：cd</h2></div>
   <div class="tbl"><table><thead><tr><th>写法</th><th>作用</th></tr></thead><tbody><tr><td><code>cd 路径</code></td><td>进入指定目录</td></tr><tr><td><code>cd</code> 或 <code>cd ~</code></td><td>回到当前用户的<strong>家目录</strong></td></tr><tr><td><code>cd ..</code></td><td>切换到<strong>上一级</strong>目录</td></tr><tr><td><code>cd .</code></td><td>当前位置（原地不动）</td></tr><tr><td><code>cd -</code></td><td>回到<strong>上一次</strong>打开的目录</td></tr></tbody></table></div>
 <p><strong>相对路径 vs 绝对路径</strong>：</p>
 <ul><li>相对路径：不以 <code>/</code> 开头的路径（从当前位置出发）；</li><li>绝对路径：以 <code>/</code> 开头就是绝对路径（从根出发）。</li></ul>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="locate" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="locate" data-ch="locate">
   <div class="ch-h"><span class="ch-n">03</span><h2>3. 三个查位置的命令</h2></div>
@@ -93,7 +93,7 @@
 <p><strong>pwd</strong>：显示当前目录的绝对路径。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/linux-13.png" data-fig="linux-13"><img src="/fig/linux-13.png" alt="pwd 与 realpath 实际效果" loading="lazy" decoding="async"></a><figcaption>pwd 与 realpath 实际效果</figcaption></figure>
 <p><strong>history</strong>：查看命令的历史记录。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="mkdir" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="mkdir" data-ch="mkdir">
   <div class="ch-h"><span class="ch-n">04</span><h2>4. 目录管理</h2></div>
@@ -104,7 +104,7 @@
 <p><strong>rm -rf 删除非空目录 / 强制删除 / 删除文件</strong>：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">rm  -rf  目录名</span></code></pre></div>
 <div class="pit"><div class="pit-h">常见坑 · rm -rf 是不可逆操作</div><div class="pit-b"><p>删错目录没有回收站可找。敲 rm -rf 之前先停一秒确认路径，尤其是带通配符的时候。</p></div></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="touch" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="touch" data-ch="touch">
   <div class="ch-h"><span class="ch-n">05</span><h2>5. 文件管理</h2></div>
@@ -115,7 +115,7 @@
 <div class="tbl"><table><thead><tr><th>通配符</th><th>匹配</th></tr></thead><tbody><tr><td><code>a1*</code></td><td>以 a1 开头的文件或目录</td></tr><tr><td><code>*b</code></td><td>以 b 结尾的文件或目录</td></tr><tr><td><code>*a*</code></td><td>包含 a 的文件或目录</td></tr><tr><td><code>a*b</code></td><td>以 a 开头 b 结尾的文件或目录</td></tr><tr><td><code>a*y*b</code></td><td>a 开头、中间有 y、b 结尾</td></tr></tbody></table></div>
 <p>比如目录里有 <code>a12nn3b</code>、<code>b123kkb</code>、<code>a234yyb</code>：<code>a*y*b</code> 只匹配 <code>a234yyb</code>。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/linux-15.png" data-fig="linux-15"><img src="/fig/linux-15.png" alt="通配符配合 ls / rm 实际效果" loading="lazy" decoding="async"></a><figcaption>通配符配合 ls / rm 实际效果</figcaption></figure>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练：练习一</h2></div>
@@ -134,7 +134,7 @@
   <div class="q-a">能：a 开头、中间含 y、b 结尾。a12nn3b 就不匹配（没有 y）。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>ls 七个常用选项全部记熟，会读 ll 的 12 列输出</li><li>cd 五种写法都练过一遍</li><li>练习一 19 题全部独立完成</li></ul></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">

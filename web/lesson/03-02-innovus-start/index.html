@@ -70,7 +70,7 @@
 <p>老引擎的几个硬伤，在先进工艺下会直接暴露：</p>
 <ul><li>一次跑不完几十万 instance 的优化，跑一天还没到 route；</li><li>不支持多重曝光（double patterning）的染色约束；</li><li>时序/拥塞/功耗三者不能联合优化，只能一轮轮手调。</li></ul>
 <p>所以你在招聘要求里看到&quot;熟悉 Innovus 或 ICC2&quot;，指的是<strong>这一代工具</strong>；只会 Encounter/ICC，在 28nm 以下基本没有用武之地。本课程后面所有实操都用 Innovus。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="start" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="start" data-ch="start">
   <div class="ch-h"><span class="ch-n">02</span><h2>第一步：启动与确认版本</h2></div>
@@ -89,7 +89,7 @@
   <div class="term-h"><span class="term-en">GUI</span><span class="term-zh">图形界面模式</span></div>
   <div class="term-b"><p>带版图窗口的运行模式（默认）。与之相对的 <code>-no_gui</code> 只跑命令、不加载图形引擎。<strong>GUI 用来 debug，脚本用来干活</strong>——这是 PR 工作的基本分工。</p></div>
 </div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="options" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="options" data-ch="options">
   <div class="ch-h"><span class="ch-n">03</span><h2>九个常用启动选项</h2></div>
@@ -150,7 +150,7 @@
 <p>文档把&quot;TAB 键&quot;单独列成一条，因为它真的能救命：</p>
 <ul><li>敲 <code>setPlace</code> + Tab → 自动补成 <code>setPlaceMode</code>；</li><li>敲 <code>setPlaceMode -</code> + Tab → <strong>列出所有可用参数</strong>；</li><li>路径也能补：<code>source scr</code> + Tab → <code>source scripts/</code>。</li></ul>
 <p><strong>养成&quot;敲一半就按 Tab&quot;的习惯</strong>，能避掉大量拼写错误。Innovus 命令长、驼峰多，手打几乎必错。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="gui" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="gui" data-ch="gui">
   <div class="ch-h"><span class="ch-n">04</span><h2>界面分四块认识</h2></div>
@@ -189,7 +189,7 @@
   <div class="q-a">补全命令/路径名；在命令后加空格再按 Tab 列出该命令的所有可用参数。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 Innovus/ICC2 对应替代的老工具，以及换代的核心原因（运行时间与先进工艺约束）</li><li>能用一条命令完成&quot;无界面启动 + 自动跑脚本 + 写 log&quot;</li><li>能解释 <code>-wait</code> 的真实语义（license 排队）</li><li>能说出 <code>-cpus</code> 给太高会被 kill 的两个原因</li><li>能用 <code>which</code> / <code>nproc</code> / <code>lscpu</code> 三个命令确认环境</li><li>能说出三个帮助入口各自查什么</li><li>能把界面分成版图区、命令行、输出窗、层次树四块并说出各自用途</li></ul></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">

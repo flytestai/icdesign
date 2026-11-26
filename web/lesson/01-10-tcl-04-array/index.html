@@ -93,7 +93,7 @@ puts &quot;班级：$student(class)&quot;      ;# 输出：班级：三年级2�
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="arrayset" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="arrayset" data-ch="arrayset">
   <div class="ch-h"><span class="ch-n">02</span><h2>批量赋值：array set（标准写法）</h2></div>
@@ -137,12 +137,12 @@ puts [dict get $person(002) name]   ;# 取嵌套字段：lisi</textarea>
   </div>
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="change" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="change" data-ch="change">
   <div class="ch-h"><span class="ch-n">03</span><h2>数组增加 / 修改</h2></div>
   <p><strong>增加：<code>set 数组名(键) 值</code></strong>——存在已有的键就是<strong>修改</strong>，不存在就是<strong>新增</strong>。（和 Python 的 dict 赋值一模一样。）</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="unset" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="unset" data-ch="unset">
   <div class="ch-h"><span class="ch-n">04</span><h2>数组删除（unset）</h2></div>
@@ -171,7 +171,7 @@ puts [array get person]   ;# 返回空值</textarea>
 <p>删除后再访问会报错（两种报错信息要认识）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">;# 承接上面的 student 数组</span><span class="ln ">unset student(002) ;# 删除学号002的元素</span><span class="ln ">puts $student(002) ;# 错误！can't read &quot;student(002)&quot;: no such element in array</span><span class="ln "> </span><span class="ln ">unset student ;# 删除整个student数组</span><span class="ln ">puts $student(001) ;# 错误！can't read &quot;student(001)&quot;: no such array</span></code></pre></div>
 <div class="note"><div class="note-h">两种报错的区别</div><p><code>no such element in array</code> = 数组还在、键没了；<code>no such array</code> = 整个数组没了。看到报错能立刻分清删的是键还是整个数组，调试就快一半。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="iterate" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="iterate" data-ch="iterate">
   <div class="ch-h"><span class="ch-n">05</span><h2>数组遍历（foreach + array names / array get）</h2></div>
@@ -247,7 +247,7 @@ foreach key [array names product] { puts $key }             ;# 循环获取key</
   <div class="sbx-f">浏览器内置 Tcl 解释器：set / puts / expr / incr / append / 数组 / 列表 / if·while·foreach·for / proc 都能真跑。支持多行代码，{} 可把换行当分隔符。</div>
 </div>
 <div class="note"><div class="note-h">小结速查（文档原文）</div><p><code>array names 数组</code> 获取 key；<code>array get 数组</code> 获取 key 和 val。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
@@ -294,7 +294,7 @@ foreach key [array names fruit] { puts $fruit($key) }   ;# 遍历它的值</text
   <div class="q-a">names 返回所有键名；get 返回键和值交替排列的扁平列表。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用两种写法定义数组（逐个 set / array set 批量）</li><li>能写出两种 foreach 遍历并说清区别</li><li>能背出 array set 首参不能带括号这条铁律</li><li>能区分两种 unset 报错信息</li></ul></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">

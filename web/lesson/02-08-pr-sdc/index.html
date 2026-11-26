@@ -76,7 +76,7 @@
 <p>文档里还有一句必须画重点：</p>
 <div class="tip"><div class="tip-h">小技巧</div><p><strong>&quot;对工具是否能够优化到期望的范围，设置的力度越大，优化的力度就越大。&quot;</strong></p>
 <p>周期写 15ns，工具就拼命插 buffer、换大驱动、拆逻辑去挤进 15ns；周期写 40ns，工具就躺平不管。<strong>所以约束既不能虚松（松了不干活），也不能虚紧（紧了白烧面积和功耗，还可能根本收敛不了）。</strong></p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="model" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="model" data-ch="model">
   <div class="ch-h"><span class="ch-n">02</span><h2>先建立一个时序模型</h2></div>
@@ -92,7 +92,7 @@
 <p>同样一条&quot;起点 → 终点&quot;，来源不同，约束方式也不同。工具报告里通常按这三类分组：</p>
 <div class="tbl"><table><thead><tr><th>路径类型</th><th>起点</th><th>终点</th><th>约束靠什么</th></tr></thead><tbody><tr><td><strong>Reg2Reg</strong></td><td>内部触发器</td><td>内部触发器</td><td>只靠 <code>create_clock</code>（周期）</td></tr><tr><td><strong>In2Reg</strong></td><td><strong>输入端口</strong></td><td>内部触发器</td><td>需要 <code>set_input_delay</code>（外部占用了多少时间）</td></tr><tr><td><strong>Reg2Out</strong></td><td>内部触发器</td><td><strong>输出端口</strong></td><td>需要 <code>set_output_delay</code>（外面要求多早到）</td></tr></tbody></table></div>
 <p><strong>为什么必须分三类</strong>：Reg2Reg 的边界完全由周期决定；而 In2Reg/Reg2Out 多了一段&quot;芯片外部&quot;的时间，工具不知道外部器件多快、板级走线多长——<strong>所以必须由人用 io delay 告诉它</strong>。这就是为什么 io delay 写错，只有这两类路径会出问题。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="write" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="write" data-ch="write">
   <div class="ch-h"><span class="ch-n">03</span><h2>一条一条写约束</h2></div>
@@ -195,7 +195,7 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
 <p>端口上还要给出<strong>驱动能力与实际负载</strong>，否则第一级和最后一级算不准：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 输入端口：用一个真实单元来代表外部驱动能力（比 set_input_transition 更准）</span><span class="ln ">set_driving_cell -lib_cell BUF_X4 -pin Z [get_ports din*]</span><span class="ln "> </span><span class="ln cmt"># 输入端口：直接给一个 transition 值（简单但粗糙）</span><span class="ln ">set_input_transition 0.15 [get_ports din*]</span><span class="ln "> </span><span class="ln cmt"># 输出端口：外部挂了多大电容（板级走线 + 接收端引脚）</span><span class="ln ">set_load 0.05 [get_ports dout*]</span></code></pre></div>
 <p>回想上一课：<strong>cell delay 由 input transition 和 output load 决定</strong>。这三条命令就是在给这两端&quot;喂数据&quot;——喂错了，所有延迟数字都是编的。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="fct" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="fct" data-ch="fct">
   <div class="ch-h"><span class="ch-n">04</span><h2>谁写 SDC：FCT 部门</h2></div>
@@ -240,7 +240,7 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能画出 DFF → 组合逻辑 → DFF 的模型，并指出起始点、结束点</li><li>能由周期算出频率、由 waveform 算出占空比，反过来也会</li><li>能写出 create_clock / create_generated_clock / create_clock 虚拟时钟三条命令并解释参数</li><li>能说清 set_input_delay / set_output_delay 的 -max 与 -min 各管什么</li><li>能举出两类该写 false path 的场景，并说出乱写的后果</li><li>能说出 fanout / capacitance / transition 三个电气约束各自限制什么</li><li>能说出&quot;约束力度 = 优化力度&quot;的含义，以及为什么 sdc 由 FCT 部门负责</li></ul></div>
 <div class="note"><div class="note-h">接下来</div><p>阶段二到这里结束。PR 篇这十讲给的是&quot;数据与目标&quot;，下一步就是动工具：<a href="/lesson/03-01-innovus-plan/">阶段三导读</a> 里有 41 学时的工序清单，前两讲 <a href="/lesson/03-02-innovus-start/">启动 Innovus</a> 和 <a href="/lesson/03-03-innovus-init/">init_design</a> 已经上线——把这一课写的 sdc 真正读进工具、用 <code>report_clocks</code> 验证它生效，是阶段三第一个动作。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">

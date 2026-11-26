@@ -67,7 +67,7 @@
   <div class="goal"><span>本章目标</span>能说出电压/电流/电阻/电容/功耗各自的物理含义与单位；能秒换 ps↔ns、um↔nm（都是 1000 倍）；能说出为什么&quot;工艺说 nm、工具用 um&quot;；看到 lef 里的 <code>0.06</code>、<code>0.2</code>、<code>0.02</code> 能立刻判断它是什么量、多少 nm。</div>
 <p>时序报告里一个数字 <code>0.052</code>，是 52ps 还是 52ns？差 1000 倍。lef 里 <code>WIDTH 0.06</code>，是 0.06um 还是 60um？也差 1000 倍。</p>
 <p><strong>这类错误不会报错，只会让你得出完全相反的结论</strong>：以为时序余量很足，实际已经崩了。所以这一课必须先过关。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="basics" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="basics" data-ch="basics">
   <div class="ch-h"><span class="ch-n">02</span><h2>五个基本量：物理含义比公式重要</h2></div>
@@ -110,7 +110,7 @@
   <div class="term-b"><p>电路消耗的功率，芯片里分两块：<br>- <strong>动态功耗</strong>：电容充放电 + 信号翻转产生的功耗——<strong>翻转越频繁、电容越大、电压越高，动态功耗越大</strong>；<br>- <strong>漏功耗（leakage）</strong>：晶体管关断时电子逃逸造成的微弱漏电，<strong>不翻转也在漏</strong>，工艺越先进占比越高。</p></div>
 </div>
 <p>这就是为什么低功耗设计有三板斧：<strong>降电压、降频率/关时钟（clock gating）、换高阈值电压单元（hvt 漏电小）</strong>。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="convert" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="convert" data-ch="convert">
   <div class="ch-h"><span class="ch-n">03</span><h2>两套必须背下来的换算</h2></div>
@@ -130,7 +130,7 @@
 <div class="pit"><div class="pit-h">常见坑 · 单位混用：把 ns 当 ps、把 nm 当 um</div><div class="pit-b"><p><strong>现象 A</strong>：时序报告 WNS = <code>-52</code>，你以为是 -52ns（灾难），实际是 -52ps（0.052ns，很常见的小违例）。 <strong>现象 B</strong>：lef 里看到 <code>0.06</code>，算面积时当成 0.06um 但按 60um 量级去估，结果差 1000 倍。 <strong>现象 C</strong>：SDC 里 <code>-period 2</code> 写了 2ns，但你以为是 2ps，于是以为频率只有 500MHz，实际是 500MHz…… 反之亦然。</p>
 <p><strong>防错三条</strong>：</p>
 <ol><li>看报告先找<strong>表头单位</strong>（<code>Units: 1ps</code> 这类）；</li><li>看 lef 先看 <strong>UNITS 段</strong>（<code>DATABASE MICRONS 1000</code>）；</li><li><strong>写完约束自己反算一遍频率与周期</strong>，对不上就是单位错了。</li></ol></div></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">04</span><h2>动手：把换算练成条件反射</h2></div>
@@ -216,7 +216,7 @@ puts &quot;引脚面积 [expr {0.06 * 0.33}] um2&quot;</textarea>
   <div class="q-a">看报告表头单位（如 Units: 1ps），或结合周期量级反推；0.052ns 常见，-52ns 在正常周期下几乎不可能。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出电压/电流/电阻/电容/功耗的物理含义与常用单位</li><li>能说出 VDD/VSS 与逻辑 1/0 的对应关系</li><li>能秒答 1ns=1000ps、1um=1000nm，并把 0.052ns、0.06um 换算成 ps/nm</li><li>能由频率算周期、由周期算频率（1GHz↔1ns）</li><li>看到 lef 里的 pitch 0.2 / 线宽 0.06 / area 0.02 能说出各自的量与 nm 值</li><li>知道读任何数字前先确认&quot;这个文件用的什么单位&quot;</li></ul></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">

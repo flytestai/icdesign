@@ -68,7 +68,7 @@
 <p>课上有一句提醒很实在：<strong>实际工作几乎不用图形化桌面，全是开终端进目录干活。</strong> 所以你入职后第一批动作往往不是&quot;跑工具&quot;，而是：</p>
 <ol><li>登录（VNC / ssh）；</li><li>找到项目目录；</li><li>建自己的 work 目录；</li><li>确认 scripts / data / library 在哪。</li></ol>
 <p><strong>这四步做错，后面所有命令都会写错路径。</strong></p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="dirs" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="dirs" data-ch="dirs">
   <div class="ch-h"><span class="ch-n">02</span><h2>六个目录，各管一件事</h2></div>
@@ -84,7 +84,7 @@
 <p><strong>原因</strong>：账号可能是共用的（课上专门提醒过这点），或者你的 work 目录里有别的同学留下的内容。</p>
 <p><strong>做法</strong>：</p>
 <ol><li>先 <code>ls -la</code> 看清里面有什么、属主是谁（<code>ls -l</code> 第三列）；</li><li><strong>有别人的东西，就在 work 下自建一个以自己名字命名的目录</strong>（如 <code>work/weizhen/</code>），不要清空公共目录；</li><li>删除前先 <code>ls</code> 确认，再删<strong>具体文件名</strong>，永远不要对着通配符按回车。</li></ol></div></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="terminal" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="terminal" data-ch="terminal">
   <div class="ch-h"><span class="ch-n">03</span><h2>终端：多窗口 + 改名，效率差一倍</h2></div>
@@ -93,7 +93,7 @@
 <p>为什么要改名？因为你可能同时开着：</p>
 <ul><li>一个窗口在<strong>跑 run</strong>（要跑几小时，不能动）；</li><li>一个窗口在 <strong>debug</strong>（查报告、试命令）；</li><li>负责多个模块时：<code>ALU-Run</code>、<code>ALU-Debug</code>、<code>IOU-Run</code>……</li></ul>
 <p><strong>标题不清，半小时后就分不清哪条命令发到哪个环境里了</strong>——把命令敲进正在跑批的窗口，是最容易让人崩溃的事故之一。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="run" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="run" data-ch="run">
   <div class="ch-h"><span class="ch-n">04</span><h2>Run：一个 run 就是一个&quot;从头跑一遍的版本&quot;</h2></div>
@@ -104,7 +104,7 @@
 <p>命名规范（文档建议）：<strong>日期 + 改动内容</strong>。例如：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">run_1025_base            ← 10月25日，基线</span><span class="ln ">run_1026_halo2           ← 加了 macro halo 2um</span><span class="ln ">run_1027_density70       ← 密度从 85% 降到 70%</span></code></pre></div>
 <p>为什么必须带日期和内容？因为<strong>一个 run 在集群上可能跑两三天</strong>，一周后你自己都想不起来&quot;run_1027 到底改了什么&quot;。命名是给未来的自己看的。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="queue" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="queue" data-ch="queue">
   <div class="ch-h"><span class="ch-n">05</span><h2>Queue：把耗时的事丢给集群</h2></div>
@@ -116,7 +116,7 @@
 <ul><li>一个五六百万门的大模块，<strong>从 placement 结束跑到 CTS 出结果，可能要 3~4 天</strong>；</li><li>这种任务不可能挂在你自己的登录节点上跑（会把机器拖死，也违反规定）。</li></ul>
 <p>典型工作方式：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">      你手动做完 floorplan / 摆好 memory / 设好约束</span><span class="ln ">                     ↓</span><span class="ln ">      把任务提交进 Queue（跑 place → cts → route → 报告）</span><span class="ln ">                     ↓</span><span class="ln ">      集群排队、分配机器、自动跑（几小时到几天）</span><span class="ln ">                     ↓</span><span class="ln ">      你看 log、看 report，判断好坏，改参数，再提交</span></code></pre></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="try" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="try" data-ch="try">
   <div class="ch-h"><span class="ch-n">06</span><h2>多版本并行：Try 机制</h2></div>
@@ -159,7 +159,7 @@
   <div class="q-a">任务状态（是否被 Killed）、资源与 license、log 尾部有没有 ERROR；跑批第一原则是确认它真的在跑。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能默写六个目录及各自内容</li><li>能用 mkdir -p 一次建出结构，并说出 <code>-p</code> 的作用</li><li>能说出为什么 scripts 要进版本库、work 会被清空</li><li>会开多终端（Ctrl+Shift+T）并给窗口改名区分 Run / Debug</li><li>能按&quot;日期 + 改动&quot;给 run 命名</li><li>能解释 Queue 的作用、3~4 天的量级、以及等待期该做的分析循环</li><li>知道提交后要查状态与 log，避免白等两天</li></ul></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">

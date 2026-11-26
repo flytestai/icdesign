@@ -67,7 +67,7 @@
   <div class="goal"><span>本章目标</span>能画出 NMOS 的三个极并说出栅极怎么控制导通；能解释&quot;28nm 指的是沟道长度&quot;以及短沟道效应为什么会漏电；能说出 FinFET 相比平面 MOS 的关键差别；能用与或非门推出半加器/全加器；能说出 CPU 由哪几类模块组成、后端通常负责其中哪一部分。</div>
 <p>你每天在做的事，是把几百万个晶体管摆到硅片上、用金属线连起来、让它们在正确的时刻翻转。如果不知道这些器件是什么、为什么这样连，你看到的就是一堆缩写和坐标。</p>
 <p>这一课不要求你会设计电路，只要求你<strong>能对上号</strong>：看到 <code>NAND2_X1</code> 知道它是&quot;两个输入做与再取反&quot;，看到 <code>DFF</code> 知道它是&quot;存 1 bit 的触发器&quot;，看到&quot;28nm 工艺&quot;知道那个 28 指的是什么。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="transistor" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="transistor" data-ch="transistor">
   <div class="ch-h"><span class="ch-n">02</span><h2>晶体管：一个能被电压控制的开关</h2></div>
@@ -82,7 +82,7 @@
   <div class="term-h"><span class="term-en">沟道</span><span class="term-zh">channel</span></div>
   <div class="term-b"><p>栅极下方连接源极与漏极的那条通道。它的<strong>长度</strong>决定了器件有多快、多小——这就是&quot;工艺节点&quot;的来源。</p></div>
 </div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="node" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="node" data-ch="node">
   <div class="ch-h"><span class="ch-n">03</span><h2>&quot;28nm&quot;到底指什么</h2></div>
@@ -95,7 +95,7 @@
 </div>
 <p>后果很严重：器件关不掉 → 静态功耗暴涨 → 芯片发烫、待机功耗超标。<strong>这是工艺走到 28nm 以下时最头疼的物理问题。</strong></p>
 <figure class="fig-img"><a class="fig-a" href="/fig/chip-28nm-channel.jpg" data-fig="chip-28nm-channel.jpg"><img src="/fig/chip-28nm-channel.jpg" alt="&quot;28nm&quot; 说的是栅极下方沟道的长度，不是芯片大小。沟道越短 → 晶体管越小 → 同样大的芯片能放更多开关；但不能一直变短：太短了门关不严、电子偷偷跑过去，芯片就更耗电、更容易发热。" loading="lazy" decoding="async"></a><figcaption>&quot;28nm&quot; 说的是栅极下方沟道的长度，不是芯片大小。沟道越短 → 晶体管越小 → 同样大的芯片能放更多开关；但不能一直变短：太短了门关不严、电子偷偷跑过去，芯片就更耗电、更容易发热。</figcaption></figure>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="finfet" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="finfet" data-ch="finfet">
   <div class="ch-h"><span class="ch-n">04</span><h2>FinFET：把沟道立起来，三面包裹</h2></div>
@@ -108,7 +108,7 @@
 <p>工程上的分界（文档给的）：</p>
 <div class="tbl"><table><thead><tr><th>工艺</th><th>器件类型</th></tr></thead><tbody><tr><td>28nm 及以上</td><td>平面 MOS 管</td></tr><tr><td>16nm / 12nm / 7nm 及以下</td><td><strong>FinFET 鳍式晶体管</strong></td></tr></tbody></table></div>
 <p>所以你在招聘里看到&quot;做过 16nm FinFET 项目&quot;，说的是他用过这一代器件和配套的库/规则，而不是他会设计器件。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="gate" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="gate" data-ch="gate">
   <div class="ch-h"><span class="ch-n">05</span><h2>逻辑门：几个晶体管搭出一个功能</h2></div>
@@ -119,7 +119,7 @@
 <p>先记住电平约定：<strong>1 = 高电平（VDD），0 = 低电平（VSS/地）</strong>。</p>
 <div class="tbl"><table><thead><tr><th>门</th><th>英文</th><th>规则</th><th>一句话</th></tr></thead><tbody><tr><td>与门</td><td><strong>AND</strong></td><td>全 1 才出 1</td><td>所有条件都满足才成立</td></tr><tr><td>或门</td><td><strong>OR</strong></td><td>有 1 就出 1</td><td>任一条件满足就成立</td></tr><tr><td>非门</td><td><strong>NOT</strong> / INV</td><td>输出与输入相反</td><td>取反</td></tr><tr><td>与非门</td><td><strong>NAND</strong></td><td>与之后取反</td><td>最常用，面积小</td></tr><tr><td>或非门</td><td><strong>NOR</strong></td><td>或之后取反</td><td></td></tr><tr><td>异或门</td><td><strong>XOR</strong></td><td>不同出 1，相同出 0</td><td>加法器的&quot;和&quot;</td></tr><tr><td>缓冲器</td><td><strong>BUF</strong></td><td>输出等于输入</td><td>用来增强驱动、整形</td></tr></tbody></table></div>
 <div class="tip"><div class="tip-h">小技巧</div><p>同样功能，NAND 用更少的晶体管、面积更小、速度更快。所以标准单元库里 NAND2_X1 这类单元满天飞，而纯 AND 门反而不多——<strong>这是&quot;逻辑等价但物理代价不同&quot;的第一个例子</strong>，后面布局布线里到处都是这种取舍。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="binary" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="binary" data-ch="binary">
   <div class="ch-h"><span class="ch-n">06</span><h2>二进制与加法器：0 和 1 怎么算加法</h2></div>
@@ -131,7 +131,7 @@
 <p><strong>全加器（full adder）</strong>：在半加器基础上多一个<strong>进位输入（Cin）</strong>，因为多位相加时低位会进位上来。把 N 个全加器串起来（低位进位接高位进位输入），就得到 N 位加法器。</p>
 <div class="tip"><div class="tip-h">小技巧</div><p><strong>晶体管 → 逻辑门 → 功能模块（加法器/比较器/多路选择器）→ CPU</strong></p>
 <p>后端看到的所有 instance，都落在这条链的中间层：你摆的是&quot;逻辑门级的标准单元&quot;，服务的是&quot;模块级的功能&quot;。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="cpu" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="cpu" data-ch="cpu">
   <div class="ch-h"><span class="ch-n">07</span><h2>从加法器到 CPU：模块级视角</h2></div>
@@ -142,7 +142,7 @@
   <div class="term-b"><p>D Flip-Flop，最基本的存储单元，<strong>在时钟沿把输入 D 搬到输出 Q</strong>，其余时间保持不变。它是时序分析的分界线：一条路径从某个 DFF 的 Q 出发，到另一个 DFF 的 D 结束。</p></div>
 </div>
 <p><strong>对后端的意义</strong>：一个 CPU 项目动辄几千万门，不可能一个人做。<strong>你会被分配其中一两个模块（block）</strong>，比如 ALU 或某个 Cache 控制逻辑——这也是为什么后面所有课程都在讲&quot;模块级（block）设计&quot;。你做的那一块，就是一个有边界、有端口的独立小芯片。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="terms" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="terms" data-ch="terms">
   <div class="ch-h"><span class="ch-n">08</span><h2>术语与英文名：这是硬门槛</h2></div>
@@ -151,7 +151,7 @@
 <div class="pit"><div class="pit-h">常见坑 · 把&quot;工艺节点&quot;当成实际尺寸</div><div class="pit-b"><p><strong>现象</strong>：算面积时把 28nm 当成线宽，或者以为 7nm 芯片的线真的只有 7nm 宽。</p>
 <p><strong>事实</strong>：28nm 指沟道长度，是<strong>器件参数</strong>；金属线宽、间距要看 tech lef（28nm 工艺的 M1 线宽约 0.07μm 量级）。而且从 22nm 往下，节点名已经更多是&quot;代际代号&quot;，不再等于任何单一物理尺寸。</p>
 <p><strong>记住</strong>：<strong>节点名是代际，物理尺寸一律查 lef/lib。</strong></p></div></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">09</span><h2>动手：把逻辑门和二进制跑一遍</h2></div>
@@ -230,7 +230,7 @@ puts &quot;1111(2) = [expr {8 + 4 + 2 + 1}]&quot;</textarea>
   <div class="q-a">同样功能下 NAND 用的晶体管更少、面积更小、速度更快，所以标准单元库里 NAND 单元最多。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能画出 NMOS 三极并说明栅极加压/不加压两种状态</li><li>能解释 28nm = 沟道长度，以及短沟道效应与漏电的关系</li><li>能说出 FinFET 三面包裹解决了什么问题，以及从哪一代工艺开始用</li><li>能写出与/或/非/异或的真值表，并说明半加器为什么由 XOR + AND 组成</li><li>能背出 CPU 的五类模块，并说出后端通常负责其中一两个 block</li><li>能说出 DFF 在时序分析里的角色（分界线）</li></ul></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">

@@ -71,7 +71,7 @@
 <p><strong>查看文件开头 / 结尾</strong>：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">head  文件名        # 默认查看前 10 行</span><span class="ln ">head  -20  文件名   # 查看文件前 20 行</span><span class="ln ">tail  文件名        # 默认查看后 10 行</span><span class="ln ">tail  -20  文件名   # 查看文件的后 20 行</span></code></pre></div>
 <div class="tip"><div class="tip-h">小技巧</div><p><code>tail -100 xxx.log</code> 看最新 100 行——跑完仿真/PR 第一件事就是它。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="vi" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="vi" data-ch="vi">
   <div class="ch-h"><span class="ch-n">02</span><h2>2. vi / vim / gvim 编辑文件</h2></div>
@@ -88,7 +88,7 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">diff       文件1 文件2    # 直接打印不同的内容</span><span class="ln ">zdiff      压缩文件对比    # 支持 zcat 类压缩格式</span><span class="ln ">gvimdiff   文件1 文件2    # 打开两个文件，高亮显示不同的部分</span></code></pre></div>
 <h3>alias 快捷指令</h3>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">alias          # 查看已经设置了哪些快捷指令</span><span class="ln ">alias  l       # 查看是否设置了 l 这个快捷指令</span></code></pre></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="symbols" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="symbols" data-ch="symbols">
   <div class="ch-h"><span class="ch-n">03</span><h2>3. 特殊符号</h2></div>
@@ -96,7 +96,7 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">history  &gt;  1.t                    # 把历史命令写进 1.t</span><span class="ln ">echo 123 &gt; 2.t                     # 把 123 写进 2.t</span><span class="ln ">cat  -n  .bash_history  &gt;  1.t     # 带行号写进 1.t</span></code></pre></div>
 <p><strong>2）管道符 <code>|</code></strong>：连接两个命令，把<strong>前一个命令的输出</strong>作为<strong>后一个命令的输入</strong>。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">cmd1  |  cmd2</span><span class="ln ">ll | grep '.txt'      # 列出内容后过滤出含 .txt 的行</span></code></pre></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="hotkeys" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="hotkeys" data-ch="hotkeys">
   <div class="ch-h"><span class="ch-n">04</span><h2>4. Linux 的快捷键</h2></div>
@@ -104,7 +104,7 @@
 <p><strong>打开文件后</strong>：</p>
 <div class="tbl"><table><thead><tr><th>按键</th><th>作用</th></tr></thead><tbody><tr><td><code>G</code></td><td>跳转到文件<strong>最后一行</strong></td></tr><tr><td><code>gg</code></td><td>跳转到文件<strong>第一行</strong></td></tr><tr><td><code>g + f</code></td><td>直接在文件内跳转另一个文件</td></tr><tr><td><code>ctrl + o</code></td><td>返回原文件</td></tr><tr><td><code>!100</code></td><td>history 之后，直接执行第 100 行执行过的命令</td></tr></tbody></table></div>
 <p><strong>tips</strong>：帮助学习 cmd 的使用——<code>cmd --help</code>，展示命令的语法格式以及用法。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lab" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="lab" data-ch="lab">
   <div class="ch-h"><span class="ch-n">05</span><h2>动手练：练习二</h2></div>
@@ -123,7 +123,7 @@
   <div class="q-a">/关键字 向下搜（n 下一个，shift+n 上一个）；?关键字 向上搜；:set ic 可忽略大小写。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>七种查看文件的方式都说得出、用得上</li><li>vi 编辑模式三个入口键 + 命令行模式十条命令全记熟</li><li>重定向和管道能各举一个工作场景</li><li>练习二 17 题全部完成</li></ul></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">

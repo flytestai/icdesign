@@ -77,7 +77,7 @@
   <div class="term-b"><p>和&quot;延迟、约束&quot;有关的数据：lib（单元延迟）、rc tech（线延迟）、sdc（约束）。它们决定工具算出来的时序对不对、优化目标是什么。</p></div>
 </div>
 <p>一句记法：<strong>physical data 管形状位置，timing data 管快慢与目标。</strong></p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="netlist" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="netlist" data-ch="netlist">
   <div class="ch-h"><span class="ch-n">02</span><h2>netlist：逻辑连接的文字描述</h2></div>
@@ -91,7 +91,7 @@
 <div class="code"><div class="code-h"><span class="code-lang">verilog</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">// 综合后的网表（节选，示意）：只剩单元实例和连线</span><span class="ln ">DFFR_X1  cnt_reg_0_  (.D(cnt_n_0_), .CK(clk), .RN(rst_n), .Q(cnt[0]));  // 第 0 位触发器</span><span class="ln ">INV_X2   g12         (.A(cnt[0]),   .ZN(cnt_n_0_));                     // 反相器：计数取反</span><span class="ln ">NAND2_X1 g13         (.A(cnt[1]),   .B(cnt[0]), .ZN(n_23));             // 与非门：进位逻辑</span></code></pre></div>
 <p>差别一眼可见：<strong>RTL 描述行为，netlist 描述连接</strong>。而两者都<strong>没有坐标</strong>——这就是为什么还需要 def 和 lef。</p>
 <div class="pit"><div class="pit-h">常见坑 · 拿到的 netlist 是 RTL 而不是门级</div><div class="pit-b"><p><strong>现象</strong>：init 之后工具报大量 <code>Cannot find cell</code>，说找不到 <code>always</code>、<code>if</code> 之类的东西。 <strong>原因</strong>：给的是 RTL 源文件，没有经过综合，里面的语法不是单元实例。 <strong>怎么确认</strong>：打开文件搜一下，如果满屏 <code>module ... always @(...)</code> 就是 RTL；门级网表里全是 <code>XXX_X1 u123 (...)</code> 这种实例行。</p></div></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="naming" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="naming" data-ch="naming">
   <div class="ch-h"><span class="ch-n">03</span><h2>文件名不是随便起的：命名是防事故的第一道墙</h2></div>
@@ -108,7 +108,7 @@
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">/proj/&lt;项目名&gt;/ME/&lt;模块名&gt;/xxx.v.gz     ← 中端（综合后）release 的网表在这</span><span class="ln ">/proj/&lt;项目名&gt;/DE/&lt;模块名&gt;/xxx_rtl.v    ← 前端 release 的 RTL 在这</span></code></pre></div>
 <p><strong>Release 是个动作</strong>：把本地做好的东西<strong>上传到服务器约定路径</strong>，让下游能取。所以接手一个模块，第一句该问的是&quot;<strong>release 路径在哪</strong>&quot;——有路径就有版本、有时间戳、有 owner。</p>
 <div class="tip"><div class="tip-h">小技巧</div><p>网表版本怎么迭代（V1.0 → V9.0）、S1/S2 两版网表各干什么、instance 数为什么从 200 万跳到 400 万、模块从矩形变 L 型为什么白干两个月——这些都放进了 <a href="/lesson/02-04a-netlist-release/">网表版本、Release 与迭代协作</a> 那一课。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="def" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="def" data-ch="def">
   <div class="ch-h"><span class="ch-n">04</span><h2>def：这一版设计的&quot;实际位置&quot;</h2></div>
@@ -129,7 +129,7 @@
   <div class="term-b"><p>口语里的 <strong>Hard</strong>、<strong>Hard Block</strong>、<strong>harden 过的模块</strong>，说的是同一件事：<strong>已经有真实物理信息（面积、pin 位置、布线结果）的模块</strong>。<br>与之相对的是&quot;软&quot;的 netlist——只有逻辑连接，没有面积和位置。<strong>从软到硬，就是 PR 干的事。</strong></p></div>
 </div>
 <div class="note"><div class="note-h">为什么 def 比 GDS 更适合当&quot;合同&quot;</div><p>GDS 是最终版图，信息量大但改起来重；def 是轻量的&quot;位置清单&quot;，读入快、可编辑、工具间通用。所以 block 与 top 之间反复迭代阶段用 def 交接，最后定版才用 GDS。</p></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="lef" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="lef" data-ch="lef">
   <div class="ch-h"><span class="ch-n">05</span><h2>lef：两个文件，两种信息</h2></div>
@@ -143,7 +143,7 @@
   <div class="term-b"><p>描述<strong>每个单元</strong>：长、宽、高，有几个输入 pin、几个输出 pin、pin 在什么位置、什么方向。工具靠它知道&quot;这个单元占多大地方、线该接到哪&quot;。</p></div>
 </div>
 <p>下一课会用一整课把这两种 lef 拆开看（含 pitch、DRC、obs 这些细节）。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="timing-files" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="timing-files" data-ch="timing-files">
   <div class="ch-h"><span class="ch-n">06</span><h2>lib / rc tech / sdc：三个&quot;算延迟和定目标&quot;的文件</h2></div>
@@ -158,14 +158,14 @@
   <div class="term-b"><p>记录单位长度的寄生电阻 R 与寄生电容 C，供工具抽取/估算 net 的寄生参数，进而算线延迟。抽取寄生参数的专业工具是 <strong>StarRC</strong>（Synopsys）和 <strong>QRC</strong>（Cadence）。</p></div>
 </div>
 <p>lib 和 rc tech 的细节在第 6 课（cell delay 与 net delay 怎么算），sdc 在第 8 课，MMMC 在第 7 课。这一课你只要建立&quot;哪个文件解决哪类问题&quot;的直觉。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="order" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="order" data-ch="order">
   <div class="ch-h"><span class="ch-n">07</span><h2>init 的顺序感：为什么先物理后时序</h2></div>
   <p>工具内部的顺序其实很朴素：</p>
 <ol><li>先读 <strong>lef</strong>：知道这个工艺有哪些层、每个单元长什么样（没有 lef，工具连&quot;地方&quot;都画不出来）；</li><li>再读 <strong>netlist</strong>：知道有哪些单元实例、怎么连；</li><li>再读 <strong>lib + rc tech</strong>：知道延迟怎么算；</li><li>再读 <strong>sdc + MMMC</strong>：知道优化目标与场景；</li><li><code>init_design</code>：把上面这些&quot;组装&quot;成一个可操作的设计。</li></ol>
 <p>所以报错也基本按这个顺序出现：先报找不到 lef，再报找不到 cell，再报找不到 library，最后才是约束相关的警告。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="errors" data-last="0">学完这章，继续下一章 →</button></div>
+  
 </section>
 <section class="ch" id="errors" data-ch="errors">
   <div class="ch-h"><span class="ch-n">08</span><h2>缺文件的真实报错对照</h2></div>
@@ -195,7 +195,7 @@
   <div class="q-a">cell lef 没读全，或工艺库版本与网表不匹配；也可能库搜索路径没配对。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能不看书列出 init 需要的 8 类文件并说出各自作用</li><li>能解释 netlist 是逻辑连接、def 是物理数据</li><li>能说出 tech lef 与 cell lef 的分工</li><li>能写出 Innovus 与 ICC2 的 def 导入导出命令</li><li>看到 <code>Cannot find library</code> / <code>Cannot find cell</code> 能定位到缺哪个文件</li></ul></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-next="" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
