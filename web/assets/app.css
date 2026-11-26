@@ -728,3 +728,21 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .h-pg,.h-sc{font-size:12px}
 }
 
+
+/* ---------- 阶段折叠 ---------- */
+.stage-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;
+  transition:color .15s;border-radius:6px;margin-left:-4px;padding:2px 4px}
+.stage-toggle:hover{color:var(--c)}
+.stage-toggle:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+.st-t{flex:0 0 auto}
+.st-chev{margin-left:auto;font-size:12px;color:var(--dim);transition:transform .22s;flex:0 0 auto}
+.stage.collapsed .st-chev{transform:rotate(-90deg)}
+/* 收起：隐藏课程列表与进度条，保留标题与描述 */
+.stage.collapsed .lrows,
+.stage.collapsed .stage-prog{display:none}
+.stage.collapsed{padding-bottom:14px}
+.stage.collapsed .stage-r p{margin-bottom:0}
+/* 收起时给个视觉提示（有多少课） */
+.stage-toggle::after{content:attr(data-count);font-size:11.5px;color:var(--dim);
+  font-weight:400;margin-left:8px;opacity:.75;display:none}
+.stage.collapsed .stage-toggle::after{display:inline}

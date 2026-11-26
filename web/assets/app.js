@@ -475,6 +475,40 @@
     });
   });
 
+  /* ---------------- 阶段折叠（默认展开，状态记忆） ---------------- */
+  (function stageCollapse() {
+    var LS_STG = 'icl.stageCollapsed';
+    function loadCollapsed() {
+      try { return JSON.parse(localStorage.getItem(LS_STG) || '{}'); } catch (e) { return {}; }
+    }
+    function saveCollapsed(o) {
+      try { localStorage.setItem(LS_STG, JSON.stringify(o)); } catch (e) { }
+    }
+    var collapsed = loadCollapsed();
+    var toggles = [].slice.call(document.querySelectorAll('.stage-toggle'));
+    if (!toggles.length) return;
+
+    function apply(t, stage) {
+      var stageEl = t.closest('.stage');
+      if (!stageEl) return;
+      var isCollapsed = !!collapsed[stage];
+      stageEl.classList.toggle('collapsed', isCollapsed);
+      t.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    }
+    toggles.forEach(function (t) {
+      var stage = t.getAttribute('data-stage');
+      apply(t, stage);                              // 初始化：按记忆状态渲染
+      t.addEventListener('click', function () {
+        collapsed[stage] = !collapsed[stage];
+        saveCollapsed(collapsed);
+        apply(t, stage);
+      });
+      t.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t.click(); }
+      });
+    });
+  })();
+
   /* ---------------- 术语卡 ---------------- */
   document.querySelectorAll('.term').forEach(function (t) {
     function toggle() { t.classList.toggle('open'); }

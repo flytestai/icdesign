@@ -747,7 +747,7 @@ def build_home(lessons, nquiz, nterm):
             for L in items)
         stages_html.append(f"""<div class="stage" id="stage-{num}" style="--c:{color}">
   <div class="stage-l"><span class="stage-n">{num}</span></div>
-  <div class="stage-r"><h3>{esc(name)}</h3><p>{esc(desc)}</p>
+  <div class="stage-r"><h3 class="stage-toggle" data-stage="{num}" data-count="({len(items)} 课)" role="button" tabindex="0" aria-expanded="true"><span class="st-t">{esc(name)}</span><span class="st-chev">▾</span></h3><p>{esc(desc)}</p>
   <div class="lrows">{rows}</div></div>
 </div>""")
     total_h = 0
