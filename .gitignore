@@ -51,3 +51,8 @@ chk-*.png
 .aifig.key
 .aifig_image.key
 .deploy.env
+
+# 服务端本地数据与调试临时文件
+/server/data/
+/login.yaml
+.workbuddy/
