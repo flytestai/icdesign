@@ -999,7 +999,7 @@ def leaderboard(request: Request):
     # 这样：① 反复学同一课最多只算到计划时长的 CAP_RATIO 倍
     #       ② 学新课才开始接近满分，体现"覆盖面"而不是"熬时间"
     #       ③ 与别人无关，不会因他人学习而下降
-    CAP_RATIO = 1.5
+    CAP_RATIO = 2.0
     plan_min = _plan_minutes_by_lesson()          # {lesson_id: minutes}
     plan_secs = sum(v * 60 for v in plan_min.values()) or 1
     for r in rows:
