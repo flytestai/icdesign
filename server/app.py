@@ -993,13 +993,15 @@ def leaderboard(request: Request):
             "total_quizzes": total_quizzes,
             "exam_passed": exam_passed, "total_stages": total_stages,
         })
-    # ---- 时长分：逐课封顶，重学多遍不再无限加分 ----
-    # 每门课的有效时长 = min(该课累计秒数, 该课计划分钟*60 * CAP_RATIO)
-    # 总分 = Σ有效时长 / Σ计划时长 * 100
-    # 这样：① 反复学同一课最多只算到计划时长的 CAP_RATIO 倍
-    #       ② 学新课才开始接近满分，体现"覆盖面"而不是"熬时间"
-    #       ③ 与别人无关，不会因他人学习而下降
-    CAP_RATIO = 5.0
+    # ---- 时长分：分遍折算，总计 2 倍封顶 ----
+    # 每门课计划时长记作 P。同一门课：
+    #   第 1 遍：按实际时长计（最多计到 1.0 P）
+    #   第 2~5 遍：每遍只计 0.25 P，4 遍合计 1.0 P
+    #   合计上限 = 2.0 P（学满 5 遍即封顶，第 6 遍起不再加分）
+    # 总分 = Σ有效时长 / Σ计划时长 * 100（上限 100）
+    FIRST_FULL = 1.0        # 第 1 遍计满 1 倍
+    REPEAT_COUNT = 4        # 之后还有 4 遍（共 5 遍）
+    REPEAT_EACH = 0.25      # 每遍计 0.25 倍
     plan_min = _plan_minutes_by_lesson()          # {lesson_id: minutes}
     plan_secs = sum(v * 60 for v in plan_min.values()) or 1
     for r in rows:
@@ -1008,8 +1010,16 @@ def leaderboard(request: Request):
         mine = tl.get(r.get("_uid"), {})
         eff = 0.0
         for lid, pm in plan_min.items():
-            cap = pm * 60 * CAP_RATIO
-            eff += min(mine.get(lid, 0), cap)
+            P = pm * 60
+            got = mine.get(lid, 0)
+            # 第 1 遍：0~1P 区间，按 1.0 计（至多 1P）
+            v = min(got, P * FIRST_FULL)
+            # 第 2~5 遍：1P 之后的每 P 秒算「一遍」，每遍计 0.25，最多 4 遍
+            if got > P:
+                extra = got - P
+                n_rep = min(extra / P, float(REPEAT_COUNT))   # 已完成的复学遍数（可带小数）
+                v += n_rep * P * REPEAT_EACH
+            eff += v
         t_score = min(100.0, eff / plan_secs * 100)
         r["progress_pct"] = round(p_score, 1)
         r["quiz_pct"] = round(q_score, 1)
