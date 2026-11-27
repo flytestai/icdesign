@@ -192,7 +192,6 @@
       var batches = [];
       var posted = false;
       var hasServerTotal = false;
-      var projected = 0;
       var timeEl = document.getElementById('lp-time');
       function fmt(sec) {
         if (!sec) return '';
@@ -203,9 +202,13 @@
       }
       function paintTime() {
         if (!timeEl) return;
-        // 服务端课时可能已包含其他待回执批次，取较大值而不是相加。
-        var t = (batches.length ? Math.max(known, projected) : known) + Math.floor(accMs / 1000);
-        timeEl.textContent = t > 0 ? '⏱ ' + fmt(t) : '';
+        var pending = batches.length || accMs >= 1000;
+        var state = stopped ? '登录已失效，请重新登录' :
+          !foreground ? '切回课页恢复计时' :
+          performance.now() >= last + IDLE_MS ? '已暂停，滚动或点击可继续' :
+          batches.some(function (b) { return b.failed; }) ? '上报未成功，正在重试' :
+          pending ? '计时中，待同步' : '计时中';
+        timeEl.textContent = '⏱ ' + (known ? '已记录 ' + fmt(known) + ' · ' : '') + state;
       }
       fetch(API + '/study-time').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
         // 旧版 POST 只返回增量，不能与可能已包含该批次的 GET 快照混算。
@@ -252,7 +255,6 @@
           if (!d) throw new Error('缺少学习时长回执');
           batches.splice(batches.indexOf(batch), 1);
           if (d.rejected) {
-            projected -= batch.seconds;
             if (d.rejected === 401 || d.rejected === 403) {
               stopped = true;
               batches.length = 0;
@@ -264,23 +266,24 @@
           } else if (!hasServerTotal) {
             var added = Number.isFinite(d.added) ? d.added : batch.seconds;
             known += added;
-            projected -= batch.seconds - added;
           }
           paintTime();
           if (drain) sendNext();
-        }).catch(function () { batch.sending = false; }); // 保留同一个批次及 UUID，下次重试。
+        }).catch(function () {
+          batch.sending = false;
+          batch.failed = true;
+          paintTime();
+        }); // 保留同一个批次及 UUID，下次重试。
       }
       function sendNext() {
         if (!away && batches.length && !batches[0].sending) send(batches[0], true);
       }
       function flush(leaving) {
         if (stopped) return;
-        if (!batches.length) projected = known;
         var s;
         while ((s = Math.min(60, Math.floor(accMs / 1000))) > 0) {
           batches.push({ id: batchId(), seconds: s, sending: false });
           accMs -= s * 1000;
-          projected += s;
         }
         if (leaving) {
           // 用 keepalive 发出新尾数，不等较早的批次返回。
@@ -306,6 +309,7 @@
         sample(performance.now());
         flush(false);
       }, 15000);
+      window.addEventListener('online', function () { flush(false); });
       window.addEventListener('blur', function () { setForeground(false); });
       window.addEventListener('focus', function () { setForeground(active()); });
       document.addEventListener('visibilitychange', function () { setForeground(active()); });
