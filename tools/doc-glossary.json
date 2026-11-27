@@ -1,0 +1,412 @@
+[
+ {
+  "en": "CDC",
+  "def": "Cross-Domain-Check，跨时钟域检查。业界三大EDA公司Synopsys, Cadence, Mentor都有各自的CDC工具：Synopsys Spyglass CDC®, Cadence Conformal Constraint Designer®, Mentor Questa®. 而这其中以Synopsys公司的Spyglass CDC最为常用，市场占有率最高。在很多公司里都以Spyglass CDC作为Sign-off的标准",
+  "stage": 2
+ },
+ {
+  "en": "Tech File/Tech Lef",
+  "def": "精简版的物理设计规则，它是被用来指导工具按照design rule来完成布线。这个design rule是foundary代工厂加工制作的物理规则，比如metal间距要求，metal最小线宽等规则。",
+  "stage": 2
+ },
+ {
+  "en": "Site",
+  "def": "代表最基本的布局单元。site一般情况是最小standard cell的大小。类似cell的最小size。定义在 lef中, 如下图所示：",
+  "stage": 3
+ },
+ {
+  "en": "Row",
+  "def": "和site有关的另一个概念是row，row是有N个site排列组成。",
+  "stage": 3
+ },
+ {
+  "en": "Routing Track",
+  "def": "它是指金属走线的通道。工艺库中会指定好每层金属的track，它有默认方向的走线方向，比如M2的优先走线为水平方向，那么工具在走M2 routing的时候就会优先走水平方向。因此，对于一个给定大小的设计，绕线资源是固定的，即每层金属的绕线track都是定好的。",
+  "stage": 3
+ },
+ {
+  "en": "Tluplus &QRC",
+  "def": "Tluplus和QRC分别是foundary提供给Synopsys和Cadence PR工具使用的。工具用这个文件来估算设计中的R和C，从而计算互连线的delay。",
+  "stage": 2
+ },
+ {
+  "en": "Core Area(Core Box)",
+  "def": "Core区域为标准单元摆放的区域，如下图的绿色区域。",
+  "stage": 3
+ },
+ {
+  "en": "Pad",
+  "def": "PAD是加在IO Cell上的一个PAD头，封装可以通过和这个PAD头进行连线，把芯片中的IO Pin拉到封装和PCB硬件上，可以在外部观测这个IO的信号值。",
+  "stage": 3
+ },
+ {
+  "en": "IO Pin/Port",
+  "def": "在芯片级IO Pin就是IO的PAD pin。在模块级的设计对应的叫法是IO port。",
+  "stage": 3
+ },
+ {
+  "en": "IO Cell",
+  "def": "IO Cell如下图中摆放在芯片四周的cell，它包含core电压的逻辑和IO电压的逻辑，即pre-driver和post-driver两大部分。pre-driver是直接和我们芯片的core逻辑进行交互的。",
+  "stage": 3
+ },
+ {
+  "en": "Power Ring",
+  "def": "电源环，如下图中从Power IO Cell想要把电从IO供电到core区域的标准单元，memory和ip，需要通过power ring来过渡下。",
+  "stage": 3
+ },
+ {
+  "en": "Power Stripe",
+  "def": "电源条带，由一段段的Metal，按照一定的间距组成。",
+  "stage": 3
+ },
+ {
+  "en": "Power Mesh",
+  "def": "这个一般是指core区域的电源网络，它是由垂直方向和水平方向的Power Stripe交叉打孔形成一个横纵交错的电源网络。",
+  "stage": 3
+ },
+ {
+  "en": "Power Rail /Follow Pin",
+  "def": "电源轨道。有了这个Power rail后标准单元只要摆放到row上，这样标准单元的PG pin就可以和这个Power Rail完全贴在一起。这步是通过sroute来实现的。",
+  "stage": 3
+ },
+ {
+  "en": "IR Drop",
+  "def": "电压降，它是指电源网络的压降（I为电流的缩写，R为电阻的缩写，电压U=I*R）。",
+  "stage": 3
+ },
+ {
+  "en": "ENDCAP CELL",
+  "def": "Endcap Cell也称为Boundary cells，一般放置在macro的两端、row的两端和std cell core的上下边界。在28 nm以及更小尺寸的工艺中，为了保证栅以及氧化层的一致性，需要在标准单元Row两端放置EndCAP。它相当于一种Dummy管子，用来保证两边的标准单元左右环境的一致性。避免在光刻时，由于最两端标准单元左右环境的不一致导致其性能有所差异。",
+  "stage": 3
+ },
+ {
+  "en": "Tap Cell",
+  "def": "加tapcell的目的是防止latch up,它实际上就是一个阱连接和衬底连接。",
+  "stage": 3
+ },
+ {
+  "en": "DECAP Cell",
+  "def": "电容器，这颗cell里面就是画了一些电容C。",
+  "stage": 3
+ },
+ {
+  "en": "Placement Blockage",
+  "def": "cell摆放阻挡层。它是用来引导工具做placement的一种物理约束或手段，目的是希望工具按照我们的要求来做标准单元的摆放。",
+  "stage": 3
+ },
+ {
+  "en": "Halo",
+  "def": "它和hard placement blockage功效是一致的。当我们给memory添加Halo时，随着memory的移动，这个Halo也会随着移动。而blockage则没有这个特性。",
+  "stage": 3
+ },
+ {
+  "en": "Routing Blockage",
+  "def": "绕线阻挡层。它是用来引导工作做routing绕线的一种物理约束或手段，目的是希望工具按照我们的要求来做routing。",
+  "stage": 3
+ },
+ {
+  "en": "GR",
+  "def": "Global Route。它又分为Early Global Route和Global Route。前者是指在placement，cts等阶段做的虚拟绕线。",
+  "stage": 2
+ },
+ {
+  "en": "Overflow",
+  "def": "它是用来描述设计的congestion情况的。Overflow = Demand -Capacity。这个Overflow值工具会分成垂直方向和水平方向的Overflow，一般Overflow在1.5%内大概率是可以绕通。这个Overflow值一般可以在每个阶段的Log中报出。",
+  "stage": 2
+ },
+ {
+  "en": "HotSpot",
+  "def": "hotspot表征的是设计中congestion的热点，它是用面积来表示hotspot的分数。如果这个分数越高代表的是这个位置有congestion的点比较多。所以这个位置附近就有比较聚集的congestion问题。",
+  "stage": 2
+ },
+ {
+  "en": "CMP",
+  "def": "Concurrent Macro and std Placement, Innovus mixed placer，可以同时自动摆放macro和std cell。",
+  "stage": 2
+ },
+ {
+  "en": "CPF",
+  "def": "common power format，低功耗设计文件，描述低功耗设计实现需求，比如定义power domain，voltage domain以及各个低功耗应用场景。",
+  "stage": 7
+ },
+ {
+  "en": "UPF",
+  "def": "Unfied Power Format, 低功耗约束文件，描述低功耗设计实现需求，比如定义power domain，voltage domain以及各个低功耗应用场景。",
+  "stage": 7
+ },
+ {
+  "en": "Lef",
+  "def": "Library exchange format，描述std cell的物理信息，包括形状，尺寸，出pin的位置及金属层，不可布线区域OBS等。它是用来告诉工具当前std cell的形状，出pin位置以及std cell内部的走线（表现为OBS）。",
+  "stage": 2
+ },
+ {
+  "en": "Base Layer",
+  "def": "它也叫FEOL Layer，它类似我们盖房子的地基，所以任何一个有逻辑功能的地基就是这个Base layer。它主要包括有源区OD，POLY, CO(poly和metal之间的通孔)和NPLUS,PLUS这些layer。",
+  "stage": 2
+ },
+ {
+  "en": "LEF/FRAM View/GDS VIEW",
+  "def": "下图左侧为NAND与非门的LEF或叫FRAM VIEW，这里的View理解成视图。右侧是NAND的GDS View，GDS是一个设计的全貌，它包含了组成这个逻辑单元的一切管子device器件。而我们知道任何一个管子都有它的Base layer和Metal layer。Base layer一般也叫FEOL Layer，Metal Layer也叫BEOL Layer。",
+  "stage": 2
+ },
+ {
+  "en": "Transition",
+  "def": "它是指信号转换时间，也被称为transition time。是指电压从10%VDD上升到90%VDD所需要的时间，或者是从90%VDD下降到10%VDD所需要的时间，当然也可以是20%VDD上升到80%VDD的时间，具体要看timing lib库里面的定义，如：",
+  "stage": 6
+ },
+ {
+  "en": "CELL Delay",
+  "def": "逻辑单元的传播延时。传播延时是指信号从逻辑门的输入端到其输出端所需要的时间。",
+  "stage": 6
+ },
+ {
+  "en": "Net Delay",
+  "def": "互连线Inter-connected延时，它是指逻辑net对应的走线延时。走线越长，net delay越大。",
+  "stage": 6
+ },
+ {
+  "en": "TYP (typical)",
+  "def": "typical process, nominal temperature, nominal voltage",
+  "stage": 6
+ },
+ {
+  "en": "ML (Maximal Leakage )",
+  "def": "fast process, high temperature, high voltage",
+  "stage": 6
+ },
+ {
+  "en": "TL (typical Leakage )",
+  "def": "typical process, high temperature, nominal voltage",
+  "stage": 6
+ },
+ {
+  "en": "SDF",
+  "def": "standard delay format，标准延时文件，用于反标回前端仿真工具进行后仿。",
+  "stage": 2
+ },
+ {
+  "en": "WNS",
+  "def": "worst negative slack， 最差的slack值，表征芯片的最差性能。",
+  "stage": 6
+ },
+ {
+  "en": "TNS",
+  "def": "total negative slack， 所有负的slack值之和，表征芯片的一个性能范围。",
+  "stage": 6
+ },
+ {
+  "en": "CRPR/CPPR",
+  "def": "clock reconvergence pessimism removal / common path pessimism removal，考虑了ocv的时序分析过程中，需要对common path上的悲观度进行剔除。",
+  "stage": 6
+ },
+ {
+  "en": "Delay Cell",
+  "def": "中文名延迟单元，常用于data path上，相比于buffer单元，它可以起到增加更多delay的作用，用来修复hold time的violation。",
+  "stage": 6
+ },
+ {
+  "en": "PATH1",
+  "def": "输入端口input-----------> 寄存器的数据输入端 （in2reg path）",
+  "stage": 6
+ },
+ {
+  "en": "PATH2",
+  "def": "寄存器CLK------------> 寄存器的数据输入端 （reg2reg path， 内部路径）",
+  "stage": 6
+ },
+ {
+  "en": "PATH3",
+  "def": "寄存器CLK-------------> 输出端口output （reg2out path）",
+  "stage": 6
+ },
+ {
+  "en": "PATH4",
+  "def": "输入端口input-------------> 输出端口output （feedthrough path，直通路径）",
+  "stage": 6
+ },
+ {
+  "en": "EndPoint",
+  "def": "时序path上的终点。",
+  "stage": 6
+ },
+ {
+  "en": "StartPoint",
+  "def": "时序path上的起点。",
+  "stage": 6
+ },
+ {
+  "en": "Clock Path",
+  "def": "时钟路径，它是指时钟树上的clock  tree。",
+  "stage": 6
+ },
+ {
+  "en": "Data Path",
+  "def": "数据路径，它包括数据路径上的组合逻辑。",
+  "stage": 6
+ },
+ {
+  "en": "Launch Flop &Capture Flop",
+  "def": "Launch Flop就是指发送数据的寄存器，而Capture Flop是指接收（采样捕捉）数据的寄存器。值得注意的是这是相对某一条path来说的。对于input到reg的时序路径，这颗reg是capture  flop，但对从这颗reg到下一个reg的路径来说，这个reg就是launch flop（Flop就是寄存器的意思）。",
+  "stage": 6
+ },
+ {
+  "en": "Launch clock path & Capture clock path",
+  "def": "有了上面这些铺垫后，launch clock path和capture clock path就很清晰了。对于下图所示的这条timing path来说，UFF0就是launch Flop，UFF1是capture Flop。",
+  "stage": 6
+ },
+ {
+  "en": "Setup Time",
+  "def": "静态时序分析中最基本的就是setup和hold时序分析，其检查的是触发器时钟端CK与数据输入端D之间的时序关系。Setup time是指在时钟有效沿（下图为上升沿）之前，数据输入端信号必须保持稳定的最短时间。",
+  "stage": 6
+ },
+ {
+  "en": "Hold time",
+  "def": "它是指在时钟有效沿（下图为上升沿）之后，数据输入端信号必须保持稳定的最短时间。hold time时序检查确保新数据不会在触发器稳定输出初始数据之前过早到达D端而覆盖其初始数据。",
+  "stage": 6
+ },
+ {
+  "en": "Clock Skew",
+  "def": "我们称为时钟偏差。由于时钟到每个寄存器的路径延迟不一样，造成信号到达 clock pin 的时间也不一样，我们把时钟信号到达不同寄存器的时间偏差称为clock skew。clock Skew是衡量时钟树性能的重要参数，传统CTS的目的就是把时钟树长度做到最短，clock skew做到最小。",
+  "stage": 6
+ },
+ {
+  "en": "Clock Jitter",
+  "def": "时钟抖动，它是指相对于理想时钟而言，实际时钟随着传播出现时钟的时而超前，时而滞后的情况。等效于时钟的脉冲宽度发生了暂时的变化，也就是Tcycle变大或变小。所以对于setup检查来说，clock uncertainty就需要考虑这个时钟抖动值。",
+  "stage": 6
+ },
+ {
+  "en": "Clock Insertion Delay(Clock Tree Latency)",
+  "def": "时钟树的长度。",
+  "stage": 6
+ },
+ {
+  "en": "Scan Chain Reorder",
+  "def": "直译为扫描链重组。",
+  "stage": 2
+ },
+ {
+  "en": "DAG",
+  "def": "全称是Directed acyclic graph。它是innovus在做时钟树综合时用到的一种图形结构。",
+  "stage": 6
+ },
+ {
+  "en": "CCD",
+  "def": "concurrent clock and data，在时序优化的过程中使用useful skew向前级或后级借timing。",
+  "stage": 6
+ },
+ {
+  "en": "DCD",
+  "def": "Duty Cycle Distortion，即时钟不对称，时钟的脉冲宽度发生了变化。DCD会吞噬大量的时序裕量，造成数字信号的失真，使过零区间偏离理想的位置。DCD通常是由信号的rise delay和fall delay不平衡而造成的。",
+  "stage": 5
+ },
+ {
+  "en": "MSMV",
+  "def": "Multi-Supply Multi-Voltage （多电源多电压）",
+  "stage": 7
+ },
+ {
+  "en": "PSO",
+  "def": "Power Shut Off （电源关断）",
+  "stage": 7
+ },
+ {
+  "en": "SRPG",
+  "def": "State Retention Power Gating（状态保持电源门控）",
+  "stage": 7
+ },
+ {
+  "en": "RDL",
+  "def": "Redistribution layer，用在flip chip封装中。",
+  "stage": 5
+ },
+ {
+  "en": "OD",
+  "def": "Oxide氧化层，或指有源区，它属于Base Layer，是需要Tapeout流片的层。",
+  "stage": 5
+ },
+ {
+  "en": "GDS",
+  "def": "Graphic Data System，设计的版图文件，目前是第二代GDS，一般也会写作GDSII，已经成为业界的标准格式。",
+  "stage": 2
+ },
+ {
+  "en": "RSF",
+  "def": "Run-Set-File，物理规则描述文件，用于对GDS版图进行检查。在过往常用的工艺里边，大部分的RSF都是基于Calibre的SVRF（Standard Verification Rule Format）、TVF（Tcl Verification Format）语法格式的。",
+  "stage": 2
+ },
+ {
+  "en": "OASIS",
+  "def": "随着工艺节点的越来越小，芯片的GDS数据量越来越大，为了便于文件传输，产生了OASIS（Open Artwork System Interchange Standard）格式，文件更小传输更便捷，也是SEMI力推的下一代版图数据格式，用于替代已经服役30多年的GDS格式。",
+  "stage": 2
+ },
+ {
+  "en": "NDR",
+  "def": "Non default routing rule， 非默认绕线规则。一般用于设置clock时钟走线的规则，如w2s2，即两倍线宽两倍间距。",
+  "stage": 6
+ },
+ {
+  "en": "ICG",
+  "def": "Integrated Clock Gating（集成时钟门控）。",
+  "stage": 6
+ },
+ {
+  "en": "itf",
+  "def": "interconnect technology format，RC寄生模型文件，用来计算互连线RC。",
+  "stage": 2
+ },
+ {
+  "en": "POC",
+  "def": "power on control，控制IO上电。",
+  "stage": 2
+ },
+ {
+  "en": "SSO",
+  "def": "Simultaneous Switching outputs，即允许同时切换的信号 IO 的数量。",
+  "stage": 2
+ },
+ {
+  "en": "LPP",
+  "def": "Low Power Placement",
+  "stage": 7
+ },
+ {
+  "en": "GLPO",
+  "def": "Gate Level Power Optimization，通过门级优化降低功耗",
+  "stage": 7
+ },
+ {
+  "en": "Downsize",
+  "def": "对高翻转率net的扇出cell downsize，减小负载电容 Pin swapping：将高翻转率net连接到低电容pin",
+  "stage": 6
+ },
+ {
+  "en": "HFNS",
+  "def": "High Fanout Net Synthesis，在综合和place阶段进行的操作，即向大扇出的net插入buffer，以增加驱动能力，减小负载，消除Timing DRC问题（如max_transition）。",
+  "stage": 7
+ },
+ {
+  "en": "HCTS",
+  "def": "目前理解就是传统的H-tree 结构。",
+  "stage": 6
+ },
+ {
+  "en": "MPCTS",
+  "def": "Multi point Clock Tree Synthesis。",
+  "stage": 6
+ },
+ {
+  "en": "WPE (Well Proximity Effect)",
+  "def": "阱临近效应。",
+  "stage": 5
+ },
+ {
+  "en": "PSE(Poly Space Effect)",
+  "def": "Poly间距对器件电流的影响。",
+  "stage": 5
+ },
+ {
+  "en": "OSE(OD Space Effect)",
+  "def": "有源区OD间距效应。",
+  "stage": 5
+ }
+]

@@ -718,6 +718,48 @@ def build_data(lessons):
     return gloss, quiz, index
 
 
+def load_doc_glossary(existing):
+    """并入《IC后端基本概念和专业术语.docx》整理出的术语。
+
+    这些术语不属于某一课，来源记作「术语手册」，没有跳转章节。
+    与课程里 :::term 已收录的条目按英文名去重（含别名），避免同一概念两条。
+    """
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "doc-glossary.json")
+    try:
+        with open(p, encoding="utf-8") as f:
+            items = json.load(f)
+    except (OSError, ValueError):
+        return []
+
+    def norm(s):
+        s = (s or "").lower()
+        s = re.sub(r"\(.*?\)", "", s)
+        return re.sub(r"[^a-z0-9]+", "", s)
+
+    have = set()
+    for g in existing:
+        have.add(norm(g.get("en")))
+        for a in (g.get("alias") or []):
+            have.add(norm(a))
+
+    out = []
+    for it in items:
+        en = (it.get("en") or "").strip()
+        if not en or norm(en) in have:
+            continue
+        have.add(norm(en))
+        stage = int(it.get("stage") or 2)
+        out.append({
+            "en": en, "zh": "", "alias": [],
+            "def": (it.get("def") or "").strip()[:600],
+            "lesson": "", "lessonTitle": "术语手册",
+            "no": "", "stage": stage,
+            "stageName": STAGE_SHORT.get(stage, ""),
+            "ch": "", "chTitle": "IC后端基本概念和专业术语",
+        })
+    return out
+
+
 # ---------------------------------------------------------------- 页面模板
 HEAD = """<!DOCTYPE html>
 <html lang="zh-CN">
@@ -1119,7 +1161,7 @@ LEADERBOARD_BODY = """
 <div class="lb-wrap">
   <div class="lb-hero">
     <h2>学习排行榜</h2>
-    <p>仅统计课程页和代码练习场在前台的学习时长，连续 2 分钟无操作后暂停计时。</p>
+    <p>统计课程、题库、验收、术语、练习场等学习页在前台的时长。页面不在前台立即暂停；连续 10 分钟无操作判定挂机，该时段不计入。</p>
   </div>
   <div class="lb-me" id="lb-me" hidden></div>
   <div class="lb-card">
@@ -1238,6 +1280,7 @@ def main():
     plan = study_plan(lessons)
     _CTX["by_id"], _CTX["plan"] = by_id, plan
     gloss, quiz, index = build_data(lessons)
+    gloss.extend(load_doc_glossary(gloss))
     for L in lessons:
         build_lesson(L, plan, by_id)
     build_home(lessons, len(quiz), len(gloss), plan)

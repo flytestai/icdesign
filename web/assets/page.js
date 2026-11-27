@@ -194,12 +194,17 @@
         return;
       }
       list.innerHTML = hits.map(function (x) {
+        // 来自术语手册的条目没有课程归属（lesson 为空），不能拼成
+        // /lesson//# 这种坏链接，直接显示来源名。
+        var src = x.lesson
+          ? '出自 <a href="/lesson/' + esc(x.lesson) + '/#' + esc(x.ch) + '">' +
+            esc(x.no) + ' ' + esc(x.lessonTitle) + '</a> · ' + esc(x.chTitle)
+          : '出自 <b>' + esc(x.lessonTitle || '术语手册') + '</b>';
         return '<div class="gitem"><div><span class="ge">' + esc(x.en) + '</span>' +
           (x.zh && x.zh !== x.en ? '<span class="gz">' + esc(x.zh) + '</span>' : '') +
           ((x.alias && x.alias.length) ? '<span class="ga">又称 ' + esc(x.alias.join(' / ')) + '</span>' : '') + '</div>' +
           '<div class="gd">' + esc(x.def) + '</div>' +
-          '<div class="gs">出自 <a href="/lesson/' + esc(x.lesson) + '/#' + esc(x.ch) + '">' +
-          esc(x.no) + ' ' + esc(x.lessonTitle) + '</a> · ' + esc(x.chTitle) + '</div></div>';
+          '<div class="gs">' + src + '</div></div>';
       }).join('');
     }
 
