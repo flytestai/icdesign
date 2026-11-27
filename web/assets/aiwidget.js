@@ -30,6 +30,16 @@
   var COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
   var REFRESH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>';
 
+  // 触屏设备（手机/平板）：提示文案和交互方式要区别对待，
+  // 因为那里没有 Shift 键，也没有 hover。
+  var IS_TOUCH = (function () {
+    try {
+      return ("ontouchstart" in window) ||
+             (navigator.maxTouchPoints > 0) ||
+             window.matchMedia("(pointer: coarse)").matches;
+    } catch (e) { return false; }
+  })();
+
   var CSS = [
     /* ---- 悬浮球 ---- */
     ".aiw-ball{position:fixed;right:20px;bottom:20px;width:58px;height:58px;border-radius:50%;",
@@ -235,8 +245,22 @@
     ".aiw-rz-c:hover::after{border-color:" + ACCENT + "}",
     ".aiw-rz-l{left:-2px;top:10px;bottom:10px;width:7px;cursor:ew-resize}",
     ".aiw-rz-t{top:-2px;left:24px;right:10px;height:7px;cursor:ns-resize}",
-    "@media(max-width:520px){.aiw-rz{display:none}}",
-    "@media (max-width:520px){.aiw-panel{right:10px;left:10px;width:auto;bottom:86px}}",
+    /* ---- 手机：点开即全屏 ----
+     * 手机上没有拖拽/缩放的余地，半屏浮窗既挡内容又不好操作，
+     * 所以直接铺满视口。用 dvh 而不是 vh：手机浏览器地址栏收起/展开时
+     * vh 不会变，会导致底部输入框被藏到屏幕外。
+     * 顶部/底部再加 env(safe-area-inset-*) 避开刘海和手势条。 */
+    "@media (max-width:720px){",
+    ".aiw-panel{left:0;right:0;top:0;bottom:0;width:auto;height:auto;max-width:none;max-height:none;",
+    "border-radius:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);",
+    "height:100dvh;max-height:100dvh;transform-origin:50% 100%}",
+    /* 全屏时不需要圆角和阴影，边框也去掉，避免出现一条缝 */
+    ".aiw-panel{box-shadow:none}",
+    /* 拖拽/缩放手柄一律隐藏：手机上靠全屏，不靠拖 */
+    ".aiw-rz{display:none}",
+    /* 头部略微收紧，给对话区多留空间 */
+    ".aiw-head{padding:11px 12px}",
+    "}",
     "@media (prefers-reduced-motion:reduce){.aiw-panel{animation:none}.aiw-ball::before{animation:none}}"
   ].join("");
   var st = document.createElement("style");
@@ -595,7 +619,8 @@
             ? '<button class="aiw-qb" type="button" data-qb="qa">🤖 本课 AI 问答</button>' +
               '<button class="aiw-qb" type="button" data-qb="note">📝 课程笔记</button>' : "") +
         "</div>" +
-        '<div class="aiw-foot"><textarea id="aiw-input" placeholder="输入问题，Enter 发送 · Shift+Enter 换行"></textarea>' +
+        '<div class="aiw-foot"><textarea id="aiw-input" placeholder="' +
+          (IS_TOUCH ? "输入问题，点右侧按钮发送" : "输入问题，Enter 发送 · Shift+Enter 换行") + '"></textarea>' +
         '<button class="aiw-send" id="aiw-send" type="button" title="发送">' + SEND + "</button></div>" +
       "</div>";
     document.body.appendChild(panel);
@@ -604,6 +629,29 @@
     bodyEl = panel.querySelector("#aiw-body");
     inputEl = panel.querySelector("#aiw-input");
     sendEl = panel.querySelector("#aiw-send");
+    /* 手机全屏后输入框贴在底部，软键盘弹出会把它盖住。
+     * 聚焦时主动滚一下，并跟随 visualViewport 的变化（键盘高度会改变它），
+     * 保证输入框和最后一条回复始终可见。桌面端不受影响：那里没有软键盘，
+     * visualViewport 高度等于窗口高度，这段逻辑等于空转。 */
+    if (inputEl) {
+      inputEl.addEventListener("focus", function () {
+        setTimeout(function () {
+          try { inputEl.scrollIntoView({ block: "nearest" }); } catch (e) {}
+          if (bodyEl) bodyEl.scrollTop = bodyEl.scrollHeight;
+        }, 260);                       // 等键盘动画结束再定位
+      });
+    }
+    if (window.visualViewport) {
+      var vvFix = function () {
+        // 键盘弹起时可视高度变小；用差值把面板底部垫起来
+        var gap = Math.max(0, window.innerHeight - window.visualViewport.height
+                              - window.visualViewport.offsetTop);
+        panel.style.paddingBottom = gap ? gap + "px" : "";
+        if (bodyEl) bodyEl.scrollTop = bodyEl.scrollHeight;
+      };
+      window.visualViewport.addEventListener("resize", vvFix);
+      window.visualViewport.addEventListener("scroll", vvFix);
+    }
     statusDot = panel.querySelector("#aiw-dot");
     statusTxt = panel.querySelector("#aiw-dot-t");
     refreshStatus();
