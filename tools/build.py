@@ -765,6 +765,51 @@ def build_lesson(L, idx, all_lessons):
     open(os.path.join(out, "index.html"), "w", encoding="utf-8").write(bust(html))
 
 
+# Homepage teaching order only. Keep catalog IDs, course numbering and progress intact.
+INNOVUS_HOME = (
+    ("Innovus 的使用", 2, "03-02-innovus-start"),
+    ("Floorplan", 10, "03-05-floorplan"),
+    ("PowerPlan", 2, "03-06-powerplan"),
+    ("Placement / Setup 与 Hold", 4, "03-07-place"),
+    ("CTS", 14, "03-08-cts"),
+    ("OptCTS", 2, None),
+    ("Route", 4, "03-09-route"),
+    ("OptRoute", 1, "03-10-optroute"),
+    ("ChipFinish", 2, "03-14-chipfinish-handoff"),
+)
+
+
+def home_lesson_row(lesson, label=None, hours=None):
+    title = lesson.get("title", "")
+    caption = title if label and label != title else lesson.get("en", "")
+    duration = (f'{esc(str(lesson.get("hours", "")))} 学时' if hours is None
+                else f'{hours} 课时')
+    minutes = (f'<span class="lm">{esc(str(lesson.get("minutes", 0)))} 分钟</span>'
+               if hours is None else '')
+    return (f'<a class="lrow" href="/lesson/{lesson["id"]}/">'
+            f'<span class="lno">{esc(str(lesson.get("no", "")))}</span>'
+            f'<span class="lt">{esc(label or title)}<i>{esc(caption)}</i></span>'
+            f'<span class="lh">{duration}</span>{minutes}</a>')
+
+
+def innovus_home_rows(items):
+    index = {lesson['id']: lesson for lesson in items}
+    primary = {slug for _, _, slug in INNOVUS_HOME if slug}
+    refs = [lesson for lesson in items if lesson['id'] not in primary]
+    rows = []
+    for label, hours, slug in INNOVUS_HOME:
+        if slug is None:
+            rows.append(f'<div class="lrow"><span class="lno">—</span>'
+                        f'<span class="lt">{esc(label)}<i>独立课件待补</i></span>'
+                        f'<span class="lh">{hours} 课时</span></div>')
+        else:
+            rows.append(home_lesson_row(index[slug], label, hours))
+    rows.append('<details class="stage-reference"><summary>参考与进阶'
+                f'（{len(refs)} 项）</summary>'
+                + ''.join(home_lesson_row(lesson) for lesson in refs) + '</details>')
+    return ''.join(rows)
+
+
 def build_home(lessons, nquiz, nterm):
     by_stage = {}
     for L in lessons:
@@ -774,14 +819,11 @@ def build_home(lessons, nquiz, nterm):
         items = by_stage.get(num, [])
         if not items:
             continue
-        rows = "".join(
-            f'<a class="lrow" href="/lesson/{L["id"]}/"><span class="lno">{esc(str(L.get("no","")))}</span>'
-            f'<span class="lt">{esc(L.get("title",""))}<i>{esc(L.get("en",""))}</i></span>'
-            f'<span class="lh">{esc(str(L.get("hours","")))} 学时</span><span class="lm">{esc(str(L.get("minutes",0)))} 分钟</span></a>'
-            for L in items)
+        rows = innovus_home_rows(items) if num == 3 else ''.join(home_lesson_row(L) for L in items)
+        count = f'（{len(INNOVUS_HOME)} 个课表模块）' if num == 3 else f'({len(items)} 课)'
         stages_html.append(f"""<div class="stage" id="stage-{num}" style="--c:{color}">
   <div class="stage-l"><span class="stage-n">{num}</span></div>
-  <div class="stage-r"><h3 class="stage-toggle" data-stage="{num}" data-count="({len(items)} 课)" role="button" tabindex="0" aria-expanded="true"><span class="st-t">{esc(name)}</span><span class="st-chev">▾</span></h3><p>{esc(desc)}</p>
+  <div class="stage-r"><h3 class="stage-toggle" data-stage="{num}" data-count="{count}" role="button" tabindex="0" aria-expanded="true"><span class="st-t">{esc(name)}</span><span class="st-chev">▾</span></h3><p>{esc(desc)}</p>
   <div class="lrows">{rows}</div></div>
 </div>""")
     total_h = 0
