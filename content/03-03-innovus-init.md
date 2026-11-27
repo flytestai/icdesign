@@ -4,13 +4,15 @@ no: 34
 stage: 3
 title: init_design：把数据导进 Innovus，并证明它导对了
 en: init_design: Importing Data into Innovus
-hours: 2
+hours: 0
 minutes: 0
 tags: [init_design, Innovus脚本, netlist, lef, mmmc, DEF, 报错排查, checkDesign]
 summary: 数据准备的文件清单前面讲过，这一课讲怎么把它们真正喂进工具。对比脚本方式与 GUI 方式、逐段拆一份能跑的 init 脚本、说清 init_design 那一刻工具做了什么，然后给出导入后的五条验证检查和一张报错对照表——绝大多数"跑出来结果不对"的问题，都死在这一步没验干净。
 ---
 
 ## 两条路：脚本是主干，GUI 是拐杖 {#two}
+
+本页保留为参考资料，不另计学时。请先学 [Innovus 使用 · 第 2 课时](/lesson/03-02-innovus-start/#period-2)，需要复查 `init_design` 脚本或导入问题时再回看本页。
 
 :::goal 能默写一份 init 脚本的骨架（mmmc → lef → verilog+top → pwr/gnd → init_design）；能说出 init_design 内部五个动作，尤其是 link；能跑完五条验证检查并读懂异常信号；遇到 Cannot find cell、0 clocks defined、Unconnected power pin 能当场说出原因与修法。
 :::

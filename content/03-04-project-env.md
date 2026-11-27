@@ -4,13 +4,15 @@ no: 32
 stage: 3
 title: 项目环境：目录规范、Run 与 Queue
 en: Project Environment: Directories, Runs and Queues
-hours: 2
+hours: 0
 minutes: 30
 tags: [work, scripts, data, library, report, log, run, queue, VNC, 终端]
 summary: 上机第一件事不是敲 innovus，而是搞清楚自己在哪个目录、该把东西放哪。这一课给出标准的项目目录结构（work/scripts/data/library/report/logs 各放什么）、终端多窗口与命名习惯、Run 的命名规范，以及真实项目里怎么把多版 floorplan 丢进集群 Queue、在等待的三四天里做什么。
 ---
 
 ## 项目目录与流程脚本 {#source-01}
+
+本页保留为参考资料，不另计学时。请先学 [Innovus 使用 · 第 1 课时](/lesson/03-02-innovus-start/#period-1)，需要查项目目录、Run 或 Queue 时再回看本页。
 
 :::note 资料来源
 以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。

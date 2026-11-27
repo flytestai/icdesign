@@ -58,13 +58,14 @@
       <p class="hero-sum">数据准备的文件清单前面讲过，这一课讲怎么把它们真正喂进工具。对比脚本方式与 GUI 方式、逐段拆一份能跑的 init 脚本、说清 init_design 那一刻工具做了什么，然后给出导入后的五条验证检查和一张报错对照表——绝大多数&quot;跑出来结果不对&quot;的问题，都死在这一步没验干净。</p>
       <div class="hero-meta">
         <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈15 分钟</span>
-        <span class="pill">课表学时 2</span>
+        <span class="pill">课表学时 0</span>
         <span class="pill tag">init_design</span><span class="pill tag">Innovus脚本</span><span class="pill tag">netlist</span><span class="pill tag">lef</span><span class="pill tag">mmmc</span><span class="pill tag">DEF</span><span class="pill tag">报错排查</span><span class="pill tag">checkDesign</span>
       </div>
     </div>
     <article id="article" data-est-min="15"><section class="ch" id="two" data-ch="two">
   <div class="ch-h"><span class="ch-n">01</span><h2>两条路：脚本是主干，GUI 是拐杖</h2></div>
-  <div class="goal"><span>本章目标</span>能默写一份 init 脚本的骨架（mmmc → lef → verilog+top → pwr/gnd → init_design）；能说出 init_design 内部五个动作，尤其是 link；能跑完五条验证检查并读懂异常信号；遇到 Cannot find cell、0 clocks defined、Unconnected power pin 能当场说出原因与修法。</div>
+  <p>本页保留为参考资料，不另计学时。请先学 <a href="/lesson/03-02-innovus-start/#period-2">Innovus 使用 · 第 2 课时</a>，需要复查 <code>init_design</code> 脚本或导入问题时再回看本页。</p>
+<div class="goal"><span>本章目标</span>能默写一份 init 脚本的骨架（mmmc → lef → verilog+top → pwr/gnd → init_design）；能说出 init_design 内部五个动作，尤其是 link；能跑完五条验证检查并读懂异常信号；遇到 Cannot find cell、0 clocks defined、Unconnected power pin 能当场说出原因与修法。</div>
 <p>初始化一个设计，Innovus 给了两条路：</p>
 <div class="tbl"><table><thead><tr><th></th><th>脚本方式（推荐）</th><th>GUI 方式</th></tr></thead><tbody><tr><td>怎么干</td><td>写一份 tcl，<code>innovus -files init.tcl</code></td><td>菜单 File → Import Design，一项项选文件</td></tr><tr><td>可重复性</td><td>完全可重复，改一行重跑</td><td>靠人记，第二次就配不一样</td></tr><tr><td>出错排查</td><td>log 里全有，能 diff</td><td>不知道哪一步点错了</td></tr><tr><td>团队协作</td><td>脚本进版本库，谁都能复现</td><td>别人无法复现你的环境</td></tr><tr><td>文档评价</td><td><strong>主推</strong></td><td><strong>&quot;一般不用，需要配置太多&quot;</strong></td></tr></tbody></table></div>
 <p>文档这句&quot;一般不用，需要配置太多&quot;是实话：GUI 的导入对话框有几十个输入项（lef 列表、lib 列表、verilog 列表、top cell 名、power/ground net 名、MMMC 文件……），<strong>手点一遍比写十行脚本还慢，而且点漏一项工具不一定报错</strong>。</p>
@@ -174,7 +175,7 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-02-innovus-start/">← 启动 Innovus：版本、常用选项与帮助系统</a><a class="nav-btn" href="/lesson/03-05-floorplan/">Floorplan：芯片尺寸、端口、宏与约束 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-02-innovus-start/">← Innovus 的使用</a><a class="nav-btn" href="/lesson/03-05-floorplan/">Floorplan：芯片尺寸、端口、宏与约束 →</a></div>
       </div>
     </div>
   </main>

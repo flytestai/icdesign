@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>阶段三导读：40nm Innovus 项目实操路线 · 31 | IC 后端学院</title>
-<meta name="description" content="以钉钉知识库的 20 项资料顺序为主线，串起 Floorplan 实操、Innovus 全流程和进阶专题，另列上传的 Word 课件入口。">
+<meta name="description" content="按阶段三课表的 9 个模块安排主课和选学，标明待补课时，并原样保留钉钉知识库的 20 项资料顺序。">
 <link rel="icon" href="/assets/logo.svg?v=f53c4b47f35a" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/app.css?v=f53c4b47f35a">
 </head>
@@ -55,35 +55,41 @@
       <div class="hero-no">31</div>
       <h1>阶段三导读：40nm Innovus 项目实操路线</h1>
       <p class="hero-en">Stage 3 Guide: Innovus 40nm Project Lab</p>
-      <p class="hero-sum">以钉钉知识库的 20 项资料顺序为主线，串起 Floorplan 实操、Innovus 全流程和进阶专题，另列上传的 Word 课件入口。</p>
+      <p class="hero-sum">按阶段三课表的 9 个模块安排主课和选学，标明待补课时，并原样保留钉钉知识库的 20 项资料顺序。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈5 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈6 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">导读</span><span class="pill tag">阶段三</span><span class="pill tag">Innovus</span><span class="pill tag">学习路线</span>
       </div>
     </div>
-    <article id="article" data-est-min="5"><section class="ch" id="plan" data-ch="plan">
-  <div class="ch-h"><span class="ch-n">01</span><h2>课程顺序：以钉钉知识库为准</h2></div>
-  <p>先做 <a href="/lesson/03-01a-flp-lab/">第 01 项：Floorplan 实操</a>，认清芯片轮廓、切角与端口清单。下表保留知识库原顺序：已有网站课件的，可从对应入口先学；未成课的条目保留位置，不用其他资料替代。</p>
+    <article id="article" data-est-min="6"><section class="ch" id="course-mainline" data-ch="course-mainline">
+  <div class="ch-h"><span class="ch-n">01</span><h2>阶段三主线：按课表顺序学</h2></div>
+  <p>按表从上往下学。<strong>主课</strong>是该模块的学习入口，<strong>选学</strong>用于预习、查漏或进阶，不另计课表学时。学时为课表安排，不代表现有课件已覆盖全部学时；OptCTS 保留位置，待核实并补成独立课。</p>
+<div class="tbl"><table><thead><tr><th>模块</th><th>课表学时</th><th>主课</th><th>选学</th></tr></thead><tbody><tr><td>使用</td><td>2</td><td><a href="/lesson/03-02-innovus-start/#period-1">第 1 课时</a>、<a href="/lesson/03-02-innovus-start/#period-2">第 2 课时</a></td><td><a href="/lesson/03-01b-innovus-flow/">Innovus 项目全流程</a>、<a href="/lesson/03-01j-dbget/">dbGet 只读查询</a></td></tr><tr><td>Floorplan</td><td>10</td><td><a href="/lesson/03-05-floorplan/">芯片尺寸、端口、宏与约束</a></td><td><a href="/lesson/03-01a-flp-lab/">切角与端口清单实操</a>、<a href="/lesson/03-01c-project-details/">Memory 面积与 Floorplan 评估</a>、<a href="/lesson/03-01d-floorplan-advanced/">宏单元分层摆放与 Kick-Off Run</a></td></tr><tr><td>PowerPlan</td><td>2</td><td><a href="/lesson/03-06-powerplan/">供电结构与检查</a></td><td><a href="/lesson/03-12-pg-ir-em/">PG 连通、IR Drop 与 EM</a>、<a href="/lesson/03-01k-latch-up/">闩锁效应</a></td></tr><tr><td>Placement / Setup Hold</td><td>4</td><td><a href="/lesson/03-07-place/">Placement：标准单元布局</a>、<a href="/lesson/03-01h-timing-noise/#timing-stages">按阶段读 Setup 和 Hold</a></td><td><a href="/lesson/03-01e-placement-diagnostics/">布局密度与拥塞诊断</a>、<a href="/lesson/03-01l-overflow/">GCell Overflow</a></td></tr><tr><td>CTS</td><td>14</td><td><a href="/lesson/03-08-cts/">时钟树综合、约束与检查</a></td><td><a href="/lesson/03-01f-cts-practice/">CTS 前置检查与验收</a>、<a href="/lesson/03-01o-clock-skew/">Clock Skew 报告分析</a></td></tr><tr><td>OptCTS</td><td>2</td><td><strong>待补：暂无已核实的独立课程，不用 CTS 课件代替。</strong></td><td>—</td></tr><tr><td>Route</td><td>4</td><td><a href="/lesson/03-09-route/">布线引擎与短路、开路排查</a></td><td><a href="/lesson/03-01g-route-debug/">天线效应、串扰与连通性排查</a></td></tr><tr><td>OptRoute</td><td>1</td><td><a href="/lesson/03-10-optroute/">布线后优化</a></td><td><a href="/lesson/03-01n-drv-repair/">修复 DRV</a>、<a href="/lesson/03-01m-eco-commands/">ECO 命令与验收</a>、<a href="/lesson/03-13-mmmc-eco-lab/">寄生回标与多场景 ECO</a></td></tr><tr><td>ChipFinish</td><td>2</td><td><a href="/lesson/03-14-chipfinish-handoff/">签核与交付实训</a></td><td><a href="/lesson/03-11-eco/">ECO 与签核问题</a>、<a href="/lesson/03-01i-calibre-drc/">Calibre DRC 手修与复查</a>、<a href="/lesson/03-01p-double-patterning/">双重图形化与签核</a></td></tr></tbody></table></div>
+<p>下方钉钉目录按知识库原序保留，用于对照资料，不是另一套主课顺序。</p>
+  
+</section>
+<section class="ch" id="plan" data-ch="plan">
+  <div class="ch-h"><span class="ch-n">02</span><h2>资料索引：保留钉钉知识库原序</h2></div>
+  <p>下表用于查阅资料，不替代上方课表。第 01 项 <a href="/lesson/03-01a-flp-lab/">Floorplan 实操</a> 对应切角与端口清单，放在主线的 Floorplan 模块选学；未成课的条目保留原位，不用其他资料代替。</p>
 <div class="tbl"><table><thead><tr><th>知识库顺序</th><th>资料主题</th><th>网站课件安排</th></tr></thead><tbody><tr><td>01</td><td>flp实操</td><td><a href="/lesson/03-01a-flp-lab/">第一讲：芯片切角与端口清单</a>，原文和图来自上传的 Word</td></tr><tr><td>02</td><td>教案-何济达</td><td>原资料正文待核实</td></tr><tr><td>03</td><td>芯片后端理论</td><td>原资料正文待核实</td></tr><tr><td>04</td><td>数字后端理论及实践-Innovus教程终极版.docx</td><td>WPS 预览正文待核实</td></tr><tr><td>05</td><td>INNOVUS项目</td><td><a href="/lesson/03-01b-innovus-flow/">项目主线：从准备到 ECO</a></td></tr><tr><td>06</td><td>新版floorplan</td><td>独立保留，原资料正文待核实</td></tr><tr><td>07</td><td>INNOVUS项目基础</td><td><a href="/lesson/03-01c-project-details/">补充实操：Memory 面积、Floorplan 评估与密度检查</a></td></tr><tr><td>08</td><td>Floorplan</td><td><a href="/lesson/03-01d-floorplan-advanced/">进阶 Floorplan：按层级摆放宏单元</a></td></tr><tr><td>09</td><td>Placement</td><td><a href="/lesson/03-01e-placement-diagnostics/">Placement：从布局流程到密度与拥塞诊断</a></td></tr><tr><td>10</td><td>Cts</td><td><a href="/lesson/03-01f-cts-practice/">CTS：从前置检查到时钟树验收</a></td></tr><tr><td>11</td><td>Route</td><td><a href="/lesson/03-01g-route-debug/">Route：检查天线、串扰、短路与开路</a></td></tr><tr><td>12</td><td>Setup、Hold、Max Cap、Max Tran、Max Fanout、Noise 优化</td><td><a href="/lesson/03-01h-timing-noise/">按流程阶段诊断时序与噪声</a></td></tr><tr><td>13</td><td>手动修复 Calibre DRC（Innovus）</td><td><a href="/lesson/03-01i-calibre-drc/">Calibre DRC：手修与复查</a></td></tr><tr><td>14</td><td>dbGet 用法详细教程</td><td><a href="/lesson/03-01j-dbget/">dbGet：只读查询与结果验证</a></td></tr><tr><td>15</td><td>闩锁效应（Latch-up）</td><td><a href="/lesson/03-01k-latch-up/">闩锁效应：理解触发与预防</a></td></tr><tr><td>16</td><td>Overflow</td><td><a href="/lesson/03-01l-overflow/">Overflow：算 GCell 溢出、读拥塞热力图</a></td></tr><tr><td>17</td><td>ECO 常用命令</td><td><a href="/lesson/03-01m-eco-commands/">ECO 命令：变更、合法化与验证</a></td></tr><tr><td>18</td><td>修复 DRV</td><td><a href="/lesson/03-01n-drv-repair/">修复 DRV：分类、修改与复查</a></td></tr><tr><td>19</td><td>分析 Clock Skew</td><td><a href="/lesson/03-01o-clock-skew/">Clock Skew：从三类报告定位偏斜</a></td></tr><tr><td>20</td><td>先进工艺</td><td><a href="/lesson/03-01p-double-patterning/">双重图形化：光刻分解与签核</a></td></tr></tbody></table></div>
   
 </section>
 <section class="ch" id="practice" data-ch="practice">
-  <div class="ch-h"><span class="ch-n">02</span><h2>怎么跟做：先读报告，再决定改什么</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>怎么跟做：先读报告，再决定改什么</h2></div>
   <p>第 05、07–20 项每讲有教学示意图、可跟做案例和自测。建议按下面的方法完成一讲：</p>
 <ol><li><strong>记下基线</strong>：先抄报告所属阶段、分析视图、单位和初始指标。不要拿不同条件下的两份报告直接比。</li><li><strong>提出一个判断</strong>：找出支持它的两条证据，并说出什么现象会推翻它。比如布局很密，不代表布线热点一定由密度造成，还要看对应层的可用容量。</li><li><strong>只改一个主要因素</strong>：在教学案例里写出拟改对象和预计影响；有 Innovus 环境时，也只在练习副本上动手，并根据版本帮助和项目规则选命令。</li><li><strong>验收或回退</strong>：既看目标指标有没有改善，也看是否损害时序、连通性或规则检查；未达到课内验收条件，就回退到改前快照并说明原因。</li></ol>
 <p>没有工具也能跟做：直接用课中的模拟报告和自拟数据完成计算、排查与验收判断。示例数据不等于生产签核阈值。</p>
   
 </section>
 <section class="ch" id="supplement" data-ch="supplement">
-  <div class="ch-h"><span class="ch-n">03</span><h2>补充课：按需要回看，不改变主线顺序</h2></div>
-  <p>第 05 项讲完整流程：项目准备 → Innovus 启动 → Floorplan → PowerPlan → Place → CTS → Route / OptRoute → ECO。现有补充材料按这条流程定位；第 07 项不另讲一遍流程。</p>
-<div class="tbl"><table><thead><tr><th>学到哪里</th><th>可回看的已有课件</th></tr></thead><tbody><tr><td>上机前</td><td><a href="/lesson/03-04-project-env/">项目环境</a>、<a href="/lesson/03-02-innovus-start/">Innovus 工具使用</a>、<a href="/lesson/03-03-innovus-init/">init_design</a></td></tr><tr><td>布局前</td><td><a href="/lesson/03-05-floorplan/">Floorplan</a>、<a href="/lesson/03-06-powerplan/">PowerPlan</a></td></tr><tr><td>布局与时钟</td><td><a href="/lesson/03-07-place/">Place</a>、<a href="/lesson/03-08-cts/">CTS</a></td></tr><tr><td>布线与收尾</td><td><a href="/lesson/03-09-route/">Route</a>、<a href="/lesson/03-10-optroute/">OptRoute</a>、<a href="/lesson/03-11-eco/">ECO</a></td></tr></tbody></table></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>补充课：按需要回看，不改变主线顺序</h2></div>
+  <p>上机请从<a href="#course-mainline">主线表</a>的「使用」模块开始，两课时都在同一课件中。旧页只供查阅，不另计学时：学完第 1 课时，可回看<a href="/lesson/03-04-project-env/">项目环境</a>的目录、Run 与 Queue；学完第 2 课时，可回看 <a href="/lesson/03-03-innovus-init/">init_design</a> 的脚本与导入检查。其余工序的补充材料见主线表的「选学」列。</p>
 <div class="note"><div class="note-h">资料来源</div><p>知识库决定主题与顺序。第 01 项使用上传的 Word 对应示例；第 05、07–20 项是依据核实主题编写的原创专题，案例用于教学，不是钉钉原文或原图。已导入的九个 Word 主题仍保留原文及随文图；init_design 是原站补充课。第 02、03、04、06 项暂保留目录位置，不用猜测补写原资料。</p></div>
   
 </section>
 <section class="ch" id="deep-labs" data-ch="deep-labs">
-  <div class="ch-h"><span class="ch-n">04</span><h2>专项深练：从供电检查走到签核交付</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>专项深练：从供电检查走到签核交付</h2></div>
   <p>主线第 01 项及第 05、07–20 项的对应课件末尾都可找到新增深练：先独立写出判断，再对照答案、验收与回退条件。已经做过某道工序、但没有经历项目收尾的学员，按下面顺序补三套实训。</p>
 <div class="tbl"><table><thead><tr><th>专项</th><th>最终要交什么</th><th>常见误判</th></tr></thead><tbody><tr><td><a href="/lesson/03-12-pg-ir-em/">电源完整性：PG 连通、IR Drop 与 EM</a></td><td>一张宏电源端点核对表，一组静态／动态压降及金属／过孔 EM 的修前修后证据。</td><td>连通性通过，就以为宏端压降和过孔电流合格。</td></tr><tr><td><a href="/lesson/03-13-mmmc-eco-lab/">寄生回标与多场景 ECO</a></td><td>一份按模式和分析角划分的对照表，注明 SPEF 对应关系、覆盖率和 ECO 放行结论。</td><td>只看功能模式的 WNS，不查扫描模式或回标错版。</td></tr><tr><td><a href="/lesson/03-14-chipfinish-handoff/">ChipFinish：签核与交付</a></td><td>同版交付清单、签核运行矩阵和阻断原因；能指出哪份报告必须重跑。</td><td>报告全绿就放行，不核对是否检查了最终版图和网表。</td></tr></tbody></table></div>
 <p>这三讲是为补齐实操闭环新增的原创课程，模拟数据可用于桌面练习，不是钉钉目录 02、03、04、06 项的替代，也不代表生产签核阈值。</p>

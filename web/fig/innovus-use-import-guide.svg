@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 467" role="img" aria-labelledby="title">
+<title id="title">Import Design 教学界面示意，非实机截图</title>
+<rect width="900" height="467" rx="18" fill="#edf4fc"/><rect x="25" y="24" width="850" height="419" rx="14" fill="#fff" stroke="#aec1d6"/><path d="M25 63h850" stroke="#aec1d6"/>
+<g font-family="Microsoft YaHei,Noto Sans CJK SC,sans-serif" fill="#122944"><text x="48" y="51" font-size="19" font-weight="bold">导入设计 · 教学界面示意</text><text x="637" y="51" font-size="15">非实机截图 · 字段随版本变化</text>
+<g font-size="17"><text x="49" y="103">逻辑网表</text><text x="49" y="155">顶层模块</text><text x="49" y="207">物理库 LEF</text><text x="49" y="259">时序配置 MMMC</text><text x="49" y="311">电源 / 地</text></g>
+<g fill="#f1f7ff" stroke="#b7cce4"><rect x="207" y="79" width="646" height="36" rx="7"/><rect x="207" y="131" width="646" height="36" rx="7"/><rect x="207" y="183" width="646" height="36" rx="7"/><rect x="207" y="235" width="646" height="36" rx="7"/><rect x="207" y="287" width="646" height="36" rx="7"/></g>
+<g font-size="17"><text x="225" y="103">综合后 Verilog：与当前交付版本一致</text><text x="225" y="155">顶层模块名：与网表中的 module 一致</text><text x="225" y="207">技术 LEF 与标准单元 / 宏 LEF</text><text x="225" y="259">核对活动视图及引用的 Liberty、SDC、RC 设置</text><text x="225" y="311">按项目清单核对命名；此处不代表 PG 已连通</text></g>
+<rect x="49" y="359" width="804" height="57" rx="9" fill="#d9f2eb"/><text x="69" y="393" font-size="18" font-weight="bold">先核对 → 再导入 → 读日志与报告；看到版图不等于导入验收通过</text></g>
+</svg>

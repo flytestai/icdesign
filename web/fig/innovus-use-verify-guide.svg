@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 410" role="img" aria-labelledby="title">
+<title id="title">导入验收与恢复教学看板，非实机截图</title>
+<rect width="900" height="410" rx="18" fill="#edf4fc"/><rect x="25" y="24" width="850" height="362" rx="14" fill="#fff" stroke="#aec1d6"/><path d="M25 64h850" stroke="#aec1d6"/>
+<g font-family="Microsoft YaHei,Noto Sans CJK SC,sans-serif" fill="#122944"><text x="49" y="51" font-size="19" font-weight="bold">初始化验收面板 · 教学示意</text><text x="707" y="51" font-size="16">非实机截图</text>
+<g font-size="18"><text x="49" y="103" font-weight="bold">01  读日志与报告</text><text x="291" y="103">顶层、实例、端口与清单一致；检查活动视图及其时钟</text><text x="49" y="157" font-weight="bold">02  对齐异常口径</text><text x="291" y="157">时钟为空 → 查选中的视图、SDC 读取和时钟源匹配</text><text x="49" y="211" font-weight="bold">03  保存检查点</text><text x="291" y="211">确认验收通过；保存完整设计及关联文件</text><text x="49" y="265" font-weight="bold">04  新会话验证恢复</text><text x="291" y="265">再次核对同一份摘要；如有差异，停止交给 Floorplan</text></g>
+<path d="M49 120h804M49 174h804M49 228h804" stroke="#d5e0ed"/><rect x="49" y="304" width="804" height="49" rx="8" fill="#d9f2eb"/><text x="70" y="335" font-size="17" font-weight="bold">结果记录：工具版本 · 输入版本 · 日志位置 · 保存路径 · 恢复前后摘要</text></g>
+</svg>

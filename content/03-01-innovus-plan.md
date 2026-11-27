@@ -6,12 +6,30 @@ title: 阶段三导读：40nm Innovus 项目实操路线
 en: Stage 3 Guide: Innovus 40nm Project Lab
 hours: 0
 tags: [导读, 阶段三, Innovus, 学习路线]
-summary: 以钉钉知识库的 20 项资料顺序为主线，串起 Floorplan 实操、Innovus 全流程和进阶专题，另列上传的 Word 课件入口。
+summary: 按阶段三课表的 9 个模块安排主课和选学，标明待补课时，并原样保留钉钉知识库的 20 项资料顺序。
 ---
 
-## 课程顺序：以钉钉知识库为准 {#plan}
+## 阶段三主线：按课表顺序学 {#course-mainline}
 
-先做 [第 01 项：Floorplan 实操](/lesson/03-01a-flp-lab/)，认清芯片轮廓、切角与端口清单。下表保留知识库原顺序：已有网站课件的，可从对应入口先学；未成课的条目保留位置，不用其他资料替代。
+按表从上往下学。**主课**是该模块的学习入口，**选学**用于预习、查漏或进阶，不另计课表学时。学时为课表安排，不代表现有课件已覆盖全部学时；OptCTS 保留位置，待核实并补成独立课。
+
+| 模块 | 课表学时 | 主课 | 选学 |
+|---|---:|---|---|
+| 使用 | 2 | [第 1 课时](/lesson/03-02-innovus-start/#period-1)、[第 2 课时](/lesson/03-02-innovus-start/#period-2) | [Innovus 项目全流程](/lesson/03-01b-innovus-flow/)、[dbGet 只读查询](/lesson/03-01j-dbget/) |
+| Floorplan | 10 | [芯片尺寸、端口、宏与约束](/lesson/03-05-floorplan/) | [切角与端口清单实操](/lesson/03-01a-flp-lab/)、[Memory 面积与 Floorplan 评估](/lesson/03-01c-project-details/)、[宏单元分层摆放与 Kick-Off Run](/lesson/03-01d-floorplan-advanced/) |
+| PowerPlan | 2 | [供电结构与检查](/lesson/03-06-powerplan/) | [PG 连通、IR Drop 与 EM](/lesson/03-12-pg-ir-em/)、[闩锁效应](/lesson/03-01k-latch-up/) |
+| Placement / Setup Hold | 4 | [Placement：标准单元布局](/lesson/03-07-place/)、[按阶段读 Setup 和 Hold](/lesson/03-01h-timing-noise/#timing-stages) | [布局密度与拥塞诊断](/lesson/03-01e-placement-diagnostics/)、[GCell Overflow](/lesson/03-01l-overflow/) |
+| CTS | 14 | [时钟树综合、约束与检查](/lesson/03-08-cts/) | [CTS 前置检查与验收](/lesson/03-01f-cts-practice/)、[Clock Skew 报告分析](/lesson/03-01o-clock-skew/) |
+| OptCTS | 2 | **待补：暂无已核实的独立课程，不用 CTS 课件代替。** | — |
+| Route | 4 | [布线引擎与短路、开路排查](/lesson/03-09-route/) | [天线效应、串扰与连通性排查](/lesson/03-01g-route-debug/) |
+| OptRoute | 1 | [布线后优化](/lesson/03-10-optroute/) | [修复 DRV](/lesson/03-01n-drv-repair/)、[ECO 命令与验收](/lesson/03-01m-eco-commands/)、[寄生回标与多场景 ECO](/lesson/03-13-mmmc-eco-lab/) |
+| ChipFinish | 2 | [签核与交付实训](/lesson/03-14-chipfinish-handoff/) | [ECO 与签核问题](/lesson/03-11-eco/)、[Calibre DRC 手修与复查](/lesson/03-01i-calibre-drc/)、[双重图形化与签核](/lesson/03-01p-double-patterning/) |
+
+下方钉钉目录按知识库原序保留，用于对照资料，不是另一套主课顺序。
+
+## 资料索引：保留钉钉知识库原序 {#plan}
+
+下表用于查阅资料，不替代上方课表。第 01 项 [Floorplan 实操](/lesson/03-01a-flp-lab/) 对应切角与端口清单，放在主线的 Floorplan 模块选学；未成课的条目保留原位，不用其他资料代替。
 
 | 知识库顺序 | 资料主题 | 网站课件安排 |
 |---|---|---|
@@ -49,14 +67,7 @@ summary: 以钉钉知识库的 20 项资料顺序为主线，串起 Floorplan �
 
 ## 补充课：按需要回看，不改变主线顺序 {#supplement}
 
-第 05 项讲完整流程：项目准备 → Innovus 启动 → Floorplan → PowerPlan → Place → CTS → Route / OptRoute → ECO。现有补充材料按这条流程定位；第 07 项不另讲一遍流程。
-
-| 学到哪里 | 可回看的已有课件 |
-|---|---|
-| 上机前 | [项目环境](/lesson/03-04-project-env/)、[Innovus 工具使用](/lesson/03-02-innovus-start/)、[init_design](/lesson/03-03-innovus-init/) |
-| 布局前 | [Floorplan](/lesson/03-05-floorplan/)、[PowerPlan](/lesson/03-06-powerplan/) |
-| 布局与时钟 | [Place](/lesson/03-07-place/)、[CTS](/lesson/03-08-cts/) |
-| 布线与收尾 | [Route](/lesson/03-09-route/)、[OptRoute](/lesson/03-10-optroute/)、[ECO](/lesson/03-11-eco/) |
+上机请从[主线表](#course-mainline)的「使用」模块开始，两课时都在同一课件中。旧页只供查阅，不另计学时：学完第 1 课时，可回看[项目环境](/lesson/03-04-project-env/)的目录、Run 与 Queue；学完第 2 课时，可回看 [init_design](/lesson/03-03-innovus-init/) 的脚本与导入检查。其余工序的补充材料见主线表的「选学」列。
 
 :::note 资料来源
 知识库决定主题与顺序。第 01 项使用上传的 Word 对应示例；第 05、07–20 项是依据核实主题编写的原创专题，案例用于教学，不是钉钉原文或原图。已导入的九个 Word 主题仍保留原文及随文图；init_design 是原站补充课。第 02、03、04、06 项暂保留目录位置，不用猜测补写原资料。
