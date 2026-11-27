@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MMMC ECO 实训：从 SPEF 回标到多角验收 · 41b | IC 后端学院</title>
+<meta name="description" content="手算寄生回标覆盖和功能／扫描裕量，对比两笔 ECO，并用同一分析基线演练验收和回退。">
+<link rel="icon" href="/assets/logo.svg?v=f53c4b47f35a" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=f53c4b47f35a">
+</head>
+<body data-page="lesson" data-lesson="03-13-mmmc-eco-lab">
+<header class="top">
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=f53c4b47f35a" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
+  <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
+<div id="userchip" class="userchip" hidden>
+  <span class="uc-ava" id="uc-ava" aria-hidden="true"></span>
+  <span class="uc-name" id="uc-name"></span>
+  <span class="uc-role" id="uc-role" hidden>管理员</span>
+  <a id="uc-admin" href="/admin" hidden>审核管理</a>
+  <button id="uc-logout" type="button">退出</button>
+</div>
+<script>
+(function(){
+  fetch('/api/auth/me').then(function(r){return r.ok?r.json():Promise.reject();}).then(function(u){
+    var el=document.getElementById('userchip');
+    if(!el)return;
+    el.hidden=false;
+    var n=u.name||'学员';
+    document.getElementById('uc-ava').textContent=n.charAt(0);
+    document.getElementById('uc-name').textContent=n;
+    if(u.role==='admin'){
+      document.getElementById('uc-admin').hidden=false;
+      document.getElementById('uc-role').hidden=false;
+    }
+    document.getElementById('uc-logout').addEventListener('click',function(){
+      fetch('/api/auth/logout',{method:'POST'}).then(function(){location.href='/login';});
+    });
+  }).catch(function(){});
+})();
+</script></div>
+</header>
+<div class="layout">
+  <aside class="toc" id="toc">
+    <div class="toc-h">本课目录<span id="toc-count"></span></div>
+    <nav id="toc-nav"></nav>
+    <div class="toc-f">
+      <a href="/">← 返回课程总览</a>
+      <a href="/quiz/">去题库练这一课</a>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>MMMC ECO 实训：从 SPEF 回标到多角验收</b></div>
+    <div class="hero">
+      <div class="hero-no">41b</div>
+      <h1>MMMC ECO 实训：从 SPEF 回标到多角验收</h1>
+      <p class="hero-en">MMMC ECO Desktop Lab</p>
+      <p class="hero-sum">手算寄生回标覆盖和功能／扫描裕量，对比两笔 ECO，并用同一分析基线演练验收和回退。</p>
+      <div class="hero-meta">
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈16 分钟</span>
+        <span class="pill">课表学时 0</span>
+        <span class="pill tag">MMMC</span><span class="pill tag">SPEF</span><span class="pill tag">ECO</span><span class="pill tag">STA</span><span class="pill tag">桌面实训</span>
+      </div>
+    </div>
+    <article id="article" data-est-min="16"><section class="ch" id="lab-baseline" data-ch="lab-baseline">
+  <div class="ch-h"><span class="ch-n">01</span><h2>领工单：先冻结比较规则</h2></div>
+  <div class="goal"><span>本章目标</span>用同一分析基线复算四个视图的裕量，选出可验收的 ECO，并证明失败候选已干净回退。</div>
+<div class="scene"><div class="scene-h">工作场景 · 一笔布线后修复，两种工作模式</div><div class="scene-b"><p>你接手虚构模块 <code>pkt_slice</code> 的布线后快照 <code>B0</code>。功能路径过不了建立时间，但扫描移位的保持余量也不宽。实现同事给了两份候选：<code>A</code> 放大共享驱动；<code>B</code> 只调整功能支路的一段走线，保留逻辑连接。两份候选分别从 <code>B0</code> 派生，不是在 <code>A</code> 上叠加 <code>B</code>。</p></div></div>
+<div class="note"><div class="note-h">实训边界</div><p>本课原创。所有快照标识、寄生片段、观察表和门槛均为桌面算例，不是 EDA 命令、日志、实测结果或通用签核阈值。只需纸笔或计算器。不必改写约束，也不必运行 EDA 工具。</p></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">MMMC</span><span class="term-zh">多模式多角</span></div>
+  <div class="term-b"><p>让同一实现接受多套工作状态和工艺条件的检查：功能模式与扫描移位可使用不同约束，慢／快库和线路寄生角也分别对应分析视图。</p></div>
+</div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">ECO</span><span class="term-zh">工程变更</span></div>
+  <div class="term-b"><p>在已知版本上做范围受控的修改；验收看的不只是目标路径是否变好，也要证明没破坏其他模式和获批边界。</p></div>
+</div>
+<p>建立工单或表格，左边记实现编号和父版本，右边记分析配置 <code>K0</code>。<code>K0</code> 固定功能／扫描的时序约束（SDC）、时序与噪声库、RC 角绑定、提取规则、时钟传播方式、降额、公共时钟路径悲观消除（CPPR）和信号完整性（SI）设置。三版各用自己的数据库、网表和由对应版图提取的寄生；固定的是<strong>规则和配对方式</strong>，不是把同一份寄生复制给三版。</p>
+<p>评审前写死门槛：四个视图都要求裕量至少 <code>+5 ps</code>；回标、物理、电气和功能证据必须独立通过。<code>+4 ps</code> 虽然不为负，按这份工单也不达标。上接 <a href="/lesson/03-11-eco/#source-03">03-11 的时序 ECO</a>：这里把“看前后变化”改成一份可以逐行核算的证据表。</p>
+  
+</section>
+<section class="ch" id="lab-spef" data-ch="lab-spef">
+  <div class="ch-h"><span class="ch-n">02</span><h2>展开 SPEF 名称，再换算单位</h2></div>
+  <div class="term open">
+  <div class="term-h"><span class="term-en">SPEF</span><span class="term-zh">标准寄生交换格式</span></div>
+  <div class="term-b"><p>把版图提取的线路电阻、电容及其节点写成文本。回标就是把这些网络和节点对回要分析的设计；文件能读不等于对象已一一匹配。</p></div>
+</div>
+<p>下方只摘出 <code>B0</code> 慢寄生角 <code>RCmax</code> 的若干行，省略连接表和其余记录，不是可导入的 SPEF。先读层级分隔符 <code>*DIVIDER</code>，再读节点分隔符 <code>*DELIMITER</code> 和总线定界符，最后展开 <code>*NAME_MAP</code>：<code>*17:1</code> 是 <code>u_pkt/data[3]</code> 的局部寄生节点 <code>1</code>，不是名为 <code>1</code> 的顶层端口。真正核对连接时还须展开完整文件的 <code>*CONN</code>，并与网表的驱动端、全部负载端以及读入的层级作用域逐一比对。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt">*DIVIDER /</span><span class="ln cmt">*DELIMITER :</span><span class="ln cmt">*BUS_DELIMITER [ ]</span><span class="ln cmt">*T_UNIT 1 NS</span><span class="ln cmt">*C_UNIT 1 PF</span><span class="ln cmt">*R_UNIT 1 KOHM</span><span class="ln cmt">*NAME_MAP</span><span class="ln cmt">*17 u_pkt/data[3]</span><span class="ln cmt">*18 u_pkt/strobe</span><span class="ln cmt">*D_NET *17 0.020</span><span class="ln cmt">*CAP</span><span class="ln ">1 *17:1 0.014</span><span class="ln ">2 *17:1 *18:1 0.006</span><span class="ln cmt">*RES</span><span class="ln ">1 *17:1 *17:2 0.080</span></code></pre></div>
+<p>本题的记账约定是受害网总电容包含列出的对地电容和这一项成对耦合，各计一次：<code>0.014 pF + 0.006 pF = 0.020 pF = 20 fF</code>，其中耦合 <code>6 fF</code>，占 <code>30%</code>。<code>0.080 kΩ = 80 Ω</code>。若另见以 ns 给出的时间值 <code>0.008 ns</code>，应记为 <code>8 ps</code>；不能拿时间单位去解释电容，也不能把 <code>6 fF</code> 直接当成 <code>6 ps</code> 串扰延迟。真实项目须查提取器对总电容和跨网耦合项的记账约定，不能把对端文件中同一对耦合再加一遍。</p>
+<p>交接给提取同事的证据，应写出原始键、展开后的名字、作用域和对应的驱动／负载，而不是一句“总线拼法不对”。例如下游映射表出现 <code>u_pkt.data&lt;3&gt;</code>，不应在全文盲替换标点；先查层级作用域、转义和总线映射配置，确保匹配的是同一网，再按修正口径重新读入并核对端点。分块提取的进阶对账见 <a href="/lesson/03-01g-route-debug/#route-spef-boundary">31g Route：重名导致错回标</a>。</p>
+  
+</section>
+<section class="ch" id="lab-coverage" data-ch="lab-coverage">
+  <div class="ch-h"><span class="ch-n">03</span><h2>核对回标覆盖，拒绝假基线</h2></div>
+  <p>覆盖率的分母来自每版网表的预期提取清单，不是 SPEF 中的记录数。本题的四个视图均限定在同一批 <code>100</code> 条应回标信号网；三版均不增删这些网络。命中必须同时核对规范名、端点和角绑定。关键子集有四条：<code>u_pkt/data[3]</code>、<code>u_pkt/strobe</code>、<code>u_pkt/scan_gate</code>、<code>u_pkt/clk_leaf</code>，分别代表受害网、主要施扰网、扫描控制和相关时钟叶网。关键网还要核对需要的耦合边确实存在。实训要求各视图总覆盖 <code>100/100</code>、关键覆盖 <code>4/4</code>，且没有上述绑定错误。</p>
+<div class="tbl"><table><thead><tr><th><code>B0</code> 初读视图</th><th>寄生角</th><th>命中 / 应回标</th><th>关键网命中</th><th>缺项</th></tr></thead><tbody><tr><td><code>F_SU</code></td><td><code>RCmax</code></td><td>100 / 100</td><td>4 / 4</td><td>无</td></tr><tr><td><code>F_HO</code></td><td><code>RCmin</code></td><td>100 / 100</td><td>4 / 4</td><td>无</td></tr><tr><td><code>S_SU</code></td><td><code>RCmax</code></td><td>100 / 100</td><td>4 / 4</td><td>无</td></tr><tr><td><code>S_HO</code></td><td><code>RCmin</code></td><td>98 / 100</td><td>2 / 4</td><td><code>u_pkt/data[3]</code>、<code>u_pkt/scan_gate</code></td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 不能用 98% 掩盖关键网缺失</div><div class="pit-b"><p><code>S_HO</code> 的扫描快角寄生在初读时接错了名称映射清单，恰好漏掉两条关键网，关键覆盖只有 <code>50%</code>。缺失不等于零寄生；也不应猜测工具会如何补值。先纠正该视图的映射并重读，再逐条验证关键网和寄生角。不要先做 ECO，也不要用别的视图的通过结果替代这一行。</p></div></div>
+<p>下面的时序输入只在 <code>B0</code> 按 <code>K0</code> 正确回标后才成立；<code>A</code>、<code>B</code> 也已各自用对应版图重新提取并达到上面的覆盖门槛。把修正前的导入记录保留为失败证据，不参与 ECO 前后差值。交给时序同事的是逐视图的覆盖清单和正确绑定，不是导入完成的截图。</p>
+  
+</section>
+<section class="ch" id="lab-mmmc" data-ch="lab-mmmc">
+  <div class="ch-h"><span class="ch-n">04</span><h2>手算功能／扫描的四个视图</h2></div>
+  <p><code>F</code> 为功能模式，<code>S</code> 为扫描移位模式；<code>SU</code> 是 Setup（建立时间），<code>HO</code> 是 Hold（保持时间）。这里每种模式各给慢库配 <code>RCmax</code> 和快库配 <code>RCmin</code> 的一个教学视图，不意味着实务只需这四个视图，也不意味着某个工艺角总是最坏。扫描行比较该模式自己的有效发射／捕获端和边沿，不拿功能端点的裕量充当扫描结果。</p>
+<div class="tbl"><table><thead><tr><th>视图</th><th>模式／检查／库与 RC</th><th>固定路径（发射 → 捕获）</th><th>要求到达</th><th><code>B0</code> 到达</th><th><code>A</code> 到达</th><th><code>B</code> 到达</th></tr></thead><tbody><tr><td><code>F_SU</code></td><td>功能 / Setup / 慢库＋<code>RCmax</code></td><td><code>u_launch/Q</code> → <code>u_rx/D</code></td><td>800</td><td>818</td><td>788</td><td>792</td></tr><tr><td><code>F_HO</code></td><td>功能 / Hold / 快库＋<code>RCmin</code></td><td><code>u_launch/Q</code> → <code>u_rx/D</code></td><td>120</td><td>137</td><td>127</td><td>129</td></tr><tr><td><code>S_SU</code></td><td>扫描移位 / Setup / 慢库＋<code>RCmax</code></td><td><code>u_launch/Q</code> → <code>u_scan/SI</code></td><td>1000</td><td>978</td><td>983</td><td>989</td></tr><tr><td><code>S_HO</code></td><td>扫描移位 / Hold / 快库＋<code>RCmin</code></td><td><code>u_launch/Q</code> → <code>u_scan/SI</code></td><td>96</td><td>104</td><td>93</td><td>103</td></tr></tbody></table></div>
+<p>时间全用 <code>ps</code>；到达值已包括本题给定的 SI 等分析贡献，不再手工重复叠加。此题假定每行的比较边沿和要求时间不变。实际项目要先核对路径组、边沿、时钟分量和例外；配置相同不保证要求时间必然相同。Setup 裕量为「要求 − 到达」，Hold 裕量为「到达 − 要求」。例如原始功能 Setup 为 <code>800 − 818 = −18 ps</code>；扫描 Hold 则为 <code>104 − 96 = +8 ps</code>。扫描数据更早到，Hold 不是变好而是变坏。</p>
+<p>给评审的配对表要保留固定端点，便于追差值；另外还要查各视图的整设计最差路径和新增违规，因为候选可能改变最差端点的身份。相关窗口与噪声的独立判断见 <a href="/lesson/03-01h-timing-noise/#timing-noise-window-drill">31h Timing/Noise：拆分活动窗口和毛刺</a>。</p>
+  
+</section>
+<section class="ch" id="lab-compare" data-ch="lab-compare">
+  <div class="ch-h"><span class="ch-n">05</span><h2>用同基线比较两笔候选</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>画出三列裕量，淘汰不满足四视图的候选</div><div class="lab-b"><ol><li>对照上一节填出 <code>B0</code>、<code>A</code>、<code>B</code> 的 12 个裕量，并给每个候选标记未达到 <code>+5 ps</code> 的视图。</li><li>只算候选减 <code>B0</code>，不要算 <code>B</code> 减 <code>A</code> 来归因。核查三组数据都绑定 <code>K0</code>，分别使用各版寄生，且报告里的路径、边沿和检查类型配对一致。</li><li>做到算出 <code>B</code> 的最小裕量及其视图，并能解释 <code>A</code> 为什么不能合入；再进入下一节查验收证据。</li></ol></div></div>
+<div class="tbl"><table><thead><tr><th>视图</th><th><code>B0</code> 裕量 / ps</th><th><code>A</code> 裕量 / ps</th><th><code>A − B0</code> / ps</th><th><code>B</code> 裕量 / ps</th><th><code>B − B0</code> / ps</th></tr></thead><tbody><tr><td><code>F_SU</code></td><td>−18</td><td>+12</td><td>+30</td><td>+8</td><td>+26</td></tr><tr><td><code>F_HO</code></td><td>+17</td><td>+7</td><td>−10</td><td>+9</td><td>−8</td></tr><tr><td><code>S_SU</code></td><td>+22</td><td>+17</td><td>−5</td><td>+11</td><td>−11</td></tr><tr><td><code>S_HO</code></td><td>+8</td><td>−3</td><td>−11</td><td>+7</td><td>−1</td></tr></tbody></table></div>
+<p><code>A</code> 的功能 Setup 比 <code>B</code> 更好，但共享驱动改动后扫描 Hold 只有 <code>93 − 96 = −3 ps</code>，所以淘汰。<code>B</code> 四行全达标，最紧的是 <code>S_HO</code> 的 <code>+7 ps</code>，只高出工单门槛 <code>2 ps</code>。<code>B</code> 没改扫描逻辑连接，扫描裕量仍可变化：支路重布会改变共享网络的负载及邻线耦合。若要认定具体是哪项引起 <code>S_SU</code> 退化，需比对各自的路径分解和寄生，不能仅凭变化方向归因。</p>
+<p>交接结论写“<code>B</code> 通过这四条固定路径的门槛，待验其他证据”，而不是“<code>B</code> 已签核”。若有人拿不同扫描时钟频率下的 Setup 数字给 <code>B</code> 补分，先退回报告；即使结果更好，换约束后也不是同一轮比较。</p>
+  
+</section>
+<section class="ch" id="lab-acceptance" data-ch="lab-acceptance">
+  <div class="ch-h"><span class="ch-n">06</span><h2>验收 `B`，回退 `A` 并复原证据</h2></div>
+  <p>以下是题设另给的整设计证据摘要，不由四条固定路径推导。整设计时序按 <code>K0</code> 覆盖四个视图的所有应检查路径，未约束端点为 <code>0</code>；<code>B</code> 四视图的最差裕量依次为 <code>+6 / +8 / +9 / +7 ps</code>，门槛也是 <code>+5 ps</code>，所以本题通过。把最差裕量与固定路径放在不同栏：例如 <code>F_SU</code> 固定路径为 <code>+8 ps</code>，不代表另一端点不能为 <code>+6 ps</code>。</p>
+<div class="tbl"><table><thead><tr><th><code>B</code> 的验收项</th><th>题设观察与判定</th></tr></thead><tbody><tr><td>版本和寄生</td><td>数据库、网表、两角 SPEF 及报告均标记来源 <code>B</code>，配置 <code>K0</code>；各视图 <code>100/100</code>、关键网 <code>4/4</code>，关键耦合边已核对</td></tr><tr><td>电气与噪声</td><td>约定视图中的设计规则违例（DRV）为 <code>0</code>；最紧的接收判据为某正毛刺 <code>62 mV @ 28 ps</code>，对应上限 <code>70 mV</code>，其他受检极性、窗口也通过</td></tr><tr><td>物理与功能</td><td>改线在许可区，范围外未发现差异；信号及供电无短／开路，设计规则检查（DRC）、天线检查、版图对网表检查（LVS）及功能保持等价检查均通过</td></tr></tbody></table></div>
+<p>按这些题设证据可验收 <code>B</code>。真实交接应附实现快照、网表、各角提取物、分析配置及报告的清单和摘要校验值，再由时序、实现和物理核查方按项目门槛复核。</p>
+<p><code>A</code> 的回退演练不靠在候选上手工反做。隔离 <code>A</code> 的数据库和提取物，从归档成组恢复 <code>B0</code> 的数据库、网表、两角 SPEF、<code>K0</code> 及其有效引用；清除或绕过会复用候选结果的缓存。核对工件校验值和共享驱动型号后，在桌面复算基线指纹：四视图覆盖恢复至 <code>100/100</code>，功能 Setup 回到 <code>−18 ps</code>、扫描 Hold 回到 <code>+8 ps</code>。复原的是<strong>已知但未达标</strong>的 <code>B0</code>，不是宣布基线签核。如果扫描 Hold 仍读到 <code>−3 ps</code>，先追报告实际加载的工件，不能把它登记为已回退。组合错版的演练见 <a href="/lesson/03-01m-eco-commands/#eco-rollback-manifest">31m ECO：回退不能只换数据库</a>。</p>
+  
+</section>
+<section class="ch" id="lab-review" data-ch="lab-review">
+  <div class="ch-h"><span class="ch-n">07</span><h2>自测：提交能被别人复算的记录</h2></div>
+  <p>先遮住答案，写下你的推荐：保留哪笔、退回哪笔、依据是什么。如果审阅人只有一页，应仍能找到比较的是哪份实现、使用哪份配置、哪个视图失败，以及回退后该核对哪两个数。例如把 <code>B</code> 的扫描 Hold 到达时间从 <code>103</code> 改为 <code>100 ps</code>，其他输入不变；重新计算时不要沿用上一页的通过标记。</p>
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>SPEF 中 *17:1 对应什么？0.006 PF 和 0.080 KOHM 分别是多少？</div>
+  <div class="q-a">它是 u_pkt/data[3] 的局部寄生节点 1；两值分别是 6 fF 和 80 Ω。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>初读 S_HO 总覆盖有 98%，为什么仍不能拿它做修前对照？</div>
+  <div class="q-a">关键集合只命中 2/4，缺受害网与扫描控制网；修正映射并验证端点、角绑定和耦合后才可比较。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>A 的功能 Setup 提升了多少？它失败在哪一项？</div>
+  <div class="q-a">提升 30 ps；扫描 Hold 是 93 − 96 = −3 ps，未达到 +5 ps。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>如果 B 的扫描 Hold 到达改为 100 ps，而要求仍为 96 ps，能过门槛吗？</div>
+  <div class="q-a">裕量 +4 ps，不到 +5 ps，即使没有负裕量也不能通过。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>若 B 的固定端点都达标，但另一条 F_SU 路径仅 +4 ps，能验收吗？</div>
+  <div class="q-a">不能；整设计最差路径也须达到本题 +5 ps 门槛，固定端点对比只用于跟踪和归因。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>数据库已恢复 B0，分析仍加载 A 的 RCmin SPEF，该如何记录？</div>
+  <div class="q-a">记录为混版、回退未完成；恢复成组工件和有效引用后，再按 K0 核对覆盖及基线指纹。</div>
+</div></div>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>交一张名称展开、单位换算与逐视图覆盖表，标明原来漏了哪两条关键网。</li><li>交三版裕量和两组相对 <code>B0</code> 的变化，指出 <code>A</code> 失败和 <code>B</code> 仍需回归的原因。</li><li>列出验收条件与基线复原指纹，明确区分“候选通过”和“恢复未达标基线”。</li></ul></div>
+<p><strong>下一课：</strong><a href="/lesson/03-14-chipfinish-handoff/#handoff-bundle">03-14 ChipFinish：从最终流出到签核放行</a>。在本课确认 ECO 候选的证据齐备后，再去核对最终流出版图、填充后的寄生和实际放行清单。</p>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+</section></article>
+
+    <section class="notes" id="notes">
+      <div class="notes-h"><h3>我的笔记</h3><span id="note-state">只存在你自己账号下，换设备可恢复</span></div>
+      <textarea id="note-box" placeholder="写下这一课你自己的话：哪个命令还没懂、哪份报告看不懂、下次要试什么。&#10;&#10;（建议不超过 8000 字）"></textarea>
+      <div class="notes-f"><button id="note-save" class="pri" type="button">保存笔记</button><span id="note-msg"></span></div>
+    </section>
+
+    <div class="lesson-end">
+      <div class="end-card">
+        <h3>本课进度已自动记录 ✓</h3>
+        <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-12-pg-ir-em/">← PG、IR Drop 与 EM：从电源连通到修复回归</a><a class="nav-btn" href="/lesson/03-14-chipfinish-handoff/">ChipFinish 桌面实训：从最终流出到签核放行 →</a></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/assets/shell.js?v=f53c4b47f35a"></script>
+<script src="/assets/tcl.js?v=f53c4b47f35a"></script>
+<script src="/assets/app.js?v=f53c4b47f35a"></script>
+<script src="/assets/aiwidget.js?v=f53c4b47f35a" defer></script>
+</body>
+</html>

@@ -57,12 +57,12 @@
       <p class="hero-en">Innovus ECO Command Workflow</p>
       <p class="hero-sum">对照常用 legacy ECO 命令理解修改、摆放和布线，再按前后掩膜约束完成验收。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈11 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈14 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">ECO</span><span class="pill tag">时序</span><span class="pill tag">等价检查</span>
       </div>
     </div>
-    <article id="article" data-est-min="11"><section class="ch" id="command-roles" data-ch="command-roles">
+    <article id="article" data-est-min="14"><section class="ch" id="command-roles" data-ch="command-roles">
   <div class="ch-h"><span class="ch-n">01</span><h2>把每条命令放回 ECO 流程</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-m.svg" data-fig="innovus-practice-m.svg"><img src="/fig/innovus-practice-m.svg" alt="原创教学示意图 · ECO 只改必要对象，仍要完整复查" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · ECO 只改必要对象，仍要完整复查</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 17 项的主题独立编写，不转载原文、图或项目参数。只说明 Innovus legacy 命令职责，不给未经核对的参数。网络、单元、报告及结果均是合成算例，未在 Innovus 或签核工具中实测。</p></div>
@@ -121,6 +121,14 @@
   <div class="q-q"><span class="q-no"></span>目标 hold 从 -20 ps 变成 +5 ps，可以直接交付吗？</div>
   <div class="q-a">不可只凭单项交付；还要根据验收清单核查全视图时序、电气、连接、物理与功能证据。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="eco-rollback-manifest" data-ch="eco-rollback-manifest">
+  <div class="ch-h"><span class="ch-n">09</span><h2>深入练习：名义上已回退，分析实际吃了哪一版？</h2></div>
+  <p>独立桌面题。候选 <code>R1</code> 因改线越过批准边界被拒绝；实现人员恢复 <code>R0</code>，签核工作区却只更新了数据库和网表引用。下表记的是分析实际打开的工件，不是文件名推断；短标识只是教学版号，不是真实校验值。网名和连接未变，故两版的回标覆盖都可以是 <code>48/48</code>。</p>
+<div class="tbl"><table><thead><tr><th>工件</th><th><code>R0</code> 归档应有</th><th>工作区实际读取</th><th>比对</th></tr></thead><tbody><tr><td>版图数据库</td><td><code>db-0</code></td><td><code>db-0</code></td><td>一致</td></tr><tr><td>逻辑网表</td><td><code>nl-0</code></td><td><code>nl-0</code></td><td>一致</td></tr><tr><td>慢角 <code>RCmax</code> SPEF</td><td><code>max-0</code></td><td><code>max-0</code></td><td>一致</td></tr><tr><td>快角 <code>RCmin</code> SPEF</td><td><code>min-0</code></td><td><code>min-1</code></td><td>错版，来自 <code>R1</code></td></tr><tr><td>分析配置</td><td><code>cfg-0</code></td><td><code>cfg-0</code></td><td>一致</td></tr></tbody></table></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>验证一次完整回退，而不是再做一笔 ECO</div><div class="lab-b"><ol><li>已知 <code>R0</code> 的固定端点 Setup 为 <code>800 − 812 = −12 ps</code>，Hold 为 <code>108 − 100 = +8 ps</code>。工作区 Setup 同样是 <code>−12 ps</code>，但 Hold 到达只有 <code>97 ps</code>。计算实际 Hold 为 <code>−3 ps</code>，比可追溯基线少 <code>11 ps</code>。不能把差异归因给 <code>R0</code> 版图，也不能用 <code>48/48</code> 证明版本一致。</li><li>停止发布混版报告，按成组归档把快角有效输入切回 <code>min-0</code>，排除缓存和路径别名仍指向 <code>min-1</code>；核对所有角的来源指纹，并重新生成报告而非复制旧结论。</li><li>恢复后确认 <code>−12 / +8 ps</code>、两角覆盖和批准边界的复核均与 <code>R0</code> 一致。登记“回退完成，原 Setup 缺口仍待修”，而不是“设计签核通过”。若输入一致而数字仍不同，继续查实际库、约束与分析设置，不签回退单。</li></ol></div></div>
+<p>交接单分开签两项：实现方核对数据库、网表和物理差异，时序方核对每角实际读取的寄生及报告来源；只交一个目录名不能证明这两项都已恢复。把这张清单用于 <a href="/lesson/03-13-mmmc-eco-lab/#lab-acceptance">03-13 的验收和回退</a>，再判断另一笔候选是否独立达标。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

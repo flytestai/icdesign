@@ -57,12 +57,12 @@
       <p class="hero-en">CMOS Latch-up and Layout Checks</p>
       <p class="hero-sum">理解寄生双极管的触发与维持，并把阱接触和保护环落实到版图检查。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈10 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈12 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">CMOS</span><span class="pill tag">Latch-up</span><span class="pill tag">Well Tap</span><span class="pill tag">Guard Ring</span>
       </div>
     </div>
-    <article id="article" data-est-min="10"><section class="ch" id="parasitics" data-ch="parasitics">
+    <article id="article" data-est-min="12"><section class="ch" id="parasitics" data-ch="parasitics">
   <div class="ch-h"><span class="ch-n">01</span><h2>正常 CMOS 为什么会有寄生回路？</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-k.svg" data-fig="innovus-practice-k.svg"><img src="/fig/innovus-practice-k.svg" alt="原创教学示意图 · 闩锁：触发不等于能持续自锁" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 闩锁：触发不等于能持续自锁</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 15 项的主题独立编写。下文简化说明体硅 CMOS，不转载原文、图或项目参数。桌面演练的规则、版图对象与报告均为合成，不能替代真实 PDK 或用于器件上电试验。</p></div>
@@ -120,6 +120,15 @@
   <div class="q-q"><span class="q-no"></span>修订后原失败点已合格，为什么要扫描整段？</div>
   <div class="q-a">原失败点未必仍是修订后的最远点，还要确认其他检查点及邻区没有新问题。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="deep-lab-tap-open-vs-drc" data-ch="deep-lab-tap-open-vs-drc">
+  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：tap 还在原位，为什么偏置突然丢了？</h2></div>
+  <p><strong>模拟几何与抽取对照（非工艺签核）。</strong> 某域 N 阱须连到本域 <code>VDD_N</code>。<code>TN7</code> 的接触图形仍在原位；本次几何 DRC 只核查宽度、间距和现存过孔包围，不要求特定位置一定有过孔。抽取追踪则要求该接触经 M1、V1、M2 到指定偏置条，才可计为有效接触。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟快照   几何 DRC   近端 tap 距离   TN7 抽取链                         最近有效接触</span><span class="ln ">W0         0          9 µm            TN7→M1→V1→M2→VDD_N                TN7 / 9 µm</span><span class="ln ">W1         0          9 µm            TN7→M1→悬空岛（该处没有 V1）       TN8 / 23 µm</span><span class="ln ">课堂覆盖上限：16 µm；用最近有效接触判定。</span></code></pre></div>
+<p><strong>先独立交付。</strong> 判定 W1 能否交付，写明是哪一段失接、该用哪个距离，并选择先恢复连线还是先增加 tap。说明两份报告是否矛盾，以及应取得什么证据来证明恢复的是本域偏置而不是别的电源网。</p>
+<p><strong>标准判断。</strong> W1 不是 tap 位置移动，而是 M1 与 M2 之间断开。几何报告只评估现存图形，抽取报告评估实际电气路径，结果不矛盾。TN7 看起来只离 9 µm，却因悬空无资格；有效距离为 23 µm，超限 7 µm。优先评估恢复原来的合法 V1 和目标网连接，不先新增接触来掩盖断点，也不能据此判断硅片已经闩锁。</p>
+<p><strong>验收与回退。</strong> 在副本修复后重新抽取，核对 TN7 到 <code>VDD_N</code> 的完整路径、无跨域短接、目标区与相邻区有效覆盖，并重跑局部几何及项目规定的偏置检查。若过孔不合法或连到别的域，撤销修复，恢复 W1 待修快照并保留阻断状态；下次改选获准的连线路径。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

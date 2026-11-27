@@ -57,12 +57,12 @@
       <p class="hero-en">Innovus Flow Handoffs</p>
       <p class="hero-sum">从项目准备到 ECO，按阶段核对数据库、报告和验收条件，学会定位失败应该回退到哪里。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈11 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈14 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">项目流程</span><span class="pill tag">检查点</span>
       </div>
     </div>
-    <article id="article" data-est-min="11"><section class="ch" id="prepare" data-ch="prepare">
+    <article id="article" data-est-min="14"><section class="ch" id="prepare" data-ch="prepare">
   <div class="ch-h"><span class="ch-n">01</span><h2>开工前：让同事能复跑你的 Run</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-b.svg" data-fig="innovus-practice-b.svg"><img src="/fig/innovus-practice-b.svg" alt="原创教学示意图 · 后端项目的三个交接点" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 后端项目的三个交接点</figcaption></figure>
 <div class="note"><div class="note-h">资料来源</div><p>本讲参考钉钉目录第 05 项的主题安排，正文和练习为原创教学内容，不是钉钉原文、截图或项目案例的转载。</p></div>
@@ -124,6 +124,15 @@
   <div class="q-q"><span class="q-no"></span>R2 开路、短路和 DRC 都为零，能否宣布最终通过？</div>
   <div class="q-a">不能，本例 WNS 仍为负，且最终签核还须使用项目规定的流程和规则。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="handoff-export-retry" data-ch="handoff-export-retry">
+  <div class="ch-h"><span class="ch-n">09</span><h2>进阶练习：交付重试串了分支，哪些产物要重出？</h2></div>
+  <p>这是原创纸面案例，不是 Innovus 运行输出。收尾时有两个候选数据库 <code>B6</code> 与 <code>B7</code>；<code>B7</code> 仅把一段绕线缩短，最终逻辑网表未变。一次流出任务失败后重试，调度器把输出目录设为 <code>release/B7</code>，但只有版图流出步骤仍从旧的 <code>latest.db</code> 链接恢复 <code>B6</code>。最终出现同目录、不同父版本的工件。</p>
+<div class="tbl"><table><thead><tr><th>产物</th><th>预期依赖</th><th>日志记录的实际依赖</th><th>处置</th></tr></thead><tbody><tr><td>最终网表 <code>core_final.v</code></td><td><code>B7</code>、批准的导出配置</td><td><code>B7</code>，网表校验值 <code>NV5</code></td><td>保留并登记导出日志</td></tr><tr><td>OASIS <code>core_final.oas</code></td><td><code>B7</code>、层映射 <code>MAP2</code></td><td><code>B6</code>、<code>MAP2</code>，文件指纹 <code>OA6</code></td><td>隔离 <code>OA6</code>，从冻结的 <code>B7</code> 重流出版图</td></tr><tr><td>寄生 <code>core_rcmax.spef</code></td><td><code>B7</code>、批准的提取角</td><td><code>B7</code>、正确提取配置，指纹 <code>PX7</code></td><td>本例提取直接读冻结数据库，确认几何与重流出版本一致后保留</td></tr></tbody></table></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>画一条最短回退链</div><div class="lab-b"><p>用三条箭头标注数据库到产物的实际依赖。已知 <code>OA6</code> 已被 DRC 和 LVS 使用，逻辑等价检查读取 <code>NV5</code>，静态时序分析读取 <code>NV5 + PX7</code>；后两项的其余输入与检查范围均符合要求。先数必重出的工件和必重跑的检查，再指出回退发生在哪一站。</p></div></div>
+<p>核对：必重出 <code>1</code> 个表中工件（OASIS），必重跑 <code>2</code> 类检查（DRC 和 LVS）。回到 <code>B7</code> 的流出任务入口，把重试输入锁定到数据库的实际校验值，不需要退回布线改几何。回归时给新 OASIS 独立指纹和运行号；不要把 <code>OA6</code> 改名交付。若提取其实也读了 <code>OA6</code>，则还须重提寄生并重跑时序，不能照抄本题的保留结论。</p>
+<p>下一步：<a href="/lesson/03-14-chipfinish-handoff/#handoff-bundle">44｜ChipFinish 桌面实训：核对最终交付包</a>。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

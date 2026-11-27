@@ -57,12 +57,12 @@
       <p class="hero-en">Electrical Design Rule Repair</p>
       <p class="hero-sum">区分最大转换时间、电容与扇出，按物理原因和实现阶段选择修法，并在修改后复查时序与几何规则。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈12 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈14 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">DRV</span><span class="pill tag">电气规则</span><span class="pill tag">时序</span>
       </div>
     </div>
-    <article id="article" data-est-min="12"><section class="ch" id="rule-types" data-ch="rule-types">
+    <article id="article" data-est-min="14"><section class="ch" id="rule-types" data-ch="rule-types">
   <div class="ch-h"><span class="ch-n">01</span><h2>同一条网，可能违反三种不同的规则</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-n.svg" data-fig="innovus-practice-n.svg"><img src="/fig/innovus-practice-n.svg" alt="原创教学示意图 · DRV 的三个上限对应三个检查量" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · DRV 的三个上限对应三个检查量</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲按钉钉目录第 18 项的主题编排。术语解释、排查流程和自检均为原创，不使用原文、原图或项目参数。</p></div>
@@ -117,6 +117,15 @@
   <div class="q-q"><span class="q-no"></span>原视图的三个 DRV 消失后还要看什么？</div>
   <div class="q-a">对比其他签核视图、上游与邻网，复查 setup 和 hold、合法性、连通性及几何 DRC。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="deep-lab-drv-unit-library-view" data-ch="deep-lab-drv-unit-library-view">
+  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：单位归一后通过了，还是切错了库条件？</h2></div>
+  <p><strong>模拟最大电容报告（非工具实测）。</strong> 两版均读取同一布线后寄生与相同网表，核查 <code>U9/Z</code>，没有更换驱动或新增接收端。签核清单要求 <code>FUNC_LOW</code> 加载 0.72 V 对应的库；无更严格的网级覆盖限值。第二份导出仍沿用 <code>FUNC_LOW</code> 的显示名称，但加载日志记录了实际库条件。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟导出   显示视图   实际库条件       负载值        库上限       判定</span><span class="ln ">D0         FUNC_LOW   L72 / 0.72 V     0.059 pF     0.055 pF     FAIL</span><span class="ln ">D1         FUNC_LOW   L80 / 0.80 V     59 fF        65 fF        PASS</span></code></pre></div>
+<p><strong>先独立交付。</strong> 把两份报告的负载与上限换成同一单位，分别算出相对各自限值的余量。判断是否发生了物理修复，并列出复核顺序：先看哪些分析输入，再决定是否需要动版图。写明哪一版有资格用于此视图的验收。</p>
+<p><strong>标准判断。</strong> <code>1 pF = 1000 fF</code>，两版实际负载都是 59 fF；若用“上限减实际”，D0 是 −4 fF，D1 是 +6 fF。变的是加载的库和限值，不是负载。D0 对应指定低压条件，违例仍存在；D1 的通过不能替它签核。核对加载日志、库版本、单元输出脚、工作条件和限值来源，再比较寄生及约束标识；不能用视图名称相同证明内部配置相同。</p>
+<p><strong>验收与回退。</strong> 先撤销错绑的视图配置并用原网表和寄生复跑，确认低压超限可重现；若后续单独做 ECO，在同一低压条件和新提取寄生下确认余量非负，复查其他视图、邻网和时序。单位或库绑定仍有疑问时暂停交付，不靠改报表单位或换一个宽松库消除违例。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

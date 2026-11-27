@@ -57,12 +57,12 @@
       <p class="hero-en">Timing and Noise Closure</p>
       <p class="hero-sum">在不同实现阶段判断时序报告可信度，并用寄生与噪声报告定位问题、验证修复。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈12 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈15 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">STA</span><span class="pill tag">Setup</span><span class="pill tag">Hold</span><span class="pill tag">DRV</span><span class="pill tag">PrimeTime</span>
       </div>
     </div>
-    <article id="article" data-est-min="12"><section class="ch" id="timing-stages" data-ch="timing-stages">
+    <article id="article" data-est-min="15"><section class="ch" id="timing-stages" data-ch="timing-stages">
   <div class="ch-h"><span class="ch-n">01</span><h2>按阶段读 Setup 和 Hold</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-h.svg" data-fig="innovus-practice-h.svg"><img src="/fig/innovus-practice-h.svg" alt="原创教学示意图 · 同一条路径，用不同报告回答问题" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 同一条路径，用不同报告回答问题</figcaption></figure>
 <div class="note"><div class="note-h">课程来源</div><p>本讲是网站原创专题；钉钉目录第 12 项仅用于确定主题与顺序，不转载原文、项目参数或图片。可另看上传 Word 整理的 <a href="/lesson/03-08-cts/#source-05">CTS 时序检查</a> 和 <a href="/lesson/03-11-eco/#source-03">时序 ECO</a>。</p></div>
@@ -119,6 +119,14 @@
   <div class="q-q"><span class="q-no"></span>为什么不能用修前同一毫伏阈值判定所有修后的毛刺？</div>
   <div class="q-a">接收判据可能与脉宽及极性相关，应与改善后波形匹配的报告限值比较。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="timing-noise-window-drill" data-ch="timing-noise-window-drill">
+  <div class="ch-h"><span class="ch-n">09</span><h2>深入练习：同一对邻线在两个模式下要看哪种噪声？</h2></div>
+  <p>独立桌面题：<code>resp</code> 与 <code>shift_en</code> 有 <code>7 fF</code> 成对耦合。表中区间都相对各自场景的检查边沿，单位是 <code>ps</code>。本题把稳定低电平的毛刺检查与受害网切换时的延迟检查分开；只用区间交集筛查是否重叠，不用交集宽度或耦合电容去推导峰值与延迟。</p>
+<div class="tbl"><table><thead><tr><th>模式／检查</th><th><code>resp</code> 易受扰窗口</th><th><code>shift_en</code> 翻转窗口</th><th>合成观察</th></tr></thead><tbody><tr><td>功能慢角 / Setup</td><td>210–244</td><td>230–252</td><td>反向切换；无 SI 到达 <code>764 ps</code>，含 SI 到达 <code>781 ps</code>，要求 <code>790 ps</code></td></tr><tr><td>扫描快角 / Hold</td><td>100–122</td><td>130–146</td><td>这一对翻转窗口不重叠；无 SI 与含 SI 到达均为 <code>102 ps</code>，要求 <code>96 ps</code></td></tr><tr><td>扫描快角 / 稳定低电平噪声</td><td>125–160</td><td>130–146</td><td>接收端毛刺 <code>+72 mV @ 18 ps</code>，相应上限 <code>65 mV</code></td></tr></tbody></table></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>写出三个交集和各自的判定</div><div class="lab-b"><ol><li>算功能窗口重叠 <code>14 ps</code>，以及该路径的 SI 延迟增量 <code>+17 ps</code>；Setup 裕量由 <code>+26 ps</code> 降至 <code>+9 ps</code>，仍达到本题 <code>+5 ps</code> 门槛。</li><li>扫描 Hold 的交集为空，裕量 <code>+6 ps</code>；同一模式的稳定低电平窗口却重叠 <code>16 ps</code>，毛刺比上限高 <code>7 mV</code>，所以不能放行。</li><li>若采用局部屏蔽，候选表给出 <code>+55 mV @ 14 ps</code>（上限 <code>69 mV</code>），但功能路径无 SI 到达 <code>782 ps</code>、含 SI 到达 <code>787 ps</code>，要求仍为 <code>790 ps</code>。求功能 Setup 裕量，再决定是否接受。</li></ol></div></div>
+<p>候选的毛刺已达标，SI 延迟增量也从 <code>+17</code> 降至 <code>+5 ps</code>，但无 SI 到达比基线晚 <code>18 ps</code>，最终 Setup 只余 <code>+3 ps</code>，仍不能接受。项目中应请实现方核对屏蔽带来的对地电容或绕线变化，再用对应版图重提寄生；不能依据这组数直接断定哪个物理分项占了 <code>18 ps</code>。把形态、时序和门槛分开记录，再做 <a href="/lesson/03-13-mmmc-eco-lab/#lab-mmmc">03-13 的多视图裕量比较</a>。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

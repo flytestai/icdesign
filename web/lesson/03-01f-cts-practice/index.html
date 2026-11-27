@@ -57,12 +57,12 @@
       <p class="hero-en">CTS Practice</p>
       <p class="hero-sum">从 SDC 和布局检查入手，识别时钟树单元与端点，设置布线约束并用报告验收。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈11 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈13 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">CTS</span><span class="pill tag">SDC</span><span class="pill tag">NDR</span>
       </div>
     </div>
-    <article id="article" data-est-min="11"><section class="ch" id="pre-cts" data-ch="pre-cts">
+    <article id="article" data-est-min="13"><section class="ch" id="pre-cts" data-ch="pre-cts">
   <div class="ch-h"><span class="ch-n">01</span><h2>核对约束和布局，再建时钟树</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-f.svg" data-fig="innovus-practice-f.svg"><img src="/fig/innovus-practice-f.svg" alt="原创教学示意图 · CTS 的目标、结果与验收分开看" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · CTS 的目标、结果与验收分开看</figcaption></figure>
 <div class="note"><div class="note-h">课程来源</div><p>本讲是网站原创专题；钉钉目录第 10 项仅用于确定主题与顺序，不转载原文、项目参数或图片。上机可另看上传 Word 整理的 <a href="/lesson/03-08-cts/">CTS 补充课</a>。</p></div>
@@ -120,6 +120,15 @@
   <div class="q-q"><span class="q-no"></span>为什么偏斜变好之后还要重查两种数据路径裕量？</div>
   <div class="q-a">传播时钟改变发射和捕获边沿相对到达时间，可能改善一类检查却消耗另一类的裕量。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="deep-lab-icg-generated-clock" data-ch="deep-lab-icg-generated-clock">
+  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：门控和二分频不该绑在同一个点</h2></div>
+  <p><strong>模拟功能视图报告（单位：ns，未计传播延迟）。</strong> <code>CLK</code> 周期为 1.00，先经过 <code>G</code> 的门控输出 <code>G/GCK</code>，再到触发器 <code>DIV/CK</code>。设计明确规定：门打开时 <code>G</code> 传递完整脉冲，不做分频；<code>DIV/Q</code> 才输出二分频时钟。<code>G/EN</code> 在功能模式是活动使能，不是常量。复核脚本只查报告写入的对象，不把无检查项当成通过。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟报告       二分频定义点   G/GCK 标签/周期    DIV/Q 标签/周期    门控 setup 项/最差裕量</span><span class="ln ">F_BAD          G/GCK           DIV2/2.00          无有效时钟         0/—</span><span class="ln ">F_REVIEW       DIV/Q           CLK/1.00           DIV2/2.00          1/−0.04</span></code></pre></div>
+<p><strong>先独立交付。</strong> 写出 <code>DIV2</code> 应落在哪个引脚、参考哪个时钟引脚，并给两版各下一个验收结论。列出该向时钟定义报告和门控报告分别索取的证据；说明最差裕量为空的版本为什么不比有负值的版本更好。</p>
+<p><strong>标准判断。</strong> 二分频应定义在 <code>DIV/Q</code>，参考 <code>DIV/CK</code> 上传来的 <code>CLK</code>，其有效边沿与实际分频逻辑一并核对。<code>G/GCK</code> 仍传递原周期，门控有时不放脉冲，不等于周期固定翻倍。F_BAD 漏掉必要检查且误设时钟，不能放行；F_REVIEW 修正了时钟归属，但确实暴露了 0.04 ns 的门控 setup 违例，仍不能放行。先查覆盖，再读裕量。</p>
+<p><strong>验收与回退。</strong> 固定网表和寄生对照约束前后，复查主从时钟及叶端覆盖，按模式检查门控 setup、hold、脉宽和数据路径；不能用常量或例外压掉活动检查。若定义错绑，撤回试验 SDC 并标明基线缺陷；若定义正确但有负裕量，保留正确诊断，在独立分支修使能路径后再验收。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

@@ -57,12 +57,12 @@
       <p class="hero-en">Engineering Change Order</p>
       <p class="hero-sum">ECO 周期与工作内容；DRV 与 LVS；时序 ECO 与脚本交接；短路、开路和 DRC；功耗分析、IR Drop、EM 与 VSI。按《04 innovus项目(1).docx》原文顺序整理，保留原图。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈5 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈8 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span>
       </div>
     </div>
-    <article id="article" data-est-min="5"><section class="ch" id="source-01" data-ch="source-01">
+    <article id="article" data-est-min="8"><section class="ch" id="source-01" data-ch="source-01">
   <div class="ch-h"><span class="ch-n">01</span><h2>ECO 周期与工作内容</h2></div>
   <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">九、ECO</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ECO的时间（1-2个月）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ECO需要修复的内容  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">每天需要起eco的run</p></div>
@@ -86,6 +86,15 @@
 <section class="ch" id="source-05" data-ch="source-05">
   <div class="ch-h"><span class="ch-n">05</span><h2>功耗分析、IR Drop、EM 与 VSI</h2></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、PA (Power Analysis)   IRDROP 、EM、Dynmaic</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">IRDROP</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">用高层走线、加power</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">crosstalk  加sheilding</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Dynmaic   动态功耗太大    sizedown   减小cel的驱动    D12--&gt;  D6</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">6、VSI  检查Tie cell不能连接两个cell</p></div>
+  
+</section>
+<section class="ch" id="eco-functional-release" data-ch="eco-functional-release">
+  <div class="ch-h"><span class="ch-n">06</span><h2>进阶练习：有意改变功能的 ECO 怎样验收？</h2></div>
+  <p>以下为站点追加的原创纸面案例，不属于上传 Word 原文。批准单 <code>EC-27</code> 要求已唤醒的模块在 <code>req=1</code> 时，仅当 <code>enable=1</code> 才输出 <code>grant=1</code>。旧功能是 <code>grant = req</code>，新参考 <code>REF_B</code> 是 <code>grant = req AND enable</code>。本题只比较唤醒后的正常模式；复位、扫描和低功耗模式不能靠这张真值表推断，真实项目须另按批准范围验证。</p>
+<div class="tbl"><table><thead><tr><th><code>req</code></th><th><code>enable</code></th><th>旧参考 <code>REF_A</code></th><th>新参考 <code>REF_B</code></th><th>错接为 OR 的候选</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr></tbody></table></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>区分预期差异与错误实现</div><div class="lab-b"><p>先数 <code>REF_A</code> 对 <code>REF_B</code> 有几个不同的输入组合，再数错接候选对 <code>REF_B</code> 有几个组合失败。若错接候选的版图与错接网表恰好匹配、全量 DRC 也无未处置标记，写出为什么仍须阻断，再列出修正后的回归输入和交接项。</p></div></div>
+<p>核对：旧新参考只允许在 <code>(req, enable) = (1, 0)</code> 改变，共 <code>1</code> 组；OR 候选在 <code>(0, 1)</code> 和 <code>(1, 0)</code> 错，共 <code>2</code> 组。LVS 匹配说明版图忠实实现了错接网表，不证明实现了获批新功能；DRC 只检查几何规则。不能为了让逻辑等价通过而屏蔽 <code>grant</code>。修正后保留批准单和差异范围，拿最终网表对 <code>REF_B</code> 做逻辑等价，并验证批准单规定的功能范围；再用同一候选的最终网表、流出版图和新寄生做受影响的时序、电气及物理签核回归，传给逻辑、实现、物理验证三方确认。</p>
+<p>下一步：<a href="/lesson/03-14-chipfinish-handoff/#waiver-regression">44｜ChipFinish 桌面实训：整理回归证据并决定放行</a>。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
@@ -99,7 +108,7 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-10-optroute/">← OptRoute：布线后优化</a><a class="nav-btn" href="/lesson/04-01-icc2-plan/">32nm ICC2 项目（课表 16 学时） →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-10-optroute/">← OptRoute：布线后优化</a><a class="nav-btn" href="/lesson/03-12-pg-ir-em/">PG、IR Drop 与 EM：从电源连通到修复回归 →</a></div>
       </div>
     </div>
   </main>

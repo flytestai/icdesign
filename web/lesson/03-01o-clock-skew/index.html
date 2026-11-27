@@ -57,12 +57,12 @@
       <p class="hero-en">Clock Skew Debugging</p>
       <p class="hero-sum">用日志、时钟树报告和 STA 路径报告分别检查时钟目标、组内分布和具体收发端的到达差。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈13 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈15 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">CTS</span><span class="pill tag">STA</span><span class="pill tag">时钟偏斜</span>
       </div>
     </div>
-    <article id="article" data-est-min="13"><section class="ch" id="report-entries" data-ch="report-entries">
+    <article id="article" data-est-min="15"><section class="ch" id="report-entries" data-ch="report-entries">
   <div class="ch-h"><span class="ch-n">01</span><h2>三份报告，各回答一个问题</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-o.svg" data-fig="innovus-practice-o.svg"><img src="/fig/innovus-practice-o.svg" alt="原创教学示意图 · 偏斜先判断看的是整组还是一条路径" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 偏斜先判断看的是整组还是一条路径</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲按钉钉目录第 19 项的主题编排。排查方法、算例和自检均为原创，不使用原文、原图或项目参数。</p></div>
@@ -120,6 +120,15 @@
   <div class="q-q"><span class="q-no"></span>改线后目标已达且该路径非负，什么时候仍应回退？</div>
   <div class="q-a">例如签核门限要求至少 +10 ps 的 setup 余量而仅剩 +5 ps，或其他相关路径、时钟电气规则、连通性及几何 DRC 出现新问题。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="deep-lab-path-group-exceptions" data-ch="deep-lab-path-group-exceptions">
+  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：路径组变绿，是优化成功还是例外没限定？</h2></div>
+  <p><strong>模拟 STA 对照（裕量单位：ps）。</strong> 同一功能视图、寄生和传播时钟，接收端都是 <code>R1/D</code>。设计确认只有调试寄存器 <code>DBG/Q</code> 到该端点的路径允许设为 false path；正常寄存器 <code>SRC/Q</code> 发出的路径必须检查。下面两版没有改线，<code>DATA_A</code>、<code>DATA_B</code> 是路径报告的分组，不是 CTS 偏斜组。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟版本  活动例外范围       SRC→R1 状态/组/裕量        DATA_A WNS   组内有效路径数</span><span class="ln ">B0        无                 已检查 / DATA_A / −18      −18          7</span><span class="ln ">B1        任意起点→R1/D      排除 / — / —               +12          5</span><span class="ln ">另：B1 的 DATA_B 搜不到 SRC→R1；例外展开命中 DBG→R1 和 SRC→R1。</span></code></pre></div>
+<p><strong>先独立交付。</strong> 用原收发端点区分“被分到别组”“被例外排除”和“路径真的改善”三种情况；判定 B1 能否放行，并写出获准例外应匹配的起点、终点以及复查时必须仍可见的路径。</p>
+<p><strong>标准判断。</strong> B1 不是改组，也没有实测裕量改善。到单一终点的宽泛例外排除了两条路径，连原本必须检查的 <code>SRC→R1</code> 也消失了，剩余路径才显示 <code>+12</code>。例外应只命中 <code>DBG/Q→R1/D</code>；修正后 <code>SRC→R1</code> 必须可查，其负裕量仍应进入修复队列。路径分组决定到哪里读报告，不授予跳过检查的许可。</p>
+<p><strong>验收与回退。</strong> 撤回宽泛例外，用冻结的布局和寄生复跑基线；仅在有审批的约束分支应用窄例外，核对逐条命中清单和各组覆盖，复查 setup、hold 和未约束端点。若任一正常路径仍缺失，恢复原约束并保留未修违例，不能凭组内 WNS 转正签收。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

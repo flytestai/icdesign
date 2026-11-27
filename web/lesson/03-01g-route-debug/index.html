@@ -57,12 +57,12 @@
       <p class="hero-en">Routing and Debugging</p>
       <p class="hero-sum">识别三类布线用途，区分四类常见问题，并从主布线推进到布线后优化。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈11 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈14 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">Route</span><span class="pill tag">天线效应</span><span class="pill tag">串扰</span>
       </div>
     </div>
-    <article id="article" data-est-min="11"><section class="ch" id="route-types" data-ch="route-types">
+    <article id="article" data-est-min="14"><section class="ch" id="route-types" data-ch="route-types">
   <div class="ch-h"><span class="ch-n">01</span><h2>三类布线不是同一个动作</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-g.svg" data-fig="innovus-practice-g.svg"><img src="/fig/innovus-practice-g.svg" alt="原创教学示意图 · 布线报告的四类问题不要混查" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 布线报告的四类问题不要混查</figcaption></figure>
 <div class="note"><div class="note-h">课程来源</div><p>本讲是网站原创专题；钉钉目录第 11 项仅用于确定主题与顺序，不转载原文、项目参数或图片。工具操作可另看上传 Word 整理的 <a href="/lesson/03-09-route/">Route</a> 和 <a href="/lesson/03-10-optroute/">OptRoute</a> 补充课。</p></div>
@@ -120,6 +120,14 @@
   <div class="q-q"><span class="q-no"></span>布线只有一处局部改动，为何仍要复查天线和串扰？</div>
   <div class="q-a">改线可能改变制造阶段的连通面积和运行时的耦合；两项分别用天线规则与提取后的噪声、时序验证。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="route-spef-boundary" data-ch="route-spef-boundary">
+  <div class="ch-h"><span class="ch-n">09</span><h2>深入练习：分块提取后，重名总线回标到哪里？</h2></div>
+  <p>这是独立算例，不再补过孔。顶层的 <code>u_rx0</code> 和 <code>u_rx1</code> 是同一子块的两个实例，物理短路、开路和 DRC 都已清零。两份分块 SPEF 都以各自实例为根，并各自用 <code>*7</code> 表示局部网 <code>data[1]</code>；<code>*7</code> 只在当前文件的 <code>*NAME_MAP</code> 内有效。以下数据是教学对账表，不是提取报告；两份文件均声明 <code>*C_UNIT 1 PF</code>。</p>
+<div class="tbl"><table><thead><tr><th>分块</th><th>正确顶层网名</th><th>端点指纹（驱动 → 负载）</th><th>总电容 / pF</th><th>对账表中的实际回标网</th></tr></thead><tbody><tr><td><code>rx0.spef</code></td><td><code>u_rx0/data[1]</code></td><td><code>u_rx0/u_src/Q</code> → <code>u_rx0/u_sink/D</code></td><td>0.012</td><td><code>u_rx0/data[1]</code></td></tr><tr><td><code>rx1.spef</code></td><td><code>u_rx1/data[1]</code></td><td><code>u_rx1/u_src/Q</code> → <code>u_rx1/u_sink/D</code></td><td>0.025</td><td><code>u_rx0/data[1]</code></td></tr></tbody></table></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>从物理端点反查回标作用域</div><div class="lab-b"><ol><li>以布线数据库里的驱动与负载为分母，写出两份文件的正确作用域及展开的顶层网名。不要在汇总时把两个 <code>*7</code> 合成一个全局键。</li><li>数一数实际只覆盖了几个不同顶层网，又有几条源记录与预期端点相符。检查 <code>u_rx0/data[1]</code> 是否被重复认领、<code>u_rx1/data[1]</code> 是否缺失；不要假设后读的文件必然覆盖前一个。</li><li>重新按 <code>u_rx0</code>、<code>u_rx1</code> 分别绑定并对照两对端点。做到两网各认领一次、无串块，且核对两网应读为 <code>12 fF</code> 和 <code>25 fF</code>，才交给 STA 复查。</li></ol></div></div>
+<p>核对答案：虽然输入两条记录，但目标去重后只覆盖 <code>1/2</code>，端点正确的源记录也仅 <code>1/2</code>；重复目标有 <code>1</code> 个。因为有重复认领，不能据此判定 <code>u_rx0</code> 最后保留了哪个值，更不能把两份电容相加为 <code>37 fF</code>。如果作用域修正后仍缺负载端，就回到分块边界的抽取范围和连接表核对，而不是改版图去迁就错误的回标。把端点清单交给时序同事，再做 <a href="/lesson/03-13-mmmc-eco-lab/#lab-spef">03-13 的 SPEF 名称和单位核对</a>。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

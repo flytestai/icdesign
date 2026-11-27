@@ -57,12 +57,12 @@
       <p class="hero-en">Double Patterning and Mask Conflicts</p>
       <p class="hero-sum">区分 LELE 与 SADP，理解同色间距、奇环、过孔和边界规则，并用布线检查与签核交叉验证。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈12 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈14 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">光刻</span><span class="pill tag">双重图形化</span><span class="pill tag">布线</span><span class="pill tag">DRC</span>
       </div>
     </div>
-    <article id="article" data-est-min="12"><section class="ch" id="process-options" data-ch="process-options">
+    <article id="article" data-est-min="14"><section class="ch" id="process-options" data-ch="process-options">
   <div class="ch-h"><span class="ch-n">01</span><h2>先判断规则针对哪种工艺</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-p.svg" data-fig="innovus-practice-p.svg"><img src="/fig/innovus-practice-p.svg" alt="原创教学示意图 · 双重图形化：先看冲突关系再看修法" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 双重图形化：先看冲突关系再看修法</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲按钉钉目录第 20 项的主题编排。解释、排查流程和自检均为原创，不使用原文、原图或项目参数，也不假设任何具体工艺采用双重图形化。</p></div>
@@ -117,6 +117,15 @@
   <div class="q-q"><span class="q-no"></span>规则只在两个宏拼接后才触发，先查什么？</div>
   <div class="q-a">确认拼接方向、边界两侧的固定掩模与图形间距，以及过孔和切割约束；在拼接版图上使用对应签核规则复查。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="deep-lab-immutable-precolor" data-ch="deep-lab-immutable-precolor">
+  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：没有奇环，为什么还不能通过着色？</h2></div>
+  <p><strong>模拟拼接分解报告（非 PDK 数据）。</strong> 简化 LELE 模型中，普通间距至少 40 nm，同色间距至少 80 nm；已列出所有可能形成约束的邻接对，其余距离都不小于 80 nm。左右子块边界 <code>P</code>、<code>Q</code> 均是已冻结的 M0 预着色图形，形状与掩模都不可改；只有顶层支线 <code>X</code>、<code>Y</code> 可重布。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟邻接距离(nm)     P–X    X–Y    Y–Q    X–Q</span><span class="ln ">T0 拼接基线          55     64     58     96</span><span class="ln ">T1 仅 Y 换轨         55     64     86     96</span><span class="ln ">提议 T2：保持 T0 的距离，但把固定图形 Q 改成 M1。</span></code></pre></div>
+<p><strong>先独立交付。</strong> 从距离重建 T0 的异色边，按 <code>P</code> 的颜色推导到 <code>Q</code>，写出见证链。给 T1 写一份可核对的掩模指派，并分别判断 T1、T2 是否有资格提交签核。不能移动或改色冻结图形以配合自己的解。</p>
+<p><strong>标准判断。</strong> T0 的 <code>P–X–Y–Q</code> 是一条三边路径，不是奇环；三次换色要求两端不同色，而它们都被钉在 M0，因此无解。T1 让 <code>Y–Q</code> 达到同色间距，移除这条边，可取 <code>P=M0、X=M1、Y=M0、Q=M0</code>，因此可提交签核，但尚未签核通过。T2 虽能消掉数学冲突，却违反冻结约束，直接拒绝；也不能靠忽略固定颜色再把子图报成通过。</p>
+<p><strong>验收与回退。</strong> 对照顶层版图导出确认两侧冻结形状和掩模均未变，在拼接窗口重跑分解、几何与过孔检查，并核对相关网络连通和时序。若换轨引入新邻接或固定数据丢失，撤回顶层走线及配套寄生、恢复 T0 并保留冲突记录；不回写子块预着色数据。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

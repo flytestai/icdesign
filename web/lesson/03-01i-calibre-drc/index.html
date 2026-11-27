@@ -57,12 +57,12 @@
       <p class="hero-en">Calibre DRC Debugging</p>
       <p class="hero-sum">从签核标记追到版图几何，排查间距、filler 短路和 ECO 后成批短路，并验证修复。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈10 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈13 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Calibre</span><span class="pill tag">Innovus</span><span class="pill tag">DRC</span><span class="pill tag">LVS</span><span class="pill tag">ECO</span>
       </div>
     </div>
-    <article id="article" data-est-min="10"><section class="ch" id="drc-marker" data-ch="drc-marker">
+    <article id="article" data-est-min="13"><section class="ch" id="drc-marker" data-ch="drc-marker">
   <div class="ch-h"><span class="ch-n">01</span><h2>从 Marker 定位到可编辑对象</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-i.svg" data-fig="innovus-practice-i.svg"><img src="/fig/innovus-practice-i.svg" alt="原创教学示意图 · DRC 手修记录从规则编号开始" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · DRC 手修记录从规则编号开始</figcaption></figure>
 <div class="note"><div class="note-h">课程来源</div><p>本讲是网站原创专题；钉钉目录第 13 项仅用于确定主题与顺序，不转载原文、项目参数或图片。相关基础可另看上传 Word 整理的 <a href="/lesson/03-11-eco/#source-04">ECO 短路、开路和 DRC</a>。</p></div>
@@ -120,6 +120,15 @@
   <div class="q-q"><span class="q-no"></span>局部 Calibre DRC 已无原标记，何时可关闭问题？</div>
   <div class="q-a">完整流出版图的全量 DRC/LVS 及项目要求的回归通过后，才能据此关闭。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="drc-layer-readback" data-ch="drc-layer-readback">
+  <div class="ch-h"><span class="ch-n">09</span><h2>进阶练习：报告清零，但填充层没有被规则读到</h2></div>
+  <p>本案的编号、几何和规则都是原创模拟数据。收尾工程师没有动版图，前后均读取同一个 <code>OAS-17</code>，却看到某个边界邻域的间距标记由 <code>2</code> 变成 <code>0</code>。该规则核对 M5 信号与填充之间的间距。版图独立读回显示，12 个填充轮廓都在批准的 <code>50/32</code>；对比两次运行发现，最后一次验证导入配置却把填充输入指到了没有图形的 <code>50/31</code>。查看器仍能显示 <code>50/32</code>，不能证明它参与了检查。</p>
+<div class="tbl"><table><thead><tr><th>同一窗口，同一版图</th><th>批准配置</th><th>异常配置</th><th>恢复批准配置后</th></tr></thead><tbody><tr><td>M5 信号图形读入数</td><td>8</td><td>8</td><td>8</td></tr><tr><td>M5 填充图形读入数</td><td>12</td><td>0</td><td>12</td></tr><tr><td>示例间距标记</td><td>2</td><td>0</td><td>2</td></tr></tbody></table></div>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>先证明缺层，再决定改哪里</div><div class="lab-b"><p>名单中两个填充图形到最近信号边的距离分别是 <code>0.041 µm</code>、<code>0.046 µm</code>，本题规则要求 <code>≥0.050 µm</code>。写出各差多少，并判断该改流出层映射、验证端读入配置，还是直接改信号线。然后列出从找回标记到关闭问题的证据。</p></div></div>
+<p>核对：两处分别差 <code>0.009 µm</code> 和 <code>0.004 µm</code>。只恢复批准的验证端读入配置，用不变的 <code>OAS-17</code> 重现两条旧标记，证明不是新几何造成的变化。逐条定位受影响的填充、信号和边界上下文，再按项目允许方式修复并重流出；局部窗口复查只能证明那两点。最终还要在修后版图使用批准配置做全量回归，特别是填充重生成可能影响的密度规则，并补齐项目要求的 LVS 等检查。不能把缺层导致的 <code>0</code> 当作修复或豁免。</p>
+<p>下一步：<a href="/lesson/03-14-chipfinish-handoff/#signoff-matrix">44｜ChipFinish 桌面实训：逐项验收签核矩阵</a>。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

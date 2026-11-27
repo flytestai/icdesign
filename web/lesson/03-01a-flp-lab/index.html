@@ -57,12 +57,12 @@
       <p class="hero-en">Floorplan Lab</p>
       <p class="hero-sum">第一讲对应知识库第 01 项主题，用上传 Word 的实操原文和原图理解 Die、Core、切角，以及全部端口与未摆放端口的区别。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈4 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈6 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">Floorplan</span><span class="pill tag">实操</span><span class="pill tag">Tcl</span>
       </div>
     </div>
-    <article id="article" data-est-min="4"><section class="ch" id="shape" data-ch="shape">
+    <article id="article" data-est-min="6"><section class="ch" id="shape" data-ch="shape">
   <div class="ch-h"><span class="ch-n">01</span><h2>先认地图：Die、Core 和切角</h2></div>
   <div class="note"><div class="note-h">资料来源</div><p>本讲按钉钉目录第 01 项《flp实操》的主题编排。下面的原文命令和截图来自你上传的《04 innovus项目(1).docx》Floorplan 实操部分，不是钉钉原文或原图的转载。为保留上下文，原站 <a href="/lesson/03-05-floorplan/#source-09">Floorplan 完整课</a> 仍保留原来的实操小节，首次学习任选一个入口即可。</p></div>
 <p>把芯片平面想成一张地图：<strong>Die 是整块芯片的外轮廓，Core 是主要摆放电路单元的内部区域</strong>。做异形轮廓时，先定义初始边界，再在指定坐标范围切掉一块。先认清这两个动作，再去读参数；不要一上来就记项目里的坐标。</p>
@@ -89,6 +89,15 @@
 <section class="ch" id="review" data-ch="review">
   <div class="ch-h"><span class="ch-n">04</span><h2>自检：你是在读数据库，还是在改版图？</h2></div>
   <ul><li>能在原图上区分芯片外轮廓和切角，并说明切角并不是摆放引脚。</li><li>能说清两份清单各回答什么问题，并检查未摆放清单是否属于全部清单。</li><li>能区分读取端口、修改端口状态和实际摆放这三件事。本课先完成读取与检查；按金属层、边和轨道摆放端口的原文示例，可接着看 <a href="/lesson/03-05-floorplan/#source-09">Floorplan 完整实操</a>。</li></ul>
+  
+</section>
+<section class="ch" id="deep-lab-mirror-cutout" data-ch="deep-lab-mirror-cutout">
+  <div class="ch-h"><span class="ch-n">05</span><h2>独立深练：顶层镜像后，缺口应落在哪边？</h2></div>
+  <p><strong>模拟交接报告（单位：µm，非工具实测）。</strong> 模块局部外包框从 <code>(0,0)</code> 到 <code>(400,200)</code>，左下切去矩形 <code>(0,0)–(40,60)</code>。顶层给出的包框左下角是 <code>(1000,500)</code>，实例沿局部竖直中线 <code>x=200</code> 镜像后再平移。端口 <code>req</code>、<code>ack</code> 的局部点分别为 <code>(0,90)</code>、<code>(400,130)</code>，顶层接口按信号名对接。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟顶层导出     缺口左下—右上              req          ack          未摆</span><span class="ln ">A               (1000,500)—(1040,560)     (1000,590)   (1400,630)   0</span><span class="ln ">B               (1360,500)—(1400,560)     (1400,590)   (1000,630)   0</span></code></pre></div>
+<p><strong>先独立交付。</strong> 写出任一点从局部到顶层的换算式，并把缺口两个角点、两根端口的坐标逐一算出。选一份可交接的导出；说明另一份为何看起来外框正确、端口也全部已摆，却仍不能对接。不要交换两个端口的名字来迎合顶层的位置。</p>
+<p><strong>标准判断。</strong> <code>X=1000+400−x</code>，<code>Y=500+y</code>，因此 B 正确。镜像会交换原来两角的横坐标次序，计算矩形边界时要重新取最小值和最大值；纵坐标只平移，缺口仍在下边。A 只做了平移，外包矩形与 B 相同，但实际轮廓和两端口所在边都错了。单看包框或未摆计数都发现不了这类错误。</p>
+<p><strong>验收与回退。</strong> 从未改动的局部快照重新导出，再用顶层实际轮廓对比缺口边界、按名称核对全部接口，并确认端口仍在允许的边和轨道上。若导出与拼装结果不符，撤回本次坐标转换产物，恢复原导出配置，保留差异；不要移动局部端口来抵消顶层变换错误。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

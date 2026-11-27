@@ -57,12 +57,12 @@
       <p class="hero-en">Placement Diagnostics</p>
       <p class="hero-sum">区分布局阶段，沿着时序、密度和布线资源定位热点，并选择范围合适的布局约束验证原因。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈10 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈12 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">Place</span><span class="pill tag">STA</span><span class="pill tag">拥塞</span><span class="pill tag">Padding</span>
       </div>
     </div>
-    <article id="article" data-est-min="10"><section class="ch" id="placement-stages" data-ch="placement-stages">
+    <article id="article" data-est-min="12"><section class="ch" id="placement-stages" data-ch="placement-stages">
   <div class="ch-h"><span class="ch-n">01</span><h2>Global、Detail 和 Scan Reorder 各做什么</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-e.svg" data-fig="innovus-practice-e.svg"><img src="/fig/innovus-practice-e.svg" alt="原创教学示意图 · 布局诊断先分清密度与拥塞" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 布局诊断先分清密度与拥塞</figcaption></figure>
 <div class="note"><div class="note-h">资料来源</div><p>本讲参考钉钉目录第 09 项的主题安排，正文与案例为原创教学示例，不是钉钉原文、截图或项目参数的转载。</p></div>
@@ -121,6 +121,15 @@
   <div class="q-q"><span class="q-no"></span>W0 密度下降但拥塞原样不动，下一步查什么？</div>
   <div class="q-a">查实际通道宽度、可接入宏引脚、供电和布线阻挡是否让该层轨道资源固定不足。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="deep-lab-scan-order-contract" data-ch="deep-lab-scan-order-contract">
+  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：扫描链线更短，能保住冻结的位序吗？</h2></div>
+  <p><strong>模拟扫描链对照（非工具实测）。</strong> 测试交接将 <code>A→B</code> 冻结为相邻且同向的有序片段，两者都属于时钟域 <code>CK0</code>。<code>L</code> 是跨到 <code>CK1</code> 所需的锁存器，必须留在两域边界；<code>C</code>、<code>D</code> 都属于 <code>CK1</code>，允许互换，但必须同步测试链描述。每版都是从扫描输入 <code>SI</code> 沿实际串行连线追到 <code>SO</code> 的结果。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟快照    实际连接顺序                 扫描寄存器   估算链长(µm)</span><span class="ln ">S0 基线     SI→A→B→L→C→D→SO             4            520</span><span class="ln ">S1 候选     SI→B→A→L→C→D→SO             4            360</span><span class="ln ">S2 候选     SI→A→B→L→D→C→SO             4            410</span></code></pre></div>
+<p><strong>先独立交付。</strong> 分别判定 S1、S2 是否可以进入测试复核，列出冻结段、域边界、允许变动段所需的证据。写出应归档的新位序，并解释为什么仅比对成员集合、链长或扫描寄存器数量不能作出这个决定。</p>
+<p><strong>标准判断。</strong> S1 线最短，但把 <code>A→B</code> 颠倒为 <code>B→A</code>，不能保留。S2 保住冻结相邻关系，也让 <code>L</code> 仍处于 <code>CK0</code> 到 <code>CK1</code> 的边界，只重排获准的 <code>C</code>、<code>D</code>。从 <code>SI</code> 到 <code>SO</code> 的新寄存器次序为 <code>A、B、D、C</code>；<code>L</code> 要记在连接清单中，但不算新的扫描寄存器。链的成员未变不代表各位对应的寄存器未变。</p>
+<p><strong>验收与回退。</strong> 在合法化后的实际网表再逐级追链，查遗漏、重复、断链及锁存器位置。同步扫描链描述，按测试流程验证或更新向量，并复查移位模式时序。若交付位序对不上或跨域检查失败，恢复 S0 的链连接和配套测试描述，保留失败差异，不能只回退其中一份。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 

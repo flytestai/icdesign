@@ -57,12 +57,12 @@
       <p class="hero-en">Advanced Floorplan Preparation</p>
       <p class="hero-sum">核对 Die Size 上游条件，按连接关系安排引脚和 Memory，再把 GUI 验证结果固化为可复跑的脚本。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈11 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈13 分钟</span>
         <span class="pill">课表学时 0</span>
         <span class="pill tag">Innovus</span><span class="pill tag">Floorplan</span><span class="pill tag">IO Pin</span><span class="pill tag">Memory</span><span class="pill tag">Kick-Off Run</span>
       </div>
     </div>
-    <article id="article" data-est-min="11"><section class="ch" id="die-size" data-ch="die-size">
+    <article id="article" data-est-min="13"><section class="ch" id="die-size" data-ch="die-size">
   <div class="ch-h"><span class="ch-n">01</span><h2>Die Size：先核对谁提供了什么</h2></div>
   <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-d.svg" data-fig="innovus-practice-d.svg"><img src="/fig/innovus-practice-d.svg" alt="原创教学示意图 · 宏单元摆放先看连接再看位置" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 宏单元摆放先看连接再看位置</figcaption></figure>
 <div class="note"><div class="note-h">资料来源</div><p>本讲参考钉钉目录第 08 项的主题安排，正文与练习为原创，不转载钉钉原文、图片或项目参数。TAUREN 仅保留为资料中的名词；这里不推断其内部流程，不提供其定制命令。</p></div>
@@ -122,6 +122,15 @@
   <div class="q-q"><span class="q-no"></span>GUI 给两个 Memory 同色是否会改变它们的合法位置？</div>
   <div class="q-a">不会；颜色只是分组标记，实际位置由约束和数据库对象状态决定。</div>
 </div></div>
+  
+</section>
+<section class="ch" id="deep-lab-macro-pin-access" data-ch="deep-lab-macro-pin-access">
+  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：每个宏脚都有接入点，两根网能同时接出吗？</h2></div>
+  <p><strong>模拟宏脚可达报告（非工具实测）。</strong> 两根独立信号网从同一侧接出 <code>RAM0/D0</code> 和 <code>RAM0/D1</code>。宏尺寸、位置和合法朝向均已确认，电源走线保持固定。本题枚举了窗内所有可用的接入路径，每条路径都包括引脚落点、过孔和第一段轨道。<code>R1</code>、<code>R2</code> 是各自只能容纳一根网的过孔走廊，进入不同走廊的路径互不干扰。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟接入报告       D0 可选路径(走廊)     D1 可选路径(走廊)    单脚无可用点</span><span class="ln ">K0 基线            P0(R1)                P1(R1)               0</span><span class="ln ">K1 局部换轨试跑    P0(R1), P2(R2)        P1(R1)               0</span></code></pre></div>
+<p><strong>先独立交付。</strong> 为每个版本画出两根网到走廊的对应关系，尝试给两根网同时分配合法路径。写明是否允许进入下一阶段，以及需要用哪份报告证明不是“两个落点都存在但共用同一瓶颈”。不要用宏间净距或单脚通过数替代这一判定。</p>
+<p><strong>标准判断。</strong> K0 的两个落点虽不同，却必须通过同一条容量为一的走廊，所以最多接出一根网。K1 应把 <code>D0</code> 分到 <code>P2(R2)</code>、<code>D1</code> 保留 <code>P1(R1)</code>；若先给 <code>D0</code> 抢占 <code>R1</code>，仍会把 <code>D1</code> 堵住。局部换轨有效，是因为新增了可与另一条路径共存的选择，不只是因为引脚可选点数增加。</p>
+<p><strong>验收与回退。</strong> 用同一窗的短程试布线同时接两根网，复查实际过孔、轨道、连通性、间距和邻网可达性，并确认没有占用电源保留。若签核发现 <code>R2</code> 实际不可用或影响邻网，撤回换轨分支并恢复 K0；将两网共用走廊登记为未解决项，不把基线标成通过。</p>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
