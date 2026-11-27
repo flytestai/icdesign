@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""学习计时规则的静态回归。
+"""学习计时的静态回归（源码级断言，配合 check_timer_e2e.js 的行为测试）。
 
-规则（2026-11-27 调整后）：
-  1. 课页不在前台（tab 隐藏 或 窗口失焦）→ 立刻停；
-  2. 课页在前台，但超过 10 分钟没有任何操作 → 停止累计；
-  3. 恢复操作 / 切回前台 → 从恢复那一刻继续，不补算中间的空档。
-
-这里只做源码级断言：不启动浏览器，但把上面三条对应的实现点逐一钉住，
-避免后续调整把阈值或事件绑定改回去（比如又变回 120 秒）。
+现行规则：
+  1. 本页不在前台（tab 隐藏 / 窗口失焦）→ 立即停，不补算；
+  2. 前台但距最后一次真实操作超过 10 分钟 → 判挂机，
+     该活动窗口内已累计的部分要整段退回（不白送阈值）；
+  3. 批次先落 localStorage 再上报，关页/断网不丢；
+  4. 上报带 batch_id，服务端按 (user, batch_id) 去重；
+  5. 同一页面多标签只让一个 leader 上报，避免重复计入。
 
 用法： python tools/check_study_timer.py
 """
@@ -18,6 +18,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JS = os.path.join(ROOT, "web", "assets", "app.js")
+PY = os.path.join(ROOT, "server", "app.py")
 
 fail = []
 
@@ -29,75 +30,82 @@ def need(cond, msg):
 
 def main():
     src = open(JS, encoding="utf-8").read()
+    py = open(PY, encoding="utf-8").read()
 
-    # ---- 规则 1：前台判定必须同时看 hidden 和 hasFocus
+    # ---- 1. 前台判定 ----
     m = re.search(r"function active\(\)\s*\{([^}]*)\}", src)
-    need(m, "找不到 active() 前台判定函数")
+    need(m, "找不到 active() 前台判定")
     if m:
-        body = m.group(1)
-        need("document.hidden" in body, "active() 没有检查 document.hidden（切 tab 不会停表）")
-        need("document.hasFocus()" in body, "active() 没有检查 document.hasFocus()（窗口失焦不会停表）")
+        need("document.hidden" in m.group(1), "active() 未检查 document.hidden（切 tab 不停表）")
+        need("document.hasFocus()" in m.group(1), "active() 未检查 hasFocus（失焦不停表）")
+    for ev in ["'blur'", "'focus'", "visibilitychange", "'pagehide'"]:
+        need(ev in src, "缺少 %s 监听，状态切换时不会停/续计时" % ev)
 
-    # 失焦与可见性变化必须触发重新判定
-    need(re.search(r"addEventListener\('blur'", src), "缺少 blur 监听：窗口失焦时不会停表")
-    need(re.search(r"addEventListener\('focus'", src), "缺少 focus 监听：窗口回焦时不会恢复")
-    need(re.search(r"visibilitychange", src), "缺少 visibilitychange 监听：切换 tab 时不会停表")
-    need(re.search(r"addEventListener\('pagehide'", src), "缺少 pagehide 监听：关页面时尾数会丢")
-
-    # ---- 规则 2：空闲阈值必须是 10 分钟
+    # ---- 2. 空闲阈值与退回 ----
     m2 = re.search(r"var IDLE_MS\s*=\s*(\d+)\s*;", src)
-    need(m2, "找不到 IDLE_MS 定义")
+    need(m2, "找不到 IDLE_MS")
     if m2:
-        ms = int(m2.group(1))
-        need(ms == 600000, "空闲阈值是 %d ms，应为 600000（10 分钟）" % ms)
+        need(int(m2.group(1)) == 600000, "IDLE_MS 应为 600000（10 分钟），实际 %s" % m2.group(1))
 
-    # 结算模型：间隔超阈值整段不计，而不是「乐观累计到阈值」
-    m3 = re.search(r"function credit\(now\)\s*\{(.*?)\n      \}", src, re.S)
-    need(m3, "找不到 credit() 结算函数")
+    m3 = re.search(r"function tick\(\)\s*\{(.*?)\n      \}", src, re.S)
+    need(m3, "找不到 tick() 采样函数")
     if m3:
-        b = m3.group(1)
-        need("gap <= IDLE_MS" in b or "IDLE_MS" in b,
-             "credit() 没有用 IDLE_MS 判定间隔")
-        need("accMs += gap" in b, "credit() 没有按间隔累加")
-        # 关键：不能出现「取 min(now, last+IDLE_MS)」这种乐观累计写法
-        need("Math.min(now, last + IDLE_MS)" not in src,
-             "仍存在乐观累计写法（会把整个 IDLE_MS 白送出去）")
+        body = m3.group(1)
+        # 必须用「距上次真实操作」判断空闲，而不是距上次采样
+        need("now - last > IDLE_MS" in body,
+             "tick() 未用 now-last 判断空闲（用 lastTick 会永远判不出空闲）")
+        need("markIdle()" in body, "tick() 判定空闲后未调用 markIdle() 退回")
+        need("accMs += gap" in body, "tick() 未按真实流逝时间累加")
 
-    # ---- 规则 3：恢复操作要能唤醒计时
-    events = ["scroll", "keydown", "input", "pointerdown", "touchstart", "wheel"]
-    for ev in events:
-        need("'" + ev + "'" in src, "缺少交互事件 %s，该操作无法恢复计时" % ev)
-    need("'mousemove'" in src,
-         "缺少 mousemove 监听：只动鼠标（不滚动）无法唤醒计时")
-
-    # 每个交互都必须先确认在前台，再把 last 推到当前时刻
-    # markActive 现委托 credit()，last 在 credit 内推进
-    need(re.search(r"function markActive\(\)\s*\{\s*credit\(", src, re.S),
-         "markActive() 没有调用 credit()，恢复操作不会重置空闲计时")
-    need(re.search(r"function credit\(now\)\s*\{[\s\S]*?last\s*=\s*now", src),
-         "credit() 没有把 last 更新到当前时刻，恢复操作后仍会被判为空闲")
-
-    # mousemove 要有节流，避免每帧都结算
-    need(re.search(r"lastMoveMark\s*<\s*2000", src),
-         "mousemove 没有节流，会产生高频采样")
-
-    # ---- 非课程页也要计时
-    m4 = re.search(r"var PAGE_STUDY\s*=\s*\{(.*?)\};", src, re.S)
-    need(m4, "找不到 PAGE_STUDY 白名单")
+    m4 = re.search(r"function markIdle\(\)\s*\{(.*?)\n      \}", src, re.S)
+    need(m4, "找不到 markIdle() 退回函数")
     if m4:
-        for pg in ["playground", "quiz", "exam", "glossary", "abbr"]:
-            need(pg + ":" in m4.group(1), "PAGE_STUDY 缺少 %s，该页不计时" % pg)
+        b = m4.group(1)
+        need("accMs -= need" in b or "accMs -= winAcc" in b,
+             "markIdle() 没有从 accMs 里扣回已累计的挂机时段")
+        need("batches" in b, "markIdle() 未处理已切成批次的部分，退回不彻底")
 
-    # ---- 状态提示要能说清为什么停
+    # 不允许出现旧的「乐观累计到阈值」写法
+    need("Math.min(now, last + IDLE_MS)" not in src,
+         "仍存在乐观累计写法（会把 IDLE_MS 白送出去）")
+
+    # ---- 3. 批次持久化 ----
+    need("loadQueue" in src and "saveQueue" in src, "缺少队列持久化函数")
+    need("localStorage.setItem(LS_BATCH" in src, "批次未写入 localStorage，关页会丢")
+    m5 = re.search(r"function flush\(leaving\)\s*\{(.*?)\n      \}", src, re.S)
+    if m5:
+        b = m5.group(1)
+        need("saveQueue()" in b, "flush() 没有先落盘再上报，关页会丢数据")
+
+    # ---- 4. 多标签去重 ----
+    need("LS_LEADER" in src and "isLeader" in src, "缺少多标签 leader 选举，会重复计入")
+
+    # ---- 5. 服务端 batch_id 必填与去重 ----
+    need(re.search(r"batch_id:\s*UUID", py), "服务端 batch_id 应为必填（UUID 而非 Optional）")
+    need("study_time_receipts(user_id,batch_id,ts)" in py,
+         "回执表未记录 ts，无法做过期清理")
+    need("ON CONFLICT(user_id,batch_id) DO NOTHING" in py,
+         "服务端未按 (user, batch_id) 幂等去重")
+    need("lesson not in _study_pages()" in py, "服务端未校验学习页白名单")
+
+    # ---- 6. 白名单覆盖 ----
+    m6 = re.search(r"var PAGE_STUDY\s*=\s*\{(.*?)\};", src, re.S)
+    need(m6, "找不到 PAGE_STUDY 白名单")
+    if m6:
+        for pg in ["playground", "quiz", "exam", "glossary", "abbr",
+                   "cheatsheet", "search", "progress", "leaderboard"]:
+            need(pg + ":" in m6.group(1), "PAGE_STUDY 缺少 %s，该页不计时" % pg)
+
+    # ---- 7. 状态文案 ----
     for kw in ["本页不在前台", "10 分钟无操作"]:
-        need(kw in src, "计时状态提示缺少「%s」的说明，用户不知道为何不计时" % kw)
+        need(kw in src, "状态提示缺少「%s」" % kw)
 
     if fail:
         print("FAIL")
         for f in fail:
             print(" -", f)
         return 1
-    print("OK: 前台判定 / 10 分钟空闲阈值 / 恢复唤醒 / 状态提示 全部符合预期")
+    print("OK: 前台判定 / 空闲退回 / 队列持久化 / 多标签去重 / 服务端幂等 全部符合预期")
     return 0
 
 

@@ -15,6 +15,7 @@ import json
 import os
 import re
 import secrets
+import random
 import sqlite3
 import subprocess
 import tempfile
@@ -162,12 +163,19 @@ def init_db():
         c.execute("""CREATE TABLE IF NOT EXISTS study_time_receipts(
             user_id INTEGER NOT NULL,
             batch_id TEXT NOT NULL,
+            ts INTEGER NOT NULL DEFAULT 0,
             PRIMARY KEY(user_id, batch_id)) WITHOUT ROWID""")
         c.execute("""CREATE TABLE IF NOT EXISTS user_uids(
             user_id INTEGER NOT NULL,
             uid TEXT NOT NULL,
             ts INTEGER NOT NULL,
             PRIMARY KEY(user_id, uid))""")
+        # 老库的回执表没有 ts 列（早期只用来去重，不关心时间），这里补上，
+        # 供定期清理使用；已有数据填当前时间，避免被判成过期。
+        cols = {r[1] for r in c.execute("PRAGMA table_info(study_time_receipts)").fetchall()}
+        if "ts" not in cols:
+            c.execute("ALTER TABLE study_time_receipts ADD COLUMN ts INTEGER NOT NULL DEFAULT 0")
+            c.execute("UPDATE study_time_receipts SET ts=? WHERE ts=0", (int(time.time()),))
         c.execute("""CREATE TABLE IF NOT EXISTS quiz_stats(
             user_id INTEGER PRIMARY KEY,
             answered INTEGER NOT NULL DEFAULT 0,
@@ -937,32 +945,33 @@ class StudyTimeIn(BaseModel):
     lesson: str = Field(..., max_length=64)
     seconds: int = Field(..., ge=0, le=60)
     by_chapter: Dict[str, int] = Field(default_factory=dict)  # 章级秒数（防刷分校验用）
-    batch_id: Optional[UUID] = None
+    # 必填：没有它就无法去重，同一次学习会被重复累加。
+    batch_id: UUID
 
 
 @app.post("/api/study-time")
 def study_time_add(r: StudyTimeIn, request: Request):
-    """累计课程页和练习场上报的有效学习时间。"""
+    """累计学习页上报的有效学习时间。
+
+    去重靠 (user_id, batch_id)：客户端对同一批数据重试时用同一个 batch_id，
+    服务端只会入账一次。所以 batch_id 是必填，不提供「无 ID 也能加」的路径。
+    """
     u = current_user(request)
     if not u:
         raise HTTPException(401, "not logged in")
-    if not r.seconds and r.batch_id is None:
-        return {"ok": True, "added": 0}
     lesson = (r.lesson or "").strip()
     user_id = u["id"]
+    now = int(time.time())
     with closing(db()) as c, c:
-        duplicate = False
-        if r.batch_id is not None:
-            receipt = c.execute(
-                "INSERT INTO study_time_receipts(user_id,batch_id) VALUES(?,?) "
-                "ON CONFLICT(user_id,batch_id) DO NOTHING",
-                (user_id, str(r.batch_id)))
-            duplicate = receipt.rowcount == 0
+        receipt = c.execute(
+            "INSERT INTO study_time_receipts(user_id,batch_id,ts) VALUES(?,?,?) "
+            "ON CONFLICT(user_id,batch_id) DO NOTHING",
+            (user_id, str(r.batch_id), now))
+        duplicate = receipt.rowcount == 0
         if not duplicate and lesson not in _study_pages():
             raise HTTPException(400, "unknown study page")
         added = 0 if duplicate else r.seconds
         if added:
-            now = int(time.time())
             c.execute(
                 "INSERT INTO study_time(user_id,lesson,seconds,updated_at) VALUES(?,?,?,?) "
                 "ON CONFLICT(user_id,lesson) DO UPDATE SET seconds=seconds+excluded.seconds, "
@@ -979,6 +988,10 @@ def study_time_add(r: StudyTimeIn, request: Request):
                     (user_id, lesson, ch, min(int(s), 7200), now))
         row = c.execute("SELECT seconds FROM study_time WHERE user_id=? AND lesson=?",
                         (user_id, lesson)).fetchone()
+        # 惰性清理：回执只用于「短时间内重试去重」，超过 7 天就没意义了。
+        # 概率性执行（约 1%），避免每次上报都跑一次 DELETE。
+        if random.random() < 0.01:
+            c.execute("DELETE FROM study_time_receipts WHERE ts < ?", (now - 7 * 86400,))
     return {"ok": True, "added": added, "lesson_seconds": row["seconds"] if row else 0}
 
 

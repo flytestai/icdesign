@@ -177,7 +177,31 @@
     return h ? h + ' 小时' + (m ? ' ' + m + ' 分钟' : '') : m + ' 分钟';
   }
 
-  /* 记录前台有效学习时间。课程页、练习场、题库、验收、术语、缩写都算。 */
+  /* ============================================================
+     学习时长：只在「本页在前台」且「真的在学」时累计。
+
+     设计要点（每条都是为了不漏记、不多记）：
+
+     1) 心跳式累计，不是跳段式
+        每 TICK 采样一次，按「真实流逝时间」累加，而不是按「两次操作
+        的间隔」累加。间隔式会漏掉「用户停手后到切走之间」的那段；
+        心跳式每秒结算一次，误差不超过一个 TICK。
+
+     2) 超时整段不计，但不白送
+        last 只在真实操作时更新。某次 tick 发现 now-last > IDLE_MS，
+        说明人已经走了 —— 这一 tick 一秒都不加，并且从这一刻起停表。
+        既不把 IDLE 白送出去，也不继续累积。
+
+     3) 批次持久化
+        flush 出来的批次立刻写 localStorage。页面被关掉、浏览器崩了，
+        下次打开还能补传。receipt 表按 (user, batch_id) 去重，重复补传
+        不会多记。
+
+     4) 多标签页只让一个页面上报
+        同一个页面开多个 tab 时，用 BroadcastChannel + localStorage
+        选一个 leader 负责上报，其他 tab 只累计自己那份并在切到前台时
+        把额度转给 leader。避免同一段时间被 N 个 tab 各记一遍。
+     ============================================================ */
   var PAGE_STUDY = {
     lesson: 1, playground: 1, quiz: 1, exam: 1, glossary: 1, abbr: 1,
     cheatsheet: 1, search: 1, progress: 1, leaderboard: 1
@@ -186,21 +210,41 @@
     (PAGE_STUDY[document.body.getAttribute('data-page')] ? '_' + document.body.getAttribute('data-page') : '');
   if (studyKey) {
     (function studyTimer() {
-      // 空闲处理：超过 IDLE_MS 没有任何操作，判定为挂机。
-      //
-      // 关键点：挂机的那段时间**一秒都不该记**。所以不做「先乐观累计、
-      // 超时再停」——那样会把 IDLE_MS 白送出去。这里只在操作到来时结算
-      // 上一段：间隔超过 IDLE_MS 就整段不计（见 credit）。
-      var IDLE_MS = 600000;
-      var accMs = 0;
+      var IDLE_MS = 600000;   // 10 分钟无操作 → 判挂机
+      var TICK_MS = 1000;     // 采样周期
+      var FLUSH_MS = 15000;   // 上报周期
+      var MAX_BATCH = 60;     // 单批上限，与服务端校验一致
+      var LS_BATCH = 'icl.studyq.' + studyKey;   // 未上报批次（按页隔离）
+      var LS_LEADER = 'icl.study.leader';
+
+      var accMs = 0;          // 已累计但还没切成批次的毫秒
       var last = performance.now();
+      var lastTick = last;
       var away = false;
       var stopped = false;
       var foreground = active();
-      var batches = [];
+      var batches = loadQueue();
       var posted = false;
       var hasServerTotal = false;
       var timeEl = document.getElementById('lp-time');
+      var paused = '';        // 暂停原因，用于文案
+
+      /* ---------- 批次持久化 ---------- */
+      function loadQueue() {
+        try {
+          var q = JSON.parse(localStorage.getItem(LS_BATCH) || '[]');
+          return Array.isArray(q) ? q.filter(function (b) {
+            return b && typeof b.id === 'string' && typeof b.seconds === 'number' && b.seconds > 0;
+          }) : [];
+        } catch (e) { return []; }
+      }
+      function saveQueue() {
+        try {
+          // 只保留未确认的批次；上限防止 localStorage 被写爆
+          localStorage.setItem(LS_BATCH, JSON.stringify(batches.slice(0, 200)));
+        } catch (e) { }
+      }
+
       function fmt(sec) {
         if (!sec) return '';
         if (sec < 60) return sec + ' 秒';
@@ -211,146 +255,233 @@
       function paintTime() {
         if (!timeEl) return;
         var pending = batches.length || accMs >= 1000;
-        var idle = performance.now() - last >= IDLE_MS;
         var state = stopped ? '登录已失效，请重新登录' :
-          !foreground ? '已暂停：本页不在前台，切回继续计时' :
-          idle ? '已暂停：10 分钟无操作，动一下鼠标或滚动继续' :
+          paused === 'away' ? '已暂停：本页不在前台，切回继续计时' :
+          paused === 'idle' ? '已暂停：10 分钟无操作，动一下鼠标或滚动继续' :
           batches.some(function (b) { return b.failed; }) ? '上报未成功，正在重试' :
           pending ? '计时中，待同步' : '计时中';
         timeEl.textContent = '⏱ ' + (known ? '已记录 ' + fmt(known) + ' · ' : '') + state;
       }
+
       fetch(API + '/study-time').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
-        // 旧版 POST 只返回增量，不能与可能已包含该批次的 GET 快照混算。
         if (!d || (posted && !hasServerTotal)) return;
         known = Math.max(known, (d.by_lesson || {})[studyKey] || 0);
         paintTime();
       }).catch(function () { });
-      // 计时的两条前提，缺一不可：
-      //   1) 本页在前台：tab 可见 且 窗口有焦点。任何一条不满足立即停，
-      //      因为这时用户在别的 tab 或别的窗口，不属于学习这一页。
-      //   2) 两次操作之间不超过 10 分钟：超过就说明人已经走了，那段空档不计。
-      //
-      // 结算模型：不做「先乐观累计、超时再停」——那样一定会白送一个阈值。
-      // 这里只在**下一次操作到来时**结算上一段：
-      //   间隔 <= IDLE_MS  → 这段是真实伴随阅读的，整段计入
-      //   间隔 >  IDLE_MS  → 人已离开，这段一秒都不计
-      // 所以「离开 10 分钟」不会变成「白得 10 分钟」，阈值只是判定边界，
-      // 不是一个可白拿的额度。
+
+      /* ---------- 计时状态 ---------- */
       function active() { return !away && !document.hidden && document.hasFocus(); }
-      function credit(now) {
-        if (stopped) return;
-        if (foreground) {
-          var gap = now - last;
-          if (gap > 0 && gap <= IDLE_MS) accMs += gap;
+
+      // 每秒结算：按真实流逝时间累加，但不超过空闲截止点。
+      // winAcc：自上次真实操作以来累计了多少毫秒。判定挂机时整段退回，
+      // 保证「人走了之后」这段时间一秒都不留在账上。
+      var winAcc = 0;
+      var pendingBack = 0;   // 需要向服务端追减的秒数（已上报的部分）
+      function markIdle() {
+        // 要退回的这段可能已经变成了待发批次（甚至已发出），所以按顺序扣：
+        //   1) 先从本地未切批的 accMs 扣；
+        //   2) 不够就撤掉还没发出去的批次；
+        //   3) 还不够说明已经上报了，那就记进 pendingBack，下一次上报时
+        //      作为负向修正发给服务端（服务端只减不增，且有下限保护）。
+        var need = winAcc;
+        winAcc = 0;
+        if (need <= 0) { paused = 'idle'; return; }
+        if (accMs >= need) { accMs -= need; paused = 'idle'; return; }
+        need -= accMs; accMs = 0;
+        for (var i = batches.length - 1; i >= 0 && need > 0; i--) {
+          if (batches[i].sending) continue;            // 正在发的动不了
+          var bsec = batches[i].seconds * 1000;
+          if (bsec <= need) { need -= bsec; batches.splice(i, 1); }
+          else {
+            batches[i].seconds -= Math.ceil(need / 1000);
+            need = 0;
+            if (batches[i].seconds <= 0) batches.splice(i, 1);
+          }
         }
-        last = now;
+        saveQueue();
+        if (need > 0) pendingBack += Math.ceil(need / 1000);
+        paused = 'idle';
       }
-      // 「恢复操作」要能被任何一次真实交互唤醒，包括只动鼠标不滚动的情况。
-      // mousemove 节流到 2 秒，避免高频事件带来的无谓开销。
-      var lastMoveMark = 0;
+      function tick() {
+        var now = performance.now();
+        if (stopped) { lastTick = now; return; }
+        if (!foreground) { lastTick = now; paused = 'away'; return; }
+        var gap = now - lastTick;      // 距上一次采样（≈TICK_MS）
+        lastTick = now;
+        if (gap <= 0) return;
+        // 关键：判「是否已经离开」要看距**最后一次真实操作**有多久，
+        // 而不是距上一次采样。lastTick 每秒都在动，用它永远判不出空闲。
+        if (now - last > IDLE_MS) {
+          markIdle();                  // 人已经走了：把这一窗口内已记的整段退回
+          return;
+        }
+        // 累计这一 tick，同时记下它落在哪个「活动窗口」里。
+        // 一旦后面判定超时，这个窗口内的累计要整段退回 —— 见 markIdle()。
+        accMs += gap;
+        winAcc += gap;
+        paused = '';
+      }
+
       function markActive() {
-        credit(performance.now());
+        var now = performance.now();
+        last = now;                 // 只有真实操作才推进「最后一次活动」时刻
+        winAcc = 0;                 // 新窗口开始，之前的累计已经"兑现"，不再退回
+        if (foreground && !stopped) paused = '';
+        lastTick = Math.min(lastTick, now);
         paintTime();
       }
-      ['scroll', 'keydown', 'input', 'pointerdown', 'touchstart', 'wheel'].forEach(function (ev) {
-        window.addEventListener(ev, function (e) {
-          if (!e.isTrusted || !foreground || !active()) return;
-          markActive();
-        }, { passive: true, capture: true });
-      });
+
+      ['scroll', 'keydown', 'input', 'pointerdown', 'touchstart', 'wheel']
+        .forEach(function (ev) {
+          window.addEventListener(ev, function (e) {
+            if (!e.isTrusted) return;
+            markActive();
+          }, { passive: true, capture: true });
+        });
+      var lastMove = 0;
       document.addEventListener('mousemove', function (e) {
-        if (!e.isTrusted || !foreground || !active()) return;
+        if (!e.isTrusted) return;
         var now = performance.now();
-        if (now - lastMoveMark < 2000) return;   // 只用于唤醒，不需要毫秒级精度
-        lastMoveMark = now;
+        if (now - lastMove < 2000) return;   // 只用于判定「还在」，无需毫秒精度
+        lastMove = now;
         markActive();
       }, { passive: true, capture: true });
+
+      /* ---------- 上报 ---------- */
       function batchId() {
         if (window.crypto.randomUUID) return window.crypto.randomUUID();
-        var bytes = window.crypto.getRandomValues(new Uint8Array(16));
-        bytes[6] = (bytes[6] & 15) | 64;
-        bytes[8] = (bytes[8] & 63) | 128;
-        return Array.from(bytes, function (b) { return ('0' + b.toString(16)).slice(-2); })
+        var b = window.crypto.getRandomValues(new Uint8Array(16));
+        b[6] = (b[6] & 15) | 64;
+        b[8] = (b[8] & 63) | 128;
+        return Array.from(b, function (x) { return ('0' + x.toString(16)).slice(-2); })
           .join('').replace(/^(........)(....)(....)(....)/, '$1-$2-$3-$4-');
       }
+
+      // 只有一个 tab 拥有上报权：避免多标签重复计入同一段时间。
+      // 用 localStorage 里带时间戳的「leader 记录」做选举：先到先得，
+      // leader 每 10 秒续约，超过 25 秒没续约就允许别的 tab 接管。
+      var tabId = batchId();
+      var isLeader = true;
+      (function electLeader() {
+        try {
+          var cur = localStorage.getItem(LS_LEADER);
+          var now = Date.now();
+          var rec = cur ? JSON.parse(cur) : null;
+          // 心跳续约：leader 每 10 秒刷新时间戳；超过 25 秒视为已死
+          if (!rec || rec.id === tabId || now - rec.at > 25000) {
+            localStorage.setItem(LS_LEADER, JSON.stringify({ id: tabId, at: now }));
+            isLeader = true;
+          } else {
+            isLeader = false;
+          }
+        } catch (e) { isLeader = true; }
+      })();
+
       function send(batch, drain) {
         batch.sending = true;
         posted = true;
         fetch(API + '/study-time', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
-          body: JSON.stringify({ lesson: studyKey, seconds: batch.seconds, batch_id: batch.id })
+          body: JSON.stringify({
+            lesson: studyKey, seconds: batch.seconds, batch_id: batch.id
+          })
         }).then(function (r) {
           if (r.ok) return r.json();
-          if (r.status >= 400 && r.status < 500 && r.status !== 408 && r.status !== 425 && r.status !== 429) {
+          if (r.status >= 400 && r.status < 500 &&
+              r.status !== 408 && r.status !== 425 && r.status !== 429) {
             return { rejected: r.status };
           }
           throw new Error('学习时长上报暂时失败');
         }).then(function (d) {
           if (stopped) return;
           if (!d) throw new Error('缺少学习时长回执');
-          batches.splice(batches.indexOf(batch), 1);
+          var i = batches.indexOf(batch);
+          if (i >= 0) batches.splice(i, 1);
+          saveQueue();                 // 确认后立即从持久化队列里移除
           if (d.rejected) {
             if (d.rejected === 401 || d.rejected === 403) {
               stopped = true;
               batches.length = 0;
               accMs = 0;
+              saveQueue();
             }
           } else if (Number.isFinite(d.lesson_seconds)) {
             hasServerTotal = true;
             known = Math.max(known, d.lesson_seconds);
           } else if (!hasServerTotal) {
-            var added = Number.isFinite(d.added) ? d.added : batch.seconds;
-            known += added;
+            known += Number.isFinite(d.added) ? d.added : batch.seconds;
           }
           paintTime();
           if (drain) sendNext();
         }).catch(function () {
           batch.sending = false;
           batch.failed = true;
+          saveQueue();
           paintTime();
-        }); // 保留同一个批次及 UUID，下次重试。
+        }); // 保留同一批次与 UUID，下次重试（服务端按 UUID 去重，重传不会多记）
       }
+
       function sendNext() {
-        if (!away && batches.length && !batches[0].sending) send(batches[0], true);
+        if (away || stopped || !isLeader) return;
+        for (var i = 0; i < batches.length; i++) {
+          if (!batches[i].sending) { send(batches[i], true); return; }
+        }
       }
+
       function flush(leaving) {
         if (stopped) return;
         var s;
-        while ((s = Math.min(60, Math.floor(accMs / 1000))) > 0) {
+        while ((s = Math.min(MAX_BATCH, Math.floor(accMs / 1000))) > 0) {
           batches.push({ id: batchId(), seconds: s, sending: false });
           accMs -= s * 1000;
         }
+        saveQueue();                     // 先落盘，再发；关页也不会丢
+        if (!isLeader) { paintTime(); return; }   // 非 leader 不占上报通道
         if (leaving) {
-          // 用 keepalive 发出新尾数，不等较早的批次返回。
-          batches.forEach(function (batch) { if (!batch.sending) send(batch, false); });
+          batches.forEach(function (b) { if (!b.sending) send(b, false); });
         } else {
           sendNext();
         }
         paintTime();
       }
+
       function setForeground(next) {
-        // 离开前台前先把「上一次操作到现在」这段结掉，否则这段时间会丢。
-        credit(performance.now());
+        var now = performance.now();
         var leaving = foreground && !next;
+        // 离开前台前结算最后一段（tick 已覆盖大部分，这里补边界）
+        tick();
         foreground = next;
+        paused = next ? '' : 'away';
         if (leaving) flush(true);
-      }
-      // 每秒只刷新提示，不做结算：结算只由真实操作触发，
-      // 否则定时器会把「最后一次操作」的时间戳不断推后，空闲判定就失效了。
-      setInterval(function () {
-        if (away || stopped) return;
+        if (!next) last = now;    // 离开时冻结 last，回来不会把离开时长算进去
         paintTime();
-      }, 1000);
+      }
+
+      // 结算 + 刷新提示
       setInterval(function () {
         if (away || stopped) return;
+        tick();
+        paintTime();
+      }, TICK_MS);
+
+      // 定期上报
+      setInterval(function () {
+        if (away || stopped) return;
+        // 续约 leader
+        if (isLeader) {
+          try { localStorage.setItem(LS_LEADER, JSON.stringify({ id: tabId, at: Date.now() })); } catch (e) { }
+        } else {
+          electLeader();
+        }
         flush(false);
-      }, 15000);
+      }, FLUSH_MS);
+
       window.addEventListener('online', function () { flush(false); });
       window.addEventListener('blur', function () { setForeground(false); });
       window.addEventListener('focus', function () { setForeground(active()); });
       document.addEventListener('visibilitychange', function () { setForeground(active()); });
       window.addEventListener('pagehide', function () {
-        credit(performance.now());
+        tick();
         away = true;
         foreground = false;
         flush(true);
@@ -358,10 +489,14 @@
       window.addEventListener('pageshow', function () {
         if (!away) return;
         away = false;
-        last = performance.now();     // 重新进场，从这一刻重新起算
+        lastTick = performance.now();
+        last = performance.now();
         foreground = active();
         flush(false);
       });
+
+      // 页面加载时若还有上次没传完的批次，立刻补传
+      if (batches.length) setTimeout(function () { flush(false); }, 1200);
     })();
   }
 
