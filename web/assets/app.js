@@ -177,19 +177,23 @@
     return h ? h + ' 小时' + (m ? ' ' + m + ' 分钟' : '') : m + ' 分钟';
   }
 
-  /* 只在课程和代码练习场记录前台有效学习时间。 */
+  /* 记录前台有效学习时间。课程页、练习场、题库、验收、术语、缩写都算。 */
+  var PAGE_STUDY = {
+    lesson: 1, playground: 1, quiz: 1, exam: 1, glossary: 1, abbr: 1,
+    cheatsheet: 1, search: 1, progress: 1, leaderboard: 1
+  };
   var studyKey = isLesson && sections.length ? lessonId :
-    (document.body.getAttribute('data-page') === 'playground' ? '_playground' : '');
+    (PAGE_STUDY[document.body.getAttribute('data-page')] ? '_' + document.body.getAttribute('data-page') : '');
   if (studyKey) {
     (function studyTimer() {
-      // 空闲判定：只有「课页在前台、但超过 IDLE_MS 没有任何操作」才停止计时。
-      // 10 分钟是给「读一段长代码/对照一份报告」留的余量；真挂机的特征是
-      // 既没有滚动也没有点击，超过 10 分钟就按挂机处理。
-      // 切走 tab 或失焦属于另一条更严格的条件（见 active()），立刻停。
+      // 空闲处理：超过 IDLE_MS 没有任何操作，判定为挂机。
+      //
+      // 关键点：挂机的那段时间**一秒都不该记**。所以不做「先乐观累计、
+      // 超时再停」——那样会把 IDLE_MS 白送出去。这里只在操作到来时结算
+      // 上一段：间隔超过 IDLE_MS 就整段不计（见 credit）。
       var IDLE_MS = 600000;
       var accMs = 0;
       var last = performance.now();
-      var tickAt = last;
       var away = false;
       var stopped = false;
       var foreground = active();
@@ -207,9 +211,9 @@
       function paintTime() {
         if (!timeEl) return;
         var pending = batches.length || accMs >= 1000;
-        var idle = performance.now() >= last + IDLE_MS;
+        var idle = performance.now() - last >= IDLE_MS;
         var state = stopped ? '登录已失效，请重新登录' :
-          !foreground ? '已暂停：课页不在前台，切回继续计时' :
+          !foreground ? '已暂停：本页不在前台，切回继续计时' :
           idle ? '已暂停：10 分钟无操作，动一下鼠标或滚动继续' :
           batches.some(function (b) { return b.failed; }) ? '上报未成功，正在重试' :
           pending ? '计时中，待同步' : '计时中';
@@ -222,22 +226,30 @@
         paintTime();
       }).catch(function () { });
       // 计时的两条前提，缺一不可：
-      //   1) 课页在前台：tab 可见 且 窗口有焦点。任何一条不满足立即停，
+      //   1) 本页在前台：tab 可见 且 窗口有焦点。任何一条不满足立即停，
       //      因为这时用户在别的 tab 或别的窗口，不属于学习这一页。
-      //   2) 10 分钟内有过操作：超过 IDLE_MS 没有滚动/点击/按键，判定为挂机。
+      //   2) 两次操作之间不超过 10 分钟：超过就说明人已经走了，那段空档不计。
+      //
+      // 结算模型：不做「先乐观累计、超时再停」——那样一定会白送一个阈值。
+      // 这里只在**下一次操作到来时**结算上一段：
+      //   间隔 <= IDLE_MS  → 这段是真实伴随阅读的，整段计入
+      //   间隔 >  IDLE_MS  → 人已离开，这段一秒都不计
+      // 所以「离开 10 分钟」不会变成「白得 10 分钟」，阈值只是判定边界，
+      // 不是一个可白拿的额度。
       function active() { return !away && !document.hidden && document.hasFocus(); }
-      function sample(now) {
-        // 先用切换前的状态结算，再更新前台状态；迟到的采样只受空闲截止时间限制。
-        if (foreground && !stopped) accMs += Math.max(0, Math.min(now, last + IDLE_MS) - tickAt);
-        tickAt = now;
+      function credit(now) {
+        if (stopped) return;
+        if (foreground) {
+          var gap = now - last;
+          if (gap > 0 && gap <= IDLE_MS) accMs += gap;
+        }
+        last = now;
       }
       // 「恢复操作」要能被任何一次真实交互唤醒，包括只动鼠标不滚动的情况。
       // mousemove 节流到 2 秒，避免高频事件带来的无谓开销。
       var lastMoveMark = 0;
       function markActive() {
-        var now = performance.now();
-        sample(now);
-        last = now;
+        credit(performance.now());
         paintTime();
       }
       ['scroll', 'keydown', 'input', 'pointerdown', 'touchstart', 'wheel'].forEach(function (ev) {
@@ -317,19 +329,20 @@
         paintTime();
       }
       function setForeground(next) {
-        sample(performance.now());
+        // 离开前台前先把「上一次操作到现在」这段结掉，否则这段时间会丢。
+        credit(performance.now());
         var leaving = foreground && !next;
         foreground = next;
         if (leaving) flush(true);
       }
+      // 每秒只刷新提示，不做结算：结算只由真实操作触发，
+      // 否则定时器会把「最后一次操作」的时间戳不断推后，空闲判定就失效了。
       setInterval(function () {
         if (away || stopped) return;
-        sample(performance.now());
         paintTime();
       }, 1000);
       setInterval(function () {
         if (away || stopped) return;
-        sample(performance.now());
         flush(false);
       }, 15000);
       window.addEventListener('online', function () { flush(false); });
@@ -337,7 +350,7 @@
       window.addEventListener('focus', function () { setForeground(active()); });
       document.addEventListener('visibilitychange', function () { setForeground(active()); });
       window.addEventListener('pagehide', function () {
-        sample(performance.now());
+        credit(performance.now());
         away = true;
         foreground = false;
         flush(true);
@@ -345,7 +358,7 @@
       window.addEventListener('pageshow', function () {
         if (!away) return;
         away = false;
-        tickAt = performance.now();
+        last = performance.now();     // 重新进场，从这一刻重新起算
         foreground = active();
         flush(false);
       });

@@ -51,9 +51,17 @@ def main():
         ms = int(m2.group(1))
         need(ms == 600000, "空闲阈值是 %d ms，应为 600000（10 分钟）" % ms)
 
-    # 结算公式必须把空闲截止点算进去，否则超时后仍会继续累计
-    need(re.search(r"Math\.min\(now,\s*last \+ IDLE_MS\)", src),
-         "sample() 的结算没有按 last + IDLE_MS 截断，超时后会多算")
+    # 结算模型：间隔超阈值整段不计，而不是「乐观累计到阈值」
+    m3 = re.search(r"function credit\(now\)\s*\{(.*?)\n      \}", src, re.S)
+    need(m3, "找不到 credit() 结算函数")
+    if m3:
+        b = m3.group(1)
+        need("gap <= IDLE_MS" in b or "IDLE_MS" in b,
+             "credit() 没有用 IDLE_MS 判定间隔")
+        need("accMs += gap" in b, "credit() 没有按间隔累加")
+        # 关键：不能出现「取 min(now, last+IDLE_MS)」这种乐观累计写法
+        need("Math.min(now, last + IDLE_MS)" not in src,
+             "仍存在乐观累计写法（会把整个 IDLE_MS 白送出去）")
 
     # ---- 规则 3：恢复操作要能唤醒计时
     events = ["scroll", "keydown", "input", "pointerdown", "touchstart", "wheel"]
@@ -63,15 +71,25 @@ def main():
          "缺少 mousemove 监听：只动鼠标（不滚动）无法唤醒计时")
 
     # 每个交互都必须先确认在前台，再把 last 推到当前时刻
-    need(re.search(r"function markActive\(\)\s*\{[^}]*last\s*=\s*now", src, re.S),
-         "markActive() 没有把 last 更新到当前时刻，恢复操作后仍会被判为空闲")
+    # markActive 现委托 credit()，last 在 credit 内推进
+    need(re.search(r"function markActive\(\)\s*\{\s*credit\(", src, re.S),
+         "markActive() 没有调用 credit()，恢复操作不会重置空闲计时")
+    need(re.search(r"function credit\(now\)\s*\{[\s\S]*?last\s*=\s*now", src),
+         "credit() 没有把 last 更新到当前时刻，恢复操作后仍会被判为空闲")
 
     # mousemove 要有节流，避免每帧都结算
     need(re.search(r"lastMoveMark\s*<\s*2000", src),
          "mousemove 没有节流，会产生高频采样")
 
+    # ---- 非课程页也要计时
+    m4 = re.search(r"var PAGE_STUDY\s*=\s*\{(.*?)\};", src, re.S)
+    need(m4, "找不到 PAGE_STUDY 白名单")
+    if m4:
+        for pg in ["playground", "quiz", "exam", "glossary", "abbr"]:
+            need(pg + ":" in m4.group(1), "PAGE_STUDY 缺少 %s，该页不计时" % pg)
+
     # ---- 状态提示要能说清为什么停
-    for kw in ["课页不在前台", "10 分钟无操作"]:
+    for kw in ["本页不在前台", "10 分钟无操作"]:
         need(kw in src, "计时状态提示缺少「%s」的说明，用户不知道为何不计时" % kw)
 
     if fail:

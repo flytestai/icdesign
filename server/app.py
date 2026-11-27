@@ -920,9 +920,17 @@ def quiz_stats_get(request: Request):
 
 PRACTICE_TIME_KEY = "_playground"
 
+# 除课程页外，这些站内学习页也计入学习时长（前端 app.js 的 PAGE_STUDY 与此对应）。
+# 键名形如 "_quiz"，避免与课程 id 冲突。
+EXTRA_STUDY_PAGES = (
+    PRACTICE_TIME_KEY,
+    "_quiz", "_exam", "_glossary", "_abbr",
+    "_cheatsheet", "_search", "_progress", "_leaderboard",
+)
+
 
 def _study_pages() -> tuple:
-    return (*_lesson_catalog(), PRACTICE_TIME_KEY)
+    return (*_lesson_catalog(), *EXTRA_STUDY_PAGES)
 
 
 class StudyTimeIn(BaseModel):
@@ -950,7 +958,7 @@ def study_time_add(r: StudyTimeIn, request: Request):
                 "ON CONFLICT(user_id,batch_id) DO NOTHING",
                 (user_id, str(r.batch_id)))
             duplicate = receipt.rowcount == 0
-        if not duplicate and lesson != PRACTICE_TIME_KEY and lesson not in _lesson_catalog():
+        if not duplicate and lesson not in _study_pages():
             raise HTTPException(400, "unknown study page")
         added = 0 if duplicate else r.seconds
         if added:

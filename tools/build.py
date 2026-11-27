@@ -1055,13 +1055,21 @@ def build_home(lessons, nquiz, nterm, plan):
 
 
 # ---------------------------------------------------------------- 子页面
+# 这些页面也计学习时长（与 server/app.py 的 EXTRA_STUDY_PAGES 对应）。
+STUDY_SUBPAGES = ("playground", "quiz", "exam", "glossary", "abbr",
+                  "cheatsheet", "search", "progress", "leaderboard")
+
+
 def subpage(slug, title, lead, body, active=""):
+    # 计时的页面要在右上角显示本页累计时长，否则用户不知道自己记了多少。
+    right = ('<span class="lp-time" id="lp-time" title="本页累计学习时长"></span>'
+             if slug in STUDY_SUBPAGES else '') + '<a class="ghost" href="/">← 课程</a>'
     html = SUB.format(
         doctitle=f"{title} | IC 后端学院", title=title, desc=lead, page=slug,
         lesson=slug, nav=nav_html(active or f"/{slug}/"),
-        right='<a class="ghost" href="/">← 课程</a>',
+        right=right,
         body=f'<div class="sub-h"><h1>{title}</h1><p>{lead}</p></div>' + body,
-        study_script='<script src="/assets/app.js"></script>\n' if slug == "playground" else "",
+        study_script='<script src="/assets/app.js"></script>\n' if slug in STUDY_SUBPAGES else "",
     ).replace("%%AUTHCHIP%%", AUTH_CHIP)
     d = os.path.join(WEB, slug)
     os.makedirs(d, exist_ok=True)
