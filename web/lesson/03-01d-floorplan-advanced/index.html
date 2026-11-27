@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Floorplan 进阶：从 Die Size 输入到 Kick-Off Run · 31d | IC 后端学院</title>
 <meta name="description" content="核对 Die Size 上游条件，按连接关系安排引脚和 Memory，再把 GUI 验证结果固化为可复跑的脚本。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01d-floorplan-advanced">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="14"><section class="ch" id="die-size" data-ch="die-size">
-  <div class="ch-h"><span class="ch-n">01</span><h2>Die Size：先核对谁提供了什么</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>Die Size：先核对谁提供了什么</h2><span class="ch-ai" data-ai="die-size"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>Floorplan 进阶</strong> · 承接面积核算。面积算清了，接下来定 Die Size、对齐端口、脚本化 Kick-Off Run。本讲解决&quot;脚本重跑结果和 GUI 不一致&quot;这类高频事故。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-d.svg" data-fig="innovus-practice-d.svg"><img src="/fig/innovus-practice-d.svg" alt="原创教学示意图 · 宏单元摆放先看连接再看位置" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 宏单元摆放先看连接再看位置</figcaption></figure>
 <div class="note"><div class="note-h">资料来源</div><p>本讲参考钉钉目录第 08 项的主题安排，正文与练习为原创，不转载钉钉原文、图片或项目参数。TAUREN 仅保留为资料中的名词；这里不推断其内部流程，不提供其定制命令。</p></div>
@@ -72,26 +72,26 @@
   
 </section>
 <section class="ch" id="pin-and-memory" data-ch="pin-and-memory">
-  <div class="ch-h"><span class="ch-n">02</span><h2>先对齐 IO Pin，再按层级看 Memory</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>先对齐 IO Pin，再按层级看 Memory</h2><span class="ch-ai" data-ai="pin-and-memory"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>端口先按信号对接方向划边，再核对允许的金属层、轨道对齐、组内顺序和占用区。总线不仅要位号齐全，也要写出「沿哪条边、从哪端到哪端」的顺序。例如东边从下往上是位号零到三，不能由 GUI 当前缩放视角或名字排序决定。若项目允许吸附，说明吸到什么轨道，以及吸附后是否仍属于原定端口组。</p>
 <p>Memory 可以先按实例所属层级分组，GUI 上色后查看同组宏、控制逻辑和端口是否相距太远，再按真实连线和高扇出控制网调整。颜色只帮助识别，不施加物理约束。宏朝向改变的不只是外形，也会改变实际信号脚和电源脚的位置；翻转前核对允许朝向、供电接入以及宏间通道，不要以排得整齐作为验收依据。</p>
   
 </section>
 <section class="ch" id="kickoff-run" data-ch="kickoff-run">
-  <div class="ch-h"><span class="ch-n">03</span><h2>脚本化：让 Kick-Off Run 能从头重复</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>脚本化：让 Kick-Off Run 能从头重复</h2><span class="ch-ai" data-ai="kickoff-run"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>GUI 用于试方案，正式交付需从干净的初始数据库复现。把 Die/Core、端口分配、宏的位置和朝向放进受版本管理的脚本或输入文件，保存上游清单和对照报告。Kick-Off Run 作为一次最小试跑，只承诺导入、应用 Floorplan、保存检查点并核对实际结果，不代表已经完成配电、时序或布线签核。边界与端口基本检查可回看 <a href="/lesson/03-01a-flp-lab/">Floorplan 实操</a>。</p>
 <p>应用顺序应写清：建立边界，放置固定对象，再执行端口分配，最后导出实际坐标和朝向。若后续还有自动引脚脚本，控制谁对同一端口有最终写入权；否则某次导出恰好发生在覆盖前，会把并未生效的设置误当成结果。没有项目工具环境时，可以用下面的教学清单纸面验证变换和判定规则。</p>
   
 </section>
 <section class="ch" id="practice-step-04" data-ch="practice-step-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>把坐标系写进交接清单：Die、Core、单位和原点</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>把坐标系写进交接清单：Die、Core、单位和原点</h2><span class="ch-ai" data-ai="practice-step-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>例中上游给模块 Die 局部坐标 <code>(0,0)–(800,600)</code> µm、Core <code>(20,20)–(780,580)</code> µm，东边是四位总线 DATA。接口表同时说明总线纵坐标以 Core 左下的纵坐标为参考，偏移为 180、200、220、240 µm，因此在 Die 坐标系应得到 y=200、220、240、260 µm。脚本固定 x=800，沿东边由下往上排列。此例约定这些点都在指定的合法轨道上，不涉及额外吸附。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">原创坐标示意（不按比例，箭头表示总线位号递增）</span><span class="ln ">              Die 局部坐标</span><span class="ln ">(0,600) +--------------------------------+ (800,600)</span><span class="ln ">        |       Core                     |</span><span class="ln ">        |     +------------------+       | 东边</span><span class="ln ">        |     | [MEM0]  [MEM1]   |       | ↑ DATA[3]</span><span class="ln ">        |     |                  |       | | DATA[0]</span><span class="ln ">        |     +------------------+       |</span><span class="ln ">        +--------------------------------+ (800,0)</span><span class="ln "> (0,0)  Core 左下 (20,20)</span></code></pre></div>
 <p>合成输入另列 MEM0 <code>(80,100)</code>、MEM1 <code>(340,100)</code> µm，均以 Die 局部坐标表示，用各自外框左下为参考，尺寸都为 160 × 120 µm，朝向固定为 R0。它们的右侧与左侧之间有 100 µm 外框净距，尚未扣除宏留白和布线占用。由此能检查脚本是否误把宏坐标也做了一次 Core 偏移。</p>
   
 </section>
 <section class="ch" id="practice-step-05" data-ch="practice-step-05">
-  <div class="ch-h"><span class="ch-n">05</span><h2>整组端口低了 20 µm：平移还是吸附</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>整组端口低了 20 µm：平移还是吸附</h2><span class="ch-ai" data-ai="practice-step-05"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>从干净检查点跑第一次，端口顺序正确但全组比预期低 20 µm。先看 DATA 首尾和中间点的差值，判断是组整体平移还是镜像、排序、单位错误；再核对宏位置没变、是否发生吸附及后续脚本覆盖。本例审查发现端口脚本把 Core 相对偏移当作 Die 绝对 y 使用，修正时只给这组 y 加上 Core 左下的 y，不移动东边的 x，也不移动宏。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">教学伪代码（不对应 Innovus 命令，不能直接执行）</span><span class="ln ">对 DATA 的每一位 i：</span><span class="ln ">  y_die = core_y_min + y_relative[i]</span><span class="ln ">  x_die = die_x_max</span><span class="ln ">  断言 点位于东边允许区，且落在指定轨道</span><span class="ln ">  用 Die 局部坐标写入端口位置</span><span class="ln ">导出实际端口坐标与宏外框；逐项对照接口清单</span></code></pre></div>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成回归 (um，全部为 Die 局部坐标)</span><span class="ln ">项目           预期           第一次         修正后</span><span class="ln ">DATA[0]        (800,200)      (800,180)      (800,200)</span><span class="ln ">DATA[3]        (800,260)      (800,240)      (800,260)</span><span class="ln ">MEM0 外框左下   (80,100)       (80,100)       (80,100)</span><span class="ln ">MEM1 外框左下   (340,100)      (340,100)      (340,100)</span><span class="ln ">坐标不符端口数  0              4              0</span><span class="ln ">端口未分配数    0              0              0</span></code></pre></div>
@@ -99,19 +99,19 @@
   
 </section>
 <section class="ch" id="practice-step-06" data-ch="practice-step-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>换人换目录重跑：交付不能依赖 GUI 状态</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>换人换目录重跑：交付不能依赖 GUI 状态</h2><span class="ch-ai" data-ai="practice-step-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>把修正后的输入和脚本交给另一位同学，从相同导入步骤在新目录重跑。让他只读上游清单，不参考你的 GUI 截图。先按对象名排序再比较结果，忽略报告生成时间这类变化，但绝不忽略坐标、朝向、约束未应用和警告。对象若缺了，不要仅比较两份清单的交集，否则缺失对象会被自动藏掉。</p>
 <p>在交接单标清三类位置：上游冻结的接口、允许有限调整的初始宏点、工具根据工艺网格推导出的点。只有上游已允许偏差的对象才按公差验收；本练习的四个端口应在明确的合法轨道上，直接比较位置即可。若后续 PowerPlan 需要挪宏来改善供电接入，把变更回填到 Floorplan 输入，并按来源重新核对信号脚和电源脚，不能只在下游数据库里留一份特例。</p>
 <p>若需向顶层报告差异，先用一个已知参考点检查平移方向，再用第二点验证轴向是否被交换或镜像。平移能解释全组恒定差值，而翻转或交换轴通常会改变点间向量。把这两个判断分开，可避免用一个正确的首点掩盖整条总线方向错误。</p>
   
 </section>
 <section class="ch" id="kickoff-rollback" data-ch="kickoff-rollback">
-  <div class="ch-h"><span class="ch-n">07</span><h2>约束没生效也要记：未应用项清单</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>约束没生效也要记：未应用项清单</h2><span class="ch-ai" data-ai="kickoff-rollback"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ul><li>整组位移固定：核对原点、轴和偏移；差值各不相同：优先查逐位吸附与组顺序；两次结果不能混为同一错误。</li><li>若修正后违反接入区或轨道要求，暂停合入，核对上游输入与合法轨道的冲突；不能强塞到最近位置。</li><li>若宏的位置或朝向同次发生改变，恢复干净分支，限制变更只作用于特定端口坐标转换。</li><li>交付保存输入版本、两次实际坐标、修正记录、约束未应用列表和成功检查点；不要只保存成功后的 GUI 截图。</li></ul>
   
 </section>
 <section class="ch" id="exercise" data-ch="exercise">
-  <div class="ch-h"><span class="ch-n">08</span><h2>GUI 手调正确，脚本重跑却偏移</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>GUI 手调正确，脚本重跑却偏移</h2><span class="ch-ai" data-ai="exercise"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>GUI 手调正确而脚本重跑时整组沿边偏移，先对照 Die/Core、原点和单位，再查自动吸附或后写脚本。用首尾点的预期值和实际值做差是定位手段，不是全组验收；修正后必须从干净数据库重跑。</p>
 <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么本例只给端口 y 加 20 µm，不给 x 也加 20 µm？</div>
@@ -126,7 +126,7 @@
   
 </section>
 <section class="ch" id="deep-lab-macro-pin-access" data-ch="deep-lab-macro-pin-access">
-  <div class="ch-h"><span class="ch-n">09</span><h2>宏脚都有接入点，两根网能不能同时接出</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>宏脚都有接入点，两根网能不能同时接出</h2><span class="ch-ai" data-ai="deep-lab-macro-pin-access"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><strong>模拟宏脚可达报告（非工具实测）。</strong> 两根独立信号网从同一侧接出 <code>RAM0/D0</code> 和 <code>RAM0/D1</code>。宏尺寸、位置和合法朝向均已确认，电源走线保持固定。本题枚举了窗内所有可用的接入路径，每条路径都包括引脚落点、过孔和第一段轨道。<code>R1</code>、<code>R2</code> 是各自只能容纳一根网的过孔走廊，进入不同走廊的路径互不干扰。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟接入报告       D0 可选路径(走廊)     D1 可选路径(走廊)    单脚无可用点</span><span class="ln ">K0 基线            P0(R1)                P1(R1)               0</span><span class="ln ">K1 局部换轨试跑    P0(R1), P2(R2)        P1(R1)               0</span></code></pre></div>
 <p><strong>先独立交付。</strong> 为每个版本画出两根网到走廊的对应关系，尝试给两根网同时分配合法路径。写明是否允许进入下一阶段，以及需要用哪份报告证明不是“两个落点都存在但共用同一瓶颈”。不要用宏间净距或单脚通过数替代这一判定。</p>
@@ -150,9 +150,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

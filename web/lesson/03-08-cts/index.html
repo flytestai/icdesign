@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CTS：时钟树综合，从 skew 定义到建树验收 · 38 | IC 后端学院</title>
 <meta name="description" content="为什么时钟必须建树；latency、skew、global/local 的准确含义与算法；NDR 为什么是 2W2S；ICG 的三种角色；约束命令的使用场景；CTS 后五项检查与延迟调整方案。附原始资料对照。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-08-cts">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="47"><section class="ch" id="why-tree" data-ch="why-tree">
-  <div class="ch-h"><span class="ch-n">01</span><h2>先想清楚：为什么时钟需要专门&quot;建一棵树&quot;</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>先想清楚：为什么时钟需要专门&quot;建一棵树&quot;</h2><span class="ch-ai" data-ai="why-tree"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>数据信号的路径是设计决定的——网表里写谁连谁，就怎么连。时钟不一样：<strong>时钟要到达每一个触发器，而触发器的位置是布局算出来的。</strong></p>
 <p>假设一个设计有 20 万个触发器，散落在 2 mm × 2 mm 的芯片上。时钟源只有一个，在某个角落。如果从时钟源直接拉一根线到每个触发器，会发生三件事：</p>
 <ol><li><strong>驱动能力不够</strong>：一个源驱动 20 万个负载，边沿会被拖成斜坡，根本不像时钟；</li><li><strong>延迟巨大</strong>：线太长，RC 延迟让时钟到得极晚；</li><li><strong>到达时间完全不同</strong>：近的触发器早到，远的晚到，差几纳秒——时序无法收敛。</li></ol>
@@ -77,7 +77,7 @@
   
 </section>
 <section class="ch" id="latency-skew" data-ch="latency-skew">
-  <div class="ch-h"><span class="ch-n">02</span><h2>Latency 和 Skew：两个容易混的概念</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>Latency 和 Skew：两个容易混的概念</h2><span class="ch-ai" data-ai="latency-skew"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料的定义是&quot;latency: 时钟的传播延迟；skew: 时钟延迟的差值&quot;。这个定义对，但要精确到能算。</p>
 <h3>Latency 是&quot;一个点&quot;的延迟</h3>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Latency(叶节点 i) = 时钟源出发时刻 → 叶节点 i 收到边沿的时刻</span></code></pre></div>
@@ -107,7 +107,7 @@
   
 </section>
 <section class="ch" id="latency-target" data-ch="latency-target">
-  <div class="ch-h"><span class="ch-n">03</span><h2>Latency 达标怎么判断</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>Latency 达标怎么判断</h2><span class="ch-ai" data-ai="latency-target"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料给了一个具体例子：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">target_latency      DCLK     850ps</span><span class="ln ">target_skew</span><span class="ln ">如果latency低于target latency， 需要垫tree</span><span class="ln ">如果latency高于target latency 需要分析为什么latency变得这么长</span></code></pre></div>
 <p>这段话逻辑很实用，但要理解&quot;为什么低也要修&quot;。</p>
@@ -125,7 +125,7 @@
   
 </section>
 <section class="ch" id="ndr" data-ch="ndr">
-  <div class="ch-h"><span class="ch-n">04</span><h2>NDR：为什么时钟线要用&quot;非默认规则&quot;</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>NDR：为什么时钟线要用&quot;非默认规则&quot;</h2><span class="ch-ai" data-ai="ndr"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料的说明是：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">什么是NDR： Not Default Routing Rule   非默认绕线规则</span><span class="ln ">针对cts tree的部分的走线单独设置绕线规则，  宽度和间距</span><span class="ln ">2W2S  2倍的宽度width  2倍的间距spacing</span><span class="ln ">2W1S</span><span class="ln ">4W2S</span><span class="ln ">创建ndr的方法</span></code></pre></div>
 <p>清楚，但没解释&quot;为什么&quot;。</p>
@@ -140,7 +140,7 @@
   
 </section>
 <section class="ch" id="icg" data-ch="icg">
-  <div class="ch-h"><span class="ch-n">05</span><h2>ICG：门控时钟不只是&quot;省电开关&quot;</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>ICG：门控时钟不只是&quot;省电开关&quot;</h2><span class="ch-ai" data-ai="icg"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料说：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">clk gating： 门控时钟， 类似于一个与门，控制时钟信号的翻转，</span><span class="ln ">在不需要工作的时候，可以关闭某些path的时钟翻转，达到节省功耗目的</span></code></pre></div>
 <p>这个理解是对的，但 ICG（Integrated Clock Gating）在 CTS 里的角色比&quot;省电&quot;复杂得多。</p>
@@ -155,7 +155,7 @@
   
 </section>
 <section class="ch" id="shield" data-ch="shield">
-  <div class="ch-h"><span class="ch-n">06</span><h2>屏蔽（Shielding）：给关键网穿件外套</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>屏蔽（Shielding）：给关键网穿件外套</h2><span class="ch-ai" data-ai="shield"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">特殊保护的net</span><span class="ln ">shielding</span><span class="ln ">一般使用VSS，打在需要保护的net的上下track上</span></code></pre></div>
 <p><strong>做法</strong>：在受害网的上下（或左右）相邻 track 上，平行布一根接地线（VSS）。</p>
@@ -166,7 +166,7 @@
   
 </section>
 <section class="ch" id="transition" data-ch="transition">
-  <div class="ch-h"><span class="ch-n">07</span><h2>Clock Transition 超标怎么修</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>Clock Transition 超标怎么修</h2><span class="ch-ai" data-ai="transition"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料给了两步法：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">clock_transtion怎么修复</span><span class="ln ">1、根据rpt的net，找到对应net</span><span class="ln ">2、查看电路图，找到net前后一级的buf，在net中间插buffer</span></code></pre></div>
 <p>原理：转换时间（transition）本质是 RC 充电太慢。在中间插一个缓冲器，等于把一段长 RC 拆成两段短 RC，每段充电更快，边沿更陡。</p>
@@ -175,7 +175,7 @@
   
 </section>
 <section class="ch" id="post-check" data-ch="post-check">
-  <div class="ch-h"><span class="ch-n">08</span><h2>CTS 之后必须检查的五项</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>CTS 之后必须检查的五项</h2><span class="ch-ai" data-ai="post-check"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料列了检查项，但顺序和判据需要补全。</p>
 <h3>检查一：DRV（设计规则违例）</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_ccopt_clock_tree</span></code></pre></div>
@@ -201,7 +201,7 @@
   
 </section>
 <section class="ch" id="sink-count" data-ch="sink-count">
-  <div class="ch-h"><span class="ch-n">09</span><h2>Sink 统计：用脚本查时钟覆盖</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>Sink 统计：用脚本查时钟覆盖</h2><span class="ch-ai" data-ai="sink-count"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料给了一组查询命令：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 得到所有 clock tree 的名字</span><span class="ln ">get_ccopt_clock_trees *</span><span class="ln "> </span><span class="ln cmt"># 得到 HCLK 的所有 sink 名字</span><span class="ln ">get_ccopt_clock_tree_sinks * -in_clock_tree HCLK</span><span class="ln "> </span><span class="ln cmt"># 获取 test_clk 的 sink 点数量</span><span class="ln ">llength [get_ccopt_clock_tree_sinks * -in_clock_trees test_clk]</span></code></pre></div>
 <p>注意第三条命令里有个细节：<code>-in_clock_trees</code>（复数）和 <code>-in_clock_tree</code>（单数）是两个不同选项。前者用于按名字集合过滤，后者指定单个树。用错会得到空结果或报错。</p>
@@ -219,7 +219,7 @@
   
 </section>
 <section class="ch" id="frequency" data-ch="frequency">
-  <div class="ch-h"><span class="ch-n">10</span><h2>时钟频率与周期：一个必须会算的换算</h2></div>
+  <div class="ch-h"><span class="ch-n">10</span><h2>时钟频率与周期：一个必须会算的换算</h2><span class="ch-ai" data-ai="frequency"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料最后有一段：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">时钟的频率和时钟的周期是倒数关系</span><span class="ln ">时钟频率 = 1/时钟周期</span><span class="ln ">已知时钟周期是1000ps，计算时钟的频率</span><span class="ln ">频率 = 1s/1000ps      1s=1x10的9次方ps</span><span class="ln ">1Ghz = 1000Mhz</span></code></pre></div>
 <p>这是基础但容易算错的换算。把单位关系理清楚：</p>
@@ -232,7 +232,7 @@
   
 </section>
 <section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">11</span><h2>动手：读一份 CTS 报告</h2></div>
+  <div class="ch-h"><span class="ch-n">11</span><h2>动手：读一份 CTS 报告</h2><span class="ch-ai" data-ai="lab"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>从三个数字判断 CTS 是否可交付</div><div class="lab-b"><p>假设你拿到一份 CTS 完成后的报告，关键数字如下（合成的教学数据）：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">时钟域       target_latency   actual_latency   GS      LS(最差路径)</span><span class="ln ">DCLK         850 ps           852 ps           38 ps   22 ps</span><span class="ln ">SCLK         850 ps           1240 ps          95 ps   110 ps</span></code></pre></div>
 <p>WNS = -0.09 ns（SCLK 域，setup）</p>
@@ -266,7 +266,7 @@
   
 </section>
 <section class="ch" id="tree-shapes" data-ch="tree-shapes">
-  <div class="ch-h"><span class="ch-n">12</span><h2>时钟树长什么样：四种基本结构</h2></div>
+  <div class="ch-h"><span class="ch-n">12</span><h2>时钟树长什么样：四种基本结构</h2><span class="ch-ai" data-ai="tree-shapes"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>前面说了&quot;要建一棵树&quot;，但树有很多种形状。选错结构，后面无论怎么调参数都吃力。</p>
 <h3>① 单级星形（Single-Level Star）</h3>
 <p>一个根缓冲器直接驱动所有叶节点。</p>
@@ -296,7 +296,7 @@
   
 </section>
 <section class="ch" id="pre-cts" data-ch="pre-cts">
-  <div class="ch-h"><span class="ch-n">13</span><h2>CTS 之前必须确认的五件事</h2></div>
+  <div class="ch-h"><span class="ch-n">13</span><h2>CTS 之前必须确认的五件事</h2><span class="ch-ai" data-ai="pre-cts"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>CTS 是&quot;在已有基础上建树&quot;，如果基础有问题，树建得再好也没用。这五项必须在跑 CTS 之前确认。</p>
 <h3>① 布局合法且稳定</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">checkPlace</span></code></pre></div>
@@ -323,7 +323,7 @@
   
 </section>
 <section class="ch" id="tradeoff" data-ch="tradeoff">
-  <div class="ch-h"><span class="ch-n">14</span><h2>时钟树的三个代价：latency、skew、power 不可兼得</h2></div>
+  <div class="ch-h"><span class="ch-n">14</span><h2>时钟树的三个代价：latency、skew、power 不可兼得</h2><span class="ch-ai" data-ai="tradeoff"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>前面讲了三个指标，但没说它们<strong>互相冲突</strong>。这一节把冲突关系讲清楚，因为实际调参就是在三者之间取舍。</p>
 <h3>冲突一：压 skew 会让 latency 变长</h3>
 <p><strong>为什么</strong>：压 skew 需要让所有分支的延迟接近。做法通常是给&quot;跑得快&quot;的分支<strong>故意加延迟</strong>（多插缓冲器、绕远路）。</p>
@@ -345,7 +345,7 @@
   
 </section>
 <section class="ch" id="failure-modes" data-ch="failure-modes">
-  <div class="ch-h"><span class="ch-n">15</span><h2>CTS 的五种常见失效模式</h2></div>
+  <div class="ch-h"><span class="ch-n">15</span><h2>CTS 的五种常见失效模式</h2><span class="ch-ai" data-ai="failure-modes"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>跑完 CTS，报告可能&quot;看起来还行&quot;但实际有问题。这五种是最常见的。</p>
 <h3>① 时钟没到（missing sink）</h3>
 <p>某些触发器完全没接上时钟。</p>
@@ -371,7 +371,7 @@
   
 </section>
 <section class="ch" id="source-appendix" data-ch="source-appendix">
-  <div class="ch-h"><span class="ch-n">16</span><h2>原始资料对照</h2></div>
+  <div class="ch-h"><span class="ch-n">16</span><h2>原始资料对照</h2><span class="ch-ai" data-ai="source-appendix"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>以下为《04 innovus项目(1).docx》第六节的原文，按原顺序保留，含 4 张随文原图。上面的讲解是对这些要点的展开。</p>
 <h3 id="source-01">原文：时钟树基础、特殊网络与保护</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">六、CTS 时钟树综合</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、基本概念</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">latency:   时钟的传播延迟</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">skew: 时钟延迟的差值</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">分为Global Skew（工具更关注）和Local skew</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Gs：同一时钟域，任意两个路径的最大skew。CTS阶段工具更关注的是gs，尽可能把gs做小；</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Ls：同一时钟域，任意两个有逻辑关联关系的路径最大skew，分析timing时更多关注ls。</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">什么是NDR： Not Default Routing Rule   非默认绕线规则</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">针对cts tree的部分的走线单独设置绕线规则，  宽度和间距</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2W2S  2倍的宽度width  2倍的间距spacing</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2W1S</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4W2S</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">创建ndr的方法</p></div>
@@ -408,9 +408,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

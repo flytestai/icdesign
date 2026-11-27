@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ECO：项目视角的六类修复与交接 · 41 | IC 后端学院</title>
 <meta name="description" content="ECO 为什么是 1-2 个月的长周期；六类修复内容（DRV、时序、short/open、DRC、功耗、VSI）各查什么改什么；FCT 出脚本与内部修到 0 的区别；吃脚本前后必须做什么。附原始资料对照。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-11-eco">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="22"><section class="ch" id="three-views" data-ch="three-views">
-  <div class="ch-h"><span class="ch-n">01</span><h2>先分清三种 ECO：这门课讲项目视角</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>先分清三种 ECO：这门课讲项目视角</h2><span class="ch-ai" data-ai="three-views"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>站内讲 ECO 的地方有三处，很容易混。先把边界划清：</p>
 <div class="tbl"><table><thead><tr><th>课</th><th>视角</th><th>回答什么问题</th></tr></thead><tbody><tr><td><strong>本课（41）</strong></td><td><strong>项目视角</strong></td><td>ECO 阶段整体在修什么、周期多长、和谁交接</td></tr><tr><td><a href="/lesson/03-01m-eco-commands/">ECO 常用命令</a></td><td>命令视角</td><td><code>ecoAddRepeater</code> / <code>ecoDeleteRepeater</code> / <code>ecoChangeCell</code> 怎么用</td></tr><tr><td><a href="/lesson/03-13-mmmc-eco-lab/">SPEF 回标与多场景 ECO</a></td><td>验收视角</td><td>多模式多工艺角下怎么证明改对了</td></tr></tbody></table></div>
 <p><strong>读的顺序建议</strong>：先看本课建立全局认识（ECO 是个 1–2 个月的长周期，不是「改几条线」），再去 31m 学具体命令，最后用 41b 的验收方法确认。</p>
@@ -74,7 +74,7 @@
   
 </section>
 <section class="ch" id="why-long" data-ch="why-long">
-  <div class="ch-h"><span class="ch-n">02</span><h2>ECO 为什么是 1-2 个月的长周期</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>ECO 为什么是 1-2 个月的长周期</h2><span class="ch-ai" data-ai="why-long"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原文第一句就给了一个令人印象深刻的事实，这句话本身就是最重要的信息。</p>
 <p><strong>为什么一个「局部修改」要一两个月</strong>？新手容易以为 ECO 就是「改几个 cell、连几根线」。实际不是。原因有四：</p>
 <p><strong>① 每一轮 ECO 都要跑完整验证。</strong> 改了一条线，走线变了 → 寄生变了 → 所有时序要重算；单元换了 → 布局变了 → 局部密度和拥塞要重查；新插了 buffer → DRC 和 LVS 要重跑。所以每一轮都是「小改动 + 全量验证」，一天能跑完的轮数有限。</p>
@@ -86,7 +86,7 @@
   
 </section>
 <section class="ch" id="source-01" data-ch="source-01">
-  <div class="ch-h"><span class="ch-n">03</span><h2>周期与内容总览</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>周期与内容总览</h2><span class="ch-ai" data-ai="source-01"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原文这一段把周期和修复内容一起列了出来。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">九、ECO</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ECO的时间（1-2个月）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ECO需要修复的内容  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">每天需要起eco的run</p></div>
 <p>这段话里最关键的三个信息：<strong>时间是 1-2 个月</strong>（不是几天）、<strong>要修的是一批内容</strong>（不是单项）、<strong>每天要起 eco 的 run</strong>（按天迭代）。</p>
@@ -95,7 +95,7 @@
   
 </section>
 <section class="ch" id="source-02" data-ch="source-02">
-  <div class="ch-h"><span class="ch-n">04</span><h2>① DRV 与 LVS：第一批要修的</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>① DRV 与 LVS：第一批要修的</h2><span class="ch-ai" data-ai="source-02"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、DRV</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">重点先修data transtion clk transtion </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">SI transtion</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">longnet</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">minplause</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">dontuse</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">short</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">open</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">PV的部门需要一版lvs能过的数据</p></div>
 <p><strong>为什么 DRV 排第一</strong>？因为 DRV 会掩盖时序问题。transition 太缓的单元延迟模型不准确——工具算出来的延迟和实际差很多，在这种情况下修时序等于在错误的基础上优化。</p>
 <p>原文列的 DRV 清单逐项解释：</p>
@@ -108,7 +108,7 @@
   
 </section>
 <section class="ch" id="source-03" data-ch="source-03">
-  <div class="ch-h"><span class="ch-n">05</span><h2>② 时序：FCT 出脚本 vs 内部自己修</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>② 时序：FCT 出脚本 vs 内部自己修</h2><span class="ch-ai" data-ai="source-03"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、timing </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">top层的timing FCT出ECO脚本 </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">注意吃的脚本前后，时序的变化</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果变得很差，需要反馈</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果影响不是很大，正常吃给的eco即可</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">internal 内部的时序全部修到0，修到满足margin 例如：15ps</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">dmsa来修复timing    Pteco.tcl 自动出eco脚本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">（比较智能，可以实现多个corner一起修，尽量避免conflict）</p></div>
 <p>原文这一段区分了两个层次，很重要：</p>
 <div class="tbl"><table><thead><tr><th></th><th>top 层 timing</th><th>internal 内部 timing</th></tr></thead><tbody><tr><td>谁出脚本</td><td>FCT（外部）</td><td>自己（Pteco.tcl 等工具）</td></tr><tr><td>修到什么程度</td><td>看脚本影响，不一定修到 0</td><td><strong>修到 0，还要留 margin（如 15 ps）</strong></td></tr><tr><td>风险</td><td>别人给的脚本可能和自己的版图不匹配</td><td>自己完全掌控</td></tr></tbody></table></div>
@@ -122,7 +122,7 @@
   
 </section>
 <section class="ch" id="source-04" data-ch="source-04">
-  <div class="ch-h"><span class="ch-n">06</span><h2>③ 短路、开路与 ④ DRC</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>③ 短路、开路与 ④ DRC</h2><span class="ch-ai" data-ai="source-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、short、open</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">手动拉线、剪断一些net，挪一些cell、删除一些power</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、DRC</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Metal DRC  金属层           BASE DRC (overlap  VT不一致) </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">M1.A.S1      Aera 不满足要求</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">VIA.S.        Spacing不满足要求</p></div>
 <h3>short 和 open：靠手动改</h3>
 <p>四种手段各有适用场景和风险：</p>
@@ -138,7 +138,7 @@
   
 </section>
 <section class="ch" id="source-05" data-ch="source-05">
-  <div class="ch-h"><span class="ch-n">07</span><h2>⑤ 功耗分析 与 ⑥ VSI</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>⑤ 功耗分析 与 ⑥ VSI</h2><span class="ch-ai" data-ai="source-05"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、PA (Power Analysis)   IRDROP 、EM、Dynmaic</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">IRDROP</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">用高层走线、加power</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">crosstalk  加sheilding</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Dynmaic   动态功耗太大    sizedown   减小cel的驱动    D12--&gt;  D6</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">6、VSI  检查Tie cell不能连接两个cell</p></div>
 <div class="tbl"><table><thead><tr><th>问题</th><th>修法</th></tr></thead><tbody><tr><td>IRDROP</td><td>用高层走线、加 power</td></tr><tr><td>crosstalk</td><td>加 shielding</td></tr><tr><td>Dynamic</td><td>size down，减小 cell 驱动（D12 → D6）</td></tr></tbody></table></div>
 <p><strong>IR Drop 两个修法</strong>：用高层走线（高层金属更厚更宽、电阻小）、加 power（加电源条带或加宽现有条带）。</p>
@@ -157,7 +157,7 @@
   
 </section>
 <section class="ch" id="eco-functional-release" data-ch="eco-functional-release">
-  <div class="ch-h"><span class="ch-n">08</span><h2>进阶：有意改变功能的 ECO 怎么验收</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>进阶：有意改变功能的 ECO 怎么验收</h2><span class="ch-ai" data-ai="eco-functional-release"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>前面六类修的都是「让设计符合原有规格」。但 ECO 还有一类更难的：<strong>有意改变功能</strong>。下面这段是原文之外的站点原创练习，保留了原文的算例表格和手工核对答案。</p>
 <p>这类 ECO 的风险完全不同——前六类改错了，验证能查出来（时序/DRC/LVS 会报）；功能 ECO 改错了，可能所有检查都通过，但芯片做出来功能就是错的。</p>
 <p>以下为站点原创纸面案例，不属于上传 Word 原文。批准单 <code>EC-27</code> 要求已唤醒的模块在 <code>req=1</code> 时，仅当 <code>enable=1</code> 才输出 <code>grant=1</code>。旧功能是 <code>grant = req</code>，新参考 <code>REF_B</code> 是 <code>grant = req AND enable</code>。本题只比较唤醒后的正常模式；复位、扫描和低功耗模式不能靠这张真值表推断，真实项目须另按批准范围验证。</p>
@@ -172,12 +172,12 @@
   
 </section>
 <section class="ch" id="checklist" data-ch="checklist">
-  <div class="ch-h"><span class="ch-n">09</span><h2>检查清单</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>检查清单</h2><span class="ch-ai" data-ai="checklist"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>ECO 的改动范围有工单/批准单记录，不是口头传达</li><li>吃外部脚本前存了基线（数据库 + 时序报告）</li><li>吃脚本后立刻跑时序，与基线对比；变差已反馈而非硬吃</li><li>internal 时序修到 0 且留了 margin（如 15 ps）</li><li>多工艺角一起检查，没有「修好一个角搞坏另一个角」</li><li>DRV 六项都查过：transition / SI transition / longnet / min_pulse / dontuse / short / open</li><li>short/open 每改一处立刻验连通性，没有攒着一起验</li><li>DRC 的 BASE（overlap、VT 不一致）和 Area/Spacing 都查过</li><li>PA 三类都评估过：IR Drop、EM、Dynamic</li><li>size down 是逐步试的，每步都查了时序</li><li>VSI 检查过 tie cell 没有驱动多个负载</li><li>每次 ECO 后网表已同步（LVS 能过）</li><li>功能 ECO 做过逻辑等价检查，不是只看 LVS/DRC</li></ul></div>
   
 </section>
 <section class="ch" id="quiz" data-ch="quiz">
-  <div class="ch-h"><span class="ch-n">10</span><h2>自测</h2></div>
+  <div class="ch-h"><span class="ch-n">10</span><h2>自测</h2><span class="ch-ai" data-ai="quiz"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么 ECO 一个「局部修改」要 1-2 个月？</div>
   <div class="q-a">每轮改动都要跑全量验证（重提取、重算时序、重跑 DRC/LVS）；问题分批暴露需反复迭代；涉及 FCT、PV 多方交接有等待时间；后期改动风险高必须谨慎。</div>
@@ -218,7 +218,7 @@
   
 </section>
 <section class="ch" id="next" data-ch="next">
-  <div class="ch-h"><span class="ch-n">11</span><h2>延伸阅读</h2></div>
+  <div class="ch-h"><span class="ch-n">11</span><h2>延伸阅读</h2><span class="ch-ai" data-ai="next"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="tbl"><table><thead><tr><th>主题</th><th>参考</th></tr></thead><tbody><tr><td>ECO 命令的具体用法</td><td><a href="/lesson/03-01m-eco-commands/">ECO 常用命令与验收</a></td></tr><tr><td>多场景 ECO 的验收方法</td><td><a href="/lesson/03-13-mmmc-eco-lab/">SPEF 回标与多场景 ECO</a></td></tr><tr><td>从 ECO 走到签核放行</td><td><a href="/lesson/03-14-chipfinish-handoff/">ChipFinish 桌面实训</a></td></tr></tbody></table></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1" data-go="/lesson/03-14-chipfinish-handoff/">读完本篇 · 回本模块主课 →</button></div>
 </section></article>
@@ -238,9 +238,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>双重图形化：为什么两条线分开了仍会报错 · 31p | IC 后端学院</title>
 <meta name="description" content="区分 LELE 与 SADP，理解同色间距、奇环、过孔和边界规则，并用布线检查与签核交叉验证。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01p-double-patterning">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="14"><section class="ch" id="process-options" data-ch="process-options">
-  <div class="ch-h"><span class="ch-n">01</span><h2>先判断规则针对哪种工艺</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>先判断规则针对哪种工艺</h2><span class="ch-ai" data-ai="process-options"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>双重图形化</strong> · 承接 DRC 与签核。先进工艺的底层金属要分两次曝光。本讲解释同色间距和奇环怎么产生，以及为什么&quot;形状对&quot;不等于&quot;能着色&quot;。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-p.svg" data-fig="innovus-practice-p.svg"><img src="/fig/innovus-practice-p.svg" alt="原创教学示意图 · 双重图形化：先看冲突关系再看修法" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 双重图形化：先看冲突关系再看修法</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲按钉钉目录第 20 项的主题编排。解释、排查流程和自检均为原创，不使用原文、原图或项目参数，也不假设任何具体工艺采用双重图形化。</p></div>
@@ -71,13 +71,13 @@
   
 </section>
 <section class="ch" id="color-conflicts" data-ch="color-conflicts">
-  <div class="ch-h"><span class="ch-n">02</span><h2>同色间距与奇环是怎么来的</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>同色间距与奇环是怎么来的</h2><span class="ch-ai" data-ai="color-conflicts"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>在简化 LELE 模型里，把每个参与分解的图形记为顶点，把「虽然达到普通间距，但不能同色」记为冲突边。选一处起点，为相邻顶点交替分配颜色；如果沿不同路径到同一顶点时必须赋两种颜色，检查中间是否围成奇数环。任何奇环都不可能二着色，单独交换一条线的颜色只能把冲突移到别处。反过来，没有奇环只能证明无固定颜色的二着色图可解；若边界上有预先指定的颜色，还要检查它们是否满足路径上的奇偶关系。</p>
 <p>两种距离阈值要分别看：低于普通间距时，异色也不能修复，必须改几何；达到普通间距但低于同色间距时，异色才是一个候选。达到同色间距则不需要这条冲突边，不过离它很近的第三个图形仍可能限制取色。常见修法是挪线、改轨或改变走线路径以移除冲突边。把一个图形切成可异色的两个片段需要拼接，只在规则明确允许、并能满足重叠、位置和邻近限制时考虑；它不是普通着色操作，也不等同于把电气连通人为切断。</p>
   
 </section>
 <section class="ch" id="practice-step-03" data-ch="practice-step-03">
-  <div class="ch-h"><span class="ch-n">03</span><h2>从 marker 重建冲突子图</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>从 marker 重建冲突子图</h2><span class="ch-ai" data-ai="practice-step-03"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>从一份布线后布局快照出发，固定图层映射、签核规则文件版本、放置和宏边界方向，并保留相邻块的图形与固定掩模信息。实验选择一个简化 LELE 局部窗口：只演示三块彼此独立的同层金属图形，普通最小间距取 40 nm、同色最小间距取 80 nm；等于门槛视作通过。距离用轴对齐矩形间的最短欧氏边缘距离。这些数值、坐标和测距定义均为虚构教学输入，不代表 PDK 或真实报告，不可作为布线命令执行。实际规则可能区分方向、线端和平行段长度，不能把本例的单一距离门槛移用到项目。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">TEACHING BASELINE   layer=M_T   coordinate units=nm</span><span class="ln ">shape   x_min..x_max   y_min..y_max    fixed mask</span><span class="ln ">A          0..40           0..40         M0</span><span class="ln ">B         90..130          0..40         none</span><span class="ln ">C         45..85          90..130        none</span><span class="ln ">pair        dx     dy    distance    base spacing    color edge</span><span class="ln ">A-B         50      0      50.00          PASS          yes</span><span class="ln ">B-C          5     50      50.25          PASS          yes</span><span class="ln ">C-A          5     50      50.25          PASS          yes</span><span class="ln ">MARKER: decomposition conflict, witness A-B-C-A</span></code></pre></div>
 <p>先根据 marker 找到 <code>M_T</code> 图层上的三块图形，再将报告中的三对距离与两条门槛分别对照。普通间距全通过：没有一对低于 40 nm。着色图却有三条边：A 固定为 M0，沿 A–B 得到 B 必须是 M1，沿 B–C 得到 C 必须是 M0，此时 C–A 又要求不同色。尝试改变 A 的颜色不仅违反固定掩模，还不会使奇环可解。这里 marker 的见证环比单独标出的冲突位置更有用，因为它告诉我们必须改变哪一类邻接关系。</p>
@@ -85,29 +85,29 @@
   
 </section>
 <section class="ch" id="practice-step-04" data-ch="practice-step-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>只改一处支线，切断一条冲突边</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>只改一处支线，切断一条冲突边</h2><span class="ch-ai" data-ai="practice-step-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>保留 A、B 与所有固定图形，选择可重布的 C，把局部矩形从 <code>x=45..85, y=90..130</code> 移到 <code>x=90..130, y=112..152</code>，以模型里允许的站位为前提。真实实现中，不能只修改三块孤立图形的坐标：C 对应的支线仍需保持原网表端点，新的接入段、线端和过孔也进入检查窗口。先在合法的增量布线上尝试该候选，再从更新后的版图重新找邻居。若工具仅报告原 marker 消失，而未检查新位置，不足以说明问题解决。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">TEACHING AFTER   same layer, distance model and thresholds</span><span class="ln ">pair        dx     dy    distance    base spacing    color edge</span><span class="ln ">A-B         50      0      50.00          PASS          yes</span><span class="ln ">B-C          0     72      72.00          PASS          yes</span><span class="ln ">C-A         50     72      87.66          PASS          no</span><span class="ln ">One valid assignment: A=M0 (fixed), B=M1, C=M0</span></code></pre></div>
 <p><code>C–A</code> 的距离是 <code>sqrt(50² + 72²) ≈ 87.66 nm</code>，已跨过 80 nm 门槛；<code>B–C</code> 仍需异色。A 与 C 现在可以同为 M0，并不是因为两者连网，而是因为不再有不同色约束。在这个子图里，两条冲突边仍在，但它们都满足分配条件。检查差异时应分别列出保留、新增和删除的边，不能要求「没有冲突边」才算通过。若拼接后发现另有固定 M0 的邻块图形与 C 必须异色，当前赋色就失效，必须按扩大的连通组件重新求解或改走线。</p>
   
 </section>
 <section class="ch" id="verification-flow" data-ch="verification-flow">
-  <div class="ch-h"><span class="ch-n">05</span><h2>过孔和拼接边界要放进同一轮检查</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>过孔和拼接边界要放进同一轮检查</h2><span class="ch-ai" data-ai="verification-flow"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>定位 marker 时同时查看过孔切割层、上下金属包围和线端，确认报的是金属同色间距、几何间距，还是 SADP 的切割或阻挡约束。过孔阵列可能受独立的掩模和间距要求；金属着色通过不是过孔自动通过。检查窗口应跨过宏、模块与相邻单元的边界，纳入两侧固定颜色、拼接后方向和相邻图形。两个模块各自通过不等于拼接通过，例如翻转后新近邻可能改变冲突路径的奇偶关系，也可能直接产生异色都无法修复的几何间距违例。基础操作见 <a href="/lesson/03-09-route/">Route</a> 和 <a href="/lesson/03-10-optroute/">布线后优化</a>。</p>
   
 </section>
 <section class="ch" id="practice-step-06" data-ch="practice-step-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>实现检查和签核分开验收</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>实现检查和签核分开验收</h2><span class="ch-ai" data-ai="practice-step-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>先用支持对应规则的布线器做局部增量检查，把优化前后的 marker、图形坐标、掩模指派和相关网络归一到同一图层映射。再用相应 PDK 的签核规则复查拼接后的版图，结合规则名称、坐标和触发图形核对实现检查的差异。实现工具没报不代表签核通过；若两个工具的结果不一致，先查规则版本、检查范围以及颜色数据是否随版图完整传递，而不是删标记。对新增或移动的线、过孔，还要重新检查连通性，更新寄生后核对相关路径时序，并确认邻网未产生新问题。</p>
   
 </section>
 <section class="ch" id="practice-step-07" data-ch="practice-step-07">
-  <div class="ch-h"><span class="ch-n">07</span><h2>候选方案值不值得保留</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>候选方案值不值得保留</h2><span class="ch-ai" data-ai="practice-step-07"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ul><li><strong>进入下一步：</strong> 原奇环被打断、可着色分配符合固定掩模、没有新增几何或过孔违例、签核规则在拼接版图通过。原端点连通无误，时序符合项目门限，才能保留候选走线。</li><li><strong>拒绝候选：</strong> 挪线后若新增另一条冲突边构成新奇环，或让线端、过孔、宏边界检查失败，不在失败走线上继续叠加改色。先保存对应 marker 和触发图形，恢复原布线快照、掩模数据和配套寄生，然后按同一规则复跑基线确认问题可复现。</li><li><strong>下一次只换一个变量：</strong> 可以试另一条合法轨道或更短接入；若考虑拼接，先检查 PDK 规则和支持能力。比较候选时同时记录是否保住端点、用了多少新过孔，以及受影响路径的余量，不以单个 marker 消失作为唯一取舍条件。</li></ul>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">08</span><h2>三条线能用两种颜色吗</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>三条线能用两种颜色吗</h2><span class="ch-ai" data-ai="review"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>A、B、C 两两不能同色，只给 B 换色能通过吗？</div>
   <div class="q-a">不能，三条边构成奇环。移开 C 使其与 A 达到同色门槛，才可能删除 C–A 边，让 A、C 同色。</div>
@@ -121,7 +121,7 @@
   
 </section>
 <section class="ch" id="deep-lab-immutable-precolor" data-ch="deep-lab-immutable-precolor">
-  <div class="ch-h"><span class="ch-n">09</span><h2>没有奇环，为什么仍过不了着色</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>没有奇环，为什么仍过不了着色</h2><span class="ch-ai" data-ai="deep-lab-immutable-precolor"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><strong>模拟拼接分解报告（非 PDK 数据）。</strong> 简化 LELE 模型中，普通间距至少 40 nm，同色间距至少 80 nm；已列出所有可能形成约束的邻接对，其余距离都不小于 80 nm。左右子块边界 <code>P</code>、<code>Q</code> 均是已冻结的 M0 预着色图形，形状与掩模都不可改；只有顶层支线 <code>X</code>、<code>Y</code> 可重布。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟邻接距离(nm)     P–X    X–Y    Y–Q    X–Q</span><span class="ln ">T0 拼接基线          55     64     58     96</span><span class="ln ">T1 仅 Y 换轨         55     64     86     96</span><span class="ln ">提议 T2：保持 T0 的距离，但把固定图形 Q 改成 M1。</span></code></pre></div>
 <p><strong>先独立交付。</strong> 从距离重建 T0 的异色边，按 <code>P</code> 的颜色推导到 <code>Q</code>，写出见证链。给 T1 写一份可核对的掩模指派，并分别判断 T1、T2 是否有资格提交签核。不能移动或改色冻结图形以配合自己的解。</p>
@@ -145,9 +145,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

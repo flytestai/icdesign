@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>dbGet：从对象关系查找宏实例 · 31j | IC 后端学院</title>
 <meta name="description" content="用对象路径和回溯定位宏实例，判断空结果，并区分数据库读取与状态修改。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01j-dbget">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="14"><section class="ch" id="objects" data-ch="objects">
-  <div class="ch-h"><span class="ch-n">01</span><h2>先画对象关系，再写查询</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>先画对象关系，再写查询</h2><span class="ch-ai" data-ai="objects"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>dbGet 查询</strong> · 贯穿全流程的工具。这一讲不属于某一道工序，而是所有工序都要用的查询手段。学会它，前面几讲里所有&quot;抓清单核对&quot;的动作才能自己做。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-j.svg" data-fig="innovus-practice-j.svg"><img src="/fig/innovus-practice-j.svg" alt="原创教学示意图 · dbGet：筛选的位置不等于返回的对象" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · dbGet：筛选的位置不等于返回的对象</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 14 项的主题独立编写，不转载原文、图或项目参数。实例名、报告和验收数据均为合成。Innovus legacy <code>dbGet</code> 命令用于讲解查询思路，未在 Innovus 中实测，属性名和选项以本机版本帮助为准。</p></div>
@@ -73,46 +73,46 @@
   
 </section>
 <section class="ch" id="macro-query" data-ch="macro-query">
-  <div class="ch-h"><span class="ch-n">02</span><h2>查询宏实例：筛选属性，再回溯</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>查询宏实例：筛选属性，再回溯</h2><span class="ch-ai" data-ai="macro-query"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>示例用 <code>baseClass == block</code> 界定本练习的宏。先读全部实例名判断当前范围，再检查设计中确实存在该类别；最后沿库单元属性筛选并回到实例层。不要把“项目要盘点的宏”直接等同于数据库的某个值：真实项目还可能需要按母版清单纳入或排除特定单元。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">dbGet top.insts.name</span><span class="ln ">dbGet top.insts.cell.baseClass</span><span class="ln ">set blocks [dbGet -p2 top.insts.cell.baseClass block]</span><span class="ln ">set macroNames {}</span><span class="ln ">foreach inst $blocks {</span><span class="ln ">    if {$inst eq &quot;0x0&quot;} { continue }</span><span class="ln ">    set name [dbGet ${inst}.name]</span><span class="ln ">    if {$name eq &quot;&quot; || $name eq &quot;0x0&quot;} {</span><span class="ln ">        error &quot;macro instance name unavailable: $inst&quot;</span><span class="ln ">    }</span><span class="ln ">    lappend macroNames $name</span><span class="ln ">}</span><span class="ln ">puts [lsort $macroNames]</span></code></pre></div>
 <p><code>-p</code> 回溯一层：在这个路径上返回库单元对象；<code>-p2</code> 回溯两层，返回引用这些库单元的实例对象。<strong>在哪一层筛选，与要返回哪一层，是两件事。</strong> <code>lsort</code> 只让清单顺序稳定，不能去掉错误重复项；若报告出现重复实例名，应先核查作用范围以及名字是不是真正的全名，而不是默默压成一行。</p>
   
 </section>
 <section class="ch" id="empty-results" data-ch="empty-results">
-  <div class="ch-h"><span class="ch-n">03</span><h2>空结果不等于设计里没有宏</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>空结果不等于设计里没有宏</h2><span class="ch-ai" data-ai="empty-results"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>将“工具报错”“查询成功但无匹配”“核对完成后确实没有宏”分成三种状态。报错优先检查设计是否加载、路径和属性是否受本机版本支持，不能捕获错误后输出一份看似正常的空清单。无匹配先检查 <code>top.insts</code> 和实际类别分布，再用一个已知的实例名反查母版与类别。已知宏也找不到时，先核对设计快照、层级范围和名字匹配方式；实例找得到但不属 <code>block</code> 时，再跟目录维护者确认分类标准。</p>
 <p>Tcl 的 <code>llength 0x0</code> 是 <code>1</code>，但 <code>0x0</code> 是空指针标记，不能认作一个实例。若报告显示零行，仍应保留快照标识、基准实例总数及类别检查结果，让复核者能分辨“有效的零”和“漏查”。设计查询和 <code>puts</code> 不修改数据库，别为排查混入 <code>dbSet</code> 等写操作。类似的端口读取见 <a href="/lesson/03-01a-flp-lab/#ports">Floorplan 实操</a>。</p>
   
 </section>
 <section class="ch" id="lab-input" data-ch="lab-input">
-  <div class="ch-h"><span class="ch-n">04</span><h2>实例清单为什么少了一行</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>实例清单为什么少了一行</h2><span class="ch-ai" data-ai="lab-input"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>练习从交接表开始：<code>F07</code> 快照内有三条实例记录，宏清单应列出 <code>u_sram0</code>、<code>u_sram1</code>，两者母版均为 <code>SRAM_TINY</code>，另有 <code>u_buf</code> 引用 <code>BUFX2</code>。旧脚本的导出只有一行 <code>SRAM_TINY</code>，列名却是“宏实例”，导致下游只登记了一个放置对象。另提供 <code>F06_stdonly</code> 对照快照，里面只有 <code>u_buf</code>，预期宏清单为空。两个快照分开判读，不能拿对照快照的零行解释 <code>F07</code> 的缺行。</p>
 <p>操作顺序：先写出交接表的预期实例名，再核对旧脚本查询从哪个对象取 <code>.name</code>。然后分别列出全部实例、筛中库单元和筛中实例，记下每一步的对象粒度。旧结果不一定是筛选失败：它筛对了类别，但错把母版当成交付对象，随后对母版名称去重，只剩一行。这条证据比“重新运行一次得到两行”更能说明根因。</p>
   
 </section>
 <section class="ch" id="lab-tcl" data-ch="lab-tcl">
-  <div class="ch-h"><span class="ch-n">05</span><h2>只用 Tcl 复现清单差异</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>只用 Tcl 复现清单差异</h2><span class="ch-ai" data-ai="lab-tcl"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>下方是可单独交给 <code>tclsh</code> 的教学 mock，只依赖标准 Tcl。它用三列记录模拟对象引用，不调用 Innovus，也不模拟 <code>dbGet</code> 的语法、空指针或真实数据库结构。<code>legacy</code> 模拟旧导出对母版去重，<code>fixed</code> 模拟修正后取实例名；两者看相同的原始输入。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proc inventory {rows} {</span><span class="ln ">    set legacy {}</span><span class="ln ">    set fixed {}</span><span class="ln ">    foreach row $rows {</span><span class="ln ">        lassign $row inst cell baseClass</span><span class="ln ">        if {$baseClass ne &quot;block&quot;} { continue }</span><span class="ln ">        lappend legacy $cell</span><span class="ln ">        lappend fixed $inst</span><span class="ln ">    }</span><span class="ln ">    return [list [lsort -unique $legacy] [lsort $fixed]]</span><span class="ln ">}</span><span class="ln ">set f07 {{u_buf BUFX2 core} {u_sram0 SRAM_TINY block} {u_sram1 SRAM_TINY block}}</span><span class="ln ">set f06 {{u_buf BUFX2 core}}</span><span class="ln ">foreach {snapshot rows} [list F07 $f07 F06_stdonly $f06] {</span><span class="ln ">    lassign [inventory $rows] legacy fixed</span><span class="ln ">    puts &quot;$snapshot legacy=[list $legacy] ([llength $legacy]) fixed=[list $fixed] ([llength $fixed])&quot;</span><span class="ln ">}</span></code></pre></div>
 <p>阅读输出时先对清单再对数量。即使新版凑巧输出两条，如果第二条属于其他实例，还是不合格。可把对照中的 <code>u_buf</code> 换成一个类别同为 <code>block</code> 的测试记录，再预测新旧两种输出；这只是改变 mock 输入，不代表生产数据库或真实工艺属性发生变化。</p>
   
 </section>
 <section class="ch" id="lab-verify" data-ch="lab-verify">
-  <div class="ch-h"><span class="ch-n">06</span><h2>查询结果的对照验收与回退</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>查询结果的对照验收与回退</h2><span class="ch-ai" data-ai="lab-verify"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成验收预期                     旧列值 (数量)          新列值 (数量)</span><span class="ln ">F07: 宏实例清单                  SRAM_TINY (1)         u_sram0 u_sram1 (2)</span><span class="ln ">F06_stdonly: 宏实例清单          &lt;空&gt; (0)              &lt;空&gt; (0)</span><span class="ln ">F07: 输入实例总数                3                     3</span><span class="ln ">F06_stdonly: 输入实例总数        1                     1</span></code></pre></div>
 <p>验收时再随机挑一个输出实例反查母版：这里两条均指向 <code>SRAM_TINY</code>，所以一套完整的交接记录可以同时包含“两个宏实例”和“一种宏母版”，但不能把这两个统计字段互换。另检查排序、列名和上一版消费脚本的读取方式；若下游确实要的是唯一母版列表，应保留原口径并另交付实例清单，而不是让同名字段悄悄变义。</p>
 <ul><li>改动前：保留旧查询、导出、所用设计标识和预期清单，确认它们不是来自不同快照。</li><li>改动后：同快照双跑，保留准确名单、错误输出和有效零结果；确认 <code>u_buf</code> 没混入宏清单。</li><li>若实例范围或下游契约未获确认：撤回新导出，恢复原查询版本并标注原口径的已知缺陷，暂停用旧结果做放置判断。这里只更改脚本与报告，无需回滚物理设计。</li></ul>
   
 </section>
 <section class="ch" id="lab-triage" data-ch="lab-triage">
-  <div class="ch-h"><span class="ch-n">07</span><h2>清单对不上时从哪里下手</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>清单对不上时从哪里下手</h2><span class="ch-ai" data-ai="lab-triage"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>在实际交接中，可以把预期和实际清单并列，标出“只在预期”“只在实际”和“双方都有但母版不同”三类差异。第一类优先确认快照标识、设计名和层级范围；第二类复核筛选条件是否把交接表未纳入的单元类型也抓进来；第三类检查实例是否被合法换版，以及工程清单的母版列是否尚未更新。这三类证据指向不同责任方，不能用一句“数量差一”代替。也不要拿同名但不同层级的对象凑齐清单；若数据库返回的名称和交接表层级表示不同，应先明确各自的命名规则，再对照一条实际对象记录。</p>
 <p>对象引用适合留在当前工具查询中，不宜作为跨快照的交接主键；清单至少应带上设计标识、实例名称和母版名称。对于本例，可以借 <code>F06_stdonly</code> 测空清单，再使旧脚本和新脚本在 <code>F07</code> 看同一份输入：前者检查正常的零行不会被误报为故障，后者检查同一母版的多个实例不会被折叠。若交接表本身有错，先修订预期并让责任人确认，再回到实例查询验收，不要为了让结果看起来对齐而改筛选。</p>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">08</span><h2>你数的是哪一层对象</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>你数的是哪一层对象</h2><span class="ch-ai" data-ai="review"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>两个 SRAM 实例引用同一母版，筛选后为什么不能停在 -p？</div>
   <div class="q-a">在该查询路径上，-p 返回库单元层；需用 -p2 返回实例层，再读取各实例的 name。</div>
@@ -126,7 +126,7 @@
   
 </section>
 <section class="ch" id="deep-lab-batch-null-guard" data-ch="deep-lab-batch-null-guard">
-  <div class="ch-h"><span class="ch-n">09</span><h2>批量只读巡检里，哪些快照可以发布</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>批量只读巡检里，哪些快照可以发布</h2><span class="ch-ai" data-ai="deep-lab-batch-null-guard"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><strong>模拟批检日志（不是 Innovus 输出）。</strong> 同一作业逐个加载快照，读取宏实例后再逐一取摆放状态；结果只有正式报表会被下游接收，失败明细另外保存。此处 <code>0x0</code> 是空指针，空串不是合法摆放状态。预期宏数来自独立交接清单，<code>ERR</code> 表示工具调用失败。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟快照  预期宏数  查询返回         逐实例状态返回</span><span class="ln ">Q0        0         OK: 0x0          无须读取</span><span class="ln ">Q1        2         OK: p1 p2        p1:fixed, p2:&quot;&quot;</span><span class="ln ">Q2        1         ERR: 属性不可用  未执行</span><span class="ln ">Q3        1         OK: p3           p3:fixed</span></code></pre></div>
 <p><strong>先独立交付。</strong> 给四个快照各填一项状态和是否发布正式报表，再写出程序应在哪一步拦截空值、在哪一步停止当前快照。说明整批能否标为通过，以及为什么不能把缺失状态默认成未摆放。</p>
@@ -150,9 +150,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

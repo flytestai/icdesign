@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ChipFinish 桌面实训：从最终流出到签核放行 · 41c | IC 后端学院</title>
 <meta name="description" content="用一套模拟交付包练习核对网表、流出版图与寄生，识别错版报告，处理豁免并决定能否放行。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-14-chipfinish-handoff">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="19"><section class="ch" id="handoff-bundle" data-ch="handoff-bundle">
-  <div class="ch-h"><span class="ch-n">01</span><h2>领取任务：先冻结候选包，再看通过数</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>领取任务：先冻结候选包，再看通过数</h2><span class="ch-ai" data-ai="handoff-bundle"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>一句话目标</div>
 <div class="scene"><div class="scene-h">工作场景 · 交付前的收包复核</div><div class="scene-b"><p>你接手教学顶层 <code>desk_top</code>。实现同事已经送来 <code>R2</code> 版候选包，物理验证和时序同事各发来一组报告。大家口头都说过了，但其中混有旧流出版图的报告和填充前的寄生。你的任务是把每份证据绑定到它真正检查过的输入，再决定能否交付。</p></div></div>
 <p>本课是<strong>原创模拟桌面实训</strong>。文件名、指纹、工艺选项、坐标、规则和报告行均为纸面数据，不是任何商用工具的实测或真实工艺规格，也不提供实际流片文件。把交付包想成一张装箱单：箱子上都写着 <code>R2</code>，不代表箱内文件从同一个候选版本导出。表中 <code>N8</code>、<code>O2</code> 等是短教学指纹；实际交接应记录文件的完整 SHA-256 校验和以及生成来源。</p>
@@ -80,7 +80,7 @@
   
 </section>
 <section class="ch" id="stream-layer-map" data-ch="stream-layer-map">
-  <div class="ch-h"><span class="ch-n">02</span><h2>对齐层映射：形状导出了，不等于检查读到了</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>对齐层映射：形状导出了，不等于检查读到了</h2><span class="ch-ai" data-ai="stream-layer-map"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>把流出层映射当成货架编号：同一金属上的信号图形和填充图形可以放在不同编号的格子里。版图查看器能显示某种颜色，只说明某处有图形，不说明规则读取了该数据类型。下表是 <code>M3</code> 的三条<strong>模拟</strong>映射，不是工艺厂规则；<code>R2</code> 的顶层、层次范围和统计口径固定，期望与实收都按顶层展开后的同一窗口计数。</p>
 <div class="tbl"><table><thead><tr><th>实现用途</th><th>OASIS 层号／数据类型</th><th>预期轮廓数</th><th>验证导入日志的实收轮廓数</th></tr></thead><tbody><tr><td>M4 信号图形</td><td><code>40/0</code></td><td>12</td><td>12</td></tr><tr><td>M4 金属填充</td><td><code>40/30</code></td><td>5</td><td>5</td></tr><tr><td>V4 过孔切孔</td><td><code>41/0</code></td><td>3</td><td>3</td></tr></tbody></table></div>
 <p>纸面抽验：三类合计应为 <code>12 + 5 + 3 = 20</code>；但总数相同仍不足够。如果实收变为 <code>17/0/3</code>，合计依然是 20，却有 5 个填充轮廓未出现在预期用途。先比较流出日志和实际版图里的层号／数据类型，再比较验证端导入统计，区分「导出放错编号」与「导入读错编号」。不靠调整规则阈值解决映射错误。</p>
@@ -92,7 +92,7 @@
   
 </section>
 <section class="ch" id="fill-parasitics" data-ch="fill-parasitics">
-  <div class="ch-h"><span class="ch-n">03</span><h2>做填充前后对比：先配对条件，再算裕量</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>做填充前后对比：先配对条件，再算裕量</h2><span class="ch-ai" data-ai="fill-parasitics"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>金属填充（metal fill）是在版图里加入用于满足密度等工艺要求的金属图形，不等于向标准单元行里补空白的 filler 单元。信号线即使没挪，邻近填充也可能改变耦合电容；影响取决于提取模型和填充几何，不能用一个固定增量外推全芯片。把 <code>R0 → R1</code> 当作对照实验：只加填充；<code>R1 → R2</code> 同时调了局部走线、重生成填充，因此不能把后者的全部变化归因于填充。</p>
 <div class="tbl"><table><thead><tr><th>同一路径 <code>u_launch/Q → u_capture/D</code></th><th><code>R0</code> 无填充</th><th><code>R1</code> 有填充</th><th><code>R2</code> 局部修线并重填充</th></tr></thead><tbody><tr><td>RCmax 中示例互连段电阻（Ω）</td><td>74</td><td>74</td><td>69</td></tr><tr><td>同一受害网的对地电容（fF）</td><td>20</td><td>21</td><td>21</td></tr><tr><td>同一受害网的耦合电容总计（fF）</td><td>6</td><td>9</td><td>8</td></tr><tr><td><code>FUNC/SS/RCmax</code> setup 到达时间（ps）</td><td>978</td><td>1006</td><td>991</td></tr><tr><td>同一 setup 要求时间（ps）</td><td>1000</td><td>1000</td><td>1000</td></tr><tr><td><code>FUNC/FF/RCmin</code> 同一端点的 hold 裕量（ps）</td><td>+12</td><td>+10</td><td>+8</td></tr></tbody></table></div>
 <p>setup（建立时间）裕量等于要求时间减到达时间，三版分别为 <code>+22</code>、<code>−6</code>、<code>+9 ps</code>；<code>R0 → R1</code> 损失 <code>28 ps</code>，耦合电容增加 <code>3 fF</code>，即 <code>50%</code>。延迟取自本题给定数据，不是用电容比例推算的。hold（保持时间）需用快速角的最小延迟分析独立核对，不能拿 setup 公式或 RCmax 报告代替。表里只是一条路径，不代表全场景最差裕量。</p>
@@ -100,7 +100,7 @@
   
 </section>
 <section class="ch" id="signoff-matrix" data-ch="signoff-matrix">
-  <div class="ch-h"><span class="ch-n">04</span><h2>填签核矩阵：分清哪一行能证明什么</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>填签核矩阵：分清哪一行能证明什么</h2><span class="ch-ai" data-ai="signoff-matrix"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>DRC（设计规则检查）、LVS（版图与源网表一致性检查）和 LEC（逻辑等价检查）像三种不同的验收：图纸有没有违反尺寸，实物有没有按连接表接线，两个逻辑版本是否实现同一个功能。三者的输入和判据各不同，一个通过不能替另一个补证据。先建矩阵，再把文件实际输入写到每行，不要只有一列「PASS」。</p>
 <div class="tbl"><table><thead><tr><th>检查／负责人</th><th>此题要求绑定的输入</th><th>合格条件与证据</th></tr></thead><tbody><tr><td>LEC／逻辑验证</td><td>批准功能参考 <code>REF17</code>、最终网表 <code>N8</code>、批准的 <code>EQ2</code> 比较配置</td><td>等价；未匹配或未比较点处理闭合，并保留比较范围和配置记录</td></tr><tr><td>LVS／物理验证</td><td><code>O2</code>、认可的源网表 <code>N8</code>（按本题供电表示和宏模型）、<code>M3</code>、<code>LVS4</code></td><td>全量器件与连接匹配，无未处理短路和开路；保留运行日志与汇总</td></tr><tr><td>DRC／物理验证</td><td>完整 <code>O2</code>、<code>M3</code>、规则版本 <code>DRC6</code>、选项 <code>OPT2</code></td><td>必做规则实际执行；原始标记全部清零或逐条匹配有效豁免；保留原始结果和处置清单</td></tr><tr><td>STA／时序</td><td><code>N8</code>、同候选的 <code>P2H/P2L</code>、约束 <code>SDC5</code>、库组 <code>LIB2</code></td><td>静态时序分析（STA）覆盖约定场景，回注范围匹配；本题两个视图 setup／hold 分别至少 <code>+5 ps</code>，无未约束目标端点</td></tr></tbody></table></div>
 <p>手算一个反例：如果功能网表对 <code>REF17</code> 等价，但版图中 <code>u_capture/D</code> 有 <code>1</code> 处断点，LEC 仍可能通过，LVS 必须报告不匹配；如果两根线未接触但间距小于规则，LVS 可以匹配而 DRC 失败。反过来，合法几何不保证连接正确。意图改变功能的 ECO 则应以获准的新功能参考做比较，不能为了让 LEC 变绿而随意更换参考。</p>
@@ -108,7 +108,7 @@
   
 </section>
 <section class="ch" id="wrong-report" data-ch="wrong-report">
-  <div class="ch-h"><span class="ch-n">05</span><h2>报告错版演练：先做输入验真，再读 PASS</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>报告错版演练：先做输入验真，再读 PASS</h2><span class="ch-ai" data-ai="wrong-report"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>报告标题相当于文件夹标签；日志中的实际输入指纹才是收据。<code>R0</code> 是填充前版本，<code>R1</code> 是上一轮含填充候选，其版图指纹为 <code>O1</code>。你收到下面四份摘要；其中的状态是教学记录，不是工具原生输出。各报告中未展开的配置，假定与上一节对应行一致。</p>
 <div class="tbl"><table><thead><tr><th>收到的报告</th><th>报告页显示</th><th>从运行记录查到的实际输入</th><th>你应填的状态</th></tr></thead><tbody><tr><td><code>lec_ok</code></td><td><code>R1 / PASS</code></td><td><code>REF17 + N8 + EQ2</code>，比较覆盖完整</td><td>可复用：本题 LEC 输入及配置完全相同，仍须登记原运行标识与复用依据</td></tr><tr><td><code>lvs_R2</code></td><td><code>R2 / MATCH</code></td><td><code>O1 + N8 + M3 + LVS4</code></td><td>错版，不能用于 <code>R2</code>；用 <code>O2</code> 重跑全量 LVS</td></tr><tr><td><code>drc_R2</code></td><td><code>R2 / 0</code></td><td><code>O2 + M3 + DRC6 + OPT2</code>，但该次只启用间距类规则</td><td>覆盖不足；全量 DRC 配置需启用所有必做规则</td></tr><tr><td><code>sta_R2</code></td><td><code>R2 / PASS</code></td><td><code>N8 + R0</code> 的 RCmax 寄生指纹 <code>P0H</code>；未查到 hold 视图</td><td>错版且缺项；用 <code>P2H/P2L</code> 补齐两个视图</td></tr></tbody></table></div>
 <div class="pit"><div class="pit-h">常见坑 · 新报告名盖住旧输入</div><div class="pit-b"><p>现象：文件名写着 <code>R2</code>，LVS 也显示匹配。原因：运行请求取的是旧的 <code>O1</code>，输出文件名却由当前发布目录生成。查法：把实际读取的流出版图指纹同清单 <code>O2</code> 比对，查清调度输入后重跑，不重命名旧报告冒充新证据。</p></div></div>
@@ -117,7 +117,7 @@
   
 </section>
 <section class="ch" id="waiver-regression" data-ch="waiver-regression">
-  <div class="ch-h"><span class="ch-n">06</span><h2>豁免与回归：原始标记保留，剩余阻断要归零</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>豁免与回归：原始标记保留，剩余阻断要归零</h2><span class="ch-ai" data-ai="waiver-regression"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>豁免不是删除报错，而是获授权后接受一个精确限定的标记。<code>R1</code> 的全量复核曾有两条原始标记：<code>FILL.KEEP/宏边界/指纹 K9</code>（<code>12400,8000 DBU</code>）和 <code>M4.SPACE/信号线/指纹 S1</code>。本例只有第一条允许申请；<code>R2</code> 调整信号走线并重新填充，必须比较新标记所对应的几何，不能把旧版坐标附近的形状全部排除。</p>
 <div class="tbl"><table><thead><tr><th>全量回归阶段</th><th>原始标记</th><th>对本行版图有效的豁免</th><th>待处理数</th></tr></thead><tbody><tr><td><code>R1</code>，版图 <code>O1</code></td><td><code>K9</code>、<code>S1</code></td><td><code>1</code>：旧审批 <code>W17</code> 只匹配 <code>O1</code> 的 <code>K9</code></td><td><code>2 − 1 = 1</code></td></tr><tr><td><code>R2</code>，版图 <code>O2</code>，换版审批前</td><td><code>K9</code></td><td><code>0</code>：<code>W17</code> 不覆盖 <code>O2</code></td><td><code>1 − 0 = 1</code></td></tr><tr><td><code>R2</code>，版图 <code>O2</code>，换版审批后</td><td><code>K9</code></td><td><code>1</code>：新审批 <code>W18</code> 只匹配 <code>O2</code> 的 <code>K9</code></td><td><code>1 − 1 = 0</code></td></tr></tbody></table></div>
 <p><code>W18</code> 在本题由物理验证负责人复核、放行负责人批准，适用 <code>desk_top / O2 / M3 / DRC6 / OPT2</code>，并记录规则、位置、几何指纹、复核依据（同一宏边界、未改变的 <code>K9</code> 几何，有项目批准的宏边界例外）、审批人和仅限本候选的有效期。若出现第二条同规则标记，或 <code>K9</code> 附近几何变为另一指纹，均不能自动匹配。原始计数仍是 <code>1</code>，只能说「未处置标记 <code>0</code>」，不能写成「DRC 原始零标记」。</p>
@@ -125,7 +125,7 @@
   
 </section>
 <section class="ch" id="release-exercise" data-ch="release-exercise">
-  <div class="ch-h"><span class="ch-n">07</span><h2>交卷：写出别人能复核的放行决定</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>交卷：写出别人能复核的放行决定</h2><span class="ch-ai" data-ai="release-exercise"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>用一张纸或一个文本编辑器完成，不需要商用工具。交卷时分「初收包」和「回归完成」两个时间点：同一个 <code>O2</code> 可以先被阻断，等配套的报告和审批都到齐后再获准。复核人应能从你的记录追到运行标识、实际工件、覆盖范围和审批，不必猜「修好了」究竟指哪一项；若之后产生 <code>O3</code>，不能把 <code>O2</code> 的整包结论直接复制过去。</p>
 <p>可抄入放行单的教学运行标识：原逻辑比较 <code>EQ-101</code>（登记复用），重跑的 <code>PV-204</code>（全量 LVS）、<code>PV-205</code>（全量 DRC）、<code>TM-212</code>（两视图 STA）。时序证据须同时写 <code>P2H/P2L</code> 和 <code>+9/+8 ps</code>；只填 <code>TM-212</code>，审阅人无法从放行单判断是否确实用了最终寄生。</p>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>从四份摘要写一张放行单</div><div class="lab-b"><ol><li>抄写候选包五项交付物的指纹和两个寄生角；将第 5 节四份摘要逐行挂到签核矩阵，写出有效证据数和缺项。</li><li>计算填充前后及最终的 setup 裕量。将全量 DRC、LVS 和两视图 STA 的补齐结果登记到对应行；写明 <code>W18</code> 的约束与标记对账。</li><li>先写 <code>HOLD</code>（阻断），再填写条件满足后的 <code>RELEASE</code>（放行）和候选标识。过关线：得到 <code>1/4 → 4/4</code> 有效证据，写明 <code>1</code> 条原始标记、<code>1</code> 条获准、<code>0</code> 条待处理，并能指出一次再次阻断的触发条件。</li></ol></div></div>
@@ -168,9 +168,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pin 与 Port：单元接口和模块接口 · 26 | IC 后端学院</title>
 <meta name="description" content="版图界面上那些黄色的小点和小片，含义完全不同：单元上的叫 pin，模块边缘的叫 port。这一课把两者的层级、方向、物理形态讲清，再讲清 Input/Output 的相对性、模块 90 度翻转与镜像、以及"顶层给你的 port 位置与顺序必须一模一样"这条硬规定——它决定两个模块能不能拼上。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="02-05a-pin-port">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="13"><section class="ch" id="why" data-ch="why">
-  <div class="ch-h"><span class="ch-n">01</span><h2>两个词，两个层级</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>两个词，两个层级</h2><span class="ch-ai" data-ai="why"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>能一句话说清 pin 与 port 的层级差别（Cell 层 vs Block 层）；能说出 Input/Output 方向的相对性；能解释模块翻转/镜像后端口怎么办；能说出顶层给的 port 位置与顺序为什么&quot;必须一模一样&quot;。</div>
 <p>新人在版图上最容易混的两个东西：</p>
 <ul><li>单元（NAND、DFF）身上那些<strong>引脚</strong>——叫 <strong>pin</strong>；</li><li>模块（你做的整个 block）边缘那些<strong>接口片</strong>——叫 <strong>port</strong>。</li></ul>
@@ -72,7 +72,7 @@
   
 </section>
 <section class="ch" id="pin" data-ch="pin">
-  <div class="ch-h"><span class="ch-n">02</span><h2>Pin：单元的接口，库说了算</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>Pin：单元的接口，库说了算</h2><span class="ch-ai" data-ai="pin"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">pin</span><span class="term-zh">引脚</span></div>
   <div class="term-b"><p>标准单元或宏单元自己的输入/输出端点。名字、方向、形状都写在 cell lef 里（<code>PIN A { DIRECTION INPUT ; PORT LAYER M1 ; RECT ... }</code>）。</p></div>
@@ -83,7 +83,7 @@
   
 </section>
 <section class="ch" id="port" data-ch="port">
-  <div class="ch-h"><span class="ch-n">03</span><h2>Port：模块的接口，你说了算</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>Port：模块的接口，你说了算</h2><span class="ch-ai" data-ai="port"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">port</span><span class="term-zh">端口</span></div>
   <div class="term-b"><p>一个 block 对外的接口，位于模块边缘。<strong>它决定这个 block 怎么和外面（相邻模块、顶层）连起来。</strong></p></div>
@@ -99,7 +99,7 @@
   
 </section>
 <section class="ch" id="direction" data-ch="direction">
-  <div class="ch-h"><span class="ch-n">04</span><h2>方向是相对的：别人 Output 就是你的 Input</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>方向是相对的：别人 Output 就是你的 Input</h2><span class="ch-ai" data-ai="direction"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>这一点在文档里被专门强调，因为拼接时最容易搞反：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">   模块 A                              模块 B</span><span class="ln ">  ┌──────────┐   A 的 Output  ───→   B 的 Input   ┌──────────┐</span><span class="ln ">  │          ├───────────────────────────────────┤          │</span><span class="ln ">  └──────────┘                                    └──────────┘</span></code></pre></div>
 <ul><li>同一个信号，<strong>在 A 那边是 Output，在 B 那边就是 Input</strong>；</li><li>界面上箭头<strong>朝内 = Input，朝外 = Output</strong>；</li><li>所以&quot;这根线是输入还是输出&quot;这个问题，必须先问&quot;<strong>站在谁的角度</strong>&quot;。</li></ul>
@@ -109,7 +109,7 @@
   
 </section>
 <section class="ch" id="orient" data-ch="orient">
-  <div class="ch-h"><span class="ch-n">05</span><h2>翻转与镜像：模块能转，port 顺序会变</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>翻转与镜像：模块能转，port 顺序会变</h2><span class="ch-ai" data-ai="orient"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>模块在版图上可以摆放成 8 种朝向（<strong>N/S/E/W 四个方向 × 是否镜像</strong>），文档说的&quot;支持 XY 翻转、允许 90 度旋转&quot;就是这个意思。</p>
 <div class="term open">
   <div class="term-h"><span class="term-en">orientation</span><span class="term-zh">朝向</span></div>
@@ -121,14 +121,14 @@
   
 </section>
 <section class="ch" id="wh" data-ch="wh">
-  <div class="ch-h"><span class="ch-n">06</span><h2>宽高、长宽：说法习惯要对齐</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>宽高、长宽：说法习惯要对齐</h2><span class="ch-ai" data-ai="wh"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>文档顺带纠了一个用词习惯：</p>
 <ul><li>描述芯片/模块尺寸时，行业里习惯说<strong>宽（width）和高（height）</strong>，不是&quot;长和宽&quot;；</li><li>lef 里写的是 <code>SIZE 10.792 BY 1.672</code>，<strong>前面是宽（X 方向），后面是高（Y 方向）</strong>；</li><li>面积利用率 = 单元总面积 / 可用面积，用的是同一个&quot;宽×高&quot;口径。</li></ul>
 <p><strong>为什么提这个</strong>：跨部门沟通时&quot;长&quot;到底指哪一边，经常吵起来。<strong>统一用 width/height（X/Y）就没人会误</strong>。</p>
   
 </section>
 <section class="ch" id="macro" data-ch="macro">
-  <div class="ch-h"><span class="ch-n">07</span><h2>Memory：只有 port，没有你关心的引脚</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>Memory：只有 port，没有你关心的引脚</h2><span class="ch-ai" data-ai="macro"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>文档对 Memory 的描述很到位：<strong>第三方封装好的模块，内部逻辑连接不用管，你只需要处理它的输入输出。</strong></p>
 <p>对 PR 来说，macro 就是&quot;一个很大的、内部不能摆东西的盒子&quot;：</p>
 <ul><li>它的 pin 在 lef 里定义（通常分布在边缘若干位置）；</li><li>它的内部对布线是<strong>禁布区（OBS）</strong>；</li><li>你在 floorplan 里要做的只有：<strong>摆在哪、朝哪边、周围留多少通道</strong>。</li></ul>
@@ -179,9 +179,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

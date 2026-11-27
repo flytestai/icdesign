@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Route：检查天线、串扰、短路与开路 · 31g | IC 后端学院</title>
 <meta name="description" content="识别三类布线用途，区分四类常见问题，并从主布线推进到布线后优化。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01g-route-debug">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="15"><section class="ch" id="route-types" data-ch="route-types">
-  <div class="ch-h"><span class="ch-n">01</span><h2>三类布线不是同一个动作</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>三类布线不是同一个动作</h2><span class="ch-ai" data-ai="route-types"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>Route 诊断</strong> · 承接 CTS 的时钟树。时钟树占掉一部分布线资源，信号网要在剩下的空间里走。本讲分清三类布线、两个失效（短路/开路）和两种干扰（天线/串扰）。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-g.svg" data-fig="innovus-practice-g.svg"><img src="/fig/innovus-practice-g.svg" alt="原创教学示意图 · 布线报告的四类问题不要混查" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 布线报告的四类问题不要混查</figcaption></figure>
 <div class="note"><div class="note-h">课程来源</div><p>本讲是网站原创专题；钉钉目录第 11 项仅用于确定主题与顺序，不转载原文、项目参数或图片。工具操作可另看上传 Word 整理的 <a href="/lesson/03-09-route/">Route</a> 和 <a href="/lesson/03-10-optroute/">OptRoute</a> 补充课。</p></div>
@@ -72,45 +72,45 @@
   
 </section>
 <section class="ch" id="antenna-crosstalk" data-ch="antenna-crosstalk">
-  <div class="ch-h"><span class="ch-n">02</span><h2>分开诊断天线和串扰</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>分开诊断天线和串扰</h2><span class="ch-ai" data-ai="antenna-crosstalk"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>天线效应来自制造过程：某一步刻蚀后已形成的导体可能积累电荷并损伤所连栅极。先按规则查受影响栅极、触发层及比率，再确定工艺允许的跳层或天线二极管等候选；前者要依据加工顺序与规则判断，后者要关注新增结电容以及布局和供电。不要用正常工作时的波形来解释天线超限，也不要看到长线就一律加二极管。</p>
 <p>串扰发生在电路工作时，相邻网络耦合可能产生毛刺，也可能改变传播延迟。SI 报告先读受害引脚、主要施扰网、活动窗口和接收判据，再到版图查并行区段和耦合占比；长线只是一种线索，边沿相对时刻同样重要。增距、换层或屏蔽后，必须重新提取耦合寄生，分别比较噪声与包含串扰的时序。制造天线和运行期串扰有不同的证据和验收口径，不共用一个“线路太长”的结论。</p>
   
 </section>
 <section class="ch" id="route-to-opt" data-ch="route-to-opt">
-  <div class="ch-h"><span class="ch-n">03</span><h2>从 Route 基线走到 OptRoute</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>从 Route 基线走到 OptRoute</h2><span class="ch-ai" data-ai="route-to-opt"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>连通性检查定位 short 与 open：前者是不同网络在物理上误连，后者是同一网络应相连的端点未接通。几何检查告诉你哪里违反制造规则，但没有 DRC 标记也不保证电气连接符合参考网表。对照报告坐标检查金属、过孔、引脚和对象归属；跨层图形在屏幕上重叠，不代表提取拓扑中存在层间边。并行确认电源网没有被普通信号误接，也不要把特殊网形状自动当成可编辑的信号段。</p>
 <p>本例先用局部连通检查缩小范围，再对区段做几何复查；全模块连通通过后才提取可信寄生，进入 OptRoute 或其他布线后优化流程。OptRoute 不等于把主布线重新全跑一遍，目标应明确到受影响的网络与检查指标。绕线可消除几何冲突，额外线长却可能提高电容并损害时序，比较时要把模式、角、提取开关和限值固定下来。</p>
   
 </section>
 <section class="ch" id="practice-step-04" data-ch="practice-step-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>追一条&quot;看起来已接通&quot;的网</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>追一条&quot;看起来已接通&quot;的网</h2><span class="ch-ai" data-ai="practice-step-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>在合成基线中，工具只报一处信号开路，没有短路，天线最大比率也低于本例限值。将报告上的 <code>u_ctrl/busy_q/D</code> 放大，用层选择分别锁定 M2 和 M3：驱动侧 M3 与负载侧 M2 的图形存在重叠，但缺少连接两层的合法 VIA2。实例端点和两个图形的网络归属都与参考网表一致。虽然查图时看起来连接已到末端，连接分量仍有两个。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成主布线基线（单位：um；非命令）</span><span class="ln ">CONNECTIVITY: SIGNAL SHORT=0, OPEN=1; POWER/GROUND OPEN=0, SHORT=0</span><span class="ln ">OPEN busy: driver=u_stat/Q  disconnected=u_ctrl/busy_q/D</span><span class="ln ">bbox=(104.20,73.60)-(104.32,73.72), M2/M3 overlap, VIA2 missing</span><span class="ln ">REGION DRC=0; ANTENNA max observed ratio=61/100, violations=0</span><span class="ln ">SI/timing for busy: not comparable (one disconnected endpoint)</span></code></pre></div>
 <p>如果还报另一处 <code>req/ack</code> 短路，应单独标记意外共用的接触图形，不能靠这处加过孔一起解决。反过来，只有 DRC 通过而 <code>busy</code> 仍开路，不该用增驱动、换层或调整时序例外掩盖故障。把根因写成可复核的句子：两块已有且归属正确的同网金属之间，缺少工艺允许的跨层连接。</p>
   
 </section>
 <section class="ch" id="practice-step-05" data-ch="practice-step-05">
-  <div class="ch-h"><span class="ch-n">05</span><h2>只补一个合法过孔，再查相邻网</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>只补一个合法过孔，再查相邻网</h2><span class="ch-ai" data-ai="practice-step-05"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>在副本上仅给 <code>busy</code> 补一个经技术定义允许的 VIA2，保留原有两段走线，其余网络和约束不动。落点要同时满足两侧金属包围、过孔对过孔间距及与邻线的间距；如果原处无合法落点，就应撤销本次操作，另开一轮受控的局部重布评估，不要为保留单改动而接受非法几何。修后先从驱动端重新追到负载，确认同一连通分量，并检查相邻两网仍彼此独立。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成对比（各版用对应版图；非命令）</span><span class="ln ">metric                   before   after</span><span class="ln ">busy connected islands   2        1</span><span class="ln ">module signal opens      1        0</span><span class="ln ">module signal shorts     0        0</span><span class="ln ">touched-region DRC       0        0</span><span class="ln ">module antenna viols     0        0</span><span class="ln ">max antenna ratio/limit  61/100   67/100</span></code></pre></div>
 <p>同网接通后，天线检查可归集到不同的栅极连通结构，不能假设只补过孔就不影响工艺比率。报告里最大值从 61 升至 67，但并未超限；如果规则改为在另一加工层计算，应该按不同规则的独立限值读数，不能只比较总计数。这里天线结果是补过孔后的复查，不是用来识别开路根因的证据。</p>
   
 </section>
 <section class="ch" id="practice-step-06" data-ch="practice-step-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>重新提取寄生，再决定要不要进 OptRoute</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>重新提取寄生，再决定要不要进 OptRoute</h2><span class="ch-ai" data-ai="practice-step-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>对修后可连通版图提取耦合寄生，再看 <code>busy</code> 在功能视图下的时序和噪声。下面是修后的第一份可信报告，前版无可比较的同端点路径，不能将缺失值按零计入趋势。若耦合分析提示另一条路径有问题，把受害端和施扰网隔离开，作为下一笔独立修改，而非趁修开路顺手改一堆线。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成修后分析（ps、mV；非命令）</span><span class="ln ">FUNC_SS_RCmax busy setup slack=+46 ps</span><span class="ln ">FUNC_FF_RCmin busy hold slack=+19 ps</span><span class="ln ">FUNC_SI receiver noise peak=43 mV at 20 ps; limit=72 mV at 20 ps</span><span class="ln ">dominant aggressor=ack, parallel M3 gap preserved</span></code></pre></div>
 <p>峰值要与报告按脉宽匹配给出的接收限值比较；这不替代其他极性、窗口、角和检查。例中的路径可以进入后续优化，但若从局部报告推广到整个模块，仍须检查全网连通、最终天线和相应的完整签核视图。</p>
   
 </section>
 <section class="ch" id="practice-step-07" data-ch="practice-step-07">
-  <div class="ch-h"><span class="ch-n">07</span><h2>Route 的复查与回退清单</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>Route 的复查与回退清单</h2><span class="ch-ai" data-ai="practice-step-07"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ul><li>留存修前后数据库、带坐标的标记、<code>busy</code> 的端点及过孔位置；只比较检查选项一致的结果。</li><li>先跑几何、信号及供电连通，再查天线、重提寄生、跑噪声和 setup／hold，必要时扩展到邻近受害网。</li><li>若过孔导致新短路、未能消除开路或引入无法接受的几何、天线及 SI 新违例，撤销本次局部修改并恢复快照。确认回到已知基线，另试合规落点；不把原开路仍存在的基线标为已放行。</li></ul>
   
 </section>
 <section class="ch" id="route-case" data-ch="route-case">
-  <div class="ch-h"><span class="ch-n">08</span><h2>两份报告对着读，定位短路和开路</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>两份报告对着读，定位短路和开路</h2><span class="ch-ai" data-ai="route-case"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>报告将 req 和 ack 标记为误连，何时可动手挪线？</div>
   <div class="q-a">先确认坐标上的连接对象、两网归属和可编辑性，再只调整造成短路的局部金属或过孔。</div>
@@ -124,7 +124,7 @@
   
 </section>
 <section class="ch" id="route-spef-boundary" data-ch="route-spef-boundary">
-  <div class="ch-h"><span class="ch-n">09</span><h2>分块提取后，重名总线该回标到哪里</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>分块提取后，重名总线该回标到哪里</h2><span class="ch-ai" data-ai="route-spef-boundary"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>这是独立算例，不再补过孔。顶层的 <code>u_rx0</code> 和 <code>u_rx1</code> 是同一子块的两个实例，物理短路、开路和 DRC 都已清零。两份分块 SPEF 都以各自实例为根，并各自用 <code>*7</code> 表示局部网 <code>data[1]</code>；<code>*7</code> 只在当前文件的 <code>*NAME_MAP</code> 内有效。以下数据是教学对账表，不是提取报告；两份文件均声明 <code>*C_UNIT 1 PF</code>。</p>
 <div class="tbl"><table><thead><tr><th>分块</th><th>正确顶层网名</th><th>端点指纹（驱动 → 负载）</th><th>总电容 / pF</th><th>对账表中的实际回标网</th></tr></thead><tbody><tr><td><code>rx0.spef</code></td><td><code>u_rx0/data[1]</code></td><td><code>u_rx0/u_src/Q</code> → <code>u_rx0/u_sink/D</code></td><td>0.012</td><td><code>u_rx0/data[1]</code></td></tr><tr><td><code>rx1.spef</code></td><td><code>u_rx1/data[1]</code></td><td><code>u_rx1/u_src/Q</code> → <code>u_rx1/u_sink/D</code></td><td>0.025</td><td><code>u_rx0/data[1]</code></td></tr></tbody></table></div>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>从物理端点反查回标作用域</div><div class="lab-b"><ol><li>以布线数据库里的驱动与负载为分母，写出两份文件的正确作用域及展开的顶层网名。不要在汇总时把两个 <code>*7</code> 合成一个全局键。</li><li>数一数实际只覆盖了几个不同顶层网，又有几条源记录与预期端点相符。检查 <code>u_rx0/data[1]</code> 是否被重复认领、<code>u_rx1/data[1]</code> 是否缺失；不要假设后读的文件必然覆盖前一个。</li><li>重新按 <code>u_rx0</code>、<code>u_rx1</code> 分别绑定并对照两对端点。做到两网各认领一次、无串块，且核对两网应读为 <code>12 fF</code> 和 <code>25 fF</code>，才交给 STA 复查。</li></ol></div></div>
@@ -147,9 +147,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

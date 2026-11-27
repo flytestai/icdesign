@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CTS：从前置检查到时钟树验收 · 31f | IC 后端学院</title>
 <meta name="description" content="从 SDC 和布局检查入手，识别时钟树单元与端点，设置布线约束并用报告验收。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01f-cts-practice">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="14"><section class="ch" id="pre-cts" data-ch="pre-cts">
-  <div class="ch-h"><span class="ch-n">01</span><h2>核对约束和布局，再建时钟树</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>核对约束和布局，再建时钟树</h2><span class="ch-ai" data-ai="pre-cts"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>CTS 实训</strong> · 承接 Place 结果。时钟树建在布局之上。本讲从&quot;核对约束和布局&quot;开始，而不是直接跑 CTS——前置没查清，树建得再好也没用。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-f.svg" data-fig="innovus-practice-f.svg"><img src="/fig/innovus-practice-f.svg" alt="原创教学示意图 · CTS 的目标、结果与验收分开看" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · CTS 的目标、结果与验收分开看</figcaption></figure>
 <div class="note"><div class="note-h">课程来源</div><p>本讲是网站原创专题；钉钉目录第 10 项仅用于确定主题与顺序，不转载原文、项目参数或图片。上机可另看上传 Word 整理的 <a href="/lesson/03-08-cts/">CTS 补充课</a>。</p></div>
@@ -72,45 +72,45 @@
   
 </section>
 <section class="ch" id="clock-cells" data-ch="clock-cells">
-  <div class="ch-h"><span class="ch-n">02</span><h2>区分单元角色和端点类型</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>区分单元角色和端点类型</h2><span class="ch-ai" data-ai="clock-cells"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>时钟 buffer 不反相，用来驱动长线或较大负载；inverter 会反相，必须检查整体逻辑极性和实际捕获边沿。ICG 按使能控制时钟，要验使能的门控时序；mux 根据模式选择输入，不能把两个输入机械地当作同时活动。这里功能源 <code>clk_f</code> 与扫描源 <code>clk_s</code> 通过 mux 进入共享树；功能模式下有两组共二十个普通端点，扫描模式另外打开四个测试端点，应达二十四个。两模式的数字应从设计端点清单独立得到，不能由工具报了几个倒推。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成拓扑与端点清单（非命令）</span><span class="ln ">clk_f / clk_s -&gt; u_clk_mux/Z -&gt; clk_trunk -&gt; +-&gt; bank_a        (12)</span><span class="ln ">                                            +-&gt; u_icg_b -&gt; bank_b (8)</span><span class="ln ">                                            +-&gt; u_icg_t -&gt; test_ff (4, SCAN only)</span><span class="ln ">FUNC expected: 20 sinks; SCAN expected: 24 sinks</span></code></pre></div>
 <p>报告里的普通 <code>sink</code> 一般参与平衡；<code>stop</code> 表示传播边界，是否还算作一个平衡端点要按工具定义看；<code>ignore</code> 则明确不参与平衡。继续传播的中间引脚不是最终交付端点。不要把全部 ICG 或 mux 批量设为 stop：若叶端清单偏少，逐点沿时钟 pin、门控条件和上游实例追查，并记下预期在该模式屏蔽的端点与理由。</p>
   
 </section>
 <section class="ch" id="clock-rules" data-ch="clock-rules">
-  <div class="ch-h"><span class="ch-n">03</span><h2>给主干和叶支选合适的布线规则</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>给主干和叶支选合适的布线规则</h2><span class="ch-ai" data-ai="clock-rules"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>NDR 为指定网络设置非默认线宽、间距等要求。本例主干指定 <code>CLK_TRUNK_NDR</code>，在 M5–M6 用相对默认的 <code>2W/2S</code>；叶支用 M3–M4 的默认规则，以便接入寄存器密集区。倍率为教学约定，真实线宽、间距和过孔选项必须以工艺技术文件、项目规则及实际布线结果为准。给主干留出换层空间，也要检查宏块阻挡，而不是把 NDR 沿整棵树硬推到引脚。宽线和大间距会吃掉轨道，还可能改变总负载，结果不保证总是更快。</p>
 <p>检查顺序是先看“规则已经建好”，再看“目标网络实际绑定了规则”，最后对代表线段查实际金属和合法过孔。层合法不代表宽度、间距满足 NDR；属性绑定正确也不代表物理走线完全按预期完成。读偏斜时注明比较的是哪个活动时钟组：本例定义为同一视图下该组最晚与最早叶端的源到端延迟差，不能拿不同根或不同角的绝对延迟直接相减。</p>
   
 </section>
 <section class="ch" id="practice-step-04" data-ch="practice-step-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>先建基线：好看的 skew 掩盖了什么</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>先建基线：好看的 skew 掩盖了什么</h2><span class="ch-ai" data-ai="practice-step-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>用同一版 CTS 后数据库的布线试跑结果生成端点、树质量与网络属性三份摘录。练习门槛是偏斜不大于 50 ps、最差叶端转换时间不大于 100 ps；入树端点覆盖须完整，主干必须按指定 NDR 走。基线偏斜通过、转换边沿也通过，但属性列仍显示默认规则。先点选 <code>clk_trunk</code> 的代表直段核查线宽，再对照类别匹配结果。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成基线摘录（ps；最小/最大为同组源到端延迟）</span><span class="ln ">view        seen/expected  delay_min/max  skew  worst_tran</span><span class="ln ">FUNC_SS     20/20          160/201        41    94</span><span class="ln ">SCAN_SS     24/24          167/213        46    98</span><span class="ln ">segment M5, clk_trunk: expected/traced_class=trunk/leaf</span><span class="ln ">net effective_rule=DEFAULT; sampled_straight_width=1W</span></code></pre></div>
 <p>根因是类别匹配将共享主干按叶支处理；主干本来处于允许的高层区间（基线物理走线恰好在 M5），肉眼只看层或看全局偏斜都发现不了。不把少端点、漏规则与高偏斜混成一个问题：本例端点数已逐点对齐，缺陷是规则未命中，不需要改 SDC、拓扑或更换 CTS 单元。</p>
   
 </section>
 <section class="ch" id="practice-step-05" data-ch="practice-step-05">
-  <div class="ch-h"><span class="ch-n">05</span><h2>只改主干分类，重跑受影响的走线</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>只改主干分类，重跑受影响的走线</h2><span class="ch-ai" data-ai="practice-step-05"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>在可回退的副本上，仅修正 <code>clk_trunk</code> 的分类归属，使其命中既有主干规则，保留叶支设置和时钟树拓扑。按项目工具流程重布主干；若流程要求重跑对应阶段，确保加载同一 CTS 快照和同一分析视图。检查绑定、代表直段的真实线宽及其与邻线的间距、拐角与跨层处的过孔和包围，以及是否产生新几何违例。若走廊根本容不下当前间距，不应把 NDR 静默降级；先恢复基线，再单独评估新的走廊、层分配或受审的规则范围调整。</p>
   
 </section>
 <section class="ch" id="practice-step-06" data-ch="practice-step-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>前后对照：时钟和数据路径一起验收</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>前后对照：时钟和数据路径一起验收</h2><span class="ch-ai" data-ai="practice-step-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>对比时固定模式、库、RC 角和检查配置，两个版本均按各自对应的寄生回标，传播时钟，并检查两模式各自的 setup 与 hold 签核视图。下表是教学摘录，布局变化导致插入延迟下降不作为通用结论；验收更关心覆盖、规则和质量是否一起达标。Setup 与 hold 的 WNS 分别来自慢角和快角，不是同一角的两列。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成复查（ps；基线 -&gt; 修后）</span><span class="ln ">view       sinks     delay_min/max          skew    worst_tran</span><span class="ln ">FUNC_SS    20 -&gt; 20  160/201 -&gt; 153/190    41-&gt;37   94-&gt;85</span><span class="ln ">SCAN_SS    24 -&gt; 24  167/213 -&gt; 160/201    46-&gt;41   98-&gt;90</span><span class="ln ">FUNC setup SS WNS +33-&gt;+30; FUNC hold FF WNS +13-&gt;+11</span><span class="ln ">SCAN setup SS WNS +27-&gt;+25; SCAN hold FF WNS +10-&gt;+8</span><span class="ln ">clk_trunk: DEFAULT -&gt; CLK_TRUNK_NDR; width=2W, sampled min space&gt;=2S</span><span class="ln ">clock opens/shorts=0; touched-region DRC=0; gating violations=0</span></code></pre></div>
 <p>如果偏斜下降但某条数据路径从正裕量跌为负值，沿发射与捕获时钟分项解释它，而不是只改偏斜目标。这里部分数据裕量减少但仍通过；也需检查未列出的项目视图、转换和门控脉宽约束。局部抽查只是证明主干确实被改了，整棵树的路由、寄生与时序检查仍不可省。</p>
   
 </section>
 <section class="ch" id="practice-step-07" data-ch="practice-step-07">
-  <div class="ch-h"><span class="ch-n">07</span><h2>CTS 的复查与回退清单</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>CTS 的复查与回退清单</h2><span class="ch-ai" data-ai="practice-step-07"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ul><li>保存修前布局和 CTS 快照、修后数据库、两套约束视图及规则定义；记录主干绑定与实际金属证据。</li><li>除端点计数外比对逐点名单，抽查 mux 选择、门控检查和时钟极性；随后核验时钟无短路或开路且几何通过。</li><li>若端点丢失、关键转换超限、新几何违例影响邻网或任一分析视图时序退化到门槛之外，先撤销本次分类更改并恢复对应快照；用修前报告确认回到基线，再开下一次单变量试验。</li></ul>
 <p>交付时把修过哪条物理网、改动原因和仍待检查的视图写入修复记录。即使回退，也要保留失败试验的变化点和报告，避免后来者在同一走廊使用同一配置重复失败。</p>
   
 </section>
 <section class="ch" id="cts-check" data-ch="cts-check">
-  <div class="ch-h"><span class="ch-n">08</span><h2>从一份 CTS 报告里挑出两项不能放行的问题</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>从一份 CTS 报告里挑出两项不能放行的问题</h2><span class="ch-ai" data-ai="cts-check"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>预期功能端点有 20 个，报告只列 18 个且偏斜通过，能放行吗？</div>
   <div class="q-a">不能。按预期引脚名单找缺失两点，沿实际时钟源、门控或 mux 分支核对 SDC 与端点分类。</div>
@@ -124,7 +124,7 @@
   
 </section>
 <section class="ch" id="deep-lab-icg-generated-clock" data-ch="deep-lab-icg-generated-clock">
-  <div class="ch-h"><span class="ch-n">09</span><h2>ICG 和二分频不该挂在同一个点上</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>ICG 和二分频不该挂在同一个点上</h2><span class="ch-ai" data-ai="deep-lab-icg-generated-clock"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><strong>模拟功能视图报告（单位：ns，未计传播延迟）。</strong> <code>CLK</code> 周期为 1.00，先经过 <code>G</code> 的门控输出 <code>G/GCK</code>，再到触发器 <code>DIV/CK</code>。设计明确规定：门打开时 <code>G</code> 传递完整脉冲，不做分频；<code>DIV/Q</code> 才输出二分频时钟。<code>G/EN</code> 在功能模式是活动使能，不是常量。复核脚本只查报告写入的对象，不把无检查项当成通过。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟报告       二分频定义点   G/GCK 标签/周期    DIV/Q 标签/周期    门控 setup 项/最差裕量</span><span class="ln ">F_BAD          G/GCK           DIV2/2.00          无有效时钟         0/—</span><span class="ln ">F_REVIEW       DIV/Q           CLK/1.00           DIV2/2.00          1/−0.04</span></code></pre></div>
 <p><strong>先独立交付。</strong> 写出 <code>DIV2</code> 应落在哪个引脚、参考哪个时钟引脚，并给两版各下一个验收结论。列出该向时钟定义报告和门控报告分别索取的证据；说明最差裕量为空的版本为什么不比有负值的版本更好。</p>
@@ -148,9 +148,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Innovus 项目流程：每个阶段到底交付什么？ · 31b | IC 后端学院</title>
 <meta name="description" content="从项目准备到 ECO，按阶段核对数据库、报告和验收条件，学会定位失败应该回退到哪里。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01b-innovus-flow">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="14"><section class="ch" id="prepare" data-ch="prepare">
-  <div class="ch-h"><span class="ch-n">01</span><h2>开工前：让同事能复跑你的 Run</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>开工前：让同事能复跑你的 Run</h2><span class="ch-ai" data-ai="prepare"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>项目流程交接</strong> · 从导入到 ECO 的每一站。本讲给你一张全局地图。看完再进具体工序，每次都知道&quot;现在在第几站、上一站的产出是什么&quot;。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-b.svg" data-fig="innovus-practice-b.svg"><img src="/fig/innovus-practice-b.svg" alt="原创教学示意图 · 后端项目的三个交接点" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 后端项目的三个交接点</figcaption></figure>
 <div class="note"><div class="note-h">资料来源</div><p>本讲参考钉钉目录第 05 项的主题安排，正文和练习为原创教学内容，不是钉钉原文、截图或项目案例的转载。</p></div>
@@ -72,20 +72,20 @@
   
 </section>
 <section class="ch" id="floorplan-to-place" data-ch="floorplan-to-place">
-  <div class="ch-h"><span class="ch-n">02</span><h2>Floorplan 到 Place：检查能否摆得下、接得通</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>Floorplan 到 Place：检查能否摆得下、接得通</h2><span class="ch-ai" data-ai="floorplan-to-place"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><strong>Floorplan</strong> 交付含 Die、Core、宏、端口及布局约束的版本。除了看重叠和朝向，还要看剩余未分配的端口、宏外禁放区与摆放行，以及总线从哪一边进入通道。环境相同的两次布局，即使宏总面积不变，窄通道和零散摆放行也可能让局部资源不足。见 <a href="/lesson/03-05-floorplan/">Floorplan</a>。</p>
 <p><strong>PowerPlan</strong> 交付有电源网络和供电结构的检查点，以及连接和几何检查记录。电源线看起来完整，不代表每个电源域、宏电源脚都接到了对应网络；例如相邻的两块 Memory 可能属于不同域，不能因几何相近而推断应接同一电源。见 <a href="/lesson/03-06-powerplan/">PowerPlan</a>。</p>
 <p><strong>Place</strong> 交付标准单元布局数据库和合法性、时序及拥塞报告。报告中先分清「没摆上」「摆得不合法」和「能摆但可能走不通」三类问题，再决定回退。只给平均利用率，无法说明需要穿过宏通道的网络能否绕出。见 <a href="/lesson/03-07-place/">Place</a>。</p>
   
 </section>
 <section class="ch" id="cts-to-eco" data-ch="cts-to-eco">
-  <div class="ch-h"><span class="ch-n">03</span><h2>CTS 到 ECO：记录每轮到底改了什么</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>CTS 到 ECO：记录每轮到底改了什么</h2><span class="ch-ai" data-ai="cts-to-eco"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><strong>CTS</strong> 保存建树后的数据库并核对时钟覆盖、偏斜、插入延迟和相关时序。复核时钟覆盖时，要拿约束定义的端点集合与实际建树记录对照；有意不纳入的对象要有解释。<strong>Route</strong> 保存已布线版本并检查开路、短路和布线规则。<strong>OptRoute</strong> 基于布线后寄生信息重新评估时序与电气约束，比较优化前后变化。预布线和布线后的数值可用于了解阶段差异，不能视为一组同口径 A/B 对照。</p>
 <p><strong>ECO</strong> 交付修复后的实现、变更记录和回归报告；若改动涉及功能逻辑，还应按项目要求核对等价性或验证结果。时钟、供电或宏位置若因修复而改变，应重新执行受影响的检查，不能借用旧报告。阶段工具报告不替代最终签核。见 <a href="/lesson/03-08-cts/">CTS</a>、<a href="/lesson/03-09-route/">Route</a>、<a href="/lesson/03-10-optroute/">OptRoute</a>和 <a href="/lesson/03-11-eco/">ECO</a>。</p>
   
 </section>
 <section class="ch" id="practice-step-04" data-ch="practice-step-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>四个检查点各要留什么证据</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>四个检查点各要留什么证据</h2><span class="ch-ai" data-ai="practice-step-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>每次交接都写清「父版本、变更、检查、结论」，让接手人知道报告是否与数据库配套。同一阶段的不同试跑各用独立目录；不要让后一次生成的报告覆盖原基线。检查状态至少区分通过、失败、未跑和获准例外；例外要写明受影响对象、判断依据及负责人，不要把未跑当成通过。</p>
 <p>下面是教学记录格式，不是 Innovus 原生命令、文件格式或实际输出。这里的功能模式、慢角和路径组仅为说明如何对齐报告口径。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">case           D0            P0            R0</span><span class="ln ">parent         INIT_0        D0            CTS_0</span><span class="ln ">stage          floorplan     power         route</span><span class="ln ">scenario       --            --            FUNC/SS, REG2REG</span><span class="ln ">required       macro/pin     PG conn/geom  open/short/DRC/setup</span><span class="ln ">result         pass          pass          fail: 3 opens</span><span class="ln ">evidence       floor.chk     power.chk     route.rpt, setup.rpt</span></code></pre></div>
@@ -94,26 +94,26 @@
   
 </section>
 <section class="ch" id="practice-step-05" data-ch="practice-step-05">
-  <div class="ch-h"><span class="ch-n">05</span><h2>三条开路先按断点位置归类</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>三条开路先按断点位置归类</h2><span class="ch-ai" data-ai="practice-step-05"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>练习使用纸面合成案例，基础设置是同一网表、分析视图和布线配置。路线图上，两组跨宏侧的总线位经过同一个窄通道，第三条网络的开路点在远离通道的顶边。R0 的 Route 正常结束，但连接性检查报三条开路。先根据网络名找断点坐标、所在层和相邻可达金属，不要只看一条汇总数字。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">教学位置示意（不按比例）</span><span class="ln ">+-- 顶边 VIN[0]：端口接入开路 ------------------+</span><span class="ln ">|                                                  |</span><span class="ln ">|  [ MEM_A ] | 12 um | [ MEM_B ]                  |</span><span class="ln ">|             DATA[2]、DATA[3]：通道内开路         |</span><span class="ln ">+--------------------------------------------------+</span></code></pre></div>
 <p>先按断点位置对照宏禁布区、供电占轨和引脚附近可接入区。练习已知这两条 DATA 网络的断点在同一层同一侧，局部报告还显示该方向可用轨道不足。这支持通道假设，但并不能解释 VIN。对 VIN 单独核对端口坐标和接入标记；若标记落在非接入区，应修正端口定义并独立回归，不能把它算成扩通道的功劳。</p>
   
 </section>
 <section class="ch" id="practice-step-06" data-ch="practice-step-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>扩通道只改一个变量，重跑四个阶段</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>扩通道只改一个变量，重跑四个阶段</h2><span class="ch-ai" data-ai="practice-step-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>从 D0 分支只调整 MEM_B 的横向位置，把通道从 12 µm 扩到 20 µm，不改约束、宏朝向和端口配置。按父子关系重新跑 PowerPlan、Place、CTS 和 Route：电源连接与几何先通过，才值得看后续结果。对比来自相同布线阶段、场景和统计范围的报告。如果只恢复 R0 直接移动宏，原供电、布局和时钟结果已不再对应当前几何，无法用来验收。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成回归                     R0 基线     R1 扩通道   R2 修端口后重跑</span><span class="ln ">宏间距 (um)                     12           20             20</span><span class="ln ">DATA[2] / DATA[3] 开路            2            0              0</span><span class="ln ">VIN[0] 开路                       1            1              0</span><span class="ln ">相邻窗口布线溢出 (轨道数)         7            0              0</span><span class="ln ">短路 / DRC                         0 / 0       0 / 0          0 / 0</span><span class="ln ">FUNC/SS 路径组 WNS (ns)         -0.08        -0.07          -0.07</span></code></pre></div>
 <p>R1 的两条开路和相邻窗口溢出同时消失，通道假设得到支持；第三条仍需按端口问题回退，得到 R2。即使 R2 连接检查通过，功能慢角最差裕量仍为负，本例不能宣称时序签核完成。保留该违例的路径和场景，交给下一轮有明确目标的优化。</p>
   
 </section>
 <section class="ch" id="practice-step-07" data-ch="practice-step-07">
-  <div class="ch-h"><span class="ch-n">07</span><h2>证据链断了从哪一站接回</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>证据链断了从哪一站接回</h2><span class="ch-ai" data-ai="practice-step-07"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ul><li>如果扩通道后供电连接失败，停止后续阶段，回到该分支 Floorplan 核对宏供电脚和电源接入；保留失败日志。</li><li>如果开路数下降但邻区新增短路或规则违例，不合入 R1；恢复基线，从同一父版本改一个变量重试。</li><li>如果改动没有改善局部指标，复核轨道统计范围及阻挡来源；不要连续挪宏后再用最后一张图倒推原因。</li><li>回归包至少留输入清单、变更前后数据库、同设置的开路与拥塞报告、受影响阶段结果和仍未通过的事项。</li></ul>
   
 </section>
 <section class="ch" id="exercise" data-ch="exercise">
-  <div class="ch-h"><span class="ch-n">08</span><h2>Route 报三条开路，该退回哪一步</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>Route 报三条开路，该退回哪一步</h2><span class="ch-ai" data-ai="exercise"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>Route 有三条开路，其中两条经过 Floorplan 留下的窄通道。不能仅凭数量直接跳到 ECO；先核对断点、网络和附近的布局及电源资源。若需要调整宏或扩通道，就回到 Floorplan，重新验证供电、布局、时钟和布线。把第三条当成独立假设处理，才知道每次改动究竟修了什么。</p>
 <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>工具导入结束后为什么仍要核对分析视图？</div>
@@ -128,7 +128,7 @@
   
 </section>
 <section class="ch" id="handoff-export-retry" data-ch="handoff-export-retry">
-  <div class="ch-h"><span class="ch-n">09</span><h2>流出重试拿了旧数据库：哪些产物作废</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>流出重试拿了旧数据库：哪些产物作废</h2><span class="ch-ai" data-ai="handoff-export-retry"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>这是原创纸面案例，不是 Innovus 运行输出。收尾时有两个候选数据库 <code>B6</code> 与 <code>B7</code>；<code>B7</code> 仅把一段绕线缩短，最终逻辑网表未变。一次流出任务失败后重试，调度器把输出目录设为 <code>release/B7</code>，但只有版图流出步骤仍从旧的 <code>latest.db</code> 链接恢复 <code>B6</code>。最终出现同目录、不同父版本的工件。</p>
 <div class="tbl"><table><thead><tr><th>产物</th><th>预期依赖</th><th>日志记录的实际依赖</th><th>处置</th></tr></thead><tbody><tr><td>最终网表 <code>core_final.v</code></td><td><code>B7</code>、批准的导出配置</td><td><code>B7</code>，网表校验值 <code>NV5</code></td><td>保留并登记导出日志</td></tr><tr><td>OASIS <code>core_final.oas</code></td><td><code>B7</code>、层映射 <code>MAP2</code></td><td><code>B6</code>、<code>MAP2</code>，文件指纹 <code>OA6</code></td><td>隔离 <code>OA6</code>，从冻结的 <code>B7</code> 重流出版图</td></tr><tr><td>寄生 <code>core_rcmax.spef</code></td><td><code>B7</code>、批准的提取角</td><td><code>B7</code>、正确提取配置，指纹 <code>PX7</code></td><td>本例提取直接读冻结数据库，确认几何与重流出版本一致后保留</td></tr></tbody></table></div>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>画一条最短回退链</div><div class="lab-b"><p>用三条箭头标注数据库到产物的实际依赖。已知 <code>OA6</code> 已被 DRC 和 LVS 使用，逻辑等价检查读取 <code>NV5</code>，静态时序分析读取 <code>NV5 + PX7</code>；后两项的其余输入与检查范围均符合要求。先数必重出的工件和必重跑的检查，再指出回退发生在哪一站。</p></div></div>
@@ -152,9 +152,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

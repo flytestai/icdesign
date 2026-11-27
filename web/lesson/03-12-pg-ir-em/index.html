@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PG、IR Drop 与 EM：从电源连通到修复回归 · 41a | IC 后端学院</title>
 <meta name="description" content="从电源域和宏 PG 引脚核对开始，分开分析静态压降、动态压降与电迁移，用一次过孔修复和同条件回归闭环。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-12-pg-ir-em">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="17"><section class="ch" id="pg-domain-and-macro-pins" data-ch="pg-domain-and-macro-pins">
-  <div class="ch-h"><span class="ch-n">01</span><h2>从电源域开始：给每个宏 PG pin 建账</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>从电源域开始：给每个宏 PG pin 建账</h2><span class="ch-ai" data-ai="pg-domain-and-macro-pins"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">原创教学</div><p>本课的设计、数值、门槛和报表均为原创教学用的虚构数据。报表是手算模型的记录，不是任何 EDA（电子设计自动化）工具的输出；门槛不是工艺规范。</p></div>
 <div class="goal"><span>本章目标</span>先证明供电接对，再分别读懂静态 IR、动态 IR 和 EM 报表；每轮只改一处，用同条件回归证明改动有效。</div>
 <div class="scene"><div class="scene-h">工作场景 · 宏旁电源条带很密，为什么仍不能开始看压降？</div><div class="scene-b"><p>后端工程师接到布线后的存储宏 <code>U_MEM0</code>。布局上三只电源和地引脚附近都有金属，但接口表把宏的阵列电源、外围电源和返回地分开定义。在确认每只引脚的网络和电源状态之前，不接受任何压降结果。</p></div></div>
@@ -77,7 +77,7 @@
   
 </section>
 <section class="ch" id="pg-initial-connectivity" data-ch="pg-initial-connectivity">
-  <div class="ch-h"><span class="ch-n">02</span><h2>初始连通：引脚、网络和供电源要同时对上</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>初始连通：引脚、网络和供电源要同时对上</h2><span class="ch-ai" data-ai="pg-initial-connectivity"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>把供电路径当作连通图来读：从宏 pin 的合法图形出发，经局部金属、过孔、条带和上层网格，直到本模式定义的电源入口；返回地也要追到地入口。版图视图里两层金属投影重叠，不代表中间有合法过孔。局部金属的网名正确，也不代表该连通分量已接到源端。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 原创模拟连通记录；A0 为初始快照，A1 为只补接外围引脚后的快照。</span><span class="ln ">A0  U_MEM0/VDDC  expected=VDD_MEM       actual=VDD_MEM       source_reachable=yes</span><span class="ln ">A0  U_MEM0/VDDP  expected=VDD_MEM_PERI  actual=VDD_MEM_PERI  source_reachable=no   OPEN</span><span class="ln ">A0  U_MEM0/VSS   expected=VSS           actual=VSS           source_reachable=yes</span><span class="ln ">A0  U_CPU0/VDD   expected=VDD_CPU       actual=VDD_CPU       source_reachable=yes</span><span class="ln ">A0  checked_required=4/4  open=1  pg_short=0</span><span class="ln ">A1  checked_required=4/4  open=0  pg_short=0</span></code></pre></div>
 <p><code>VDDP</code> 的局部金属网名已经正确；缺的是它与 <code>VDD_MEM_PERI</code> 条带之间的层间过孔。先只补这个过孔，验证该 pin 到本域源端可达，并确认没有把接近的 <code>VDD_MEM</code> 意外短接进来。禁止为了消掉开路而改期望网，也不能把开路端的缺失电流当成 0 mA 输入压降分析。检查范围必须覆盖接口台账，不接受“只选两根全局网测了 0 个错误”作为多电源域的通过证据。</p>
@@ -85,7 +85,7 @@
   
 </section>
 <section class="ch" id="static-ir" data-ch="static-ir">
-  <div class="ch-h"><span class="ch-n">03</span><h2>静态 IR：用平均负载核对电阻压降</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>静态 IR：用平均负载核对电阻压降</h2><span class="ch-ai" data-ai="static-ir"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">Static IR Drop</span><span class="term-zh">静态压降</span></div>
   <div class="term-b"><p>把电路在指定模式下的平均负载映射到电阻网络，求稳态供电差；回答的是平均负载下能送到多少电压，不是开关瞬间的最低电压。</p></div>
@@ -97,7 +97,7 @@
   
 </section>
 <section class="ch" id="dynamic-ir" data-ch="dynamic-ir">
-  <div class="ch-h"><span class="ch-n">04</span><h2>动态 IR：先找开关窗口，再定位最低电压</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>动态 IR：先找开关窗口，再定位最低电压</h2><span class="ch-ai" data-ai="dynamic-ir"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">Dynamic IR Drop</span><span class="term-zh">动态压降</span></div>
   <div class="term-b"><p>随负载切换而变化的供电压降。峰值与事件何时发生有关，真实时域求解还会受去耦、封装阻抗和网格瞬态响应影响。</p></div>
@@ -108,7 +108,7 @@
   
 </section>
 <section class="ch" id="em-wire-and-via" data-ch="em-wire-and-via">
-  <div class="ch-h"><span class="ch-n">05</span><h2>EM：按金属段和过孔阵列单独读报表</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>EM：按金属段和过孔阵列单独读报表</h2><span class="ch-ai" data-ai="em-wire-and-via"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">Electromigration (EM)</span><span class="term-zh">电迁移</span></div>
   <div class="term-b"><p>电流长期作用下导体材料发生迁移，可能损伤金属和过孔。压降是供电电压问题，EM 是互连可靠性问题；两者不能互相替代。</p></div>
@@ -120,14 +120,14 @@
   
 </section>
 <section class="ch" id="single-via-fix" data-ch="single-via-fix">
-  <div class="ch-h"><span class="ch-n">06</span><h2>单项修复：只扩大阵列 VA0，不改活动或门槛</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>单项修复：只扩大阵列 VA0，不改活动或门槛</h2><span class="ch-ai" data-ai="single-via-fix"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>将 A1 保存为可恢复的基线，从 A1 派生 A2。只把宏阵列支路 <code>VA0</code> 从两个并联孔改成四个，假设每孔电阻仍为 1 Ω，布局窗口能容纳且四孔均流。不改电源网名、供电入口、金属截面、活动窗口、去耦和门槛。因为 <code>VA0</code> 同时处在局部压降路径上且明确超出单孔电流门槛，这一项改动可以分别验证两个假设，不需要把加宽条带和补去耦混进同一轮。</p>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>从 A1 表格推导一份 A2 复算记录</div><div class="lab-b"><ol><li>用 <code>1 Ω / 4</code> 求并联过孔组电阻，再加原有的 0.25 Ω 局部金属电阻。</li><li>保持平均负载和 <code>BURST</code> 峰值电流不变，重算两类压降；保持动态场景的 22 mV 电感项。</li><li>重算单孔平均电流和利用率，并解释为什么局部金属的电流密度不变。</li><li>交付 A1→A2、修改对象 <code>VA0</code>、四项前后值和本轮未执行的检查。下节的表格可用于验算。</li></ol></div></div>
 <p>A2 的孔组为 0.25 Ω，宏局部路径的总电阻降到 0.50 Ω；平均电流仍为 40 mA，因此每孔为 10 mA，利用率约 66.7%。课堂把电流视作固定输入；实际重新提取后，网格电流可能重分配，附近金属、环线或相邻过孔可能成为新的瓶颈。版图上若加孔导致包围、间距或邻近信号布线问题，不要以本轮算式为理由接受该修改；先退回 A1，再单独比较别的方案。</p>
   
 </section>
 <section class="ch" id="regression-and-signoff" data-ch="regression-and-signoff">
-  <div class="ch-h"><span class="ch-n">07</span><h2>回归与签核：课程通过和项目放行是两件事</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>回归与签核：课程通过和项目放行是两件事</h2><span class="ch-ai" data-ai="regression-and-signoff"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>按先连通、再静态、再动态、再 EM 的顺序对照。结果绑定 A1 和 A2 的快照、模式、负载、时间窗口、坐标与规则；不能用换窗口或改门槛得到的颜色变化证明修复有效。阵列引脚、外围引脚、地和独立域的匹配清单都要保留，不能只截取修好的那一行。</p>
 <div class="tbl"><table><thead><tr><th>原创模拟回归项</th><th>A1 基线</th><th>A2 只改 <code>VA0</code></th><th>判定口径</th></tr></thead><tbody><tr><td>必检端点、开路、短路</td><td>4/4，0，0</td><td>4/4，0，0</td><td>课堂连通图，端点未变</td></tr><tr><td>宏静态压降</td><td>45 mV，过</td><td><code>15 + 40 × 0.50 = 35 mV</code>，过</td><td>不超过 50 mV</td></tr><tr><td>宏动态压降</td><td>112 mV，失败</td><td><code>30 + 80 × 0.50 + 22 = 92 mV</code>，过</td><td>同一上升沿，不超过 100 mV</td></tr><tr><td><code>VA0</code> 单孔平均电流</td><td>20 mA，失败</td><td>10 mA，过</td><td>不超过 15 mA/孔</td></tr><tr><td>宏局部金属平均电流密度</td><td>10 mA/µm²，过</td><td>10 mA/µm²，过</td><td>不超过 12 mA/µm²</td></tr><tr><td>实际版图与签核检查</td><td>未运行</td><td>未运行</td><td>不可从课堂推断通过</td></tr></tbody></table></div>
 <p>真实项目要用最终一致的布局、连接和提取数据，按项目认可的工具、工艺规则和模型重跑。输入要覆盖合格的寄生参数、供电及封装边界、宏功耗或电流模型、活动与电源模式、温度和工艺/电压角，以及适用的寿命与 EM 规则。除 IR/EM 自身，还要验证受影响及相邻域的 PG 连通、DRC（设计规则检查）、LVS（版图与原理图一致性检查）和相关时序；同时复查热点是否转移而不是只看原坐标。没有这些证据，只能写“课内模型通过，项目签核未执行”，不能写“已签核”。</p>
@@ -166,9 +166,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

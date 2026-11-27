@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Floorplan 实操：看懂芯片切角与端口清单 · 31a | IC 后端学院</title>
 <meta name="description" content="第一讲对应知识库第 01 项主题，用上传 Word 的实操原文和原图理解 Die、Core、切角，以及全部端口与未摆放端口的区别。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01a-flp-lab">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="6"><section class="ch" id="shape" data-ch="shape">
-  <div class="ch-h"><span class="ch-n">01</span><h2>先认地图：Die、Core 和切角</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>先认地图：Die、Core 和切角</h2><span class="ch-ai" data-ai="shape"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">资料来源</div><p>本讲按钉钉目录第 01 项《flp实操》的主题编排。下面的原文命令和截图来自你上传的《04 innovus项目(1).docx》Floorplan 实操部分，不是钉钉原文或原图的转载。为保留上下文，原站 <a href="/lesson/03-05-floorplan/#source-09">Floorplan 完整课</a> 仍保留原来的实操小节，首次学习任选一个入口即可。</p></div>
 <p>把芯片平面想成一张地图：<strong>Die 是整块芯片的外轮廓，Core 是主要摆放电路单元的内部区域</strong>。做异形轮廓时，先定义初始边界，再在指定坐标范围切掉一块。先认清这两个动作，再去读参数；不要一上来就记项目里的坐标。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.定义形状</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">floorplan -noSnapToGrid -b 0 0 935.712 456.456  0 0 935.712 456.456</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.2 1.2285 934.512 455.2275 #die 坐标 IO 坐标 core 坐标</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addObjFPlanCutBox cell bpu40_vae_top_wrapper  0 0 566.352 228.228</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">#切角坐标。</p></div>
@@ -72,7 +72,7 @@
   
 </section>
 <section class="ch" id="ports" data-ch="ports">
-  <div class="ch-h"><span class="ch-n">02</span><h2>再查门牌：导出全部端口与未摆放端口</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>再查门牌：导出全部端口与未摆放端口</h2><span class="ch-ai" data-ai="ports"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>顶层端口是该模块和外部信号相连的接口。<strong>全部端口</strong>回答「设计有哪些接口」，<strong>未摆放端口</strong>回答「还有哪些接口没有在版图上分配位置」。后者应该是前者的子集，不是另一份不相关的名单。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.抓取port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">--抓取所有 port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set all_ports [dbget top.terms.name]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set fh [open &quot;ports_from_db.txt&quot; w]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">puts $fh [join $all_ports &quot;\n&quot;]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">close $fh</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">--抓取 unplace 的 port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set unplaced [dbget [dbget -p top.terms.pStatus unplaced].name]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set f [open &quot;unplaced_terms.txt&quot; w]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">foreach t $unplaced { puts $f $t }</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">close $f</p></div>
 <p>第一段直接取顶层端口名，再写入 <code>ports_from_db.txt</code>。第二段先挑出状态是 <code>unplaced</code> 的端口，再取名字，写入 <code>unplaced_terms.txt</code>。这两段查询不改端口摆放状态；<code>open ... w</code> 会覆盖同名文件，练习时请在自己的输出目录操作。</p>
@@ -80,19 +80,19 @@
   
 </section>
 <section class="ch" id="compare-snapshots" data-ch="compare-snapshots">
-  <div class="ch-h"><span class="ch-n">03</span><h2>跟做：比较两次端口快照</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>跟做：比较两次端口快照</h2><span class="ch-ai" data-ai="compare-snapshots"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>用下面两份<strong>虚构报告</strong>练习交付检查。两次放置都使用教学顶层 <code>lab_top</code> 和同一份网表；只调整 <code>data_in</code> 的放置状态，不改接口定义。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Snapshot     Total ports    Unplaced ports      Notes</span><span class="ln ">FP_BEFORE    4              data_in data_out    baseline</span><span class="ln ">FP_AFTER     4              data_out            placed data_in only</span></code></pre></div>
 <ol><li>先比较总端口数，再逐一比对名字；相同的条数不能证明名字完全一致。接着计算未摆放集合的差：本例只少了 <code>data_in</code>，符合本轮目标。</li><li>在 GUI 定位 <code>data_in</code>，检查所在边、金属层、轨道和项目允许的引脚间距。状态不再是 <code>unplaced</code> 并不代表引脚一定放对了；如果落在禁止区域，仍不能认可这一版。</li><li>只在练习副本修改。保存 <code>FP_BEFORE</code>，记录本轮唯一变动，输出 <code>FP_AFTER</code> 并复查。出现意外新增端口、其他 Port 状态被改动或重复间距违例，就恢复 <code>FP_BEFORE</code>，不要在未知状态上继续改。</li></ol>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">04</span><h2>自检：你是在读数据库，还是在改版图？</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>自检：你是在读数据库，还是在改版图？</h2><span class="ch-ai" data-ai="review"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ul><li>能在原图上区分芯片外轮廓和切角，并说明切角并不是摆放引脚。</li><li>能说清两份清单各回答什么问题，并检查未摆放清单是否属于全部清单。</li><li>能区分读取端口、修改端口状态和实际摆放这三件事。本课先完成读取与检查；按金属层、边和轨道摆放端口的原文示例，可接着看 <a href="/lesson/03-05-floorplan/#source-09">Floorplan 完整实操</a>。</li></ul>
   
 </section>
 <section class="ch" id="deep-lab-mirror-cutout" data-ch="deep-lab-mirror-cutout">
-  <div class="ch-h"><span class="ch-n">05</span><h2>独立深练：顶层镜像后，缺口应落在哪边？</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>独立深练：顶层镜像后，缺口应落在哪边？</h2><span class="ch-ai" data-ai="deep-lab-mirror-cutout"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><strong>模拟交接报告（单位：µm，非工具实测）。</strong> 模块局部外包框从 <code>(0,0)</code> 到 <code>(400,200)</code>，左下切去矩形 <code>(0,0)–(40,60)</code>。顶层给出的包框左下角是 <code>(1000,500)</code>，实例沿局部竖直中线 <code>x=200</code> 镜像后再平移。端口 <code>req</code>、<code>ack</code> 的局部点分别为 <code>(0,90)</code>、<code>(400,130)</code>，顶层接口按信号名对接。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟顶层导出     缺口左下—右上              req          ack          未摆</span><span class="ln ">A               (1000,500)—(1040,560)     (1000,590)   (1400,630)   0</span><span class="ln ">B               (1360,500)—(1400,560)     (1400,590)   (1000,630)   0</span></code></pre></div>
 <p><strong>先独立交付。</strong> 写出任一点从局部到顶层的换算式，并把缺口两个角点、两根端口的坐标逐一算出。选一份可交接的导出；说明另一份为何看起来外框正确、端口也全部已摆，却仍不能对接。不要交换两个端口的名字来迎合顶层的位置。</p>
@@ -116,9 +116,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

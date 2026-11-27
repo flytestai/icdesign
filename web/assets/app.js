@@ -500,6 +500,52 @@
     })();
   }
 
+  /* ============================================================
+     每小节的「AI 讲解」按钮。
+
+     两种模式：
+       简单 —— 小学生也能懂（多打比方、拆开缩写）
+       工作 —— 按真实工作场景讲（上游给什么、这步产出什么、坑在哪）
+
+     点击后打开站内 AI 对话框，直接把整理好的提示词发出去，
+     用户不需要自己再组织语言。正文从 DOM 现取，管理员改过的内容
+     也能立刻反映进来。
+     ============================================================ */
+  (function aiExplain() {
+    var secs = [].slice.call(document.querySelectorAll('section.ch[data-ch]'));
+    if (!secs.length) return;
+
+    // 去掉不该喂给模型的交互件：完成按钮、上下章按钮、AI 按钮自身
+    var DROP = '.ch-done,.ch-next,.ch-ai,.fig-gallery';
+
+    function sectionText(sec) {
+      var clone = sec.cloneNode(true);
+      var h = clone.querySelector('.ch-h');
+      var title = h ? (h.querySelector('h2') || {}).textContent || '' : '';
+      [].slice.call(clone.querySelectorAll(DROP)).forEach(function (n) { n.remove(); });
+      if (h) h.remove();
+      var text = (clone.textContent || '')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/[ \t]{2,}/g, ' ')
+        .trim();
+      return { title: title.trim(), text: text };
+    }
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.ch-ai-btn') : null;
+      if (!btn) return;
+      e.preventDefault();
+      var sec = btn.closest('section.ch');
+      if (!sec) return;
+      if (!window.ICL_AI || !window.ICL_AI.explain) {
+        showToast('AI 组件还没加载好，稍等一秒再点');
+        return;
+      }
+      var info = sectionText(sec);
+      window.ICL_AI.explain(btn.getAttribute('data-mode') || 'simple', info);
+    });
+  })();
+
   /* ---------------- 阅读进度条 + 滚动自动记录 + 位置记忆 ---------------- */
   if (isLesson && sections.length) {
     var readbar = document.createElement('div');

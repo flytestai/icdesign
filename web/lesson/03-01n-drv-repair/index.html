@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DRV 修复：先分清是哪条电气规则超限 · 31n | IC 后端学院</title>
 <meta name="description" content="区分最大转换时间、电容与扇出，按物理原因和实现阶段选择修法，并在修改后复查时序与几何规则。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01n-drv-repair">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="14"><section class="ch" id="rule-types" data-ch="rule-types">
-  <div class="ch-h"><span class="ch-n">01</span><h2>同一条网，可能违反三种不同的规则</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>同一条网，可能违反三种不同的规则</h2><span class="ch-ai" data-ai="rule-types"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>DRV 修复</strong> · 承接 ECO 的违例清单。ECO 要修的第一批问题就是 DRV。本讲说明同一条网可能同时违反三种规则，以及&quot;违例清零不等于可交付&quot;。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-n.svg" data-fig="innovus-practice-n.svg"><img src="/fig/innovus-practice-n.svg" alt="原创教学示意图 · DRV 的三个上限对应三个检查量" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · DRV 的三个上限对应三个检查量</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲按钉钉目录第 18 项的主题编排。术语解释、排查流程和自检均为原创，不使用原文、原图或项目参数。</p></div>
@@ -71,43 +71,43 @@
   
 </section>
 <section class="ch" id="diagnosis" data-ch="diagnosis">
-  <div class="ch-h"><span class="ch-n">02</span><h2>从报告走到版图，再决定怎么改</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>从报告走到版图，再决定怎么改</h2><span class="ch-ai" data-ai="diagnosis"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>先在报告中记下分析视图、违例类型、实际值、限值、单位和检查引脚。对转换时间补记上升或下降；对电容和扇出找到实际驱动端，并核对限值是否来自同一个库单元或约束。不要把不同角落的最大值拼成一条看似自洽的网，也不要把负裕量误读为负电容。把网表中的驱动和接收点定位到版图，观察驱动的输入边沿、各接收点的分布，以及绕线和拥塞。边沿很慢却没有电容超限时，先排查上一级边沿，避免只给当前输出加驱动。</p>
 <p>选择修法时区分两件事：提高驱动能力可以改善边沿，但不减少接收端数量，也不会凭空消除原来的线电容；分支或分段则会改变每一级看到的接收端与寄生。负载集中、驱动偏弱时，优先评估增驱动，并回查上一级是否承受得住新增输入电容。线阻线容主导时，先看能否缩短绕线或调整走线层；不能缩短时，可在合法位置插缓冲分段。接收端多而分散时，把接收端按物理位置分组，让独立分支分别驱动，不能只在源端串一个缓冲器就认为扇出被拆开。</p>
   
 </section>
 <section class="ch" id="optimization-stages" data-ch="optimization-stages">
-  <div class="ch-h"><span class="ch-n">03</span><h2>用当前阶段的数据做优化</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>用当前阶段的数据做优化</h2><span class="ch-ai" data-ai="optimization-stages"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><code>optDesign</code> 的阶段及选项应以项目脚本和工具版本为准。CTS 前，连线多使用估算寄生，时钟通常按理想网络分析，适合先收敛明显的数据网、有把握的负载结构问题。CTS 后，应在传播时钟下同时看 setup 和 hold；改变数据分支的逻辑级数，可能让不同接收路径的最短延迟朝不同方向变化。布线后，收敛依据是实际走线和对应的提取寄生。因此即使只动一个缓冲器，也要局部合法化、重布线并更新寄生，再拿新的数据作判断。阶段入口见 <a href="/lesson/03-07-place/">Place</a> 与 <a href="/lesson/03-10-optroute/">OptRoute</a>。</p>
   
 </section>
 <section class="ch" id="practice-step-04" data-ch="practice-step-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>同源端挂两个负载群：先分清违的是哪条规则</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>同源端挂两个负载群：先分清违的是哪条规则</h2><span class="ch-ai" data-ai="practice-step-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>选一条用于多个数据路径的使能网 <code>n_en</code>，用布线后快照作为基线；电气违例复查视图为 <code>slow_rcmax</code>，最短路径另看 <code>fast_rcmin</code>。实验输入包括网表、固定的分析约束和库版本、原始布局布线快照及同版寄生。下列为原创合成报告，不是 Innovus 输出，也不是可执行脚本。假设最大扇出约束为 8，每个 sink（包括新缓冲输入）在本例均计 1；原驱动与候选缓冲输出均使用表里的同一组限值，项目中须逐级核实。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">BASELINE  view=slow_rcmax  stage=post-route  net=n_en</span><span class="ln ">check             pin      edge   actual   limit   unit</span><span class="ln ">max_transition    U0/Z     fall      148     100    ps</span><span class="ln ">max_capacitance   U0/Z      -         84      60    fF</span><span class="ln ">max_fanout        U0/Z      -         12       8    load</span><span class="ln ">U0/A transition: 42 ps falling; applicable limit: 100 ps</span><span class="ln ">Load at U0/Z: wire 50.8 fF + sinks 33.2 fF = 84.0 fF</span><span class="ln ">Group L: 7 sinks / 18.4 fF   Group R: 5 sinks / 14.8 fF</span></code></pre></div>
 <p>三条超限分别是下降边沿慢 48 ps、电容超 24 fF、扇出超 4。输入边沿并未超限；线电容占总负载大半。到版图上确认两簇负载各自集中，但被宏单元隔开，绕行通道较窄。先试着判断能否压缩绕行；即使较短的走线能改善电容和边沿，也不能改变源端 12 个接收端这个事实。下一步应同时解决长线负载和末端分组，而不是按报告顺序为三条违例分别做三次修改。</p>
   
 </section>
 <section class="ch" id="practice-step-05" data-ch="practice-step-05">
-  <div class="ch-h"><span class="ch-n">05</span><h2>拆分支并给前级留余量</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>拆分支并给前级留余量</h2><span class="ch-ai" data-ai="practice-step-05"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>先记录驱动及其上游两级的电气和时序基线，保存可恢复的检查点。若将 <code>U0</code> 增驱动，假设上一级输出原带 19.1 fF，单元替换后输入电容增加 11.0 fF，上一级就会到 30.1 fF，超过其 28.0 fF 的上限；这个方案还不解决 12 的扇出，因此不进入实施。也不在源端只串一只缓冲器，否则新缓冲级仍面对原先的 12 个接收端。选用两个同相缓冲，放在靠近各自负载群、具备合法站点和出线资源的位置；保留原驱动，分别连接两个缓冲输入。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Before: U0/Z ---- detour around macro ----+-- L: 7 sinks</span><span class="ln ">                                          +-- R: 5 sinks</span><span class="ln ">After:  U0/Z ---+--- B_L/A -&gt; B_L/Z ----- L: 7 sinks</span><span class="ln ">               +--- B_R/A -&gt; B_R/Z ----- R: 5 sinks</span></code></pre></div>
 <p>拆分后逐对核对旧、新的接收引脚清单，确保两个分支的并集等于原清单且没有重复连接。这一步只表达连接关系，不要求照图摆放。实际操作顺序是合法化新单元、增量布线、重提取受影响区域，再生成报告；不能假设拆分后的每段电容是原始电容按接收端数量等分。新增的缓冲输入电容会出现在源段，两个分支的线电容则由新走线决定。</p>
   
 </section>
 <section class="ch" id="practice-step-06" data-ch="practice-step-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>同口径比较每一级和每一类路径</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>同口径比较每一级和每一类路径</h2><span class="ch-ai" data-ai="practice-step-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">POST-ECO ELECTRICAL: same rule limits, slow_rcmax</span><span class="ln ">Driver        fall/rise ps     cap fF (wire + pins)    fanout</span><span class="ln ">U0/Z             68 / 64           23.5 = 18.3 + 5.2       2</span><span class="ln ">B_L/Z            82 / 79           36.2 = 17.8 + 18.4      7</span><span class="ln ">B_R/Z            89 / 83           33.4 = 18.6 + 14.8      5</span><span class="ln ">TIMING SLACK [ps]         view          path   before   after</span><span class="ln ">setup                     slow_rcmax    P_L        +6     +24</span><span class="ln ">hold                      fast_rcmin    P_R       +20     +11</span></code></pre></div>
 <p>在这个结果中，最慢的输出是 <code>B_R/Z</code> 的下降沿，离 100 ps 上限还有 11 ps；扇出余量最小的是左分支，还差 1 个负载就到限值。两个新缓冲的输入、原接收点及相关上游输出仍应分别复查，不能用三个驱动端的摘要替代全量审查。左分支 setup 改善不能代表右分支 hold；后者仍合格，但有 9 ps 余量损失。报告对比须追踪同一组端点和相同检查类型，同时补查是否出现新的最差路径，而不是只看总违例数下降。</p>
   
 </section>
 <section class="ch" id="practice-step-07" data-ch="practice-step-07">
-  <div class="ch-h"><span class="ch-n">07</span><h2>违例清零不等于可交付</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>违例清零不等于可交付</h2><span class="ch-ai" data-ai="practice-step-07"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ul><li><strong>通过条件：</strong> 原分析视图的三项超限消失，其他签核视图与邻网不增加超限；受影响路径 setup、hold 均满足项目门限，且没有未解释的恶化。核对约束、角落和寄生阶段一致，避免报告表面通过、实际在看旧数据。</li><li><strong>实现条件：</strong> 新单元位置合法，连通性一致，受影响区域的几何 DRC 通过；有走线或过孔变化时，不能只运行时序检查。查看邻近网是否因改道或耦合而新增问题。</li><li><strong>失败回退：</strong> 若右分支 hold 低于门限、局部无法布通、出现新短路或无法解释的 DRV，先保存差异报告，再恢复完整的网表、布局布线及匹配的寄生检查点，复跑基线。若切换缓冲器位置或调整分组，只改变一个主要变量，方便判断问题来自分支分配还是物理环境。</li></ul>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">08</span><h2>违例变少了，能不能交</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>违例变少了，能不能交</h2><span class="ch-ai" data-ai="review"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>只有一个接收端，长线导致电容和边沿超限，先做什么？</div>
   <div class="q-a">先确认线长与绕行，能缩短就先缩短；否则评估缓冲分段，再分别检查各级电容和边沿。</div>
@@ -121,7 +121,7 @@
   
 </section>
 <section class="ch" id="deep-lab-drv-unit-library-view" data-ch="deep-lab-drv-unit-library-view">
-  <div class="ch-h"><span class="ch-n">09</span><h2>单位归一后通过了，是不是切错了库条件</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>单位归一后通过了，是不是切错了库条件</h2><span class="ch-ai" data-ai="deep-lab-drv-unit-library-view"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><strong>模拟最大电容报告（非工具实测）。</strong> 两版均读取同一布线后寄生与相同网表，核查 <code>U9/Z</code>，没有更换驱动或新增接收端。签核清单要求 <code>FUNC_LOW</code> 加载 0.72 V 对应的库；无更严格的网级覆盖限值。第二份导出仍沿用 <code>FUNC_LOW</code> 的显示名称，但加载日志记录了实际库条件。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟导出   显示视图   实际库条件       负载值        库上限       判定</span><span class="ln ">D0         FUNC_LOW   L72 / 0.72 V     0.059 pF     0.055 pF     FAIL</span><span class="ln ">D1         FUNC_LOW   L80 / 0.80 V     59 fF        65 fF        PASS</span></code></pre></div>
 <p><strong>先独立交付。</strong> 把两份报告的负载与上限换成同一单位，分别算出相对各自限值的余量。判断是否发生了物理修复，并列出复核顺序：先看哪些分析输入，再决定是否需要动版图。写明哪一版有资格用于此视图的验收。</p>
@@ -145,9 +145,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

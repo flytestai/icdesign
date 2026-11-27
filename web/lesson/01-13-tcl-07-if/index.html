@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 7 讲 · 流程控制（上）：if 条件判断与用户输入 · 13 | IC 后端学院</title>
 <meta name="description" content="if-elseif-else 语法与四大语法铁律（文档强调的初学者大坑）、比较与逻辑运算符、gets stdin 用户输入、rand() 随机数、成绩等级判断与猜数字游戏（文档原题）。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="01-13-tcl-07-if">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="11"><section class="ch" id="if" data-ch="if">
-  <div class="ch-h"><span class="ch-n">01</span><h2>if-elseif-else 语法</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>if-elseif-else 语法</h2><span class="ch-ai" data-ai="if"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>会写 if/elseif/else 并背下四大铁律；会用 gets stdin 读输入；会用 rand() 造随机数；能做出成绩等级判断和猜数字游戏。</div>
 <p>根据条件执行不同代码块，条件表达式需用 <code>{}</code> 包裹，支持比较运算符（<code>==</code> 等于、<code>!=</code> 不等于、<code>&gt;</code> 大于、<code>&lt;</code> 小于、<code>&lt;=</code> 小于等于、<code>&gt;=</code> 大于等于）；逻辑运算：与 <code>&amp;&amp;</code>、或 <code>||</code>。</p>
 <p><strong>语法骨架</strong>：</p>
@@ -102,13 +102,13 @@ if {$score &gt;= 90} {
   
 </section>
 <section class="ch" id="rules" data-ch="rules">
-  <div class="ch-h"><span class="ch-n">02</span><h2>四大语法铁律（文档强调，初学者最常踩坑）</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>四大语法铁律（文档强调，初学者最常踩坑）</h2><span class="ch-ai" data-ai="rules"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ol><li><strong>铁律 1</strong>：<code>}</code> 和 <code>elseif</code> / <code>else</code> 必须<strong>同一行</strong>，中间必须<strong>有空格</strong>。</li><li><strong>铁律 2</strong>：<code>if</code> 后面的条件必须包在 <code>{}</code> 里，而且 <code>{</code> 必须跟在条件后面，<strong>不能换行</strong>。</li><li><strong>铁律 3</strong>：所有大括号、运算符，必须是<strong>英文半角符号</strong>，禁止中文括号 / 空格。</li><li><strong>铁律 4</strong>：TCL 是严格一行一条命令：<code>if</code> 是单条完整命令，不能用换行把 <code>}</code> 和 <code>elseif</code> 切开。</li></ol>
 <div class="note"><div class="note-h">为什么有这些规定？</div><p>因为 <code>{...}</code> 是&quot;分组&quot;——<code>}</code> 换行会让 TCL 以为命令提前结束了。（第 2 讲的分组原理在这里兑现。）</p></div>
   
 </section>
 <section class="ch" id="gets" data-ch="gets">
-  <div class="ch-h"><span class="ch-n">03</span><h2>输入（gets stdin）</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>输入（gets stdin）</h2><span class="ch-ai" data-ai="gets"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><code>gets stdin 变量</code> 相当于 Python 的 <code>input()</code>——从标准输入读一行存进变量：</p>
 <div class="tsbx has-code" data-code="puts &quot;Please enter the score：&quot;
 gets stdin score
@@ -142,7 +142,7 @@ if {$score &gt;= 90} {
   
 </section>
 <section class="ch" id="rand" data-ch="rand">
-  <div class="ch-h"><span class="ch-n">04</span><h2>rand()：获取随机数</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>rand()：获取随机数</h2><span class="ch-ai" data-ai="rand"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><code>rand()</code> 获取 0-1 的随机数（<strong>不可以等于 1</strong>）。可以输入 <code>expr {rand()}</code> 进行查看获取的随机数：</p>
 <div class="tsbx has-code" data-code="puts [expr {rand()}]
 puts [expr {int(rand()*100)}]   ;# 0-99 的整数随机数（多跑几次看变化）">
@@ -159,7 +159,7 @@ puts [expr {int(rand()*100)}]   ;# 0-99 的整数随机数（多跑几次看变�
   
 </section>
 <section class="ch" id="rps" data-ch="rps">
-  <div class="ch-h"><span class="ch-n">05</span><h2>综合例子：猜拳游戏（课件原题）</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>综合例子：猜拳游戏（课件原题）</h2><span class="ch-ai" data-ai="rps"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>把 gets 输入、rand() 随机数、if/elseif/else 全部串起来——你出拳，电脑随机出拳，程序判胜负：</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/tcl-01.png" data-fig="tcl-01"><img src="/fig/tcl-01.png" alt="猜拳游戏完整代码（课件截图）" loading="lazy" decoding="async"></a><figcaption>猜拳游戏完整代码（课件截图）</figcaption></figure>
 <p>代码思路：</p>
@@ -208,7 +208,7 @@ if {$com_num == $ply_ch} {
   
 </section>
 <section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>动手练</h2><span class="ch-ai" data-ai="lab"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>文档原题：猜数字游戏</div><div class="lab-b"><p>思路：用 <code>expr {int(rand()*100)}</code> 生成一个 0-99 的随机数，<code>gets stdin</code> 循环读用户猜的数，<code>if</code> 判断大了/小了/对了。（第 8 讲学了 while 再回来做，参考答案见下。）</p></div></div>
 <div class="tsbx has-code" data-code=";# 猜数字参考实现：练习台里把每次猜测依次敲进输入行（如 50 回车 75 回车……）
 set answer [expr {int(rand()*100)}]
@@ -290,9 +290,9 @@ while {1} {
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

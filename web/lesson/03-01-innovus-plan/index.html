@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>阶段三导读：40nm Innovus 项目实操路线 · 31 | IC 后端学院</title>
 <meta name="description" content="按阶段三课表的 9 个模块安排主课和选学，标明待补课时，并原样保留钉钉知识库的 20 项资料顺序。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01-innovus-plan">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,32 +63,32 @@
       </div>
     </div>
     <article id="article" data-est-min="6"><section class="ch" id="course-mainline" data-ch="course-mainline">
-  <div class="ch-h"><span class="ch-n">01</span><h2>阶段三主线：按课表顺序学</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>阶段三主线：按课表顺序学</h2><span class="ch-ai" data-ai="course-mainline"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>按表从上往下学。<strong>主课</strong>是该模块的学习入口，<strong>选学</strong>用于预习、查漏或进阶，不另计课表学时。学时为课表安排，不代表现有课件已覆盖全部学时；OptCTS 保留位置，待核实并补成独立课。</p>
 <div class="ml-table"><table><thead><tr><th>模块</th><th>课表学时</th><th>主课（按顺序学）</th><th>选学（参考，不计入路线）</th></tr></thead><tbody><tr><td>Innovus 的使用</td><td class="ml-h">2</td><td><a href="/lesson/03-02-innovus-start/#period-1">第 1 课时：启动与界面</a>、<a href="/lesson/03-02-innovus-start/#period-2">第 2 课时：导入与验证</a></td><td><a href="/lesson/03-01b-innovus-flow/">31b Innovus 项目流程：每个阶段到底交付什么？</a>、<a href="/lesson/03-01j-dbget/">31j dbGet：从对象关系查找宏实例</a>、<a href="/lesson/03-04-project-env/">32 项目环境：目录规范、Run 与 Queue</a>、<a href="/lesson/03-03-innovus-init/">34 init_design：把数据导进 Innovus，并证明它导对了</a></td></tr><tr><td>Floorplan</td><td class="ml-h">10</td><td><a href="/lesson/03-05-floorplan/">Floorplan：芯片尺寸、端口、宏与约束</a></td><td><a href="/lesson/03-01a-flp-lab/">31a Floorplan 实操：看懂芯片切角与端口清单</a>、<a href="/lesson/03-01c-project-details/">31c Innovus 项目细节：算清 Memory 面积，看懂布局报告</a>、<a href="/lesson/03-01d-floorplan-advanced/">31d Floorplan 进阶：从 Die Size 输入到 Kick-Off Run</a></td></tr><tr><td>PowerPlan</td><td class="ml-h">2</td><td><a href="/lesson/03-06-powerplan/">PowerPlan：供电结构、IR/EM 与检查</a></td><td><a href="/lesson/03-01k-latch-up/">31k Latch-up：从寄生回路检查阱与衬底连接</a>、<a href="/lesson/03-12-pg-ir-em/">41a PG、IR Drop 与 EM：从电源连通到修复回归</a></td></tr><tr><td>Placement / Setup 与 Hold</td><td class="ml-h">4</td><td><a href="/lesson/03-07-place/">Place：布局三阶段、OCV 谱系与时序判据</a></td><td><a href="/lesson/03-01e-placement-diagnostics/">31e Place 诊断：从一条坏路径找到布局热点</a>、<a href="/lesson/03-01h-timing-noise/">31h 按流程阶段诊断时序与噪声</a>、<a href="/lesson/03-01l-overflow/">31l 布线溢出：从 GCell 边读懂拥塞热点</a></td></tr><tr><td>CTS</td><td class="ml-h">14</td><td><a href="/lesson/03-08-cts/">CTS：时钟树综合，从 skew 定义到建树验收</a></td><td><a href="/lesson/03-01f-cts-practice/">31f CTS：从前置检查到时钟树验收</a>、<a href="/lesson/03-01o-clock-skew/">31o 时钟偏斜：从时钟树指标定位到具体路径</a></td></tr><tr><td>OptCTS</td><td class="ml-h">2</td><td><b class="ml-todo">待补：暂无已核实的独立课程，不用 CTS 课件代替。</b></td><td>—</td></tr><tr><td>Route</td><td class="ml-h">4</td><td><a href="/lesson/03-09-route/">Route：三种引擎、短路开路与串扰</a></td><td><a href="/lesson/03-01g-route-debug/">31g Route：检查天线、串扰、短路与开路</a></td></tr><tr><td>OptRoute</td><td class="ml-h">1</td><td><a href="/lesson/03-10-optroute/">OptRoute：布线后优化到底在优化什么</a></td><td><a href="/lesson/03-01m-eco-commands/">31m ECO 命令：从局部修改到签核验收</a>、<a href="/lesson/03-01n-drv-repair/">31n DRV 修复：先分清是哪条电气规则超限</a>、<a href="/lesson/03-13-mmmc-eco-lab/">41b MMMC ECO 实训：从 SPEF 回标到多角验收</a></td></tr><tr><td>ChipFinish</td><td class="ml-h">2</td><td><a href="/lesson/03-14-chipfinish-handoff/">ChipFinish 桌面实训：从最终流出到签核放行</a></td><td><a href="/lesson/03-01i-calibre-drc/">31i Calibre DRC：手修与复查</a>、<a href="/lesson/03-01p-double-patterning/">31p 双重图形化：为什么两条线分开了仍会报错</a>、<a href="/lesson/03-11-eco/">41 ECO：项目视角的六类修复与交接</a></td></tr></tbody></table></div>
   
 </section>
 <section class="ch" id="plan" data-ch="plan">
-  <div class="ch-h"><span class="ch-n">02</span><h2>资料索引：保留钉钉知识库原序</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>资料索引：保留钉钉知识库原序</h2><span class="ch-ai" data-ai="plan"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>下表用于查阅资料，不替代上方课表。第 01 项 <a href="/lesson/03-01a-flp-lab/">Floorplan 实操</a> 对应切角与端口清单，放在主线的 Floorplan 模块选学；未成课的条目保留原位，不用其他资料代替。</p>
 <div class="tbl"><table><thead><tr><th>知识库顺序</th><th>资料主题</th><th>网站课件安排</th></tr></thead><tbody><tr><td>01</td><td>flp实操</td><td><a href="/lesson/03-01a-flp-lab/">第一讲：芯片切角与端口清单</a>，原文和图来自上传的 Word</td></tr><tr><td>02</td><td>教案-何济达</td><td>原资料正文待核实</td></tr><tr><td>03</td><td>芯片后端理论</td><td>原资料正文待核实</td></tr><tr><td>04</td><td>数字后端理论及实践-Innovus教程终极版.docx</td><td>WPS 预览正文待核实</td></tr><tr><td>05</td><td>INNOVUS项目</td><td><a href="/lesson/03-01b-innovus-flow/">项目主线：从准备到 ECO</a></td></tr><tr><td>06</td><td>新版floorplan</td><td>独立保留，原资料正文待核实</td></tr><tr><td>07</td><td>INNOVUS项目基础</td><td><a href="/lesson/03-01c-project-details/">补充实操：Memory 面积、Floorplan 评估与密度检查</a></td></tr><tr><td>08</td><td>Floorplan</td><td><a href="/lesson/03-01d-floorplan-advanced/">进阶 Floorplan：按层级摆放宏单元</a></td></tr><tr><td>09</td><td>Placement</td><td><a href="/lesson/03-01e-placement-diagnostics/">Placement：从布局流程到密度与拥塞诊断</a></td></tr><tr><td>10</td><td>Cts</td><td><a href="/lesson/03-01f-cts-practice/">CTS：从前置检查到时钟树验收</a></td></tr><tr><td>11</td><td>Route</td><td><a href="/lesson/03-01g-route-debug/">Route：检查天线、串扰、短路与开路</a></td></tr><tr><td>12</td><td>Setup、Hold、Max Cap、Max Tran、Max Fanout、Noise 优化</td><td><a href="/lesson/03-01h-timing-noise/">按流程阶段诊断时序与噪声</a></td></tr><tr><td>13</td><td>手动修复 Calibre DRC（Innovus）</td><td><a href="/lesson/03-01i-calibre-drc/">Calibre DRC：手修与复查</a></td></tr><tr><td>14</td><td>dbGet 用法详细教程</td><td><a href="/lesson/03-01j-dbget/">dbGet：只读查询与结果验证</a></td></tr><tr><td>15</td><td>闩锁效应（Latch-up）</td><td><a href="/lesson/03-01k-latch-up/">闩锁效应：理解触发与预防</a></td></tr><tr><td>16</td><td>Overflow</td><td><a href="/lesson/03-01l-overflow/">Overflow：算 GCell 溢出、读拥塞热力图</a></td></tr><tr><td>17</td><td>ECO 常用命令</td><td><a href="/lesson/03-01m-eco-commands/">ECO 命令：变更、合法化与验证</a></td></tr><tr><td>18</td><td>修复 DRV</td><td><a href="/lesson/03-01n-drv-repair/">修复 DRV：分类、修改与复查</a></td></tr><tr><td>19</td><td>分析 Clock Skew</td><td><a href="/lesson/03-01o-clock-skew/">Clock Skew：从三类报告定位偏斜</a></td></tr><tr><td>20</td><td>先进工艺</td><td><a href="/lesson/03-01p-double-patterning/">双重图形化：光刻分解与签核</a></td></tr></tbody></table></div>
   
 </section>
 <section class="ch" id="practice" data-ch="practice">
-  <div class="ch-h"><span class="ch-n">03</span><h2>怎么跟做：先读报告，再决定改什么</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>怎么跟做：先读报告，再决定改什么</h2><span class="ch-ai" data-ai="practice"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>第 05、07–20 项每讲有教学示意图、可跟做案例和自测。建议按下面的方法完成一讲：</p>
 <ol><li><strong>记下基线</strong>：先抄报告所属阶段、分析视图、单位和初始指标。不要拿不同条件下的两份报告直接比。</li><li><strong>提出一个判断</strong>：找出支持它的两条证据，并说出什么现象会推翻它。比如布局很密，不代表布线热点一定由密度造成，还要看对应层的可用容量。</li><li><strong>只改一个主要因素</strong>：在教学案例里写出拟改对象和预计影响；有 Innovus 环境时，也只在练习副本上动手，并根据版本帮助和项目规则选命令。</li><li><strong>验收或回退</strong>：既看目标指标有没有改善，也看是否损害时序、连通性或规则检查；未达到课内验收条件，就回退到改前快照并说明原因。</li></ol>
 <p>没有工具也能跟做：直接用课中的模拟报告和自拟数据完成计算、排查与验收判断。示例数据不等于生产签核阈值。</p>
   
 </section>
 <section class="ch" id="supplement" data-ch="supplement">
-  <div class="ch-h"><span class="ch-n">04</span><h2>补充课：按需要回看，不改变主线顺序</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>补充课：按需要回看，不改变主线顺序</h2><span class="ch-ai" data-ai="supplement"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>上机请从<a href="#course-mainline">主线表</a>的「使用」模块开始，两课时都在同一课件中。旧页只供查阅，不另计学时：学完第 1 课时，可回看<a href="/lesson/03-04-project-env/">项目环境</a>的目录、Run 与 Queue；学完第 2 课时，可回看 <a href="/lesson/03-03-innovus-init/">init_design</a> 的脚本与导入检查。其余工序的补充材料见主线表的「选学」列。</p>
 <div class="note"><div class="note-h">资料来源</div><p>知识库决定主题与顺序。第 01 项使用上传的 Word 对应示例；第 05、07–20 项是依据核实主题编写的原创专题，案例用于教学，不是钉钉原文或原图。已导入的九个 Word 主题仍保留原文及随文图；init_design 是原站补充课。第 02、03、04、06 项暂保留目录位置，不用猜测补写原资料。</p></div>
   
 </section>
 <section class="ch" id="deep-labs" data-ch="deep-labs">
-  <div class="ch-h"><span class="ch-n">05</span><h2>专项深练：从供电检查走到签核交付</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>专项深练：从供电检查走到签核交付</h2><span class="ch-ai" data-ai="deep-labs"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>主线第 01 项及第 05、07–20 项的对应课件末尾都可找到新增深练：先独立写出判断，再对照答案、验收与回退条件。已经做过某道工序、但没有经历项目收尾的学员，按下面顺序补三套实训。</p>
 <div class="tbl"><table><thead><tr><th>专项</th><th>最终要交什么</th><th>常见误判</th></tr></thead><tbody><tr><td><a href="/lesson/03-12-pg-ir-em/">电源完整性：PG 连通、IR Drop 与 EM</a></td><td>一张宏电源端点核对表，一组静态／动态压降及金属／过孔 EM 的修前修后证据。</td><td>连通性通过，就以为宏端压降和过孔电流合格。</td></tr><tr><td><a href="/lesson/03-13-mmmc-eco-lab/">寄生回标与多场景 ECO</a></td><td>一份按模式和分析角划分的对照表，注明 SPEF 对应关系、覆盖率和 ECO 放行结论。</td><td>只看功能模式的 WNS，不查扫描模式或回标错版。</td></tr><tr><td><a href="/lesson/03-14-chipfinish-handoff/">ChipFinish：签核与交付</a></td><td>同版交付清单、签核运行矩阵和阻断原因；能指出哪份报告必须重跑。</td><td>报告全绿就放行，不核对是否检查了最终版图和网表。</td></tr></tbody></table></div>
 <p>这三讲是为补齐实操闭环新增的原创课程，模拟数据可用于桌面练习，不是钉钉目录 02、03、04、06 项的替代，也不代表生产签核阈值。</p>
@@ -110,9 +110,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

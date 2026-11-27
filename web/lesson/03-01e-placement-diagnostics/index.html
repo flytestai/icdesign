@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Place 诊断：从一条坏路径找到布局热点 · 31e | IC 后端学院</title>
 <meta name="description" content="区分布局阶段，沿着时序、密度和布线资源定位热点，并选择范围合适的布局约束验证原因。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01e-placement-diagnostics">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="12"><section class="ch" id="placement-stages" data-ch="placement-stages">
-  <div class="ch-h"><span class="ch-n">01</span><h2>Global、Detail 和 Scan Reorder 各做什么</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>Global、Detail 和 Scan Reorder 各做什么</h2><span class="ch-ai" data-ai="placement-stages"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>Place 诊断</strong> · 承接 Floorplan 定稿。布局跑完，密度和拥塞报出来了。本讲教你把一条 STA 违例路径追到具体的密度热点，而不是凭感觉调参数。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-e.svg" data-fig="innovus-practice-e.svg"><img src="/fig/innovus-practice-e.svg" alt="原创教学示意图 · 布局诊断先分清密度与拥塞" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 布局诊断先分清密度与拥塞</figcaption></figure>
 <div class="note"><div class="note-h">资料来源</div><p>本讲参考钉钉目录第 09 项的主题安排，正文与案例为原创教学示例，不是钉钉原文、截图或项目参数的转载。</p></div>
@@ -72,45 +72,45 @@
   
 </section>
 <section class="ch" id="timing-to-congestion" data-ch="timing-to-congestion">
-  <div class="ch-h"><span class="ch-n">02</span><h2>从 STA 路径追到密度图和拥塞图</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>从 STA 路径追到密度图和拥塞图</h2><span class="ch-ai" data-ai="timing-to-congestion"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>看到负裕量，先记模式、工艺角、路径类型、起终点和寄生估算口径；取报告中单元与网络的增量延迟，找出贡献最大的几段。即便最差裕量改善，也可能只是原来的那条路径不再排第一，仍应单独按原起终点取报告，并看同一场景的 WNS/TNS 作护栏。</p>
 <p>把延迟高的网定位到版图，查它是否绕过宏边、穿过窄通道、连接大量负载，或者驱动单元本身较弱。密度图描述摆放压力；拥塞图描述布线需求相对轨道资源的情况，要下钻到层和方向。高密不一定拥塞，低密也不保证有足够轨道。多个证据位置重合只能提出假设，还要通过可逆的小改动验证。</p>
   
 </section>
 <section class="ch" id="targeted-controls" data-ch="targeted-controls">
-  <div class="ch-h"><span class="ch-n">03</span><h2>选对干预范围：Padding 或 Partial Blockage</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>选对干预范围：Padding 或 Partial Blockage</h2><span class="ch-ai" data-ai="targeted-controls"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>Padding 给一组摆放对象预留间距。按 <strong>cell</strong> 可覆盖指定库单元类型的适用实例，按 <strong>instance</strong> 只影响被定位的某些实例，按 <strong>module</strong> 则以某层级模块的对象为作用范围；实际支持的粒度及优先级以工具版本与流程为准。没有证据支持同类单元普遍有问题时，不先施加全局 cell padding，否则会改变多处密度，难以归因。</p>
 <p><strong>Partial blockage</strong> 面向一个地理窗口，限制该区域可用摆放容量；不移动阻挡走线的宏，也不会增加金属轨道。使用前确认工具参数表示的是「允许比例」还是「阻挡比例」；本讲明确用允许比例描述意图。比起对整个模块下约束，若问题只在一个窗口，有限区域的实验更方便观察是否把负担转移到邻区。</p>
   
 </section>
 <section class="ch" id="practice-step-04" data-ch="practice-step-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>先固定路径、场景和观察窗口再动手</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>先固定路径、场景和观察窗口再动手</h2><span class="ch-ai" data-ai="practice-step-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>使用合成数据，不需要 Innovus。功能慢角的寄存器间 setup 路径从 <code>U_SRC/Q</code> 到 <code>U_DST/D</code>，初始裕量为 -0.12 ns。高延迟网络 N_hot 从通道一头进入，在两块 Memory 之间经过 W0；目标层水平方向需要 48 条轨道等效资源，该窗估计可用 40 条，因此溢出为 8。摆放统计按<strong>固定物理可用面积</strong>作分母，不因试验容量限制而改变口径。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">教学位置示意（不按比例）</span><span class="ln ">             旁观窗口 W1：检查热点是否外移</span><span class="ln ">       +----------------------------------+</span><span class="ln ">U_SRC -&gt; [ MEM_L ] | W0 / N_hot | [ MEM_R ] -&gt; U_DST</span><span class="ln ">                     组合单元集中</span></code></pre></div>
 <p>基线中 W0 可用 1,000 µm²，已占 860 µm²；W1 已占 1,200/2,000 µm²。先在相同数据库中确认 W0 内集中的是一小片组合逻辑，不是每个同类型库单元都会产生类似问题；再查供电占轨、引脚接入与阻挡，确认试验不需要先改变物理通道或供电。若高延迟其实来自多扇出或弱驱动，同样的密度实验就只能作为排除法。</p>
   
 </section>
 <section class="ch" id="practice-step-05" data-ch="practice-step-05">
-  <div class="ch-h"><span class="ch-n">05</span><h2>只改一处 padding，做 A/B 对照</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>只改一处 padding，做 A/B 对照</h2><span class="ch-ai" data-ai="practice-step-05"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>从同一布局起点分成 A 和 B，各自经过同口径的合法化、估算布线和 STA。A 不加区域限制；B 只在 W0 加局部 partial blockage，把允许容量设为物理可用面积的 70%。不改网表、宏和供电，保持同一视图、时钟模型、报告筛选和工具设置。这里描述操作意图，不提供与具体版本绑定的命令。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">教学合成报告（只比较同一分析阶段）   A 基线        B 局部限容</span><span class="ln ">W0 占用/物理可用 (um^2)              860/1000      690/1000</span><span class="ln ">W1 占用/物理可用 (um^2)              1200/2000     1370/2000</span><span class="ln ">W0 目标层横向需求/资源               48/40         41/40</span><span class="ln ">W0 / W1 横向溢出轨道                 8 / 0         1 / 0</span><span class="ln ">N_hot 网络延迟 (ns)                  0.33          0.26</span><span class="ln ">指定路径 setup 裕量 (ns)             -0.12         -0.05</span><span class="ln ">同场景 WNS / TNS (ns)                -0.12/-0.29   -0.08/-0.18</span><span class="ln ">未摆放 / 非法摆放实例数              0 / 0         0 / 0</span></code></pre></div>
 <p>W0 减少的 170 µm² 全部转移到 W1，W0 的 690 µm² 低于 700 µm² 试验上限，但横向仍溢出一条，不能称为清零。N_hot 网络延迟减少 0.07 ns，路径裕量改善同样的 0.07 ns，和绕路减轻的解释相容。B 的 WNS 为 -0.08 ns，比指定路径的 -0.05 ns 更差；至少有一条更差的路径，仍需查报告确认它是哪条，而不是宣称整场景通过。</p>
   
 </section>
 <section class="ch" id="practice-06" data-ch="practice-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>密度降了但拥塞还在：要不要继续压容量</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>密度降了但拥塞还在：要不要继续压容量</h2><span class="ch-ai" data-ai="practice-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>不先把百分比调得更低。在两次报告中对照 W0 的资源分母：资源一直是 40，改动只降低了需求。剩下一条溢出，既可能来自已无法再迁出的网络，也可能是引脚接入迫使几条网挤入同一方向。缩小观测窗并按层查看，如果另一方向还有容量，也不能假定这条网可毫无代价地换向；它仍需要合法的层转换和接入位置。</p>
 <p>回查 N_hot 时还要看驱动输出斜率、负载数量与网络延迟的变化。如果路径中某段单元延迟显著变化，就不要把全部裕量改善直接归给通道。另抽一条同接口、但没有穿过 W0 的路径，用来辨别是否是估算设置整体变化。若多条无关路径同方向跳变，应先查报告场景和输入，而非直接归因给局部限容。</p>
 <p>最后打开新最差路径，核对它是否经过 W1 或其他刚被挤入的区域。如果新最差路径原先已经存在且本轮未退化，问题可能只是排序变化；若其自身裕量下降，再查是否跟迁移的单元或新增绕路有关。排序变化与引入回归是两件事，依靠原路径加新路径的前后报告才能区分。</p>
   
 </section>
 <section class="ch" id="practice-step-06" data-ch="practice-step-06">
-  <div class="ch-h"><span class="ch-n">07</span><h2>证据不支持改善就撤销，不留将就的修改</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>证据不支持改善就撤销，不留将就的修改</h2><span class="ch-ai" data-ai="practice-step-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ul><li>若 W0 密度降而需求几乎不变，撤掉试验窗口，复查几何通道、宏引脚可达性和供电占轨，别反复压低容量。</li><li>若 W1 或其他邻区新增溢出，或新最差路径退化，按记录恢复 A，再缩小干预范围或改试实例级 padding。</li><li>若 B 出现非法摆放或场景不一致，先修复试验设置，不用不等价的报告宣布赢了。</li><li>保存两支检查点、窗口边界与比例语义、原路径和新最差路径报告、分层拥塞和合法性结果。合入前继续复查项目要求的其他场景和后续布线。</li></ul>
   
 </section>
 <section class="ch" id="exercise" data-ch="exercise">
-  <div class="ch-h"><span class="ch-n">08</span><h2>只做一项修改时，怎么证明是它起的作用</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>只做一项修改时，怎么证明是它起的作用</h2><span class="ch-ai" data-ai="exercise"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>坏路径和组合单元集中在同一条宏间通道，而且没有某类库单元普遍出问题的证据。先试小范围区域限容，再对照密度、目标方向拥塞、同一路径裕量及相邻窗口。密度下降却没有任何拥塞改善时，应换调查假设，不是继续扩大原操作。</p>
 <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>为什么本例先试局部 partial blockage 而不是全局 cell padding？</div>
@@ -125,7 +125,7 @@
   
 </section>
 <section class="ch" id="deep-lab-scan-order-contract" data-ch="deep-lab-scan-order-contract">
-  <div class="ch-h"><span class="ch-n">09</span><h2>扫描链变短了，冻结的位序还保得住吗</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>扫描链变短了，冻结的位序还保得住吗</h2><span class="ch-ai" data-ai="deep-lab-scan-order-contract"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><strong>模拟扫描链对照（非工具实测）。</strong> 测试交接将 <code>A→B</code> 冻结为相邻且同向的有序片段，两者都属于时钟域 <code>CK0</code>。<code>L</code> 是跨到 <code>CK1</code> 所需的锁存器，必须留在两域边界；<code>C</code>、<code>D</code> 都属于 <code>CK1</code>，允许互换，但必须同步测试链描述。每版都是从扫描输入 <code>SI</code> 沿实际串行连线追到 <code>SO</code> 的结果。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟快照    实际连接顺序                 扫描寄存器   估算链长(µm)</span><span class="ln ">S0 基线     SI→A→B→L→C→D→SO             4            520</span><span class="ln ">S1 候选     SI→B→A→L→C→D→SO             4            360</span><span class="ln ">S2 候选     SI→A→B→L→D→C→SO             4            410</span></code></pre></div>
 <p><strong>先独立交付。</strong> 分别判定 S1、S2 是否可以进入测试复核，列出冻结段、域边界、允许变动段所需的证据。写出应归档的新位序，并解释为什么仅比对成员集合、链长或扫描寄存器数量不能作出这个决定。</p>
@@ -149,9 +149,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MMMC：多模式多端角，工具到底在几种世界里跑时序 · 29 | IC 后端学院</title>
 <meta name="description" content="一颗芯片不能只按"正常工作、典型电压、室温"来验。这一课讲清多模式（func / 超频 / DFT）与多端角（工艺、电压、温度、RC）为什么要组合，把 viewDefinition.tcl 里的 library set、rc corner、delay corner、constraint mode、analysis view 五层结构拆开，最后说清 setup 和 hold 各看哪个 view、配错了会出什么事故。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="02-07-pr-mmmc">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="19"><section class="ch" id="why" data-ch="why">
-  <div class="ch-h"><span class="ch-n">01</span><h2>一个设计，很多种&quot;世界&quot;</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>一个设计，很多种&quot;世界&quot;</h2><span class="ch-ai" data-ai="why"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>能说出模式（func / 超频 / DFT）与端角（PVT / RC）两个维度各描述什么；能画出 viewDefinition.tcl 里 library set → rc corner → delay corner → constraint mode → analysis view 的五层引用关系；能立刻回答 setup 用哪个 view、hold 用哪个 view，并解释原因。</div>
 <p>假设你只按一种条件验芯片：正常工作模式、0.81V、125°C、慢速工艺库。会发生什么？</p>
 <ul><li>换到<strong>超频模式</strong>（电压拉高、频率拉高），时序全崩；</li><li>进了<strong>DFT 测试模式</strong>（扫描链串起来），工具从没优化过这条路，测试跑不通；</li><li>到了<strong>低温环境</strong>（先进工艺的温度反转效应），setup 反而不够了；</li><li><strong>hold</strong> 检查完全没做快 corner，芯片一上电就锁死。</li></ul>
@@ -76,7 +76,7 @@
   
 </section>
 <section class="ch" id="mode" data-ch="mode">
-  <div class="ch-h"><span class="ch-n">02</span><h2>多模式 Mode：芯片在干什么</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>多模式 Mode：芯片在干什么</h2><span class="ch-ai" data-ai="mode"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">mode</span><span class="term-zh">工作模式</span></div>
   <div class="term-b"><p>芯片的一种工作状态。不同模式下电路的结构、时钟、频率、约束都不一样，所以必须各有一套 sdc。</p></div>
@@ -108,7 +108,7 @@
   
 </section>
 <section class="ch" id="corner" data-ch="corner">
-  <div class="ch-h"><span class="ch-n">03</span><h2>多端角 Corner：芯片在什么条件下工作</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>多端角 Corner：芯片在什么条件下工作</h2><span class="ch-ai" data-ai="corner"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">corner</span><span class="term-zh">端角</span></div>
   <div class="term-b"><p>一组极端工艺/电压/温度条件的组合。芯片制造有偏差、供电有波动、环境温度有范围，签核必须在这些范围的<strong>边界</strong>上做——边界就是&quot;端角&quot;。</p></div>
@@ -128,7 +128,7 @@
   
 </section>
 <section class="ch" id="viewdef" data-ch="viewdef">
-  <div class="ch-h"><span class="ch-n">04</span><h2>viewDefinition.tcl：五层结构一张图</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>viewDefinition.tcl：五层结构一张图</h2><span class="ch-ai" data-ai="viewdef"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>这份文件不是随便写的配置，它有严格的<strong>层层引用</strong>关系。看清这个结构，你就再也不会写错：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">[1] create_library_set        ──┐  用哪些 lib（决定 cell 快慢）</span><span class="ln ">     (名字, lib 文件列表)        │</span><span class="ln ">                                ↓</span><span class="ln ">[2] create_rc_corner          ──┐  用哪些 RC 系数（决定线快慢）</span><span class="ln ">     (名字, QX 技术文件, 温度)   │</span><span class="ln ">                                ↓</span><span class="ln ">[3] create_delay_corner       ──┐  把 [1] + [2] 绑在一起 = 一个物理条件</span><span class="ln ">     (名字, library_set, rc_corner) │</span><span class="ln ">                                ↓</span><span class="ln ">[4] create_constraint_mode    ──┐  用哪套 sdc（决定&quot;要求&quot;）</span><span class="ln ">     (名字, sdc 文件列表)        │</span><span class="ln ">                                ↓</span><span class="ln ">[5] create_analysis_view      ──┐  [3] + [4] 组合 = 一个 view</span><span class="ln ">     (名字, delay_corner, constraint_mode) │</span><span class="ln ">                                ↓</span><span class="ln ">[6] set_analysis_view         ──┘  指定哪些 view 做 setup、哪些做 hold</span></code></pre></div>
 <p>对应文档说的&quot;由图上几部分组成&quot;，我们逐个看代码。</p>
@@ -162,7 +162,7 @@
   
 </section>
 <section class="ch" id="pitfall" data-ch="pitfall">
-  <div class="ch-h"><span class="ch-n">05</span><h2>配错 MMMC 会长什么样</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>配错 MMMC 会长什么样</h2><span class="ch-ai" data-ai="pitfall"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="pit"><div class="pit-h">常见坑 · 只配了一个 view</div><div class="pit-b"><p><strong>现象</strong>：时序报告非常漂亮，WNS 为正，看起来能流片；流片回来大批芯片在低温或测试模式下失效。</p>
 <p><strong>原因</strong>：默认只跑了一个典型条件（tt + 常温），既没有低温 corner，也没有 DFT 模式。<strong>工具不会提醒你&quot;你漏了一个世界&quot;</strong>，它只老老实实报告你让它算的那个。</p>
 <p><strong>怎么查</strong>：</p>
@@ -214,9 +214,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Floorplan：芯片尺寸、端口、宏与约束 · 35 | IC 后端学院</title>
 <meta name="description" content="从 site/row/port/pin/terminal 这些基本概念，到 Die/Core 定义、端口摆放、宏摆放四规则、六类物理单元、guide/region/fence 三种分组约束、四类 blockage，最后是质量评估标准。每段原文后都有展开讲解，21 张原图配逐图说明。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-05-floorplan">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="56"><section class="ch" id="why" data-ch="why">
-  <div class="ch-h"><span class="ch-n">01</span><h2>先说清楚：Floorplan 定错了，后面全白干</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>先说清楚：Floorplan 定错了，后面全白干</h2><span class="ch-ai" data-ai="why"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>Floorplan 是整条流程里<strong>唯一一个&quot;错了要全部重来&quot;</strong>的步骤。</p>
 <p>原因很简单：后面所有阶段都在这个地基上干活。</p>
 <ul><li>宏放错位置 → 布线通道不够 → 大量短路 → 回 Floorplan 挪宏 → place、CTS、route 全部重跑；</li><li>Die 定小了 → 单元摆不下 → 只能压利用率 → 密度过高 → 拥塞和时序双崩；</li><li>端口分配错了 → 顶层对接不上 → 芯片做出来封不了装。</li></ul>
@@ -76,7 +76,7 @@
   
 </section>
 <section class="ch" id="source-01" data-ch="source-01">
-  <div class="ch-h"><span class="ch-n">02</span><h2>视图与基本概念：先认词，再动手</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>视图与基本概念：先认词，再动手</h2><span class="ch-ai" data-ai="source-01"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>Floorplan 里有五个词天天用，但它们的关系很多人一直没理清：<strong>site、row、port、pin、terminal</strong>。这五个词搞混了，后面所有命令参数都会填错。</p>
 <h3>三种视图，看到的东西不一样</h3>
 <p><strong>Floorplan 阶段的视图</strong>和 <strong>place 之后的视图</strong>是两个东西：前者主要看宏、core 边界、端口；后者密密麻麻的标准单元行铺满，宏被单元包围。</p>
@@ -126,7 +126,7 @@
   
 </section>
 <section class="ch" id="source-02" data-ch="source-02">
-  <div class="ch-h"><span class="ch-n">03</span><h2>定义芯片尺寸与异形 Die</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>定义芯片尺寸与异形 Die</h2><span class="ch-ai" data-ai="source-02"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>这一节从「概念」进入「动手」：把 die 和 core 的边界定下来。</p>
 <h3>定尺寸的入口</h3>
 <p>原文流程是「1、定义芯片的大小 → 页面上的操作」，即从菜单进。</p>
@@ -161,7 +161,7 @@
   
 </section>
 <section class="ch" id="source-03" data-ch="source-03">
-  <div class="ch-h"><span class="ch-n">04</span><h2>摆放端口（Port）</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>摆放端口（Port）</h2><span class="ch-ai" data-ai="source-03"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>端口位置定错了，后果比内部布线错更严重——内部错了还能改，端口错了可能要重新流片。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、摆放port</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-19.png" data-fig="innovus-doc-19.png"><img src="/fig/innovus-doc-19.png" alt="原文图 19 · 摆放端口与引脚约束" loading="lazy" decoding="async"></a><figcaption>原文图 19 · 摆放端口与引脚约束</figcaption></figure>
@@ -189,7 +189,7 @@
   
 </section>
 <section class="ch" id="source-04" data-ch="source-04">
-  <div class="ch-h"><span class="ch-n">05</span><h2>摆放 Memory / SRAM / 宏</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>摆放 Memory / SRAM / 宏</h2><span class="ch-ai" data-ai="source-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>宏的摆放是 Floorplan 里最花时间、最影响结果的部分。宏一旦放定，标准单元只能在剩下的空间里挤。</p>
 <h3>四条摆放规则</h3>
 <p>每条都有明确的工程理由。</p>
@@ -229,7 +229,7 @@
   
 </section>
 <section class="ch" id="source-05" data-ch="source-05">
-  <div class="ch-h"><span class="ch-n">06</span><h2>添加物理单元（physical only cell）</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>添加物理单元（physical only cell）</h2><span class="ch-ai" data-ai="source-05"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>概念先行：<strong>physical only cell 是只有物理信息、没有时序信息的单元</strong>。它们不参与逻辑功能、不参与时序分析，但<strong>必须存在</strong>，否则芯片造不出来或有可靠性问题。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、添加physicalcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">概念：什么是physical only cell？  只有物理信息，没有时序信息的单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）endcap cell（boundary cell）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 防止边缘效应，防止过刻蚀的情况出现，打在core四周以及mem的四周</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">需要检查：打完之后有没有缺失的情况</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）tap cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 为了防止闩锁效应（Latch-up）,（闩锁效应： VDD和VSS形成一个低阻通路，容易造成短路、烧毁）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）tiecell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：为了防止一些pin出现floating悬空的情况，需要插入tiecell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">tiecell种类分为两种</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">TieHigh   始终为1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">TieLow   始终为0</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4）Decap   cell   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：为了防止IRDROP的问题，相当于一个小电容，需要额外的电荷时提供电荷，不需要额外电荷时，进行充电到最大</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">IRDROP:电压降，电压经过导线的传输，随着距离的加大，会出现电压降低的现象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5）Filler Cell </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 用于填充空白区域，方便进行生产，形成完整的井连接</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">6）ESD cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：防止静电的影响，通过esd释放静电电流</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">特别的单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">spare cell    inv最多，buf次之， flop较少  预备单元，在eco阶段使用</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">延伸：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">抓取所有的endcap</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">selectInst [dbGet top.insts.name ENDCAP_*]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">抓取所有的tapcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">selectInst [dbGet top.insts.name WELLTAP_*]</p></div>
 <p>原文列了六类加一个特殊类别，逐类说清「为什么需要」。</p>
@@ -265,7 +265,7 @@
   
 </section>
 <section class="ch" id="source-06" data-ch="source-06">
-  <div class="ch-h"><span class="ch-n">07</span><h2>布局与布线约束</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>布局与布线约束</h2><span class="ch-ai" data-ai="source-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>约束区域是「人工干预工具决策」的手段。用得好解决局部问题，用滥了让全局变差。</p>
 <h3>5.1 三种分组约束：guide / region / fence</h3>
 <p>这三个词的区别是面试常考，也是操作最容易混的。原文定义非常精准，值得逐字读。</p>
@@ -322,7 +322,7 @@
   
 </section>
 <section class="ch" id="source-07" data-ch="source-07">
-  <div class="ch-h"><span class="ch-n">08</span><h2>导入导出与质量评估</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>导入导出与质量评估</h2><span class="ch-ai" data-ai="source-07"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <h3>吐出与吃进：四种交接方式</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">6、吐出flooplan的tcl文件/产生一个fp.tcl文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">产生fp的tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">writeFPlanScript  -selected    -fileName ../scripts/stu_0131_placemem.tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">吃fp的tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">source  ../scripts/stu_0131_placemem.tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">吐出def文件(innovus)        注：01版本只动了mem</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">defOut -floorplan  data/floorplan_01.def </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">读入def文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">defIn data/floorplan_01.def</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7 如何评估floorplan的好坏</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7.1 整体看上去整齐，美观</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7.2 要根据place的结果来评判，place的setup时序是否有违例， congestion map是否有大量红色， cell density是否有较高的地方</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion map:  会有个图层可以查看congestion分布，颜色深度就是严重程度，颜色越深，越严重</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion：绕线资源的拥塞程度，congestion越严重，线就越绕不通</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion可以通过命令查看overflow的值  H(横向)和V(纵向)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">overflow的值不要超过1%    0.1%-0.2%(3nm)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">reportCongestion -hotSpot -overflow  </p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-27.png" data-fig="innovus-doc-27.png"><img src="/fig/innovus-doc-27.png" alt="原文图 27 · 导入导出与质量评估" loading="lazy" decoding="async"></a><figcaption>原文图 27 · 导入导出与质量评估</figcaption></figure>
@@ -349,7 +349,7 @@
   
 </section>
 <section class="ch" id="source-08" data-ch="source-08">
-  <div class="ch-h"><span class="ch-n">09</span><h2>常见问题与进阶技巧</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>常见问题与进阶技巧</h2><span class="ch-ai" data-ai="source-08"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原文这节是问答形式，每个问题都是真实遇到的。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">8 floorplan的一些问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">8.1 init design之后有很多mem/分给自己的模块有很多mem/mcaro，怎么更快的进行fp</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）使用工具自动摆放macro的界面，但是这种方法较为粗糙</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">或者使用命令   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Set_fp_stragety  -macros_on_edge  on  </p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-28.png" data-fig="innovus-doc-28.png"><img src="/fig/innovus-doc-28.png" alt="原文图 28 · 常见问题" loading="lazy" decoding="async"></a><figcaption>原文图 28 · 常见问题</figcaption></figure>
@@ -376,7 +376,7 @@
   
 </section>
 <section class="ch" id="source-09" data-ch="source-09">
-  <div class="ch-h"><span class="ch-n">10</span><h2>实操：完整的 floorplan 脚本</h2></div>
+  <div class="ch-h"><span class="ch-n">10</span><h2>实操：完整的 floorplan 脚本</h2><span class="ch-ai" data-ai="source-09"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原文最后给了一个真实项目的完整操作，值得逐行读。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5）实操</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.定义形状</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">floorplan -noSnapToGrid -b 0 0 935.712 456.456  0 0 935.712 456.456</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.2 1.2285 934.512 455.2275 #die 坐标 IO 坐标 core 坐标</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addObjFPlanCutBox cell bpu40_vae_top_wrapper  0 0 566.352 228.228</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">#切角坐标。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-29.png" data-fig="innovus-doc-29.png"><img src="/fig/innovus-doc-29.png" alt="原文图 29 · 实操：定义形状与抓取、摆放端口" loading="lazy" decoding="async"></a><figcaption>原文图 29 · 实操：定义形状与抓取、摆放端口</figcaption></figure>
@@ -396,13 +396,13 @@
   
 </section>
 <section class="ch" id="checklist" data-ch="checklist">
-  <div class="ch-h"><span class="ch-n">11</span><h2>完整检查清单</h2></div>
+  <div class="ch-h"><span class="ch-n">11</span><h2>完整检查清单</h2><span class="ch-ai" data-ai="checklist"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>Floorplan 做完，逐项过一遍：</p>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>Die/Core 尺寸与上游清单一致，手工核对「Die 高 = Core 高 + 上下边距」算式</li><li>原点位置（左下角/中心）与上游约定一致，没有凭习惯选</li><li>异形切角坐标与要求一致，切掉的区域原本不需要放宏</li><li>所有 port 已摆放，<code>unplaced_terms.txt</code> 为空或有明确解释</li><li>端口对齐到轨道（<code>-snap TRACK</code>），总数与网表一致</li><li>多层摆 port 的层方向正确：上下用 5/7/9，左右用 6/8/10</li><li>引脚附近有 pin blockage，密度设置合理</li><li>每个宏都贴边或有记录的理由，同类宏引脚朝向一致</li><li>相邻宏间距相等，宏之间没有小于 3 µm 的窄缝</li><li>所有宏设了 halo，halo 之间没有重叠</li><li>通道宽度按「引脚数 × pitch ÷ 层数」估算并留了 1.5–2 倍余量</li><li>六类 physical cell（endcap/tap/tie/decap/filler/ESD）该加的已加，数量核对过</li><li><code>reportCongestion -overflow</code> 已跑，overflow &lt; 1%，横向纵向分别记录</li><li>guide/region/fence 三种分组约束按需设置，<code>-place_hard_fence</code> 已开</li><li>四类 blockage 没有遗留的临时设置，按名字管理而非按类型批量删</li><li>所有 floorplan 参数已写入 tcl，可从干净数据库重跑</li><li>dontuse cell 检查已做，设计中没有被禁用的单元</li></ul></div>
   
 </section>
 <section class="ch" id="quiz" data-ch="quiz">
-  <div class="ch-h"><span class="ch-n">12</span><h2>自测</h2></div>
+  <div class="ch-h"><span class="ch-n">12</span><h2>自测</h2><span class="ch-ai" data-ai="quiz"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>site 和 row 分别是什么？为什么标准单元宽度必须是 site 的整数倍？</div>
   <div class="q-a">site 是摆放的最小宽度单位，row 是高度等于标准单元高度、由 site 横向重复组成的条带。宽度为 site 整数倍才能保证相邻单元电源轨对齐连续。</div>
@@ -458,7 +458,7 @@
   
 </section>
 <section class="ch" id="next" data-ch="next">
-  <div class="ch-h"><span class="ch-n">13</span><h2>下一步与延伸阅读</h2></div>
+  <div class="ch-h"><span class="ch-n">13</span><h2>下一步与延伸阅读</h2><span class="ch-ai" data-ai="next"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>Floorplan 定稿后，下一步是 <a href="/lesson/03-06-powerplan/">PowerPlan：打电源网格</a>。</p>
 <div class="tbl"><table><thead><tr><th>主题</th><th>参考</th></tr></thead><tbody><tr><td>切角与端口清单实操</td><td><a href="/lesson/03-01a-flp-lab/">Floorplan 实操：看懂切角与端口</a></td></tr><tr><td>Memory 面积怎么算、利用率分母怎么取</td><td><a href="/lesson/03-01c-project-details/">算清 Memory 面积，看懂布局报告</a></td></tr><tr><td>从 Die Size 输入到 Kick-Off Run</td><td><a href="/lesson/03-01d-floorplan-advanced/">Floorplan 进阶</a></td></tr><tr><td>布局密度与拥塞诊断</td><td><a href="/lesson/03-01e-placement-diagnostics/">Place 诊断</a></td></tr></tbody></table></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
@@ -479,9 +479,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

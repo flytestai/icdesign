@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Place：布局三阶段、OCV 谱系与时序判据 · 37 | IC 后端学院</title>
 <meta name="description" content="布局的四个目标；global/scan reorder/detail 三阶段各做什么；OCV→AOCV→SOCV 的演进与 CPPR 为什么能救回来；path group 怎么用；Setup/Hold 公式怎么推；四类 DRV；面积计算脚本与成败判据。附原始资料对照。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-07-place">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="41"><section class="ch" id="goals" data-ch="goals">
-  <div class="ch-h"><span class="ch-n">01</span><h2>布局要同时满足四个目标</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>布局要同时满足四个目标</h2><span class="ch-ai" data-ai="goals"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>Place 是把标准单元放到合法位置上的过程。听起来简单——位置而已。但要同时满足四个互相冲突的目标：</p>
 <div class="tbl"><table><thead><tr><th>目标</th><th>含义</th><th>冲突对象</th></tr></thead><tbody><tr><td><strong>合法</strong></td><td>在行上、不重叠、朝向正确、不违反 floorplan 约束</td><td>想挤在一起省面积</td></tr><tr><td><strong>线短</strong></td><td>相关单元靠近，减少线长和延迟</td><td>挤在一起反而绕线</td></tr><tr><td><strong>密度合理</strong></td><td>局部不过密，给布线留资源</td><td>面积越小成本越低</td></tr><tr><td><strong>时序好</strong></td><td>关键路径的单元靠近</td><td>全局最优不等于时序最优</td></tr></tbody></table></div>
 <p>这四个目标不可能同时最优，所以 Place 的本质是<strong>找平衡点</strong>。工具做加权优化，你要判断「这次结果是不是可接受」。</p>
@@ -74,7 +74,7 @@
   
 </section>
 <section class="ch" id="source-01" data-ch="source-01">
-  <div class="ch-h"><span class="ch-n">02</span><h2>布局目标与三阶段流程</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>布局目标与三阶段流程</h2><span class="ch-ai" data-ai="source-01"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原文把目标和流程放在一起讲。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">五、Place</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）主要的目标</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">合理规范摆放标准单元：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">stdcell的方向正确</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">stdcell不能出现overlap(单元重叠的情况)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">stdcell必须在row上，基于site进行摆放</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">没有违反fp的constrain(布局约束 region partial 等)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）place的流程</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.1 global place</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">全局性摆放单元，确定大致的位置,比较粗糙的走线，主要目的为了评估congestion是否有问题，以及density是否合理</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.2 Scan Reorder 扫描链重组</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">扫描链Scan Chain  DFT(design for test)部门设计专门网表</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">一种测试的手段，验证芯片功能是否满足要求</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">认识cell的常见pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">D pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Q pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">SI pin  scan input</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">SO pin scan output</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">SE pin scan exable</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">CK pin</p></div>
 <h3>四个合法性要求，缺一不可</h3>
@@ -110,7 +110,7 @@
   
 </section>
 <section class="ch" id="source-02" data-ch="source-02">
-  <div class="ch-h"><span class="ch-n">03</span><h2>分析模式：OCV 谱系与 CPPR</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>分析模式：OCV 谱系与 CPPR</h2><span class="ch-ai" data-ai="source-02"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>这一段是整门课理论密度最高的部分。原文把 OCV → AOCV → SOCV → CPPR 的演进全列出来了，但没解释「为什么」。</p>
 <h3>问题的起点：每个单元的延迟都不一样</h3>
 <p>理想情况下同批单元在同工艺角下延迟相同。现实是：<strong>工艺偏差</strong>（光刻、掺杂、氧化层厚度的微小差异让每个晶体管阈值电压不同）、<strong>电压偏差</strong>（芯片上不同位置供电电压有差异）、<strong>温度偏差</strong>（不同位置温度不同，迁移率不同）。三者合称 <strong>PVT</strong>。</p>
@@ -163,7 +163,7 @@
   
 </section>
 <section class="ch" id="source-03" data-ch="source-03">
-  <div class="ch-h"><span class="ch-n">04</span><h2>布局命令与静态时序分析</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>布局命令与静态时序分析</h2><span class="ch-ai" data-ai="source-03"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <h3>一条命令跑完布局</h3>
 <p>原文：<strong>跑 place 的超级指令 <code>place_opt_design</code></strong>。</p>
 <p>这一条命令包含：全局布局 → 合法化 → 详细布局 → 时序优化 → DRV 修复。叫「超级指令」是因为内部调用了十几个子步骤。方便，但<strong>出问题时不好定位</strong>——不知道是哪一步出的问题。</p>
@@ -197,7 +197,7 @@
   
 </section>
 <section class="ch" id="source-04" data-ch="source-04">
-  <div class="ch-h"><span class="ch-n">05</span><h2>布局摘要与 DRV</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>布局摘要与 DRV</h2><span class="ch-ai" data-ai="source-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <h3>四类基本 DRV</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">placement summary</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-35.png" data-fig="innovus-doc-35.png"><img src="/fig/innovus-doc-35.png" alt="原文图 35 · 布局摘要与设计规则违例" loading="lazy" decoding="async"></a><figcaption>原文图 35 · 布局摘要与设计规则违例</figcaption></figure>
@@ -221,7 +221,7 @@
   
 </section>
 <section class="ch" id="source-05" data-ch="source-05">
-  <div class="ch-h"><span class="ch-n">06</span><h2>利用率与面积计算</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>利用率与面积计算</h2><span class="ch-ai" data-ai="source-05"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <h3>利用率的经验值</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）利用率</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">一般Place的利用率在45%-50% </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postroute不超过60%</p></div>
 <p>原文给了三个阶段参考：<strong>place 45%–50%，postroute 不超过 60%</strong>。</p>
@@ -249,7 +249,7 @@
   
 </section>
 <section class="ch" id="source-06" data-ch="source-06">
-  <div class="ch-h"><span class="ch-n">07</span><h2>跑完 place 查什么</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>跑完 place 查什么</h2><span class="ch-ai" data-ai="source-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原文给了五项检查，是最实用的验收清单。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">跑完place需要check什么</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）检查setup的时序是否符合预期，一般在-100ps左右都是合理的，需要关注reg2reg  reg2cg  reg2mem(除了In\out那些)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）检查是否有congestion的问题，先看congestion map,其次看overflow的值是否符合要求，一般在1.5%</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）cell 的density (单元摆放密度)不要超过80%</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4）检查设计的ut利用率（随着步骤往后，利用率是不断上升的，place阶段利用率大概在45%左右）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5）检查DRV是否有违例(四种基本DRV)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">修复setup</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置group单独对有违例的path进行优化</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">group_path -name  gp1  -from  [get_cells {cell1 cell2 cell3}]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">group_path -name gp2  -to [get_cells {cell1 cell2 cell3}]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPathGroupOptions gp1 -effortLevel high</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPathGroupOptions gp2 -effortLevel high</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置pathmargin/input_delay </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例如：  原本违例  -20ps, 设置pathmargin, 会变成-120或者-220ps，工具修复到-80ps</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">等工具修完之后，在拿掉这个margin，违例可能就修复掉了</p></div>
 <p><strong>① Setup 时序</strong>：原文说「一般在 -100ps 左右都是合理的，需要关注 reg2reg、reg2cg、reg2mem（除了 in/out 那些）」。判据前面讲过——-100 ps 是留余地的标准，修到 0 反而说明过度优化。</p>
@@ -272,12 +272,12 @@
   
 </section>
 <section class="ch" id="checklist" data-ch="checklist">
-  <div class="ch-h"><span class="ch-n">08</span><h2>检查清单</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>检查清单</h2><span class="ch-ai" data-ai="checklist"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>布局合法性四项都验过：方向、无重叠、在 row 上、不违反 floorplan 约束</li><li><code>checkPlace</code> 无 overlap、无 VT 不匹配</li><li>scan reorder 在 DFT 允许范围内，链描述已同步更新</li><li>OCV 模式明确（OCV/AOCV/SOCV），CPPR 已开启</li><li>path group 按 reg2reg/in2reg/reg2out/in2out 等正确划分</li><li>主要组 effortLevel 设 high，边角组设 low</li><li>约束修改用 <code>set_interactive_constraint_modes</code> 成对开关，没有只开不关</li><li><code>place_opt_design</code> 跑完后 setup 时序在 -100 ps 以内</li><li>分组建看 WNS，排除 in2out 的干扰</li><li>overflow &lt; 1.5%，congestion map 无大面积红色</li><li>cell density &lt; 80%</li><li>利用率在 45–50% 区间（为后续插入留余量）</li><li>四类基本 DRV（transition/fanout/length/cap）无违例</li><li>插入的 buffer 都加了有意义的前缀（fix_drv_xxx / fix_hold_xxx）</li><li>临时加的 path margin 已拿掉</li><li>面积计算脚本跑过，core 尺寸与估算值核对</li></ul></div>
   
 </section>
 <section class="ch" id="quiz" data-ch="quiz">
-  <div class="ch-h"><span class="ch-n">09</span><h2>自测</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>自测</h2><span class="ch-ai" data-ai="quiz"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>全局布局、扫描链重组、详细布局三阶段各做什么？</div>
   <div class="q-a">全局布局确定大致位置并评估拥塞和密度；扫描链重组在允许范围内缩短测试链走线；详细布局做合法化并细调线长与时序。</div>
@@ -327,7 +327,7 @@
   
 </section>
 <section class="ch" id="next" data-ch="next">
-  <div class="ch-h"><span class="ch-n">10</span><h2>延伸阅读</h2></div>
+  <div class="ch-h"><span class="ch-n">10</span><h2>延伸阅读</h2><span class="ch-ai" data-ai="next"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>下一课是 <a href="/lesson/03-08-cts/">CTS：时钟树综合</a>。</p>
 <div class="tbl"><table><thead><tr><th>主题</th><th>参考</th></tr></thead><tbody><tr><td>布局密度与拥塞诊断</td><td><a href="/lesson/03-01e-placement-diagnostics/">Place 诊断</a></td></tr><tr><td>GCell 溢出计算</td><td><a href="/lesson/03-01l-overflow/">Overflow</a></td></tr><tr><td>按阶段读 Setup 和 Hold</td><td><a href="/lesson/03-01h-timing-noise/">时序与噪声诊断</a></td></tr></tbody></table></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
@@ -348,9 +348,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 9 讲 · 定义 / 使用函数（proc） · 15 | IC 后端学院</title>
 <meta name="description" content="proc 函数全套：无参、带参数（return 语义与 [ ] 接收返回值）、默认参数、args 可变参数（必须放最后）、global 全局变量声明、max 综合示例、proc 核心语法总结（文档原文）。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="01-15-tcl-09-proc">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="16"><section class="ch" id="noparam" data-ch="noparam">
-  <div class="ch-h"><span class="ch-n">01</span><h2>1. 最简单的无参函数</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>1. 最简单的无参函数</h2><span class="ch-ai" data-ai="noparam"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>会写 proc 的四种形态（无参/带参/默认参数/args）；会用 [ ] 接收返回值；会用 global 声明全局变量；背下 proc 核心语法总结。</div>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 定义一个函数：输出 hello</span><span class="ln ">proc sayHello {} {</span><span class="ln ">    puts &quot;Hello, Tcl!&quot;</span><span class="ln ">}</span><span class="ln "> </span><span class="ln cmt"># 使用（调用）函数</span><span class="ln ">sayHello   # 调用时无 {}</span></code></pre></div>
 <div class="tsbx has-code" data-code="proc sayHello {} {
@@ -87,7 +87,7 @@ sayHello
   
 </section>
 <section class="ch" id="param" data-ch="param">
-  <div class="ch-h"><span class="ch-n">02</span><h2>2. 带参数的函数（最常用）</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>2. 带参数的函数（最常用）</h2><span class="ch-ai" data-ai="param"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 定义：接收两个数字，相加并返回结果</span><span class="ln ">proc add {a b} {</span><span class="ln ">    set sum [expr {$a + $b}]</span><span class="ln ">    return $sum</span><span class="ln ">}</span><span class="ln "> </span><span class="ln cmt"># `return`：退出当前 proc，并且把指定值作为这个 proc 的返回结果。</span><span class="ln "> </span><span class="ln cmt"># 调用</span><span class="ln ">set result [add 10 20]</span><span class="ln ">puts &quot;10 + 20 = $result&quot;</span></code></pre></div>
 <div class="tsbx has-code" data-code="proc add {a b} {
     set sum [expr {$a + $b}]
@@ -117,7 +117,7 @@ puts &quot;10 + 20 = $result&quot;
   
 </section>
 <section class="ch" id="default" data-ch="default">
-  <div class="ch-h"><span class="ch-n">03</span><h2>3. 带默认参数的函数</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>3. 带默认参数的函数</h2><span class="ch-ai" data-ai="default"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>TCL 用 args 或直接给参数默认值：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 定义：b 默认是 5</span><span class="ln ">proc addDefault {a {b 5}} {</span><span class="ln ">    return [expr {$a + $b}]</span><span class="ln ">}</span><span class="ln cmt"># 只传一个参数（使用默认值）</span><span class="ln ">puts [addDefault 3]   ;# 3+5=8</span><span class="ln cmt"># 传两个参数（覆盖默认值）</span><span class="ln ">puts [addDefault 3 7] ;# 3+7=10</span></code></pre></div>
 <div class="tsbx has-code" data-code="proc addDefault {a {b 5}} {
@@ -142,7 +142,7 @@ puts [addDefault 3 7]   ;# 10</textarea>
   
 </section>
 <section class="ch" id="args" data-ch="args">
-  <div class="ch-h"><span class="ch-n">04</span><h2>4. 可变参数函数（任意个数参数）</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>4. 可变参数函数（任意个数参数）</h2><span class="ch-ai" data-ai="args"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>args 是 TCL 特殊参数：接收调用时传入的所有参数，打包成一个列表。调用 <code>sumAll 1 2 3 4 5</code> → args = {1 2 3 4 5}；调用 <code>sumAll 10 20</code> → args = {10 20}。</p>
 <p><strong>规则</strong>：args 必须写在参数列表最后；如果只有 args，代表可以传 0、1、任意多个参数。</p>
 <div class="tsbx has-code" data-code=";# 定义：求任意多个数字之和
@@ -200,7 +200,7 @@ test 10 20 30 40
   
 </section>
 <section class="ch" id="global" data-ch="global">
-  <div class="ch-h"><span class="ch-n">05</span><h2>5. 函数内使用局部变量 / 全局变量</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>5. 函数内使用局部变量 / 全局变量</h2><span class="ch-ai" data-ai="global"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>TCL 函数内部默认访问不到外面的变量（比 Python 严格：读也要声明）。要用全局变量，必须先 <code>global</code> 声明：</p>
 <div class="tsbx has-code" data-code="set globalVal 100 ;# 全局变量
 proc testGlobal {} {
@@ -230,7 +230,7 @@ testGlobal</textarea>
   
 </section>
 <section class="ch" id="max" data-ch="max">
-  <div class="ch-h"><span class="ch-n">06</span><h2>6. 完整实用示例：计算两数最大值</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>6. 完整实用示例：计算两数最大值</h2><span class="ch-ai" data-ai="max"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="tsbx has-code" data-code=";# 定义函数：返回两个数的最大值
 proc max {x y} {
     if {$x &gt; $y} {
@@ -264,7 +264,7 @@ puts &quot;max(5, 9) = [max 5 9]&quot;
   
 </section>
 <section class="ch" id="summary" data-ch="summary">
-  <div class="ch-h"><span class="ch-n">07</span><h2>proc 核心语法总结（文档原文）</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>proc 核心语法总结（文档原文）</h2><span class="ch-ai" data-ai="summary"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proc 函数名 {参数1 参数2 ...} {</span><span class="ln cmt">    ;# 函数体</span><span class="ln ">    return 返回值</span><span class="ln ">}</span></code></pre></div>
 <p>关键点：</p>
 <ul><li>proc = 定义函数</li><li>{} 包裹参数列表</li><li>return 返回值（<strong>不写则返回最后一条命令结果</strong>）</li><li>调用：函数名 参数1 参数2</li><li>获取返回值：[函数名 参数]</li></ul>
@@ -272,7 +272,7 @@ puts &quot;max(5, 9) = [max 5 9]&quot;
   
 </section>
 <section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">08</span><h2>动手练</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>动手练</h2><span class="ch-ai" data-ai="lab"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（3 题）</div><div class="lab-b"><ol><li>写一个 proc <code>area {w h}</code> 返回长方形面积，调用并打印。</li><li>写一个 proc <code>greet {name {prefix &quot;Hello&quot;}}</code> 练默认参数。</li><li>写一个 proc <code>avg {args}</code> 求任意多个数的平均值（foreach + expr + llength，注意整数除法陷阱——用 <code>double()</code> 转浮点）。</li></ol></div></div>
 <div class="tsbx has-code" data-code=";# 参考答案（先自己写再对照）
 ;# 1
@@ -351,9 +351,9 @@ puts [avg 1 2 3 4]                ;# 2.5</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

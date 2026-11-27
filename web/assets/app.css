@@ -64,6 +64,24 @@ strong{color:var(--ink);font-weight:650}
 .ch{padding:26px 0 8px;border-top:1px solid var(--line);margin-top:26px;scroll-margin-top:74px}
 .ch:first-child{border-top:0;margin-top:8px}
 .ch-h{display:flex;gap:12px;align-items:baseline;margin-bottom:14px}
+
+/* 小节标题右侧的「AI 讲解」按钮组：紧挨在铅笔图标左边 */
+.ch-ai{flex:0 0 auto;margin-left:auto;display:inline-flex;gap:6px;align-items:center;
+  user-select:none;-webkit-user-select:none}
+/* 铅笔按钮本身也是 margin-left:auto，两个都在时让 AI 组先占位 */
+.ch-h .ch-ai + .icledit{margin-left:0}
+.ch-ai-btn{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px;
+  border:1px solid #cfd9e6;background:#f6f9fc;color:#456;border-radius:7px;
+  font-size:12px;line-height:1;cursor:pointer;font-family:inherit;white-space:nowrap;
+  transition:background .15s,border-color .15s,color .15s}
+.ch-ai-btn:hover{background:#eaf2fb;border-color:#9dc3ea;color:#2f7fd0}
+.ch-ai-btn:active{transform:translateY(1px)}
+.ch-ai-btn:disabled{opacity:.6;cursor:default}
+@media (max-width:620px){
+  /* 窄屏下把按钮文字收起来，只留图标，避免标题被挤断行 */
+  .ch-ai-btn{padding:0 7px}
+  .ch-ai-btn .aiw-txt{display:none}
+}
 .ch-n{font-family:var(--mono);font-size:12px;color:#fff;background:var(--brand);border-radius:6px;padding:2px 7px;flex:0 0 auto;transform:translateY(-3px)}
 .ch h2{font-size:22px;margin:0;line-height:1.4;letter-spacing:-.2px}
 .ch h3{font-size:17px;margin:26px 0 10px;color:#12314c}

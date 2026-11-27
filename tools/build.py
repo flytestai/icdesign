@@ -950,7 +950,7 @@ def build_lesson(L, plan, by_id):
         is_last = (i == len(chs) - 1)
         # 每章底部的「学完这章，继续下一章」按钮已移除；仅最后一章保留跳转按钮
         art.append(f"""<section class="ch" id="{c['id']}" data-ch="{c['id']}">
-  <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2></div>
+  <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2><span class="ch-ai" data-ai="{c['id']}"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   {c['html']}
   {last_html if is_last else ''}
 </section>""")

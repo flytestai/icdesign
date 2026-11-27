@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 1 讲 · 开工准备：环境与第一个命令 · 07 | IC 后端学院</title>
 <meta name="description" content="TCL 平时不是独立运行的，而是"寄生"在 EDA 工具里。这一课搞定 innovus 打不开的排查、写出第一个 puts、弄清两种注释写法，并在网页练习台上跑出第一行输出。全程 Python 对照。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="01-07-tcl-01-start">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="9"><section class="ch" id="env" data-ch="env">
-  <div class="ch-h"><span class="ch-n">01</span><h2>为什么第一讲讲环境</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么第一讲讲环境</h2><span class="ch-ai" data-ai="env"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>知道 TCL 与 EDA 工具的关系；能排查 innovus 打不开；会 source 加载环境；能用 puts 输出一句话；会用 <code>#</code> 和 <code>;#</code> 两种注释。</div>
 <p>TCL 是 EDA 工具（Cadence Innovus、Synopsys DC 等）的标准脚本语言，所以第一步是把 EDA 环境配好——这是实际工作里天天打交道的部分。</p>
 <p><strong>问题场景</strong>：运行 <code>innovus -cpus 2</code> 打不开（命令找不到）。</p>
@@ -78,7 +78,7 @@
   
 </section>
 <section class="ch" id="puts" data-ch="puts">
-  <div class="ch-h"><span class="ch-n">02</span><h2>第一个命令：puts</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>第一个命令：puts</h2><span class="ch-ai" data-ai="puts"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><code>puts</code> = put string，作用和 Python 的 <code>print()</code> 一样：输出内容并换行。字符串用双引号 <code>&quot;...&quot;</code> 包起来（也可以用花括号 <code>{...}</code>，第 2 讲讲区别）。</p>
 <div class="tsbx has-code" data-code="puts &quot;Hello, TCL!&quot;">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
@@ -100,7 +100,7 @@
   
 </section>
 <section class="ch" id="comment" data-ch="comment">
-  <div class="ch-h"><span class="ch-n">03</span><h2>注释怎么写</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>注释怎么写</h2><span class="ch-ai" data-ai="comment"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ul><li><strong>行首注释</strong>：用 <code>#</code>（和 Python 一样）。</li><li><strong>行中注释</strong>：命令后面接 <code>;#</code>——分号表示&quot;这一行命令到此结束&quot;，然后 <code>#</code> 开始注释。</li></ul>
 <div class="tsbx has-code" data-code="set age 25   ;# 这是注释">
   <div class="sbx-h"><span class="sbx-dots"><i></i><i></i><i></i></span><b>Tcl 练习台</b><span class="sbx-tip">多行编辑，点「运行」或按 Ctrl+Enter 执行</span><button class="sbx-clr" type="button" title="清空输出区（保留变量、保留编辑器代码）">清空</button><button class="sbx-rst" type="button" title="重置解释器环境并清空输出">重置</button></div>
@@ -116,7 +116,7 @@
   
 </section>
 <section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>动手练</h2><span class="ch-ai" data-ai="lab"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（2 题）</div><div class="lab-b"><ol><li>配好环境，打开并关闭一次 Innovus 窗口。</li><li>用 <code>puts</code> 输出&quot;我要学 TCL 了&quot;。</li></ol></div></div>
 <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>练习 2 怎么写？</div>
@@ -150,9 +150,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

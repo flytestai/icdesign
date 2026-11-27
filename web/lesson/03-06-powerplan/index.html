@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PowerPlan：供电结构、IR/EM 与检查 · 36 | IC 后端学院</title>
 <meta name="description" content="打 PG 到底在打什么；五种供电结构（Follow Pin、Ring、Stripe、Via Pillar、Metal Stack）各管哪一层；IR Drop 与电迁移的机理；跑完必须查的三件事。附原始资料对照。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-06-powerplan">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="28"><section class="ch" id="why" data-ch="why">
-  <div class="ch-h"><span class="ch-n">01</span><h2>一句话说清：为什么要有 PowerPlan</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>一句话说清：为什么要有 PowerPlan</h2><span class="ch-ai" data-ai="why"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>前面 Floorplan 定的是「东西放哪」，这一步定的是「电怎么送进去」。</p>
 <p>芯片里每一个标准单元、每一块 Memory 都要接 VDD 和 VSS。但电源不是拉一根线就行：标准单元的电源引脚宽度只有零点几微米，过不了多少电流；几百万个单元同时翻转，瞬间电流是安培级；金属线有电阻，电流一过就掉压；电流密度太高，金属原子会被「冲走」。</p>
 <p>所以必须建一套<strong>分层的供电网络</strong>：从顶层粗线开始，一层层往下分叉，最后接到每个单元的电源脚。这个过程业内叫「<strong>打 PG</strong>」（PG = Power/Ground）。</p>
@@ -77,7 +77,7 @@
   
 </section>
 <section class="ch" id="source-01" data-ch="source-01">
-  <div class="ch-h"><span class="ch-n">02</span><h2>供电结构：五种层次，各管一段</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>供电结构：五种层次，各管一段</h2><span class="ch-ai" data-ai="source-01"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原文这一段信息密度很高，把五种结构全列出来了。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">四、PowerPlan 电源规划</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">又叫打PG（power    ground）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">powerplan的脚本一般有DFP负责</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">powerplan的目标：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">建立一个强壮的供电网络，避免IRDROP和EM的现象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">EM：电迁移现象，电子的流动会带动金属原子一起运动，形成堆积或者是侵蚀，出现short或open的情况</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Power Rail / Follow Pin   主要是给stdcell进行供电，连接到std的vdd和vss的pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Power Ring   电源环线  主要给mem进行供电的一种方式</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">power Stripe  电源条线  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Via Piller 给stdcell增强供电的一种打pg的方式</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Metal_stack   1P15M  block level不会用完所有的层，预留两层给top </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">跑完了powerplan需要检查什么内容？</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">检查drc</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">verify_drc -limit 99999</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">检查是否有floating open的问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">verifyConnectivity -net {VDD VSS}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editDelete </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-use {CLOCK POWER SIGNAL}    删除的线的类型</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-shape {RING STRIPE FOLLOWPIN}  删除电源线的类型</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addStripe</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addRing </p></div>
 <h3>① Power Rail / Follow Pin</h3>
@@ -129,7 +129,7 @@
   
 </section>
 <section class="ch" id="check" data-ch="check">
-  <div class="ch-h"><span class="ch-n">03</span><h2>跑完之后查什么</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>跑完之后查什么</h2><span class="ch-ai" data-ai="check"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原文给了三组检查，这是最实操的部分。</p>
 <h3>检查一：DRC</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">verify_drc -limit 99999</span></code></pre></div>
@@ -162,7 +162,7 @@
   
 </section>
 <section class="ch" id="source-02" data-ch="source-02">
-  <div class="ch-h"><span class="ch-n">04</span><h2>流程脚本的五个部分</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>流程脚本的五个部分</h2><span class="ch-ai" data-ai="source-02"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原文延伸部分讲流程脚本结构，这段值得单独看，因为它适用于所有阶段的脚本。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">延伸：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1)flow的代码结构：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、导入各种定义、文件、变量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、读取数据</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、代码核心部分</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、保存数据</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、output一些文件（rpt、log）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）三种绕线</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">power  电源线  clock  时钟走线  signal  信号走线</p></div>
 <p>这个五段式是<strong>工业级流程脚本的标准结构</strong>，不是随意分的。</p>
@@ -176,7 +176,7 @@
   
 </section>
 <section class="ch" id="powerplan-pg-lab" data-ch="powerplan-pg-lab">
-  <div class="ch-h"><span class="ch-n">05</span><h2>原创实操：验收一个 SRAM 宏的电源与地</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>原创实操：验收一个 SRAM 宏的电源与地</h2><span class="ch-ai" data-ai="powerplan-pg-lab"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">原创教学</div><p>本节是独立纸笔练习。实例名、连通记录、电阻、电流和门槛均为虚构教学输入，不来自外部资料或工具实测；不需要运行任何版图命令。</p></div>
 <p>你拿到两份电源规划快照 <code>C0</code>、<code>C1</code>，要判断是否可以交接给后续实现。接口清单规定：<code>U_SRAM0/VP</code> 接开关域的 <code>VDD_SRAM_SW</code>，<code>U_SRAM0/VN</code> 接公共地 <code>VSS</code>；邻近常开域的 <code>VDD_AO</code> 即使在本场景也是 0.80 V，仍不允许与开关域短接。测试模式固定为开关域开启，检查路径从各 pin 经局部金属和条带到指定源端，不以画面上两层重叠代替过孔。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 原创模拟连通记录；预期两只 PG pin 都能到自己的源端，且无跨网短路。</span><span class="ln ">快照  引脚          期望网         局部实际网     同网源端可达    备注</span><span class="ln ">C0    U_SRAM0/VP   VDD_SRAM_SW    VDD_SRAM_SW    是              —</span><span class="ln ">C0    U_SRAM0/VN   VSS            VSS            否              局部地与地条带间缺过孔</span><span class="ln ">C1    U_SRAM0/VP   VDD_SRAM_SW    VDD_SRAM_SW    是              —</span><span class="ln ">C1    U_SRAM0/VN   VSS            VSS            是              仅补接地过孔</span><span class="ln ">C0/C1 检查范围：以上两个必检端点，三个相关网之间的短路数均为 0</span></code></pre></div>
@@ -187,12 +187,12 @@
   
 </section>
 <section class="ch" id="checklist" data-ch="checklist">
-  <div class="ch-h"><span class="ch-n">06</span><h2>检查清单</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>检查清单</h2><span class="ch-ai" data-ai="checklist"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>确认工艺金属层数，明确 block level 用到哪一层（通常留 2 层给 top）</li><li>Follow Pin 覆盖所有标准单元行，没有中断</li><li>Ring 闭合完整，四条边都连通，没有缺口</li><li>Stripe 的层、方向、间距、宽度与规划一致</li><li><code>-set_to_set_distance</code> 设置合理，没有过密或过疏</li><li>Stripe 与 Ring 的交叉点都打了 via</li><li>Via Pillar 按电流算数量，并加了余量</li><li>宏的每个电源脚都接到对应网络（不是几何相近就算接上）</li><li><code>verify_drc -limit 99999</code> 没有成片违例</li><li><code>verifyConnectivity -net {VDD VSS}</code> 无 floating、无 open</li><li>电源网名与 netlist 一致（不是想当然的 VDD/VSS）</li><li>电源线没有压到宏的边界禁布区</li><li>删除操作都用了 <code>-use</code> + <code>-shape</code> 双重限定</li><li>powerplan 脚本按五段式组织，可从干净数据库重跑</li></ul></div>
   
 </section>
 <section class="ch" id="quiz" data-ch="quiz">
-  <div class="ch-h"><span class="ch-n">07</span><h2>自测</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>自测</h2><span class="ch-ai" data-ai="quiz"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Follow Pin、Ring、Stripe 三者的分工？</div>
   <div class="q-a">Follow Pin 是最底层供电轨沿单元行铺，直接接单元电源脚；Ring 是 core 外围闭合环，主要给宏供电并均流；Stripe 是 core 内部纵横粗线，把电均匀送到内部各点。</div>
@@ -227,7 +227,7 @@
   
 </section>
 <section class="ch" id="next" data-ch="next">
-  <div class="ch-h"><span class="ch-n">08</span><h2>延伸阅读</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>延伸阅读</h2><span class="ch-ai" data-ai="next"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>下一课是 <a href="/lesson/03-07-place/">Place：标准单元布局</a>。</p>
 <div class="tbl"><table><thead><tr><th>主题</th><th>参考</th></tr></thead><tbody><tr><td>PG 连通、IR Drop 与 EM 的完整实训</td><td><a href="/lesson/03-12-pg-ir-em/">电源完整性专项</a></td></tr><tr><td>闩锁效应与阱衬底连接</td><td><a href="/lesson/03-01k-latch-up/">Latch-up</a></td></tr><tr><td>供电检查如何走到签核</td><td><a href="/lesson/03-14-chipfinish-handoff/">ChipFinish 桌面实训</a></td></tr></tbody></table></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
@@ -248,9 +248,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

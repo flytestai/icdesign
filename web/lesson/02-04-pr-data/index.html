@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PR 的数据准备：一次 init 到底要喂几个文件 · 23 | IC 后端学院</title>
 <meta name="description" content="把 init 阶段要导入的文件一次列全：design data（netlist）与 physical data（tech lef / cell lef / def）、timing data（lib / rc tech / sdc）、MMMC 环境。重点讲清 netlist 和 def 这两个"最容易被误解"的文件，并给出缺文件时的真实报错对照表。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="02-04-pr-data">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="17"><section class="ch" id="list" data-ch="list">
-  <div class="ch-h"><span class="ch-n">01</span><h2>先把清单摆出来</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>先把清单摆出来</h2><span class="ch-ai" data-ai="list"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>能说出 init 需要的全部文件及其作用；能解释 netlist 与 def 的区别；看到 <code>Cannot find library</code> 这类报错能定位到缺哪个文件。</div>
 <p>新人接手一个项目，第一件事不是敲命令，而是<strong>确认数据齐不齐</strong>。缺一个文件，后面所有工作都是零。</p>
 <p>文档把 PR 的数据分成两大类，我们按这个分类来记：</p>
@@ -80,7 +80,7 @@
   
 </section>
 <section class="ch" id="netlist" data-ch="netlist">
-  <div class="ch-h"><span class="ch-n">02</span><h2>netlist：逻辑连接的文字描述</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>netlist：逻辑连接的文字描述</h2><span class="ch-ai" data-ai="netlist"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">gate-level netlist</span><span class="term-zh">门级网表</span></div>
   <div class="term-b"><p>综合之后的网表，里面全是标准单元和宏单元（触发器、与非门、mem 等）的实例与连线，不再有 <code>always</code>、<code>if</code> 这种行为级描述。文件名一般就是模块名（tile 名）加 <code>.v.gz</code>。</p></div>
@@ -94,7 +94,7 @@
   
 </section>
 <section class="ch" id="naming" data-ch="naming">
-  <div class="ch-h"><span class="ch-n">03</span><h2>文件名不是随便起的：命名是防事故的第一道墙</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>文件名不是随便起的：命名是防事故的第一道墙</h2><span class="ch-ai" data-ai="naming"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>真实项目里，<strong>你从目录里一堆文件里挑对那一份</strong>的能力，比你想象的更重要。所以先认清命名规则。</p>
 <h3 id="naming-netlist">网表：模块名 + 后缀</h3>
 <div class="tbl"><table><thead><tr><th>后缀</th><th>含义</th><th>备注</th></tr></thead><tbody><tr><td><code>.v</code></td><td>明文 Verilog</td><td>能直接 <code>grep</code>，但文件大</td></tr><tr><td><code>.v.gz</code></td><td>gzip 压缩 Verilog</td><td><strong>最常见</strong></td></tr><tr><td><code>.gz</code></td><td>压缩包</td><td>有时多个文件打一起</td></tr></tbody></table></div>
@@ -111,7 +111,7 @@
   
 </section>
 <section class="ch" id="def" data-ch="def">
-  <div class="ch-h"><span class="ch-n">04</span><h2>def：这一版设计的&quot;实际位置&quot;</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>def：这一版设计的&quot;实际位置&quot;</h2><span class="ch-ai" data-ai="def"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">DEF</span><span class="term-zh">设计交换格式</span></div>
   <div class="term-b"><p>Design Exchange Format。存储一个设计<strong>当前的实际物理数据</strong>：design 名、die 大小、track 信息、每个单元/端口的具体坐标与朝向、布线结果（视导出阶段而定）。</p></div>
@@ -132,7 +132,7 @@
   
 </section>
 <section class="ch" id="lef" data-ch="lef">
-  <div class="ch-h"><span class="ch-n">05</span><h2>lef：两个文件，两种信息</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>lef：两个文件，两种信息</h2><span class="ch-ai" data-ai="lef"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>lef 有两个，名字像但作用完全不同，<strong>这是新人最容易混的一对</strong>：</p>
 <div class="term open">
   <div class="term-h"><span class="term-en">tech lef</span><span class="term-zh">工艺 LEF</span></div>
@@ -146,7 +146,7 @@
   
 </section>
 <section class="ch" id="timing-files" data-ch="timing-files">
-  <div class="ch-h"><span class="ch-n">06</span><h2>lib / rc tech / sdc：三个&quot;算延迟和定目标&quot;的文件</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>lib / rc tech / sdc：三个&quot;算延迟和定目标&quot;的文件</h2><span class="ch-ai" data-ai="timing-files"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>这三个是 timing data，作用一句话区分：</p>
 <div class="tbl"><table><thead><tr><th>文件</th><th>回答什么问题</th><th>缺了会怎样</th></tr></thead><tbody><tr><td><strong>lib</strong></td><td>这个单元在给定输入转换时间、给定负载下，延迟是多少？</td><td>工具算不出 cell delay，时序报告全是 0 或直接报错</td></tr><tr><td><strong>rc tech</strong></td><td>这段线每单位长度的电阻电容是多少？</td><td>算不出 net delay，长线的影响被低估</td></tr><tr><td><strong>sdc</strong></td><td>我要优化到什么程度？时钟多快？哪些路径不用管？</td><td>工具没有目标，等于没有优化</td></tr></tbody></table></div>
 <div class="term open">
@@ -161,14 +161,14 @@
   
 </section>
 <section class="ch" id="order" data-ch="order">
-  <div class="ch-h"><span class="ch-n">07</span><h2>init 的顺序感：为什么先物理后时序</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>init 的顺序感：为什么先物理后时序</h2><span class="ch-ai" data-ai="order"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>工具内部的顺序其实很朴素：</p>
 <ol><li>先读 <strong>lef</strong>：知道这个工艺有哪些层、每个单元长什么样（没有 lef，工具连&quot;地方&quot;都画不出来）；</li><li>再读 <strong>netlist</strong>：知道有哪些单元实例、怎么连；</li><li>再读 <strong>lib + rc tech</strong>：知道延迟怎么算；</li><li>再读 <strong>sdc + MMMC</strong>：知道优化目标与场景；</li><li><code>init_design</code>：把上面这些&quot;组装&quot;成一个可操作的设计。</li></ol>
 <p>所以报错也基本按这个顺序出现：先报找不到 lef，再报找不到 cell，再报找不到 library，最后才是约束相关的警告。</p>
   
 </section>
 <section class="ch" id="errors" data-ch="errors">
-  <div class="ch-h"><span class="ch-n">08</span><h2>缺文件的真实报错对照</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>缺文件的真实报错对照</h2><span class="ch-ai" data-ai="errors"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>文档没给报错原文，这里补上你在 Innovus/ICC2 里真会看到的几类，按&quot;报错 → 缺什么 → 怎么查&quot;记：</p>
 <div class="tbl"><table><thead><tr><th>报错关键词</th><th>真正缺的</th><th>怎么查</th></tr></thead><tbody><tr><td><code>Cannot find library 'xxx' in the search path</code></td><td>lib 没读到，或库名与 lef/网表里写的不一致</td><td>打印库搜索路径；<code>ls</code> 确认 .lib/.db 文件名</td></tr><tr><td><code>Cannot find cell 'INV_X1'</code></td><td>cell lef 没读全，或工艺库版本不对</td><td>在 cell lef 里搜 <code>MACRO INV_X1</code></td></tr><tr><td><code>Cannot find port/pin ...</code></td><td>def 与当前 lef 版本不匹配（pin 名或形状变了）</td><td>对比 def 与 lef 的版本/日期</td></tr><tr><td><code>No link library</code> / <code>link 失败</code></td><td>只有 netlist，没给 lib/lef</td><td>按上面 init 顺序补</td></tr><tr><td>时序报告全是 0 或没有 clock</td><td>sdc 没读进来、<code>create_clock</code> 没生效</td><td>打印时钟列表，看有没有 clock</td></tr></tbody></table></div>
 <div class="pit"><div class="pit-h">常见坑 · 版本对不上比缺文件更麻烦</div><div class="pit-b"><p><strong>现象</strong>：文件都在，但 def 读进去后一堆单元位置&quot;漂&quot;了，或 pin 找不到。 <strong>原因</strong>：def 是用旧版 lef 导出的，而你现在用的是新版库——单元尺寸或 pin 位置变了。 <strong>怎么避免</strong>：交付目录里永远记下 lef/lib 的版本号与日期；跨团队交接时，先对一遍&quot;你用的库版本和我的一样吗&quot;。</p></div></div>
@@ -213,9 +213,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

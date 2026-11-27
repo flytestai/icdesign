@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Route：三种引擎、短路开路与串扰 · 39 | IC 后端学院</title>
 <meta name="description" content="全局布线、特殊布线、详细布线各自解决什么；短路与开路怎么从报告读到版图；天线效应与串扰的成因和修法。附原始资料对照。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-09-route">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="17"><section class="ch" id="what" data-ch="what">
-  <div class="ch-h"><span class="ch-n">01</span><h2>一句话先记住：布线不是&quot;把线连上&quot;</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>一句话先记住：布线不是&quot;把线连上&quot;</h2><span class="ch-ai" data-ai="what"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>前面几步，单元的位置是<strong>摆</strong>出来的；到这一步，单元之间的线是<strong>画</strong>出来的。画线听起来比摆东西简单，实际上是整条流程里约束最多的一步：</p>
 <ul><li>线要连对（连错就是短路，没连上就是开路）；</li><li>线要走得下（轨道不够就会溢出，绕远路就会时序变差）；</li><li>线要守制造规则（太细、太近、太薄都会做不出来）；</li><li>线不能互相干扰（平行太长的两根线会串扰）；</li><li>线还要经得起制造过程（长线会积累电荷，打坏栅极）。</li></ul>
 <p>一样没做到，后面签核就过不去。所以这门课不讲&quot;怎么点那个按钮&quot;，讲<strong>每一步在防什么</strong>。</p>
@@ -74,7 +74,7 @@
   
 </section>
 <section class="ch" id="engines" data-ch="engines">
-  <div class="ch-h"><span class="ch-n">02</span><h2>三种布线引擎：先分清谁干什么</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>三种布线引擎：先分清谁干什么</h2><span class="ch-ai" data-ai="engines"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料列了三个名字：<code>global route</code>、<code>sroute</code>、<code>nanoroute</code>。很多人记成&quot;三个都能布线，随便用一个&quot;，这是最常见的误解——<strong>它们根本不是同一件事的三个选项，而是流水线上的三个工位。</strong></p>
 <div class="tbl"><table><thead><tr><th>引擎</th><th>干什么</th><th>输出什么</th><th>什么时候跑</th></tr></thead><tbody><tr><td><strong>Global Route</strong>（全局布线）</td><td>只做<strong>规划</strong>：估算每条网大致走哪个区域、需要几条轨道</td><td>一张&quot;需求 vs 容量&quot;的分配图，不产生真实几何</td><td>Floorplan / Place 之后，先看拥塞</td></tr><tr><td><strong>sroute</strong>（special route）</td><td>布<strong>特殊网</strong>：电源、地、时钟主干</td><td>电源网格、ring、stripe、followpin</td><td>PowerPlan 之后，Place 前后都可跑</td></tr><tr><td><strong>NanoRoute</strong>（详细布线）</td><td>真正<strong>画几何</strong>：具体到哪一层、哪条 track、哪个 via</td><td>可提取寄生的实际版图</td><td>Place 和 CTS 之后</td></tr></tbody></table></div>
 <p><strong>为什么必须分三步？</strong> 想象在一座城市里送快递：</p>
@@ -84,7 +84,7 @@
   
 </section>
 <section class="ch" id="global-route" data-ch="global-route">
-  <div class="ch-h"><span class="ch-n">03</span><h2>全局布线：在动手之前先看&quot;路够不够&quot;</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>全局布线：在动手之前先看&quot;路够不够&quot;</h2><span class="ch-ai" data-ai="global-route"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>全局布线阶段最该看的是<strong>拥塞图（congestion map）</strong>，不是&quot;跑完了没有&quot;。</p>
 <p>拥塞图的读法只有一句：<strong>红色 = 这个区域需要的轨道数超过可用轨道数</strong>。</p>
 <p>但要注意三个容易看错的地方：</p>
@@ -93,7 +93,7 @@
   
 </section>
 <section class="ch" id="short-open" data-ch="short-open">
-  <div class="ch-h"><span class="ch-n">04</span><h2>详细布线的两个硬指标：短路与开路</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>详细布线的两个硬指标：短路与开路</h2><span class="ch-ai" data-ai="short-open"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料里有一句话很实在：<strong>&quot;一般 short 的数量在 2 位数算是比较好的结果&quot;</strong>。</p>
 <p>这句话没有解释为什么。道理是这样：</p>
 <p>一块中等规模的芯片，网的数量是十万到百万级，走线数以百万计。工具在几百万次决策里出现几十次失误，是正常工程现实；<strong>上千个 short 才是异常</strong>，说明不是&quot;个别决策错了&quot;，而是系统性问题——通常是 floorplan 留的通道不够，或者 place 把单元堆在了错误的位置。</p>
@@ -110,7 +110,7 @@
   
 </section>
 <section class="ch" id="antenna" data-ch="antenna">
-  <div class="ch-h"><span class="ch-n">05</span><h2>天线效应：制造过程留下的伤</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>天线效应：制造过程留下的伤</h2><span class="ch-ai" data-ai="antenna"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料只有一句：&quot;Antenna 天线效应，也可以插 buf 修复，还有增加 shape 面积。&quot;</p>
 <p>这句话省略了最重要的部分：<strong>为什么会发生</strong>。</p>
 <p>芯片制造是一层一层往上长金属的。每长完一层，要对整片 wafer 做一次等离子刻蚀。刻蚀时，<strong>已经成形但还没接到任何扩散区的长金属线，会像天线一样收集电荷</strong>。电荷越积越多，电压越来越高，最后击穿它所连接的栅极氧化层——栅极就打坏了。</p>
@@ -123,7 +123,7 @@
   
 </section>
 <section class="ch" id="crosstalk" data-ch="crosstalk">
-  <div class="ch-h"><span class="ch-n">06</span><h2>串扰：工作时两根线的互相干扰</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>串扰：工作时两根线的互相干扰</h2><span class="ch-ai" data-ai="crosstalk"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料的描述是：&quot;两根走线较长，且并行时，容易引起串扰。&quot;</p>
 <p>这句话是对的，但只说了一半。串扰有两个必要条件，缺一不可：</p>
 <ol><li><strong>两根线在物理上靠得近</strong>（耦合电容大）；</li><li><strong>其中一根在翻转</strong>（有电压变化 dv/dt）。</li></ol>
@@ -135,7 +135,7 @@
   
 </section>
 <section class="ch" id="to-optroute" data-ch="to-optroute">
-  <div class="ch-h"><span class="ch-n">07</span><h2>布线之后还没完：OptRoute 在做什么</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>布线之后还没完：OptRoute 在做什么</h2><span class="ch-ai" data-ai="to-optroute"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>Route 跑完，线是连上了，但通常不是最优的：</p>
 <ul><li>为了让所有线都连上，工具可能绕了远路 → 时序变差；</li><li>有些线为了避让走了很窄的间距 → SI 风险；</li><li>局部 DRC 违例可能只是勉强通过。</li></ul>
 <p>OptRoute 就是在<strong>已经连通的版图上做二次优化</strong>，不改变连接关系，只改走线路径和单元位置。</p>
@@ -143,7 +143,7 @@
   
 </section>
 <section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">08</span><h2>动手：不用工具也能练的三件事</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>动手：不用工具也能练的三件事</h2><span class="ch-ai" data-ai="lab"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>纸面排查：一条&quot;看起来连上了&quot;的网</div><div class="lab-b"><p>场景：报告说 <code>u_ctrl/busy_q/D</code> 这条网开路。你把版图放大到该坐标，看到 M3（驱动侧）和 M2（负载侧）两块金属在屏幕上明显重叠。实例端点和网络归属都与网表一致。</p>
 <p>请回答：</p>
 <ol><li>屏幕上重叠，为什么还会报开路？</li><li>你要去查什么，才能确认是&quot;没打 via&quot;还是&quot;via 打了但不合法&quot;？</li><li>如果你补了一个 via，接下来必须再查哪两项？（提示：不止连通性）</li></ol></div></div>
@@ -169,7 +169,7 @@
   
 </section>
 <section class="ch" id="source-appendix" data-ch="source-appendix">
-  <div class="ch-h"><span class="ch-n">09</span><h2>原始资料对照</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>原始资料对照</h2><span class="ch-ai" data-ai="source-appendix"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>以下为《04 innovus项目(1).docx》第七节的原文，按原顺序保留，供对照查阅。上面的讲解是对这些要点的展开，命令适用性以你使用的工具版本和项目环境为准。</p>
 <h3 id="source-01">原文：三种布线引擎</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">七、Route 布线</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">基本概念</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">route的三种绕线引擎</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">global route</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">sroute</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">nanoroute</p></div>
@@ -195,9 +195,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

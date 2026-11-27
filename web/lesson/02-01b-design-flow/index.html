@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>芯片设计全流程：从需求到封装出货 · 19 | IC 后端学院</title>
 <meta name="description" content="一颗芯片从甲方需求到市面上的封装件，中间经过哪些人、哪些工具、哪些交付物。这一课把前端（RTL + 仿真）、中端（综合 + 形式验证）、后端（布局布线到 GDSII）、制造（光刻刻蚀 → 晶圆测试 → 切割封装）四段串成一条线，明确 DE/ME/PD 的分工边界，以及哪些环节是工具自动跑、哪些必须人手动干。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="02-01b-design-flow">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,14 +63,14 @@
       </div>
     </div>
     <article id="article" data-est-min="14"><section class="ch" id="why" data-ch="why">
-  <div class="ch-h"><span class="ch-n">01</span><h2>一条线看全局</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>一条线看全局</h2><span class="ch-ai" data-ai="why"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>能按顺序说出设计全流程的七个环节及各环节的交付物；能说清前端/中端/后端各用什么工具（VCS / DC 或 Genus / Innovus 或 ICC2）、各自的边界在哪；能说出 GDSII 之后到封装出货要经过哪几步；能指出后端里哪些环节手动、哪些自动。</div>
 <p>你现在学的 PR 只是这条链上的一段。<strong>不知道上下游在干什么，就无法判断&quot;这个数据对不对、这个 bug 该找谁&quot;</strong>——而这两件事，恰恰是新人最常卡住的地方。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">需求/架构 → 前端 RTL 编码 → 前端仿真 → 中端综合 → 形式验证 → 后端物理实现 → GDSII</span><span class="ln ">   ↑甲方        ↑DE            ↑VCS       ↑DC/Genus   ↑Formality   ↑PD(你在这里)     ↓</span><span class="ln ">                                                                              代工厂流片</span><span class="ln ">                                                                                    ↓</span><span class="ln ">                                                        出货 ← 封装 ← 切割 ← 晶圆测试</span></code></pre></div>
   
 </section>
 <section class="ch" id="spec" data-ch="spec">
-  <div class="ch-h"><span class="ch-n">02</span><h2>第一段：需求与架构</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>第一段：需求与架构</h2><span class="ch-ai" data-ai="spec"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>芯片设计始于<strong>甲方的需求</strong>。文档举的例子很具体：像比亚迪这样的整车厂发标，要一颗什么功能的芯片。</p>
 <p>接手的是两类架构师：</p>
 <ul><li><strong>顶层架构师</strong>：定<strong>工艺制程</strong>（几纳米）与<strong>模块组成</strong>（CPU 计算、DDR 存储、USB 传输……）。选择工艺是成本、功耗、性能的三角权衡——先进工艺更贵，但同样面积能塞更多逻辑；</li><li><strong>底层架构师</strong>：定模块之间的<strong>具体逻辑连接</strong>，也就是后面 RTL 要写的东西。</li></ul>
@@ -78,7 +78,7 @@
   
 </section>
 <section class="ch" id="frontend" data-ch="frontend">
-  <div class="ch-h"><span class="ch-n">03</span><h2>第二段：前端 RTL 编码与仿真</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>第二段：前端 RTL 编码与仿真</h2><span class="ch-ai" data-ai="frontend"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">RTL</span><span class="term-zh">Register Transfer Level 寄存器传输级</span></div>
   <div class="term-b"><p>用硬件描述语言描述&quot;每个时钟沿，数据从哪些寄存器经过哪些逻辑搬到哪些寄存器&quot;的层级。<strong>它只描述逻辑，不含任何物理信息</strong>（没有延迟、没有面积、没有位置）。</p></div>
@@ -97,7 +97,7 @@
   
 </section>
 <section class="ch" id="synthesis" data-ch="synthesis">
-  <div class="ch-h"><span class="ch-n">04</span><h2>第三段：中端综合</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>第三段：中端综合</h2><span class="ch-ai" data-ai="synthesis"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="term open">
   <div class="term-h"><span class="term-en">综合</span><span class="term-zh">synthesis（工具：DC / Genus）</span></div>
   <div class="term-b"><p>把 RTL 代码翻译成<strong>门级网表</strong>：选用库里真实存在的标准单元（与门、触发器……），并把它们连起来。输入是 RTL + 库 + 约束，输出是 netlist。</p></div>
@@ -120,7 +120,7 @@
   
 </section>
 <section class="ch" id="backend" data-ch="backend">
-  <div class="ch-h"><span class="ch-n">05</span><h2>第四段：后端物理实现（你的战场）</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>第四段：后端物理实现（你的战场）</h2><span class="ch-ai" data-ai="backend"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>后端（<strong>PD</strong>，Physical Design Engineer）接手三样东西：<strong>netlist + SDC + 库（lib/lef）</strong>，然后：</p>
 <div class="tbl"><table><thead><tr><th>环节</th><th>谁在干活</th><th>关键动作</th></tr></thead><tbody><tr><td><strong>Floorplan</strong></td><td><strong>人手动，工作量最大</strong></td><td>定芯片面积、摆 Memory 宏单元、摆 IO 端口位置</td></tr><tr><td><strong>Placement</strong></td><td>工具自动</td><td>摆几百万个标准单元，设密度与间距</td></tr><tr><td><strong>CTS</strong></td><td>工具 + 人调</td><td>建时钟网络，保证满足 setup 与 hold</td></tr><tr><td><strong>Routing</strong></td><td>工具自动</td><td>连信号线 + 布电源线（VDD/VSS，通常做网状供电）</td></tr><tr><td><strong>输出 GDSII</strong></td><td>工具</td><td>交付给代工厂的版图文件</td></tr></tbody></table></div>
 <p>两个必须记住的判断：</p>
@@ -129,7 +129,7 @@
   
 </section>
 <section class="ch" id="fab" data-ch="fab">
-  <div class="ch-h"><span class="ch-n">06</span><h2>第五段：流片、制造与封装</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>第五段：流片、制造与封装</h2><span class="ch-ai" data-ai="fab"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>GDSII 交付之后就离开设计团队了，进入制造：</p>
 <div class="term open">
   <div class="term-h"><span class="term-en">GDSII</span><span class="term-zh">GDS II 版图文件</span></div>
@@ -144,7 +144,7 @@
   
 </section>
 <section class="ch" id="boundary" data-ch="boundary">
-  <div class="ch-h"><span class="ch-n">07</span><h2>分工边界：一张表记住谁管什么</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>分工边界：一张表记住谁管什么</h2><span class="ch-ai" data-ai="boundary"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="tbl"><table><thead><tr><th>角色</th><th>干什么</th><th>工具</th><th>交付物</th></tr></thead><tbody><tr><td>架构</td><td>定规格、定模块</td><td>—</td><td>spec</td></tr><tr><td><strong>DE</strong>（前端）</td><td>写 RTL、跑仿真</td><td>Verilog/VHDL、<strong>VCS</strong></td><td>RTL 代码</td></tr><tr><td><strong>ME</strong>（中端）</td><td>综合、形式验证</td><td><strong>DC/Genus</strong>、<strong>Formality</strong></td><td>门级 netlist + SDC</td></tr><tr><td><strong>PD</strong>（后端）</td><td>物理实现</td><td><strong>Innovus / ICC2</strong></td><td><strong>GDSII</strong> + 各种报告</td></tr><tr><td>Foundry</td><td>制造</td><td>光刻/刻蚀</td><td>晶圆</td></tr><tr><td>封测厂</td><td>切割封装测试</td><td>—</td><td>封装芯片</td></tr></tbody></table></div>
 <div class="tip"><div class="tip-h">小技巧</div><ol><li><strong>&quot;网表跑不通&quot;不等于后端问题</strong>——先确认 netlist 版本与 SDC 版本是否配套；</li><li><strong>前端不会替你做时序</strong>——仿真通过只是功能对，时序是后端（和 STA）的活；</li><li><strong>GDSII 不是终点</strong>——后面还有 DRC/LVS 签核、流片、封测，任何一环挂掉都要回头改。</li></ol></div>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>把这条链画成一张表</div><div class="lab-b"><p>在纸上（或用课程页的笔记功能）列四列：<strong>环节 / 谁做 / 工具 / 交付物</strong>，把七个环节填满。然后回答三个问题：</p>
@@ -191,9 +191,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OptRoute：布线后优化到底在优化什么 · 40 | IC 后端学院</title>
 <meta name="description" content="布线后为什么必须优化；timing、DRC、short、open 四类目标怎么排优先级；PreRoute 与 PostRoute 脚本的分工；PR 流程终点与 ECO 的交界。附原始资料对照。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-10-optroute">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="14"><section class="ch" id="why" data-ch="why">
-  <div class="ch-h"><span class="ch-n">01</span><h2>为什么要单独有一步&quot;布线后优化&quot;</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么要单独有一步&quot;布线后优化&quot;</h2><span class="ch-ai" data-ai="why"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>上一课说过，Route 的首要任务是<strong>把所有线连上</strong>。这是一个&quot;约束满足&quot;问题：只要连上，就算完成。</p>
 <p>但&quot;连上&quot;和&quot;连得好&quot;是两件事：</p>
 <ul><li>为了绕开拥堵，工具可能选了很长的路径 → <strong>时序变差</strong>；</li><li>为了塞进窄通道，工具可能用了最小间距 → <strong>SI 风险升高</strong>；</li><li>为了强制连通，工具可能用了勉强合法的 via → <strong>DRC 边缘</strong>；</li><li>局部资源紧张的地方，可能出现<strong>少量短路或开路</strong>。</li></ul>
@@ -75,7 +75,7 @@
   
 </section>
 <section class="ch" id="targets" data-ch="targets">
-  <div class="ch-h"><span class="ch-n">02</span><h2>四类优化目标，优先级不是并列的</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>四类优化目标，优先级不是并列的</h2><span class="ch-ai" data-ai="targets"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料列了四个方向：<code>timing</code>、<code>DRC</code>、<code>short</code>、<code>open</code>。它没说谁先谁后，但顺序其实是有硬约束的。</p>
 <h3>第一优先：open 和 short（连通性）</h3>
 <p><strong>这两项不通，后面全都无意义。</strong></p>
@@ -92,7 +92,7 @@
   
 </section>
 <section class="ch" id="tune" data-ch="tune">
-  <div class="ch-h"><span class="ch-n">03</span><h2>PreRoute 与 PostRoute：同一套 tune，两个挂载点</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>PreRoute 与 PostRoute：同一套 tune，两个挂载点</h2><span class="ch-ai" data-ai="tune"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料提到两种 tune：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">PreRoute.tcl   在绕线之前执行的脚本</span><span class="ln ">PostRoute.tcl  在绕线之后执行的脚本</span></code></pre></div>
 <p>它说&quot;具体的优化设置取决于工程师自己的配置，加在 tune 里面&quot;。这句话是对的，但要展开一下——<strong>同一个参数放在哪个脚本里，效果完全不同</strong>。</p>
@@ -104,7 +104,7 @@
   
 </section>
 <section class="ch" id="pr-end" data-ch="pr-end">
-  <div class="ch-h"><span class="ch-n">04</span><h2>PR 流程的终点在哪里</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>PR 流程的终点在哪里</h2><span class="ch-ai" data-ai="pr-end"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>原始资料有一行很关键：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">===========================PR流程结束==============================</span><span class="ln ">FinalPR  最后一轮PR，fp不能在调整！</span><span class="ln ">进入ECO修复阶段,(如果结果很差，没法eco修复，只能RePR)</span></code></pre></div>
 <p>这行字里藏着两个重要判断：</p>
@@ -123,7 +123,7 @@
   
 </section>
 <section class="ch" id="verify" data-ch="verify">
-  <div class="ch-h"><span class="ch-n">05</span><h2>优化之后怎么验收</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>优化之后怎么验收</h2><span class="ch-ai" data-ai="verify"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>OptRoute 跑完，不能只看&quot;优化报告说改善了&quot;。要按下面的顺序自己核一遍：</p>
 <ol><li><strong>连通性</strong>：open = 0，short = 0。注意要看<strong>最终版图</strong>的报告，不是优化过程中的中间报告。</li><li><strong>DRC</strong>：违例数下降，且剩余违例有明确豁免依据。要确认 DRC 跑的是<strong>最终版图 + 最终层映射</strong>。</li><li><strong>时序</strong>：对比优化前后的 WNS / TNS，<strong>必须同场景、同工艺角、同路径组</strong>。跨场景比较没有意义。</li><li><strong>SI</strong>：优化改了走线，耦合关系变了，串扰要重算。</li><li><strong>寄生提取</strong>：走线变了，寄生必须重新提取，否则时序数字是旧版图的。</li></ol>
 <div class="pit"><div class="pit-h">常见坑 · 拿优化前的时序报告当结论</div><div class="pit-b"><p>OptRoute 改了走线 → 寄生变了 → 时序必须重算。如果直接拿优化前的 SPEF 去看时序，看到的是&quot;旧版图的时序&quot;，跟实际交付的版图对不上。</p>
@@ -131,13 +131,13 @@
   
 </section>
 <section class="ch" id="to-eco" data-ch="to-eco">
-  <div class="ch-h"><span class="ch-n">06</span><h2>和下一步 ECO 的衔接</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>和下一步 ECO 的衔接</h2><span class="ch-ai" data-ai="to-eco"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>OptRoute 做完，如果还有少量违例修不掉，就进入 ECO 阶段。ECO 的详细做法见：</p>
 <ul><li><a href="/lesson/03-01m-eco-commands/">ECO 常用命令与验收</a> —— 命令层面的操作</li><li><a href="/lesson/03-11-eco/">ECO：DRV、时序、DRC 与签核</a> —— 项目层面的交接</li><li><a href="/lesson/03-13-mmmc-eco-lab/">SPEF 回标与多场景 ECO</a> —— 多角度的验收</li></ul>
   
 </section>
 <section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">07</span><h2>动手：判断该 PreRoute 还是 PostRoute</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>动手：判断该 PreRoute 还是 PostRoute</h2><span class="ch-ai" data-ai="lab"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>三个场景，各自该放哪个脚本</div><div class="lab-b"><p>下面三个需求，判断应该写进 PreRoute.tcl 还是 PostRoute.tcl，并说明理由：</p>
 <ol><li>这个设计里所有时钟网必须走 M6 以上层，且用 2W2S 规则。</li><li>Route 跑完发现某个宏附近有 5 条短路，集中在 200 µm × 200 µm 的窗口里。</li><li>全局布线显示某个区域纵向拥塞严重，需要减少那里的纵向布线需求。</li></ol>
 <p>提示：想清楚&quot;这个设置是告诉工具怎么规划，还是在成品上打补丁&quot;。</p></div></div>
@@ -163,7 +163,7 @@
   
 </section>
 <section class="ch" id="source-appendix" data-ch="source-appendix">
-  <div class="ch-h"><span class="ch-n">08</span><h2>原始资料对照</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>原始资料对照</h2><span class="ch-ai" data-ai="source-appendix"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>以下为《04 innovus项目(1).docx》第八节的原文，按原顺序保留。上面的讲解是对这些要点的展开。</p>
 <h3 id="source-01">原文：布线后调优类型</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">八、OptRoute</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">主要是绕线之后的优化,一般优化后的结果会比route好很多</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">具体的优化的设置取决于工程师自己的一些配置，加在tune里面</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">tune的类型一般有两种</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例如：在route阶段,  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">PreRoute.tcl  在绕线之前执行的脚本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">PostRoute.tcl 在绕线之后执行的脚本</p></div>
@@ -187,9 +187,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

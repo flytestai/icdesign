@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 6 讲 · 列表（下）：增删改查、排序与转换 · 12 | IC 后端学院</title>
 <meta name="description" content="列表核心操作函数总表（concat/lindex/llength/lappend/lreplace/lsearch/lsort/split/join）+ 两个必考陷阱（谁改源数据、lsort 默认字典序）+ split/join 互逆转换 + 本讲练习。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="01-12-tcl-06-list-b">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="10"><section class="ch" id="table" data-ch="table">
-  <div class="ch-h"><span class="ch-n">01</span><h2>列表核心操作函数（含示例）</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>列表核心操作函数（含示例）</h2><span class="ch-ai" data-ai="table"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>记住 9 个列表函数的用途和语法；背下&quot;谁改源数据&quot;和&quot;lsort 字典序&quot;两个必考陷阱；会用 split/join 互转字符串与列表。</div>
 <p>以下示例都基于 <code>set num_list [list 1 2 3 4 5]</code>。</p>
 <div class="tbl"><table><thead><tr><th>函数名</th><th>功能描述</th><th>语法</th><th>示例（基于 num_list = [list 1 2 3 4 5]）</th></tr></thead><tbody><tr><td>concat</td><td>拼接多个列表</td><td><code>concat $列表1 $列表2 ...</code></td><td><code>set new_list [concat $num_list {6 7}]</code> → 1 2 3 4 5 6 7</td></tr><tr><td>lindex</td><td>根据索引取元素（索引从 0 开始）</td><td><code>lindex $列表 索引</code></td><td><code>lindex $num_list 2</code> → 3（取第 3 个元素）</td></tr><tr><td>llength</td><td>获取列表长度（元素个数）</td><td><code>llength $列表</code></td><td><code>llength $num_list</code> → 5</td></tr><tr><td>lappend</td><td>向列表末尾追加元素（支持多个）</td><td><code>lappend 列表 元素1 元素2 ...</code></td><td><code>lappend num_list 6 7</code> → <strong>修改源数据</strong></td></tr><tr><td>lreplace</td><td>替换列表中指定索引的元素</td><td><code>lreplace $列表 起始索引 结束索引 新元素</code></td><td><code>lreplace $num_list 1 2 apple</code> → 把列表中索引 1-2 的内容换成 apple，<strong>不修改源数据</strong></td></tr><tr><td>lsearch</td><td>搜索元素位置（返回索引，未找到返回 -1）</td><td><code>lsearch $列表 元素</code></td><td><code>lsearch $num_list 3</code> → 2；找到元素的索引号，和 lindex 相反（一个给索引拿值，一个给值找索引）</td></tr><tr><td>lsort</td><td>对列表排序（默认升序，-decreasing 降序）</td><td><code>lsort [-decreasing] [-integer] $列表</code></td><td>排序不修改源数据；默认是字符串字典排序，不是数字排序，数字排序需要加参数 <code>-integer</code></td></tr><tr><td>split</td><td>将字符串按分隔符转为列表</td><td><code>split 字符串 分隔符</code></td><td><code>set lis [split &quot;woaixuexi&quot; x]</code></td></tr><tr><td>join</td><td>将列表按分隔符转为字符串</td><td><code>join 列表 分隔符</code></td><td><code>set lst {hello world tcl}</code>、<code>set res [join $lst &quot;-&quot;]</code> 接收结果后 <code>puts $res</code></td></tr></tbody></table></div>
@@ -129,7 +129,7 @@ puts [lsort -integer -decreasing {10 9 2 100}]   ;# 降序：100 10 9 2</textare
   
 </section>
 <section class="ch" id="splitjoin" data-ch="splitjoin">
-  <div class="ch-h"><span class="ch-n">02</span><h2>split 与 join：字符串 ↔ 列表互转</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>split 与 join：字符串 ↔ 列表互转</h2><span class="ch-ai" data-ai="splitjoin"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><code>split</code> 把字符串撕开变列表，<code>join</code> 把列表粘起来变字符串——一对互逆操作：</p>
 <div class="tsbx has-code" data-code="set lis [split &quot;woaixuexi&quot; x]      ;# 按字符 x 撕开
 puts $lis                          ;# woai ue i（我爱学习）
@@ -171,7 +171,7 @@ puts &quot;单元：[lindex $parts 1]&quot;</textarea>
   
 </section>
 <section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">03</span><h2>动手练</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>动手练</h2><span class="ch-ai" data-ai="lab"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>本讲练习（3 题，验证两个陷阱）</div><div class="lab-b"><ol><li>用 lappend 往 <code>num_list</code> 追加 6，验证源列表变了；再用 lreplace 替换索引 0 的元素，验证源列表没变。</li><li><code>set s &quot;a,b,c&quot;</code>，用 split 拆成列表，再用 join 用 <code>-</code> 拼回字符串。</li><li>分别跑 <code>lsort {9 100 20}</code> 和 <code>lsort -integer {9 100 20}</code>，对比结果。</li></ol></div></div>
 <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>lappend 和 lreplace 谁修改源数据？</div>
@@ -205,9 +205,9 @@ puts &quot;单元：[lindex $parts 1]&quot;</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TCL 第 8 讲 · 流程控制（下）：三种循环 while / foreach / for · 14 | IC 后端学院</title>
 <meta name="description" content="while 三要素与死循环、while{1}+break、列表倒序复制与倒序遍历单元格（EDA）、foreach 遍历首选与 EDA 移动对象、for 计数循环、三种循环怎么选、source 加载脚本、文档原题偶数减奇数。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="01-14-tcl-08-loops">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="16"><section class="ch" id="while" data-ch="while">
-  <div class="ch-h"><span class="ch-n">01</span><h2>循环 1：while 循环（条件满足时执行）</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>循环 1：while 循环（条件满足时执行）</h2><span class="ch-ai" data-ai="while"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>背下 while 三要素；会用 while{1}+break；能写列表倒序复制；会 foreach 遍历（含 {k v} 双变量）；会用 for 计数；知道三种循环怎么选；会算偶数减奇数。</div>
 <p>适合<strong>不知道要跑几次</strong>、或有明确终止条件的场景——不知道跑几次才是 while 相对 for 突出的地方，循环时用条件加 <code>break</code> 结束。</p>
 <div class="note"><div class="note-h">while 就三个要素：初始化 → 判断 → 更新，缺了&quot;更新&quot;就是死循环。</div></div>
@@ -186,7 +186,7 @@ puts &quot;倒序列表：$target_list&quot;   ;# 输出：倒序列表：500 40
   
 </section>
 <section class="ch" id="foreach" data-ch="foreach">
-  <div class="ch-h"><span class="ch-n">02</span><h2>循环 2：foreach 循环（遍历列表元素）——首选</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>循环 2：foreach 循环（遍历列表元素）——首选</h2><span class="ch-ai" data-ai="foreach"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>直接遍历列表中的每个元素，无需手动控制索引，语法简洁，是列表遍历的首选（类似 C 和 Python 中 for 循环的 for-in 写法）。</p>
 <p><strong>语法</strong>：<code>foreach 变量名 列表 { 代码块 }</code>（变量名会依次赋值为列表的每个元素）</p>
 <h3 id="move">示例 1：移动对象（文档示例，EDA 真实场景）</h3>
@@ -248,7 +248,7 @@ puts &quot;列表元素总和：$sum&quot;   ;# 输出：列表元素总和：15
   
 </section>
 <section class="ch" id="for" data-ch="for">
-  <div class="ch-h"><span class="ch-n">03</span><h2>循环 3：for 循环（知道次数时用）</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>循环 3：for 循环（知道次数时用）</h2><span class="ch-ai" data-ai="for"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><strong>语法</strong>：<code>for {起始} {循环条件} {自增/自减} { 循环体 }</code></p>
 <div class="tsbx has-code" data-code="for {set i 0} {$i &lt; 5} {incr i} {
     puts &quot;i = $i&quot;
@@ -270,12 +270,12 @@ puts &quot;列表元素总和：$sum&quot;   ;# 输出：列表元素总和：15
   
 </section>
 <section class="ch" id="source" data-ch="source">
-  <div class="ch-h"><span class="ch-n">04</span><h2>source：加载并执行脚本文件</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>source：加载并执行脚本文件</h2><span class="ch-ai" data-ai="source"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p><code>source 文件</code>——把另一个 TCL 脚本文件的内容载入执行（第 1 讲配置环境时已经在用）。练习场不支持 source，把脚本内容直接粘贴即可。</p>
   
 </section>
 <section class="ch" id="lab" data-ch="lab">
-  <div class="ch-h"><span class="ch-n">05</span><h2>动手练</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>动手练</h2><span class="ch-ai" data-ai="lab"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>文档原题：偶数减奇数</div><div class="lab-b"><p>用 for 循环计算 1-100 所有<strong>偶数减奇数</strong>的值。提示：<code>expr {$i % 2}</code> 判断奇偶（% 是取余），偶数加、奇数减。</p></div></div>
 <div class="tsbx has-code" data-code=";# 参考实现（先自己写，写完再跑这个对照）
 set result 0
@@ -340,9 +340,9 @@ puts &quot;1-100偶数减奇数的值：$result&quot;</textarea>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Calibre DRC：手修与复查 · 31i | IC 后端学院</title>
 <meta name="description" content="从签核标记追到版图几何，排查间距、filler 短路和 ECO 后成批短路，并验证修复。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="03-01i-calibre-drc">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="14"><section class="ch" id="drc-marker" data-ch="drc-marker">
-  <div class="ch-h"><span class="ch-n">01</span><h2>从 Marker 定位到可编辑对象</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>从 Marker 定位到可编辑对象</h2><span class="ch-ai" data-ai="drc-marker"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>Calibre DRC</strong> · 承接布线与填充。布线完成、Filler 加完之后才做全量 DRC。本讲从 marker 定位到可编辑对象，并区分&quot;局部复核&quot;和&quot;全量签核&quot;。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-i.svg" data-fig="innovus-practice-i.svg"><img src="/fig/innovus-practice-i.svg" alt="原创教学示意图 · DRC 手修记录从规则编号开始" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · DRC 手修记录从规则编号开始</figcaption></figure>
 <div class="note"><div class="note-h">课程来源</div><p>本讲是网站原创专题；钉钉目录第 13 项仅用于确定主题与顺序，不转载原文、项目参数或图片。相关基础可另看上传 Word 整理的 <a href="/lesson/03-11-eco/#source-04">ECO 短路、开路和 DRC</a>。</p></div>
@@ -72,32 +72,32 @@
   
 </section>
 <section class="ch" id="via-m1-spacing" data-ch="via-m1-spacing">
-  <div class="ch-h"><span class="ch-n">02</span><h2>区分 VIA 和 M1 的间距规则</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>区分 VIA 和 M1 的间距规则</h2><span class="ch-ai" data-ai="via-m1-spacing"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>同时出现过孔切孔间距和 M1 金属间距时，分别找到各自两处被测几何；过孔被金属覆盖不足是包围规则，不是间距。比如挪动过孔可增加切孔距离，却可能使 M1 出现不够包围或更短的金属边。先按规则识别测的是平行边、角或线端，再选改动对象、方向与增量。几何正面看上去更宽，不代表规则关心的方向一定改善。</p>
 <p>本例 M1 有两块属于不同网络的顶层图形，标记范围内还包含 VIA1；报告规则却是 M1 对 M1，所以不按“标记里有过孔就挪过孔”处理。确认信号线的固定过孔与引脚不在要移动的一小段上，才能只调整平行段和必要的接入折线。若位于中间层，还要检查移动后邻线以及新折角、过孔和边界有没有引入其他规则问题。</p>
   
 </section>
 <section class="ch" id="short-clusters" data-ch="short-clusters">
-  <div class="ch-h"><span class="ch-n">03</span><h2>排查 Filler 与 ecoRoute 后的短路</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>排查 Filler 与 ecoRoute 后的短路</h2><span class="ch-ai" data-ai="short-clusters"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>Filler 填补标准单元行空隙，某些类型还延续电源轨。短路靠近 filler 不等于 filler 是根因：先核对供电域、物理邻接、相邻单元朝向、电源网绑定和 filler 类型，用提取路径确认真正的误连点。若 <code>ecoRoute</code> 后突然新增一批短路，先保留修前后快照，按网对、位置或重复实例归并；选一个代表点在副本追踪新增形状、过孔、供电连接或规则变化。确认同源后再做针对性修复或回退，不要批量删除单元或过孔来降低计数。</p>
 <p>在本次学习案例里，供电连通和 LVS 的短路计数都是零；这里不顺带改 filler。若额外看见供电短路，应另立问题、单独追踪误连路径。几何间距通过只是一个检查的结果，不能用来注销供电误连。</p>
   
 </section>
 <section class="ch" id="practice-step-04" data-ch="practice-step-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>固定签核基线：先确认读的是同一版图</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>固定签核基线：先确认读的是同一版图</h2><span class="ch-ai" data-ai="practice-step-04"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>开始前把实现数据库版本、流出文件、层映射与运行配置记录在同一清单；对 LVS 另外绑定当前源网表、顶层和工艺规则中的器件、供电选项。绝不把不同来源或不同版本的 DRC 与 LVS 结果合成一个“全绿”结论。下面的 <code>DEMO</code> 标识和数值都是教学用；实务不能用它们替代工艺方批准的签核规则。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成基线清单与标记（非 runset，非命令）</span><span class="ln ">implementation DB=top_r12; stream=top_r12.oas; top=demo_top</span><span class="ln ">stream layer map=DEMO_MAP_A; process option=DEMO_6M</span><span class="ln ">DRC deck=DEMO_DRC_R4; LVS deck=DEMO_LVS_R7</span><span class="ln ">LVS source=top_r12_src.v; baseline LVS=match</span><span class="ln ">DRC M1.SPACE.PAIR count=1; bbox=(78.100,44.300)-(78.390,44.510) um</span><span class="ln ">measured metal edge gap=0.044 um; required&gt;=0.052 um</span><span class="ln ">shapes: top/n_req (editable signal M1), top/VSS (fixed M1 rail)</span></code></pre></div>
 <p>展开顶层标记后，沿边读取实际最短距离 0.044 µm，低于规则限值 0.052 µm。根因是 <code>n_req</code> 的短平行段离固定 <code>VSS</code> 轨过近，两者没有接触，因此基线 LVS 匹配并不矛盾。先确认相邻区域有空轨，再决定在副本中只移动该小段；不挪供电轨、不改库图形，也不更换规则或网表来得到更少标记。</p>
   
 </section>
 <section class="ch" id="practice-step-05" data-ch="practice-step-05">
-  <div class="ch-h"><span class="ch-n">05</span><h2>只调信号线，先做局部复核</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>只调信号线，先做局部复核</h2><span class="ch-ai" data-ai="practice-step-05"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>把 <code>n_req</code> 的平行段调整到合法轨道，保留两端接入。修后实测最短距离为 0.061 µm；走线有一个小折弯，检查其最小面积、线端条件、越过邻网以及信号的逻辑归属。先在实现工具复查受影响区域的几何和连通，再从修后数据库重新流出，使用同版本签核规则在项目支持的局部模式检查违规附近并包含足够的邻域，而非只裁下标记框。需要考虑派生层和相邻实例；对于依赖全局上下文、不能局部复现的规则，不把裁窗零结果当成通过。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成局部复核摘录（非命令）</span><span class="ln ">coordinate context      same top origin; region plus project-approved margin</span><span class="ln ">stream revision         top_r12.oas -&gt; top_r13.oas</span><span class="ln ">M1 measured gap          0.044 -&gt; 0.061 um (minimum 0.052 um)</span><span class="ln ">local original marker    1 -&gt; 0; other applicable local DRC violations=0</span><span class="ln ">implementation checks    n_req connected; n_req/VSS short=0</span></code></pre></div>
   
 </section>
 <section class="ch" id="practice-step-06" data-ch="practice-step-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>从局部排错推到全量签核</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>从局部排错推到全量签核</h2><span class="ch-ai" data-ai="practice-step-06"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>局部复查证明原坐标的根因处理有效，却验证不了整片密度等依赖全局的规则，也不能替代完整连接对比。最终用 <code>top_r13</code> 对应的完整流出版图，以约定顶层、工艺选项与批准的 DRC/LVS 规则集执行全量签核；本例只是布线几何改动，修前后源逻辑网表内容一致，仍要复核该源是修后版认可的参考。对照每条规则的计数与位置清单，确认没有“旧标记消失、别处出现同类标记”。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成全量验收摘要（非命令）</span><span class="ln ">DRC full deck:  M1.SPACE.PAIR 1 -&gt; 0; other new violations=0</span><span class="ln ">LVS full run:  device/net counts match source; shorts=0; opens=0</span><span class="ln ">export top=demo_top; final source logical content unchanged</span></code></pre></div>
 <p>在真实项目中还须检查运行日志、批准的豁免范围与其他交付检查；若移动线路可能影响时序，另按项目约定重提寄生，并复查受影响的时序或噪声。不应把“局部清零”或“某个版本 LVS 通过”写成当前交付包的签核结论。</p>
@@ -105,12 +105,12 @@
   
 </section>
 <section class="ch" id="practice-step-07" data-ch="practice-step-07">
-  <div class="ch-h"><span class="ch-n">07</span><h2>DRC 修复的复查与回退清单</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>DRC 修复的复查与回退清单</h2><span class="ch-ai" data-ai="practice-step-07"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <ul><li>修前后分别留存实现数据库、流出文件、层映射、顶层与运行配置，连同日志、标记位置和 LVS 结果做版本配对。</li><li>遇到新短路、新开路、原标记不消失、全量规则失败或版本配对不明，撤销本次局部改动，恢复同套基线输入并复现原报告，再判断该试另一个位置还是先修验证环境。</li><li>只保存了局部签核的结果时标记为待验，不要放行；全量验证完成后再关闭问题并记录修复涉及的形状及网络。</li></ul>
   
 </section>
 <section class="ch" id="repair-check" data-ch="repair-check">
-  <div class="ch-h"><span class="ch-n">08</span><h2>给出修后验收证据，而不只是&quot;清零了&quot;</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>给出修后验收证据，而不只是&quot;清零了&quot;</h2><span class="ch-ai" data-ai="repair-check"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>挪信号线后 M1 标记消失，能认定附近电源短路也已经修好？</div>
   <div class="q-a">不能，检查信号和供电连通并做匹配版本的 LVS；几何与误连需要独立证据。</div>
@@ -124,7 +124,7 @@
   
 </section>
 <section class="ch" id="drc-layer-readback" data-ch="drc-layer-readback">
-  <div class="ch-h"><span class="ch-n">09</span><h2>报告清零，但填充层根本没被规则读到</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>报告清零，但填充层根本没被规则读到</h2><span class="ch-ai" data-ai="drc-layer-readback"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>本案的编号、几何和规则都是原创模拟数据。收尾工程师没有动版图，前后均读取同一个 <code>OAS-17</code>，却看到某个边界邻域的间距标记由 <code>2</code> 变成 <code>0</code>。该规则核对 M5 信号与填充之间的间距。版图独立读回显示，12 个填充轮廓都在批准的 <code>50/32</code>；对比两次运行发现，最后一次验证导入配置却把填充输入指到了没有图形的 <code>50/31</code>。查看器仍能显示 <code>50/32</code>，不能证明它参与了检查。</p>
 <div class="tbl"><table><thead><tr><th>同一窗口，同一版图</th><th>批准配置</th><th>异常配置</th><th>恢复批准配置后</th></tr></thead><tbody><tr><td>M5 信号图形读入数</td><td>8</td><td>8</td><td>8</td></tr><tr><td>M5 填充图形读入数</td><td>12</td><td>0</td><td>12</td></tr><tr><td>示例间距标记</td><td>2</td><td>0</td><td>2</td></tr></tbody></table></div>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>先证明缺层，再决定改哪里</div><div class="lab-b"><p>名单中两个填充图形到最近信号边的距离分别是 <code>0.041 µm</code>、<code>0.046 µm</code>，本题规则要求 <code>≥0.050 µm</code>。写出各差多少，并判断该改流出层映射、验证端读入配置，还是直接改信号线。然后列出从找回标记到关闭问题的证据。</p></div></div>
@@ -148,9 +148,9 @@
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>

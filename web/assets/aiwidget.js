@@ -1015,9 +1015,18 @@
   function send() {
     var q = (inputEl.value || "").trim();
     if (!q) return;
-    if (configured === false) { openConfig("请先配置你自己的大模型接口，配置好就能提问了。"); return; }
     inputEl.value = "";
-    bubble("u", q);
+    askText(q);
+  }
+
+  /* 把一条消息发出去（供输入框和「AI 讲解」按钮共用）。
+   * silent=true 时不把这条 user 气泡显示出来——AI 讲解的提示词很长，
+   * 直接铺满对话框会把讲解本身挤下去，只显示一个摘要更清爽。 */
+  function askText(q, opts) {
+    opts = opts || {};
+    if (!q) return;
+    if (configured === false) { openConfig("请先配置你自己的大模型接口，配置好就能提问了。"); return; }
+    bubble("u", opts.label || q);
     HISTORY.push({ role: "user", content: q });
     saveHistory();                     // 先落盘，刷新也不丢这次提问
     var tip = document.createElement("div");
@@ -1268,6 +1277,62 @@
       })
       .catch(function (ex) { errEl.textContent = "删除失败：" + String(ex.message || ex).slice(0, 60); });
   }
+
+  /* ---------------- 对外接口：AI 讲解 ----------------
+   * 课程页每个小节的「AI 讲解」按钮会调用这里。
+   * 两种模式：
+   *   simple —— 小学生也能懂：把术语换成日常说法，多用比喻，避免缩写
+   *   work   —— 工作场景：把这个知识点放回真实项目里，讲清什么时候用、
+   *             用错了会怎样、同事会怎么问你
+   * 直接把整理好的提示词发出去，用户不用自己再组织语言。 */
+  var MODES = {
+    simple: {
+      label: "🧒 简单模式讲解",
+      brief: "用小学生也能懂的方式讲",
+      prompt: [
+        "请用「小学生也能懂」的方式讲解下面这一小节的内容。",
+        "要求：",
+        "1. 开头用一句话说清这一节到底在讲什么，不要用专业术语开头；",
+        "2. 每个概念第一次出现时，先用生活里的东西打个比方（比如把布线比作在小区里修路），再给正式解释；",
+        "3. 遇到英文缩写，先拆开说全称，再用大白话解释它是干什么的；",
+        "4. 讲完概念后给一个具体的小例子，能让人跟着想一遍；",
+        "5. 最后用两三句话总结，说清「记住哪一件事就够了」；",
+        "6. 全程口语化，短句，不要写成报告，不要用「综上所述」这类词。"
+      ].join("\n")
+    },
+    work: {
+      label: "💼 工作模式讲解",
+      brief: "按真实工作场景讲",
+      prompt: [
+        "请按「真实工作场景」讲解下面这一小节的内容，假设读者是刚入职的后端工程师。",
+        "要求：",
+        "1. 先说明这一步在项目流程里的位置：上游给什么、这一步产出什么、下游拿它做什么；",
+        "2. 讲清实际工作中怎么用：会在什么情况下打开哪个报告、看哪个数字、下什么命令；",
+        "3. 指出新手最容易踩的坑，以及踩了之后会有什么现象（报什么错、看什么指标异常）；",
+        "4. 给出判断标准：什么情况算合格、什么情况必须回退重做；",
+        "5. 如果有常见的同事问法或评审关注点，也点出来；",
+        "6. 用项目化的口吻，像带人做项目一样讲，不要停留在概念层面。"
+      ].join("\n")
+    }
+  };
+
+  window.ICL_AI = {
+    modes: MODES,
+    // 打开对话框并直接生成讲解
+    explain: function (mode, ctx) {
+      ctx = ctx || {};
+      var m = MODES[mode] || MODES.simple;
+      if (!panel) openPanel();
+      showChat();
+      var title = ctx.title ? "《" + ctx.title + "》" : "这一小节";
+      var body = (ctx.text || "").trim();
+      if (!body) body = "（未能读取到本节正文，请按标题讲解）";
+      // 正文可能很长，截断到合理长度，避免超出模型上下文
+      if (body.length > 4000) body = body.slice(0, 4000) + "\n……（后文略）";
+      var q = m.prompt + "\n\n" + title + "的内容如下：\n---- 内容开始 ----\n" + body + "\n---- 内容结束 ----";
+      askText(q, { label: m.label + "：" + (ctx.title || "本节") });
+    }
+  };
 
   /* ---------------- 初始化：课程页注入问答块 + 探测是否已配置 ---------------- */
   initLessonQa();

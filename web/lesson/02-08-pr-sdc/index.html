@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SDC 时序约束：告诉工具"做到什么程度算合格" · 30 | IC 后端学院</title>
 <meta name="description" content="前面几课给的是"事实"，这一课给的是"要求"。从 DFF→组合逻辑→DFF 的基本模型讲起，一条条写出时钟、分频、虚拟时钟、抖动、时钟分组、输入输出延迟、假路径、负载三件套，说清周期与频率、占空比与 waveform 的换算，最后讲约束力度为什么直接决定优化力度，以及 SDC 由 FCT 部门负责这件事对 PR 工程师意味着什么。">
-<link rel="icon" href="/assets/logo.svg?v=40e55396d089" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=40e55396d089">
+<link rel="icon" href="/assets/logo.svg?v=7bdc10e2f012" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=7bdc10e2f012">
 </head>
 <body data-page="lesson" data-lesson="02-08-pr-sdc">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=40e55396d089" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=7bdc10e2f012" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -63,7 +63,7 @@
       </div>
     </div>
     <article id="article" data-est-min="24"><section class="ch" id="what" data-ch="what">
-  <div class="ch-h"><span class="ch-n">01</span><h2>SDC 是什么：设计的命脉</h2></div>
+  <div class="ch-h"><span class="ch-n">01</span><h2>SDC 是什么：设计的命脉</h2><span class="ch-ai" data-ai="what"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <div class="goal"><span>本章目标</span>能画出 DFF → 组合逻辑 → DFF 的时序模型并指出起始点/结束点；能由周期算频率、由 waveform 算占空比；能写出 create_clock / create_generated_clock / 虚拟时钟 / uncertainty / clock group / io delay / false path / 负载三件套这几类约束，并说清每条在&quot;要求&quot;什么。</div>
 <div class="term open">
   <div class="term-h"><span class="term-en">SDC</span><span class="term-zh">Synopsys Design Constraints</span></div>
@@ -79,7 +79,7 @@
   
 </section>
 <section class="ch" id="model" data-ch="model">
-  <div class="ch-h"><span class="ch-n">02</span><h2>先建立一个时序模型</h2></div>
+  <div class="ch-h"><span class="ch-n">02</span><h2>先建立一个时序模型</h2><span class="ch-ai" data-ai="model"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>SDC 里所有命令，本质都在描述这张图：</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">             ┌───────┐    L1     L2     L3     L4    ┌───────┐</span><span class="ln ">  clk ──┬───▷│ DFF1  │──▷[&amp;]──▷[|]──▷[^]──▷[!]─────▷│ DFF2  │───▷</span><span class="ln ">        │    └───────┘   （组合逻辑：与/或/异或/非）  └───────┘</span><span class="ln ">        │         ↑                                      ↑</span><span class="ln ">        │      起始点                                  结束点</span><span class="ln ">        │     (launch)                                (capture)</span><span class="ln ">        └──────────────────────────────────────────────────┘</span><span class="ln ">                     同一个时钟，同一个周期</span></code></pre></div>
 <ul><li><strong>DFF</strong>：触发器。时钟沿到来时把输入值搬到输出，其余时间保持不变。它是时序分析的分界线。</li><li><strong>L1~L4</strong>：中间的组合逻辑（与非门、缓冲器等），只有延迟、不存数据。</li><li><strong>clk</strong>：时钟输入端，同时驱动起始和结束两个触发器。</li></ul>
@@ -95,7 +95,7 @@
   
 </section>
 <section class="ch" id="write" data-ch="write">
-  <div class="ch-h"><span class="ch-n">03</span><h2>一条一条写约束</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>一条一条写约束</h2><span class="ch-ai" data-ai="write"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>下面这份脚本是一份最小可用的 sdc 骨架，每一行都有注释，建议直接从它开始改。</p>
 <h3 id="createclock">1. create_clock：定义源头时钟</h3>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 定义一个叫 CLK 的时钟：周期 20ns，上升沿在 0ns、下降沿在 10ns</span><span class="ln ">create_clock -name CLK -period 20 -waveform {0 10} [get_ports clk]</span><span class="ln "> </span><span class="ln cmt"># 端口本身也要有驱动和负载的描述，否则第一级 delay 算不准</span><span class="ln ">set_driving_cell -lib_cell BUF_X4 [get_ports clk]</span></code></pre></div>
@@ -198,7 +198,7 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
   
 </section>
 <section class="ch" id="fct" data-ch="fct">
-  <div class="ch-h"><span class="ch-n">04</span><h2>谁写 SDC：FCT 部门</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>谁写 SDC：FCT 部门</h2><span class="ch-ai" data-ai="fct"><button type="button" class="ch-ai-btn" data-mode="simple" title="AI 讲解：小学生也能懂" aria-label="AI 讲解：简单模式"><span>🧒</span><span class="aiw-txt">简单</span></button><button type="button" class="ch-ai-btn" data-mode="work" title="AI 讲解：按工作场景" aria-label="AI 讲解：工作模式"><span>💼</span><span class="aiw-txt">工作</span></button></span></div>
   <p>文档明确：<strong>SDC 由 FCT（Full Chip Timing，全芯片时序）部门负责编写。</strong></p>
 <p>这对 PR 工程师意味着什么，很值得说清楚：</p>
 <ol><li><strong>你不是 sdc 的作者，你是使用者和反馈者</strong>。sdc 是&quot;需求文档&quot;，PR 是&quot;施工方&quot;。</li><li><strong>发现约束不合理（比如某条路径根本不可能在两周期内收敛），要提给 FCT 改</strong>，不能自己偷偷在本地改一份跑——本地改完报告好看了，回到正式约束立刻崩，白干两周。</li><li><strong>debug 的第一件事往往是核对 sdc 版本</strong>。项目里 sdc 会不断更新（v1.0 → v1.3），跑出来的结果和同事对不上，八成是拿了不同版本的 sdc。</li><li><strong>要能读懂每一条约束在要求什么</strong>。哪怕不写，也要能判断&quot;这条路径为什么要求这么紧&quot;。</li></ol>
@@ -258,9 +258,9 @@ puts &quot;倍频后周期 [expr {$src / $mul}] ns&quot;      ;# 1.25/2 = 0.625n
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=40e55396d089"></script>
-<script src="/assets/tcl.js?v=40e55396d089"></script>
-<script src="/assets/app.js?v=40e55396d089"></script>
-<script src="/assets/aiwidget.js?v=40e55396d089" defer></script>
+<script src="/assets/shell.js?v=7bdc10e2f012"></script>
+<script src="/assets/tcl.js?v=7bdc10e2f012"></script>
+<script src="/assets/app.js?v=7bdc10e2f012"></script>
+<script src="/assets/aiwidget.js?v=7bdc10e2f012" defer></script>
 </body>
 </html>
