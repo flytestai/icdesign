@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>时钟偏斜：从时钟树指标定位到具体路径 · 31o | IC 后端学院</title>
 <meta name="description" content="用日志、时钟树报告和 STA 路径报告分别检查时钟目标、组内分布和具体收发端的到达差。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-01o-clock-skew">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,7 +50,7 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>时钟偏斜：从时钟树指标定位到具体路径</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>时钟偏斜：从时钟树指标定位到具体路径</b></div><div class="lesson-refbar">本页是「CTS」模块的参考阅读，不计入自动学习路线。<a href="/lesson/03-08-cts/">回本模块主课 →</a><a href="/lesson/03-01-innovus-plan/#course-mainline">看阶段三课表</a></div>
     <div class="hero">
       <div class="hero-no">31o</div>
       <h1>时钟偏斜：从时钟树指标定位到具体路径</h1>
@@ -64,7 +64,8 @@
     </div>
     <article id="article" data-est-min="15"><section class="ch" id="report-entries" data-ch="report-entries">
   <div class="ch-h"><span class="ch-n">01</span><h2>三份报告，各回答一个问题</h2></div>
-  <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-o.svg" data-fig="innovus-practice-o.svg"><img src="/fig/innovus-practice-o.svg" alt="原创教学示意图 · 偏斜先判断看的是整组还是一条路径" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 偏斜先判断看的是整组还是一条路径</figcaption></figure>
+  <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>时钟偏斜</strong> · 承接 CTS 的时钟树报告。CTS 建完树，报告里有 latency、skew、slack 三类数字。本讲教你先统一口径、再解释正负号，避免拿错报告下结论。</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-o.svg" data-fig="innovus-practice-o.svg"><img src="/fig/innovus-practice-o.svg" alt="原创教学示意图 · 偏斜先判断看的是整组还是一条路径" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 偏斜先判断看的是整组还是一条路径</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲按钉钉目录第 19 项的主题编排。排查方法、算例和自检均为原创，不使用原文、原图或项目参数。</p></div>
 <p><strong>运行日志</strong>回答「本次实现按什么目标工作」。先查 CTS 阶段、作用的时钟和偏斜组、约束是否加载，以及是否有未覆盖的 sink。目标偏斜（target skew）是优化目标，不是生成结果；日志里的数字先分清是目标、估计值还是最终统计。<strong>时钟树报告</strong>回答「组内哪些分支早或晚」。在同一口径下找最早和最晚的 sink，并查看插入延迟分布；组内极值不一定构成真实的时序路径。<strong>STA 路径报告</strong>回答「这条收发路径是否通过」。展开实际的 launch 和 capture 时钟段，核对参考边沿、早晚延迟、传播状态以及共同路径悲观量移除（CPPR）。三份报告不能互相替代，基础流程见 <a href="/lesson/03-08-cts/">CTS 基础课</a>。</p>
   
@@ -75,7 +76,7 @@
   
 </section>
 <section class="ch" id="practice-step-03" data-ch="practice-step-03">
-  <div class="ch-h"><span class="ch-n">03</span><h2>实验输入：组偏斜超目标，端点又有 hold 违例</h2></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>组偏斜超目标，端点又有 hold 违例</h2></div>
   <p>固定布线后快照、提取寄生、库和时钟约束，选择 <code>CLK_A</code> 的上升沿路径 <code>FF_L -&gt; FF_C</code>。时钟周期 400 ps，setup 使用下一上升沿，hold 使用同一参考上升沿。组统计用一个固定的分布视图；路径的 setup 和 hold 各自使用早晚组合，因此下面这三类数字不可混算。所有输出均为原创的合成摘录，不是 Innovus 或签核工具的真实格式，也不是可执行命令。实验保存原始检查点，修改不触碰周期、不改不确定性、不修改时序例外。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">CTS RUN LOG: clock=CLK_A  group=G_A  target_global_skew=50 ps</span><span class="ln ">TREE BASELINE: view=tree_ref  edge=rise  propagated=yes</span><span class="ln ">  min sink FF_E/CK = 80 ps; max sink FF_X/CK = 140 ps</span><span class="ln ">  global skew = 60 ps; FF_C/CK = 132 ps on branch BR_C</span><span class="ln ">STA BASELINE: path FF_L/Q -&gt; FF_C/D, units=ps</span><span class="ln ">  check   ref_delta  launch_net  capture_net  data   cons  unc  CPPR  slack</span><span class="ln ">  setup         400          95          125   365     30   20     5    +20</span><span class="ln ">  hold            0          90          140    65     15   12     4     -8</span></code></pre></div>
 <p>组统计的实测值超目标 10 ps；<code>FF_X</code> 最晚，并不意味着 <code>FF_X</code> 是这条 hold 路径的端点。再看 STA：本例 setup 使用迟到的 launch、早到的 capture，网络延迟差为 <code>125 − 95 = +30 ps</code>；hold 使用早到的 launch、迟到的 capture，差为 <code>140 − 90 = +50 ps</code>。同一个物理时钟树在两种检查下得到不同偏斜是正常的，既不能拿全局 60 ps 作路径偏斜，也不能把 setup 的 30 ps 照搬到 hold。</p>
@@ -89,14 +90,14 @@
   
 </section>
 <section class="ch" id="trace-branches" data-ch="trace-branches">
-  <div class="ch-h"><span class="ch-n">05</span><h2>拆开两条时钟支路，验证根因</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>拆开两条时钟支路验证根因</h2></div>
   <p>先在 STA 展开的时钟段找到共同分叉点，从该点往下比较两侧缓冲级数、驱动边沿、负载、走线和寄生。再到版图检查 <code>BR_C</code> 是否与这组晚到 sink 一致。此例假定接收端 <code>FF_C</code> 与组内最晚 <code>FF_X</code> 共享 <code>BR_C</code>，而启动分支独立；寄生分段检查发现 <code>BR_C</code> 的共同段有一处绕宏的折返。把晚到归因于折返之前，还要确认多出来的延迟主要出现在该段，而不是来自分叉点上游或接收单元内部。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">                 +-- BR_L ------------------ FF_L/CK</span><span class="ln ">CLK_A -- split --+</span><span class="ln ">                 +-- BR_C -- detour --+----- FF_C/CK</span><span class="ln ">                                     +----- FF_X/CK</span></code></pre></div>
 <p>若接收端在宏内，先确认报告到达点是宏时钟输入还是模型内部节点；库模型的时序弧或约束不能直接算成外部树延迟。类似地，版图上 data 与 clock 的投影交叉不是耦合证据：先核对层别、提取的耦合项和串扰分析差异，才能判断是否该动那段线。没有证据时不要为了让图看起来整齐而改数据网。</p>
   
 </section>
 <section class="ch" id="practice-step-06" data-ch="practice-step-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>实施并对照：提前接收端，也会减少 setup 余量</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>提前接收端也会吃掉 setup 余量</h2></div>
   <p>在保留缓冲拓扑和负载组的前提下，实验只修改 <code>BR_C</code> 的折返走线，局部增量布线后重提取。通过同样的报告入口复跑组统计和路径分析。以下假设只有接收侧时钟延迟发生变化，数据、约束及 CPPR 数值不变；真实复跑中这些项也可能改变，不应手工沿用旧报告。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">TREE AFTER: view=tree_ref  edge=rise  propagated=yes</span><span class="ln ">  min sink FF_E/CK = 80 ps; max sink FF_X/CK = 120 ps</span><span class="ln ">  global skew = 40 ps; FF_C/CK = 114 ps</span><span class="ln ">STA AFTER: path FF_L/Q -&gt; FF_C/D, units=ps</span><span class="ln ">  check   ref_delta  launch_net  capture_net  data   cons  unc  CPPR  slack</span><span class="ln ">  setup         400          95          110   365     30   20     5     +5</span><span class="ln ">  hold            0          90          118    65     15   12     4    +14</span></code></pre></div>
 <p>全局从 60 ps 降至 40 ps，达到 50 ps 的教学目标。setup 的局部偏斜从 +30 ps 降到 +15 ps，余量也从 +20 ps 降到 +5 ps；hold 的局部偏斜从 +50 ps 降到 +28 ps，余量增加 22 ps，变成 +14 ps。这条路径两项都非负，但如果项目要求 setup 至少保留 10 ps 的额外余量，这个改法仍不合格。改善了组指标和负 slack，不能代替检查实际交付门限。</p>
@@ -104,12 +105,12 @@
   
 </section>
 <section class="ch" id="practice-step-07" data-ch="practice-step-07">
-  <div class="ch-h"><span class="ch-n">07</span><h2>验收与回退：不要只复查被点名的路径</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>不要只复查被点名的那条路径</h2></div>
   <p>先以相同视图、边沿、寄生阶段复查组内分布和修改分支的时钟转换时间、负载。然后把受影响 sink 同时作为 capture 和 launch 搜索其他路径；局部提早对进来的路径和出去的路径未必同向，需要复查各签核视图的 setup、hold，以及时钟门控和脉宽检查。最后核对增量改线的连通性、几何 DRC 和邻近网耦合。若组指标达标却引入新的负 slack 或过阈值退化，保存分支和报告差异，恢复原布线及配对的寄生快照后复跑基线；可再比较温和的走线调整，或评估只在目标数据路径上修 hold。不能把缩小不确定性、增添时序例外或放宽时钟周期当成物理修复。</p>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">08</span><h2>自检：算出偏斜，再判断影响</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>先算出偏斜，再判断影响</h2></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>树统计最早 80 ps、最晚 140 ps；路径 launch 95 ps、capture 125 ps。两个 skew 各多少？</div>
   <div class="q-a">Global skew 为 60 ps，按本讲约定该路径 local skew 为 +30 ps。若同口径的全局目标为 50 ps，实测超 10 ps。</div>
@@ -123,13 +124,13 @@
   
 </section>
 <section class="ch" id="deep-lab-path-group-exceptions" data-ch="deep-lab-path-group-exceptions">
-  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：路径组变绿，是优化成功还是例外没限定？</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>路径组变绿：真优化还是例外没限定</h2></div>
   <p><strong>模拟 STA 对照（裕量单位：ps）。</strong> 同一功能视图、寄生和传播时钟，接收端都是 <code>R1/D</code>。设计确认只有调试寄存器 <code>DBG/Q</code> 到该端点的路径允许设为 false path；正常寄存器 <code>SRC/Q</code> 发出的路径必须检查。下面两版没有改线，<code>DATA_A</code>、<code>DATA_B</code> 是路径报告的分组，不是 CTS 偏斜组。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟版本  活动例外范围       SRC→R1 状态/组/裕量        DATA_A WNS   组内有效路径数</span><span class="ln ">B0        无                 已检查 / DATA_A / −18      −18          7</span><span class="ln ">B1        任意起点→R1/D      排除 / — / —               +12          5</span><span class="ln ">另：B1 的 DATA_B 搜不到 SRC→R1；例外展开命中 DBG→R1 和 SRC→R1。</span></code></pre></div>
 <p><strong>先独立交付。</strong> 用原收发端点区分“被分到别组”“被例外排除”和“路径真的改善”三种情况；判定 B1 能否放行，并写出获准例外应匹配的起点、终点以及复查时必须仍可见的路径。</p>
 <p><strong>标准判断。</strong> B1 不是改组，也没有实测裕量改善。到单一终点的宽泛例外排除了两条路径，连原本必须检查的 <code>SRC→R1</code> 也消失了，剩余路径才显示 <code>+12</code>。例外应只命中 <code>DBG/Q→R1/D</code>；修正后 <code>SRC→R1</code> 必须可查，其负裕量仍应进入修复队列。路径分组决定到哪里读报告，不授予跳过检查的许可。</p>
 <p><strong>验收与回退。</strong> 撤回宽泛例外，用冻结的布局和寄生复跑基线；仅在有审批的约束分支应用窄例外，核对逐条命中清单和各组覆盖，复查 setup、hold 和未约束端点。若任一正常路径仍缺失，恢复原约束并保留未修违例，不能凭组内 WNS 转正签收。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1" data-go="/lesson/03-08-cts/">读完本篇 · 回本模块主课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -142,14 +143,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01n-drv-repair/">← DRV 修复：先分清是哪条电气规则超限</a><a class="nav-btn" href="/lesson/03-01p-double-patterning/">双重图形化：为什么两条线分开了仍会报错 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01f-cts-practice/">← 参考上一篇<i>CTS：从前置检查到时钟树验收</i></a><a class="nav-btn next" href="/lesson/03-08-cts/">回本模块主课 →<i>CTS：时钟树综合，从 skew 定义到建树验收</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

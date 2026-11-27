@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Route：布线引擎与短路、开路排查 · 39 | IC 后端学院</title>
-<meta name="description" content="三种布线引擎；短路和开路检查；天线效应与串扰。按《04 innovus项目(1).docx》原文顺序整理，保留原图。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<title>Route：三种引擎、短路开路与串扰 · 39 | IC 后端学院</title>
+<meta name="description" content="全局布线、特殊布线、详细布线各自解决什么；短路与开路怎么从报告读到版图；天线效应与串扰的成因和修法。附原始资料对照。">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-09-route">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,32 +50,133 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Route：布线引擎与短路、开路排查</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Route：三种引擎、短路开路与串扰</b></div><div class="lesson-refbar">阶段三课表模块：Route（4 课时）<a href="/lesson/03-01-innovus-plan/#course-mainline">看完整课表</a></div>
     <div class="hero">
       <div class="hero-no">39</div>
-      <h1>Route：布线引擎与短路、开路排查</h1>
+      <h1>Route：三种引擎、短路开路与串扰</h1>
       <p class="hero-en">Routing</p>
-      <p class="hero-sum">三种布线引擎；短路和开路检查；天线效应与串扰。按《04 innovus项目(1).docx》原文顺序整理，保留原图。</p>
+      <p class="hero-sum">全局布线、特殊布线、详细布线各自解决什么；短路与开路怎么从报告读到版图；天线效应与串扰的成因和修法。附原始资料对照。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈3 分钟</span>
-        <span class="pill">课表学时 0</span>
-        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈17 分钟</span>
+        <span class="pill">课表学时 4</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span><span class="pill tag">Route</span>
       </div>
     </div>
-    <article id="article" data-est-min="3"><section class="ch" id="source-01" data-ch="source-01">
-  <div class="ch-h"><span class="ch-n">01</span><h2>三种布线引擎</h2></div>
-  <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
+    <article id="article" data-est-min="17"><section class="ch" id="what" data-ch="what">
+  <div class="ch-h"><span class="ch-n">01</span><h2>一句话先记住：布线不是&quot;把线连上&quot;</h2></div>
+  <p>前面几步，单元的位置是<strong>摆</strong>出来的；到这一步，单元之间的线是<strong>画</strong>出来的。画线听起来比摆东西简单，实际上是整条流程里约束最多的一步：</p>
+<ul><li>线要连对（连错就是短路，没连上就是开路）；</li><li>线要走得下（轨道不够就会溢出，绕远路就会时序变差）；</li><li>线要守制造规则（太细、太近、太薄都会做不出来）；</li><li>线不能互相干扰（平行太长的两根线会串扰）；</li><li>线还要经得起制造过程（长线会积累电荷，打坏栅极）。</li></ul>
+<p>一样没做到，后面签核就过不去。所以这门课不讲&quot;怎么点那个按钮&quot;，讲<strong>每一步在防什么</strong>。</p>
+<div class="term open">
+  <div class="term-h"><span class="term-en">Route</span><span class="term-zh">布线</span></div>
+  <div class="term-b"><p>把网表里&quot;谁连谁&quot;的逻辑关系，变成版图里&quot;走上哪一层、走哪条轨道、在哪里打过孔&quot;的物理连线。资料里「走线」「绕线」都是指这件事。<br><strong>同义词提醒</strong>：DRC（设计规则检查）有时被口语说成「规则检查」；DRV（设计规则违例）有时被笼统说成「违例」。两者不同——DRC 是检查动作，DRV 是检查出来的问题项。</p></div>
+</div>
+  
+</section>
+<section class="ch" id="engines" data-ch="engines">
+  <div class="ch-h"><span class="ch-n">02</span><h2>三种布线引擎：先分清谁干什么</h2></div>
+  <p>原始资料列了三个名字：<code>global route</code>、<code>sroute</code>、<code>nanoroute</code>。很多人记成&quot;三个都能布线，随便用一个&quot;，这是最常见的误解——<strong>它们根本不是同一件事的三个选项，而是流水线上的三个工位。</strong></p>
+<div class="tbl"><table><thead><tr><th>引擎</th><th>干什么</th><th>输出什么</th><th>什么时候跑</th></tr></thead><tbody><tr><td><strong>Global Route</strong>（全局布线）</td><td>只做<strong>规划</strong>：估算每条网大致走哪个区域、需要几条轨道</td><td>一张&quot;需求 vs 容量&quot;的分配图，不产生真实几何</td><td>Floorplan / Place 之后，先看拥塞</td></tr><tr><td><strong>sroute</strong>（special route）</td><td>布<strong>特殊网</strong>：电源、地、时钟主干</td><td>电源网格、ring、stripe、followpin</td><td>PowerPlan 之后，Place 前后都可跑</td></tr><tr><td><strong>NanoRoute</strong>（详细布线）</td><td>真正<strong>画几何</strong>：具体到哪一层、哪条 track、哪个 via</td><td>可提取寄生的实际版图</td><td>Place 和 CTS 之后</td></tr></tbody></table></div>
+<p><strong>为什么必须分三步？</strong> 想象在一座城市里送快递：</p>
+<ul><li>全局布线 = 规划&quot;每个片区的货从哪条主干道走&quot;，只算流量，不画具体车道；</li><li>详细布线 = 真正把车开上路，遇到单行道、限高、堵点要绕；</li><li>特殊布线 = 修的是水电管网，跟快递车道是两套系统，但会抢地下空间。</li></ul>
+<p>如果直接跳到详细布线，工具没有全局的流量估计，就会一头扎进局部最优，最后到处绕不出去——这就是&quot;必须先跑 global route 看拥塞&quot;的原因。</p>
+<div class="pit"><div class="pit-h">常见坑 · 把 sroute 当成信号布线</div><div class="pit-b"><p><code>sroute</code> 只处理<strong>特殊网</strong>（电源/地/时钟主干），它按&quot;宽线 + 规则阵列&quot;的方式布，追求的是载流能力和连通，不管时序。信号网必须交给 NanoRoute。混用会导致电源网时序被当成信号网优化，或者信号网被按电源规则布成一大片金属，直接短路。</p></div></div>
+  
+</section>
+<section class="ch" id="global-route" data-ch="global-route">
+  <div class="ch-h"><span class="ch-n">03</span><h2>全局布线：在动手之前先看&quot;路够不够&quot;</h2></div>
+  <p>全局布线阶段最该看的是<strong>拥塞图（congestion map）</strong>，不是&quot;跑完了没有&quot;。</p>
+<p>拥塞图的读法只有一句：<strong>红色 = 这个区域需要的轨道数超过可用轨道数</strong>。</p>
+<p>但要注意三个容易看错的地方：</p>
+<ol><li><strong>分母是轨道，不是面积</strong>。同一个区域，密度 70% 不一定拥塞，密度 50% 也可能拥塞——取决于这个方向上有几条可用 track。</li><li><strong>要分方向看</strong>。横向拥塞和纵向拥塞是两回事，只压一个方向解决不了问题。</li><li><strong>要看层</strong>。M2 拥塞但 M5 有余量，说明问题不在总量，在&quot;没往上层引&quot;。</li></ol>
+<div class="tip"><div class="tip-h">小技巧</div><p>调整 floorplan 或 place 之前，先把当前拥塞图的层、方向、图例阈值记下来。改完之后用<strong>同样的层、同样的图例</strong>再比一次。换了图例阈值的两张图，颜色没法直接对比。</p></div>
+  
+</section>
+<section class="ch" id="short-open" data-ch="short-open">
+  <div class="ch-h"><span class="ch-n">04</span><h2>详细布线的两个硬指标：短路与开路</h2></div>
+  <p>原始资料里有一句话很实在：<strong>&quot;一般 short 的数量在 2 位数算是比较好的结果&quot;</strong>。</p>
+<p>这句话没有解释为什么。道理是这样：</p>
+<p>一块中等规模的芯片，网的数量是十万到百万级，走线数以百万计。工具在几百万次决策里出现几十次失误，是正常工程现实；<strong>上千个 short 才是异常</strong>，说明不是&quot;个别决策错了&quot;，而是系统性问题——通常是 floorplan 留的通道不够，或者 place 把单元堆在了错误的位置。</p>
+<h3>短路（short）：两根不该连的线连上了</h3>
+<p>排查顺序按&quot;聚集程度&quot;走，不要一个一个看：</p>
+<div class="tbl"><table><thead><tr><th>现象</th><th>常见根因</th><th>修法</th></tr></thead><tbody><tr><td>short 集中在 <strong>top 边</strong></td><td>宏的出 pin 和 port 抢同一片区域；或 stdcell 走线和 port 打架</td><td>在边界打 <strong>partial blockage</strong>（局部禁布区），大小和深度看 short 的深度；如果是宏，<strong>加宽 channel</strong></td></tr><tr><td>short 集中在 <strong>宏与宏之间</strong></td><td>通道太窄，两侧 pin 的出线在中间撞上</td><td>拉开宏间距，或在 channel 中间打 blockage</td></tr><tr><td>short 出现在 <strong>宏的拐角</strong></td><td>拐角处可用轨道被切成碎片</td><td>打 blockage、加 keepout margin，或直接调 floorplan</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · blockage 忘了删</div><div class="pit-b"><p>blockage 是<strong>临时脚手架</strong>：它帮你把单元推开、把通道让出来，但它本身也占地方。<strong>必须在 route 之前删掉</strong>，否则工具会把那里当成永久禁布区，布线时绕不过去，反而产生新的开路。这是新手最常犯的错之一。</p></div></div>
+<h3>开路（open）：该连的没连上</h3>
+<p>开路比 short 更隐蔽，因为版图上&quot;看起来是连着的&quot;。</p>
+<p>典型原因是<strong>两层金属在屏幕上重叠，但没有合法过孔</strong>。投影重叠不等于电气连接——必须有满足包围（enclosure）和间距（spacing）规则的 via，才算真的连上。</p>
+<p>所以查开路的方法不是放大看图，而是：</p>
+<ol><li>从报告拿到断点的<strong>坐标和层</strong>；</li><li>在版图里定位到那个坐标，确认两层图形是否真的重叠；</li><li>检查那里<strong>有没有 via</strong>，via 是否满足 DRC；</li><li>如果没 via，看是工具没打，还是打了但被 DRC 删了。</li></ol>
+<div class="note"><div class="note-h">一个反直觉的事实</div><p>连通性检查和 DRC 检查是<strong>两套独立判据</strong>。DRC 全绿不代表连对了（可能少打了一个 via 但没违反规则）；连通性全通也不代表能制造（可能 via 间距不够）。两个都要过。</p></div>
+  
+</section>
+<section class="ch" id="antenna" data-ch="antenna">
+  <div class="ch-h"><span class="ch-n">05</span><h2>天线效应：制造过程留下的伤</h2></div>
+  <p>原始资料只有一句：&quot;Antenna 天线效应，也可以插 buf 修复，还有增加 shape 面积。&quot;</p>
+<p>这句话省略了最重要的部分：<strong>为什么会发生</strong>。</p>
+<p>芯片制造是一层一层往上长金属的。每长完一层，要对整片 wafer 做一次等离子刻蚀。刻蚀时，<strong>已经成形但还没接到任何扩散区的长金属线，会像天线一样收集电荷</strong>。电荷越积越多，电压越来越高，最后击穿它所连接的栅极氧化层——栅极就打坏了。</p>
+<p>关键点在&quot;还没接到扩散区&quot;：如果这条线上连着一个晶体管的源/漏（扩散区），电荷有地方泄放；只连到栅极（纯绝缘）就会积累。</p>
+<p>所以修法的逻辑都是&quot;给它一条泄放路径&quot;：</p>
+<div class="tbl"><table><thead><tr><th>修法</th><th>原理</th><th>代价</th></tr></thead><tbody><tr><td><strong>插天线二极管</strong></td><td>反向二极管在正常电压下不导通，电荷积累到一定电压时击穿泄放</td><td>增加面积、增加结电容（可能影响时序）</td></tr><tr><td><strong>跳层（跳线）</strong></td><td>在某一层断开，改走更高层，缩短单层累积长度</td><td>可能增加 via、影响布线资源</td></tr><tr><td><strong>加大 shape 面积</strong></td><td>增大金属面积降低电荷密度</td><td>占面积，可能加剧拥塞</td></tr><tr><td><strong>插 buffer</strong></td><td>把长线切成几段，每段累积量降低</td><td>增加延迟和功耗，慎用</td></tr></tbody></table></div>
+<p>原始资料给的两条命令对应自动修复：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">setNanoRouteMode -drouteFixAntenna true      ;# 详细布线时自动修天线</span><span class="ln ">setNanoRouteMode -routeInsertAntennaDiode true ;# 允许插入天线二极管</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 看到长线就加二极管</div><div class="pit-b"><p>天线违规有具体的<strong>比率判据</strong>（金属面积 / 栅面积），不是&quot;线长就违规&quot;。盲目加二极管会引入额外电容，把本来通过的时序搞崩。正确顺序是：先看报告里哪条网、哪个栅、比率多少，再决定用哪种修法。</p></div></div>
+  
+</section>
+<section class="ch" id="crosstalk" data-ch="crosstalk">
+  <div class="ch-h"><span class="ch-n">06</span><h2>串扰：工作时两根线的互相干扰</h2></div>
+  <p>原始资料的描述是：&quot;两根走线较长，且并行时，容易引起串扰。&quot;</p>
+<p>这句话是对的，但只说了一半。串扰有两个必要条件，缺一不可：</p>
+<ol><li><strong>两根线在物理上靠得近</strong>（耦合电容大）；</li><li><strong>其中一根在翻转</strong>（有电压变化 dv/dt）。</li></ol>
+<p>只有耦合没有翻转，不会有干扰；只有翻转没有耦合，也不会。所以修串扰有两个方向——<strong>减小耦合</strong>，或者<strong>错开翻转时间</strong>。</p>
+<div class="tbl"><table><thead><tr><th>手段</th><th>做法</th><th>适用</th></tr></thead><tbody><tr><td><strong>加间距（spacing）</strong></td><td>把两根线拉开，耦合电容随距离下降</td><td>局部、少量网</td></tr><tr><td><strong>加屏蔽（shielding）</strong></td><td>在受害网两侧沿 track 打 VSS 线</td><td>关键时钟、敏感信号</td></tr><tr><td><strong>降低驱动/加 buffer</strong></td><td>改变边沿斜率，减小 dv/dt</td><td>施扰网驱动过强时</td></tr><tr><td><strong>时序错开</strong></td><td>调整路径延迟，避免同时翻转</td><td>有用但难控</td></tr><tr><td><strong>换层</strong></td><td>让两根线不在相邻层重叠</td><td>布线资源允许时</td></tr></tbody></table></div>
+<p><strong>串扰的两个后果要分清</strong>：</p>
+<ul><li><strong>毛刺（glitch）</strong>：受害线上出现一个不该有的电压跳变，可能让下游触发器误触发。这个是<strong>功能问题</strong>。</li><li><strong>延迟变化（delay shift）</strong>：受害线变慢或变快，影响时序。这个是<strong>时序问题</strong>。</li></ul>
+<p>两者要用不同报告查，修法也不同。毛刺看噪声分析（noise），延迟看带 SI 的时序分析。</p>
+  
+</section>
+<section class="ch" id="to-optroute" data-ch="to-optroute">
+  <div class="ch-h"><span class="ch-n">07</span><h2>布线之后还没完：OptRoute 在做什么</h2></div>
+  <p>Route 跑完，线是连上了，但通常不是最优的：</p>
+<ul><li>为了让所有线都连上，工具可能绕了远路 → 时序变差；</li><li>有些线为了避让走了很窄的间距 → SI 风险；</li><li>局部 DRC 违例可能只是勉强通过。</li></ul>
+<p>OptRoute 就是在<strong>已经连通的版图上做二次优化</strong>，不改变连接关系，只改走线路径和单元位置。</p>
+<p>细节见下一课 <a href="/lesson/03-10-optroute/">OptRoute</a>，以及参考专题 <a href="/lesson/03-01g-route-debug/">Route 诊断实训</a>。</p>
+  
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">08</span><h2>动手：不用工具也能练的三件事</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>纸面排查：一条&quot;看起来连上了&quot;的网</div><div class="lab-b"><p>场景：报告说 <code>u_ctrl/busy_q/D</code> 这条网开路。你把版图放大到该坐标，看到 M3（驱动侧）和 M2（负载侧）两块金属在屏幕上明显重叠。实例端点和网络归属都与网表一致。</p>
+<p>请回答：</p>
+<ol><li>屏幕上重叠，为什么还会报开路？</li><li>你要去查什么，才能确认是&quot;没打 via&quot;还是&quot;via 打了但不合法&quot;？</li><li>如果你补了一个 via，接下来必须再查哪两项？（提示：不止连通性）</li></ol></div></div>
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>global route、sroute、nanoroute 三者的分工分别是什么？</div>
+  <div class="q-a">global route 只做流量规划不画几何；sroute 布电源地等特殊网；nanoroute 画信号线的真实几何。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么 short 数量上千就说明是系统性问题？</div>
+  <div class="q-a">少量 short 属于百万级决策中的正常失误；上千个说明 floorplan 通道或 place 位置存在结构性缺陷，不是个别决策错误。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>两层金属投影重叠，为什么仍可能报 open？</div>
+  <div class="q-a">投影重叠只是视觉重叠，必须有满足包围和间距规则的合法 via 才算电气连接。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>天线效应为什么只发生在连到栅极的长线上？</div>
+  <div class="q-a">连到扩散区的线有电荷泄放路径；只连栅极时电荷无处泄放，会积累到击穿栅氧化层。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>串扰发生的两个必要条件是什么？</div>
+  <div class="q-a">两根线物理耦合足够大，且其中至少一根正在翻转（有 dv/dt）。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>blockage 为什么必须在 route 之前删除？</div>
+  <div class="q-a">它只是临时推开单元的手段，留着会被当成永久禁布区，导致布线绕不出去产生开路。</div>
+</div></div>
+  
+</section>
+<section class="ch" id="source-appendix" data-ch="source-appendix">
+  <div class="ch-h"><span class="ch-n">09</span><h2>原始资料对照</h2></div>
+  <p>以下为《04 innovus项目(1).docx》第七节的原文，按原顺序保留，供对照查阅。上面的讲解是对这些要点的展开，命令适用性以你使用的工具版本和项目环境为准。</p>
+<h3 id="source-01">原文：三种布线引擎</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">七、Route 布线</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">基本概念</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">route的三种绕线引擎</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">global route</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">sroute</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">nanoroute</p></div>
-  
-</section>
-<section class="ch" id="source-02" data-ch="source-02">
-  <div class="ch-h"><span class="ch-n">02</span><h2>短路和开路检查</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">重点检查内容</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">重点检查short的数量、open的数量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">一般short的数量在2位数算是比较好的结果</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果short数量很多，上千或者上万的，需要debug</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如何分析short   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">应该提前要看place之后congestion map，map的红色位置，一般就是route之后的short位置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">看分布情况， 看short的聚集点</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、在top边上，mem的出pin和某一条边 的port绕线打架，也有可能是cell的走线和port的走线打架 </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">解决方案：在边界打partical blkage ,打的大小、深度取决short的深度，目的推开这些cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果是mem，增加mem的channel   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">注意：blackage不能一直存在，在route之前删除</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、存在mem和mem之间</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">拉开mem之间的间距，或者在channel中间打blkage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、出现在mem的拐角</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">打blkage、添加keepoutmargin、调整floorplan</p></div>
-  
-</section>
-<section class="ch" id="source-03" data-ch="source-03">
-  <div class="ch-h"><span class="ch-n">03</span><h2>天线效应与串扰</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">Antenta  天线效应</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">也可以插buf修复，还有增加shape面积</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">工具自动尝试修复</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setNanoRouteMode -drouteFixAntenna true -routeInsertAntennaDiode true</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">crosstalk  串扰</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">两根走线较长，且并行时，容易引起串扰</p></div>
+<h3 id="source-02">原文：短路和开路检查</h3>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">重点检查内容</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">重点检查short的数量、open的数量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">一般short的数量在2位数算是比较好的结果</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果short数量很多，上千或者上万的，需要debug</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如何分析short   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">应该提前要看place之后congestion map，map的红色位置，一般就是route之后的short位置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">看分布情况， 看short的聚集点</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、在top边上，mem的出pin和某一条边 的port绕线打架，也有可能是cell的走线和port的走线打架 </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">解决方案：在边界打partical blkage ,打的大小、深度取决short的深度，目的推开这些cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果是mem，增加mem的channel   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">注意：blackage不能一直存在，在route之前删除</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、存在mem和mem之间</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">拉开mem之间的间距，或者在channel中间打blkage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、出现在mem的拐角</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">打blkage、添加keepoutmargin、调整floorplan</p></div>
+<h3 id="source-03">原文：天线效应与串扰</h3>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">Antenta  天线效应</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">也可以插buf修复，还有增加shape面积</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">工具自动尝试修复</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setNanoRouteMode -drouteFixAntenna true -routeInsertAntennaDiode true</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">crosstalk  串扰</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">两根走线较长，且并行时，容易引起串扰</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
@@ -89,14 +190,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-08-cts/">← CTS：时钟树综合、约束与检查</a><a class="nav-btn" href="/lesson/03-10-optroute/">OptRoute：布线后优化 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-08-cts/">← 上一课<i>CTS：时钟树综合，从 skew 定义到建树验收</i></a><a class="nav-btn next" href="/lesson/03-10-optroute/">下一课 →<i>OptRoute：布线后优化到底在优化什么</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

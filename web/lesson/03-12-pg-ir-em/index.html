@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PG、IR Drop 与 EM：从电源连通到修复回归 · 41a | IC 后端学院</title>
 <meta name="description" content="从电源域和宏 PG 引脚核对开始，分开分析静态压降、动态压降与电迁移，用一次过孔修复和同条件回归闭环。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-12-pg-ir-em">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,7 +50,7 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>PG、IR Drop 与 EM：从电源连通到修复回归</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>PG、IR Drop 与 EM：从电源连通到修复回归</b></div><div class="lesson-refbar">本页是「PowerPlan」模块的参考阅读，不计入自动学习路线。<a href="/lesson/03-06-powerplan/">回本模块主课 →</a><a href="/lesson/03-01-innovus-plan/#course-mainline">看阶段三课表</a></div>
     <div class="hero">
       <div class="hero-no">41a</div>
       <h1>PG、IR Drop 与 EM：从电源连通到修复回归</h1>
@@ -148,7 +148,7 @@
   <div class="q-a">动态电感项；课程固定了封装电感和电流上升斜率。</div>
 </div></div>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能指出 A0 的开路位置，并说清为什么 A0 不能拿来做有效的 IR/EM 基线。</li><li>能复算 A1→A2 的静态 45→35 mV、动态 112→92 mV、单孔平均电流 20→10 mA。</li><li>能区分模型通过、项目回归待跑和签核放行，并在对照报告里记录未运行项。</li></ul></div>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1" data-go="/lesson/03-06-powerplan/">读完本篇 · 回本模块主课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -161,14 +161,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-11-eco/">← ECO：DRV、时序、DRC 与签核问题</a><a class="nav-btn" href="/lesson/03-13-mmmc-eco-lab/">MMMC ECO 实训：从 SPEF 回标到多角验收 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01k-latch-up/">← 参考上一篇<i>Latch-up：从寄生回路检查阱与衬底连接</i></a><a class="nav-btn next" href="/lesson/03-06-powerplan/">回本模块主课 →<i>PowerPlan：供电结构、IR/EM 与检查</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

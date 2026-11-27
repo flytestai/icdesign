@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Latch-up：从寄生回路检查阱与衬底连接 · 31k | IC 后端学院</title>
 <meta name="description" content="理解寄生双极管的触发与维持，并把阱接触和保护环落实到版图检查。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-01k-latch-up">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,7 +50,7 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Latch-up：从寄生回路检查阱与衬底连接</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Latch-up：从寄生回路检查阱与衬底连接</b></div><div class="lesson-refbar">本页是「PowerPlan」模块的参考阅读，不计入自动学习路线。<a href="/lesson/03-06-powerplan/">回本模块主课 →</a><a href="/lesson/03-01-innovus-plan/#course-mainline">看阶段三课表</a></div>
     <div class="hero">
       <div class="hero-no">31k</div>
       <h1>Latch-up：从寄生回路检查阱与衬底连接</h1>
@@ -64,7 +64,8 @@
     </div>
     <article id="article" data-est-min="12"><section class="ch" id="parasitics" data-ch="parasitics">
   <div class="ch-h"><span class="ch-n">01</span><h2>正常 CMOS 为什么会有寄生回路？</h2></div>
-  <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-k.svg" data-fig="innovus-practice-k.svg"><img src="/fig/innovus-practice-k.svg" alt="原创教学示意图 · 闩锁：触发不等于能持续自锁" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 闩锁：触发不等于能持续自锁</figcaption></figure>
+  <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>闩锁效应</strong> · 承接 PowerPlan 的阱与衬底。电源网络建好之后要保证阱和衬底都有偏置。本讲解释寄生回路怎么形成、tap 为什么不能省。</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-k.svg" data-fig="innovus-practice-k.svg"><img src="/fig/innovus-practice-k.svg" alt="原创教学示意图 · 闩锁：触发不等于能持续自锁" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 闩锁：触发不等于能持续自锁</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 15 项的主题独立编写。下文简化说明体硅 CMOS，不转载原文、图或项目参数。桌面演练的规则、版图对象与报告均为合成，不能替代真实 PDK 或用于器件上电试验。</p></div>
 <p>以 P 型衬底、N 阱里的 PMOS 和衬底上的 NMOS 为例。PMOS 的 P+ 扩散区、N 阱、P 型衬底可组成寄生 PNP；NMOS 的 N+ 扩散区、P 型衬底、N 阱可组成寄生 NPN。衬底和阱对局部电流不是理想零阻抗节点：即便远处接到了电源，局部电位仍可能向不同方向偏移。两只寄生管的集电极电流能影响对方的基极，满足条件时反馈会在电源和地之间形成低阻通路，这就是闩锁效应（Latch-up）。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Perturbation --&gt; local P-substrate potential rises --&gt; parasitic NPN conducts</span><span class="ln ">                    ^                                      |</span><span class="ln ">                    |                                      v</span><span class="ln ">             parasitic PNP conducts &lt;-- local N-well potential falls</span><span class="ln "> </span><span class="ln ">Reference paths: P-substrate -- Rsub -- low bias</span><span class="ln ">                 N-well      -- Rwell - high bias</span></code></pre></div>
@@ -84,13 +85,13 @@
   
 </section>
 <section class="ch" id="lab-input" data-ch="lab-input">
-  <div class="ch-h"><span class="ch-n">04</span><h2>桌面输入：宏边哪一段失去覆盖？</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>宏边哪一段失去了覆盖</h2></div>
   <p>合成布局 <code>T17</code> 中，宏 <code>U_MEM</code> 把 <code>PD_A</code> 域的标准单元行截出一段 <code>R19-E</code>；对照段 <code>R18-E</code> 没有被这次摆放改动。课堂规则把覆盖距离定义为该段所有检查点中，到最近<strong>同域、同类型且已连接</strong>接触的最大抽取距离，衬底和 N 阱上限均为 18 微米；等于 18 合格。它不是相邻 tap 中心距，也不是一条可搬到其他工艺的公式。项目方给定 <code>PD_A</code> 的目标网为 <code>VSS_A</code> 和 <code>VDD_A</code>，<code>GR_MEM</code> 保护环不计入本练习的 tap 覆盖。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成报告 T17 / 单位 um                    最大距  上限  命中接触    抽取偏置  结果</span><span class="ln ">R18-E  P-SUB                              14     18    TAP_P18    VSS_A     PASS</span><span class="ln ">R19-E  P-SUB                              26     18    TAP_P19W   VSS_A     FAIL</span><span class="ln ">R19-E  N-WELL                             13     18    TAP_N19    VDD_A     PASS</span><span class="ln ">GR_MEM ring_check: continuity PASS; bias VSS_A; tap_credit NO</span><span class="ln ">R19-E 候选点: SITE_E1 / PD_A / clear / 接线可达 VSS_A</span><span class="ln ">R19-E 候选点: SITE_E2 / PD_B / clear / 接线可达 VSS_B</span></code></pre></div>
   
 </section>
 <section class="ch" id="lab-diagnosis" data-ch="lab-diagnosis">
-  <div class="ch-h"><span class="ch-n">05</span><h2>定位根因：先追坐标，再追偏置网</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>先追坐标，再追偏置网</h2></div>
   <p>先按报告定位 <code>R19-E</code> 上产生最大距离的检查点，查看它与宏边的关系。对照摆放记录发现原计划的接触位点落入宏阻挡，没有合法实例；抽取报告只承认西侧仍接对网的 <code>TAP_P19W</code>，导致最远点超过上限 8 微米。再查 N 阱和保护环报告：两者都通过，不能解释或抵消衬底超限。这是局部接触覆盖不足的版图根因，不是根据报告宣称真实器件已经闩锁。</p>
 <p>优先选 <code>SITE_E1</code>，在课堂修订图上登记一个项目认可的 <code>TAP_P19E</code> 并接到 <code>VSS_A</code>；保留既有 <code>TAP_P19W</code>、N 阱接触和保护环。拒绝更近也可能摆得下的 <code>SITE_E2</code>，因为它归 <code>PD_B</code>，其 <code>VSS_B</code> 不是 <code>PD_A</code> 的覆盖参考。再检查该位点不会侵入保留通道；这里不靠移动宏或修改保护环来同时改变多个因素。</p>
   
@@ -103,13 +104,13 @@
   
 </section>
 <section class="ch" id="handoff" data-ch="handoff">
-  <div class="ch-h"><span class="ch-n">07</span><h2>把异常记录写成能复核的交接项</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>把异常写成别人能复核的交接项</h2></div>
   <p>只写“宏边缺 tap”会给下一位工程师留下三个未知：是哪一种接触、是哪里超限、现有接触到底连到哪里。此例的记录应明确为“宏 U_MEM 东侧 R19-E 段，衬底覆盖最大距离 26 微米，抽取命中的西侧接点偏置正确但超出上限”。随后附上供电域、行段边界、对应规则、最远检查点、命中的接点及其抽取网名，注明保护环只是独立通过。这样，新的接点如果已经画在版图里却未被抽取到，可以查合法单元类型或连接路径，而不是再随意多插一个接点。</p>
 <p>如果正式报告仍报超限，先区分新增点被排除与新增点有效但遗漏了另一段。前者看名称是否正确还不够，应核对抽取边界、域归属和实际网连通；后者以更新后的最远位置重新定位，不要重复处理旧标记。反过来，若所有几何项都通过，却出现同域偏置网错接或保护环断开，也应阻止交付。终点是几何规则、连接和审查证据彼此一致，不是某个失败标记消失。</p>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">08</span><h2>自检：有保护环就能跳过 tap 检查吗？</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>有保护环就能跳过 tap 检查吗</h2></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>保护环通过而 R19-E 的衬底覆盖距离超限，可以交付吗？</div>
   <div class="q-a">不可以；规则未给予保护环覆盖资格，必须补足符合间距和偏置要求的衬底接触。</div>
@@ -123,13 +124,13 @@
   
 </section>
 <section class="ch" id="deep-lab-tap-open-vs-drc" data-ch="deep-lab-tap-open-vs-drc">
-  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：tap 还在原位，为什么偏置突然丢了？</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>tap 还在原位，偏置为什么突然丢了</h2></div>
   <p><strong>模拟几何与抽取对照（非工艺签核）。</strong> 某域 N 阱须连到本域 <code>VDD_N</code>。<code>TN7</code> 的接触图形仍在原位；本次几何 DRC 只核查宽度、间距和现存过孔包围，不要求特定位置一定有过孔。抽取追踪则要求该接触经 M1、V1、M2 到指定偏置条，才可计为有效接触。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟快照   几何 DRC   近端 tap 距离   TN7 抽取链                         最近有效接触</span><span class="ln ">W0         0          9 µm            TN7→M1→V1→M2→VDD_N                TN7 / 9 µm</span><span class="ln ">W1         0          9 µm            TN7→M1→悬空岛（该处没有 V1）       TN8 / 23 µm</span><span class="ln ">课堂覆盖上限：16 µm；用最近有效接触判定。</span></code></pre></div>
 <p><strong>先独立交付。</strong> 判定 W1 能否交付，写明是哪一段失接、该用哪个距离，并选择先恢复连线还是先增加 tap。说明两份报告是否矛盾，以及应取得什么证据来证明恢复的是本域偏置而不是别的电源网。</p>
 <p><strong>标准判断。</strong> W1 不是 tap 位置移动，而是 M1 与 M2 之间断开。几何报告只评估现存图形，抽取报告评估实际电气路径，结果不矛盾。TN7 看起来只离 9 µm，却因悬空无资格；有效距离为 23 µm，超限 7 µm。优先评估恢复原来的合法 V1 和目标网连接，不先新增接触来掩盖断点，也不能据此判断硅片已经闩锁。</p>
 <p><strong>验收与回退。</strong> 在副本修复后重新抽取，核对 TN7 到 <code>VDD_N</code> 的完整路径、无跨域短接、目标区与相邻区有效覆盖，并重跑局部几何及项目规定的偏置检查。若过孔不合法或连到别的域，撤销修复，恢复 W1 待修快照并保留阻断状态；下次改选获准的连线路径。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1" data-go="/lesson/03-06-powerplan/">读完本篇 · 回本模块主课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -142,14 +143,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01j-dbget/">← dbGet：从对象关系查找宏实例</a><a class="nav-btn" href="/lesson/03-01l-overflow/">布线溢出：从 GCell 边读懂拥塞热点 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-06-powerplan/">← 回本模块主课<i>PowerPlan：供电结构、IR/EM 与检查</i></a><a class="nav-btn next" href="/lesson/03-12-pg-ir-em/">参考下一篇 →<i>PG、IR Drop 与 EM：从电源连通到修复回归</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Innovus 的使用 · 33 | IC 后端学院</title>
-<meta name="description" content="两课时沿用同一个 40nm 案例：先从终端启动并认清界面、V/S 与对象属性，再准备输入、导入验证、保存检查点并在新会话恢复。没有工具也能用原图和教学数据完成练习。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<meta name="description" content="两个课时走完「从启动到可恢复」：第一课时认界面、看懂视图与选中；第二课时按对照表导入 40nm 案例、用五类证据验证、保存与恢复。九个启动选项与界面分块逐项讲透。附原始资料对照。">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-02-innovus-start">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,276 +50,321 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Innovus 的使用</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Innovus 的使用</b></div><div class="lesson-refbar">阶段三课表模块：Innovus 的使用（2 课时）<a href="/lesson/03-01-innovus-plan/#course-mainline">看完整课表</a></div>
     <div class="hero">
       <div class="hero-no">33</div>
       <h1>Innovus 的使用</h1>
       <p class="hero-en">Using Innovus</p>
-      <p class="hero-sum">两课时沿用同一个 40nm 案例：先从终端启动并认清界面、V/S 与对象属性，再准备输入、导入验证、保存检查点并在新会话恢复。没有工具也能用原图和教学数据完成练习。</p>
+      <p class="hero-sum">两个课时走完「从启动到可恢复」：第一课时认界面、看懂视图与选中；第二课时按对照表导入 40nm 案例、用五类证据验证、保存与恢复。九个启动选项与界面分块逐项讲透。附原始资料对照。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈50 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈46 分钟</span>
         <span class="pill">课表学时 2</span>
-        <span class="pill tag">Innovus</span><span class="pill tag">启动</span><span class="pill tag">-log</span><span class="pill tag">-files</span><span class="pill tag">-no_gui</span><span class="pill tag">-cpus</span><span class="pill tag">SetMultiCpuUsage</span><span class="pill tag">Tab</span><span class="pill tag">help</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span><span class="pill tag">入门</span>
       </div>
     </div>
-    <article id="article" data-est-min="50"><section class="ch" id="use-intro" data-ch="use-intro">
+    <article id="article" data-est-min="46"><section class="ch" id="use-intro" data-ch="use-intro">
   <div class="ch-h"><span class="ch-n">01</span><h2>课程导入：从启动到可恢复的设计</h2></div>
-  <p>本课沿用阶段三的同一个 40nm 案例：第一课时把工具打开、看清并选中对象；第二课时把同一设计的输入导进来，核对后保存，并在新会话中恢复。<strong>能启动、导对了、能恢复，是三个不同的验收点。</strong></p>
-<p>原图用于认界面，不是本课的实机验证记录。本站不提供该案例的商用软件、PDK、网表或检查点下载；有授权工具、许可证和获准使用的项目资料才执行命令，否则按每课时的桌面练习走。</p>
+  <p>这一课安排两个课时，但目标只有一个：<strong>让你能把一个设计导进 Innovus，证明它导对了，并且随时能恢复回来。</strong></p>
+<p>听起来简单，实际是新手最容易卡住的地方——不是命令不会敲，而是<strong>不知道敲完对不对</strong>。</p>
+<div class="tbl"><table><thead><tr><th>课时</th><th>内容</th><th>结束时你应该能</th></tr></thead><tbody><tr><td><strong>第 1 课时</strong></td><td>从终端启动、认界面、分清「看见」与「选中」</td><td>独立启动一次、看懂版图区在显示什么、能用属性窗口核对一个实例</td></tr><tr><td><strong>第 2 课时</strong></td><td>准备输入、按对照表导入、用证据验证、保存与恢复</td><td>把 40nm 案例导进来、用五类证据证明导对了、存盘并恢复</td></tr></tbody></table></div>
+<p>两个课时用的是<strong>同一个 40nm 案例</strong>（<code>leon</code>）。不换设计，是因为换设计会引入新的变量——你要先确认流程本身跑得通，再换自己的数据。</p>
+<div class="note"><div class="note-h">阅读方式</div><p>如果你已经有 Innovus 环境：可以边看边做，每节末尾都有验收动作。 如果你暂时没有环境：每节都写了「无工具也能做」的读图练习，按文字和图也能学会判读。</p>
+<p>两课时之间不需要重启工具——第 1 课时结束时保存的会话，第 2 课时直接接着用。</p></div>
   
 </section>
 <section class="ch" id="period-1" data-ch="period-1">
   <div class="ch-h"><span class="ch-n">02</span><h2>第一课时：从 Linux 终端启动并留下日志</h2></div>
-  <p>原图 01 是 Linux 文件管理器与终端：能看到 <code>data/</code>、<code>library/</code>、<code>logs/</code>、<code>reports/</code>、<code>scripts/</code> 等，以及创建 <code>work/</code> 的示例。<strong>它不是 Innovus 启动后的画面</strong>；也不需要照图使用 <code>root</code> 或照跑 <code>start.sh</code>。</p>
+  <p>第一件事不是打开工具，是<strong>学会怎么启动、并且让这一趟留下记录</strong>。</p>
+<div class="note"><div class="note-h">为什么强调「留下日志」</div><p>Innovus 的启动参数里有一个 <code>-log</code>。不写日志，这一趟跑完就什么都没有了——出了错无法回溯，成功了也无法复现。</p>
+<p>这是工程习惯问题，不是命令问题。所以放在第一课时第一节讲。</p></div>
+<h3>启动前确认三件事</h3>
+<p>在敲 <code>innovus</code> 之前先确认：①当前目录对不对（后面所有相对路径都基于它）；②License 是否可用（没有会卡在启动阶段）；③输入文件是否可读（路径写错的话启动成功但导入失败）。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-01.png" data-fig="innovus-doc-01.png"><img src="/fig/innovus-doc-01.png" alt="原文图 01 · Linux 项目目录与终端中的 work 目录示例，不是 Innovus 主界面" loading="lazy" decoding="async"></a><figcaption>原文图 01 · Linux 项目目录与终端中的 work 目录示例，不是 Innovus 主界面</figcaption></figure>
-<ol><li>登录团队提供的图形 Linux 会话，按项目说明加载工具环境，进入获准使用的个人练习目录。先看 <code>pwd</code> 和 <code>ls</code>：确认当前位置、输入从哪读、输出写到哪里；不在公共输入目录写日志或覆盖文件。</li><li>在 <strong>Linux shell</strong> 依次检查工具入口和启动帮助；任何一步出错就先停下来排查。</li></ol>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">pwd</span><span class="ln ">ls</span><span class="ln ">command -v innovus</span><span class="ln ">innovus -help</span></code></pre></div>
-<p>确认本版本支持 <code>-log</code> 后再启动 GUI；示例日志名应换成本次 run 未使用的名称。</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">innovus -log use_lesson01.log</span></code></pre></div>
-<ol><li>从启动横幅或日志确认<strong>版本</strong>，不要把 <code>command -v</code> 返回的路径当版本号。到 <code>innovus ...&gt;</code> 提示符后才进入 <strong>Innovus 命令环境</strong>；项目 Tcl 命令应在这里输入，不是在 Linux shell 输入。日志名、实际生成位置和文件后缀以这次启动结果为准。</li><li>起不来先按现象分流：找不到命令，核对项目环境和 <code>PATH</code>；许可证报错，记录原文并走团队支持流程；无法开窗，核对是否在获准的图形会话。首次上手不加 <code>-files</code>，避免把启动故障和脚本故障混在一起。</li></ol>
-<p>进阶阅读：<a href="/lesson/03-04-project-env/#dirs">目录怎么分工</a>、<a href="/lesson/03-04-project-env/#run">Run</a> 与 <a href="/lesson/03-04-project-env/#queue">Queue</a>；本页另保留<a href="#source-01">旧版启动资料</a>、<a href="#source-02">日志文件</a>、<a href="#options">启动选项和帮助用法</a>。</p>
+<div class="note"><div class="note-h">这张图该看什么</div><p>这是 Linux 终端，不是 Innovus 主界面。它展示的是启动前的<strong>工作目录环境</strong>。</p>
+<p>要看的是 <code>pwd</code> 显示的当前路径——它决定了所有相对路径的基准。实际项目里通常每个 run 一个独立目录。图中能看到 <code>data/</code>、<code>library/</code>、<code>logs/</code>、<code>reports/</code>、<code>scripts/</code> 等目录，以及创建 <code>work/</code> 的示例。</p>
+<p><strong>不要照图使用 <code>root</code> 或照跑 <code>start.sh</code></strong>，那只是一种可能的目录组织方式。</p></div>
+<h3>启动命令</h3>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">pwd ; ls                      # 先确认位置和目录内容</span><span class="ln ">command -v innovus            # 确认工具在 PATH 里</span><span class="ln ">innovus -help                 # 确认本版本支持哪些参数</span><span class="ln ">innovus -log use_lesson01.log # 正式启动，指定日志名</span></code></pre></div>
+<p>三个要点：<code>-log</code> 记录全程输出，<code>-files</code> 启动后自动跑脚本，<code>-cpus</code> 指定核数。九个选项的详细解释见后文<a href="#options">「九个常用启动选项」</a>。</p>
+<p><strong>版本要从启动横幅或日志里看，不要把 <code>command -v</code> 返回的路径当版本号。</strong> 到 <code>innovus ...&gt;</code> 提示符后才进入 Innovus 命令环境——项目 Tcl 命令要在这里输入，不是在 Linux shell 输入。</p>
+<div class="pit"><div class="pit-h">常见坑 · 起不来先按现象分流</div><div class="pit-b"><ul><li><strong>找不到命令</strong>：核对项目环境和 <code>PATH</code>；</li><li><strong>许可证报错</strong>：记录原文，走团队支持流程；</li><li><strong>无法开窗</strong>：核对是否在获准的图形会话。</li></ul>
+<p>首次上手<strong>不要加 <code>-files</code></strong>——否则启动故障和脚本故障会混在一起，不知道是哪个错了。</p></div></div>
+<h3>第一课时的验收</h3>
+<p>启动成功的最低标准：看到 <code>innovus&gt;</code> 提示符，并且日志文件开始有内容（日志名和实际位置以这次启动结果为准）。</p>
   
 </section>
 <section class="ch" id="use-interface" data-ch="use-interface">
   <div class="ch-h"><span class="ch-n">03</span><h2>第一课时：认主界面，分清看见与选中</h2></div>
-  <p>看原图 09，从上往下定位：标题栏显示截图所用的 <strong>Innovus 20.1</strong>，其下是菜单和工具栏；中间黑底为版图区，右侧是对象类别、层和显示/选择控制。图中已经载入设计，红箭头标注了布局规划阶段与布局及之后的视图入口，<strong>不是空会话的启动结果</strong>。图中没截到 <code>innovus ...&gt;</code> 提示符；命令输入与输出请到本次会话的终端或控制台找。</p>
+  <p>这一节是整个第一课时的核心。目标不是「记住按钮在哪」，而是<strong>建立一个正确的心智模型</strong>。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-09.png" data-fig="innovus-doc-09.png"><img src="/fig/innovus-doc-09.png" alt="原文图 09 · 已载入设计的 Innovus 20.1：顶部菜单与工具栏、中间版图区、右侧控制区" loading="lazy" decoding="async"></a><figcaption>原文图 09 · 已载入设计的 Innovus 20.1：顶部菜单与工具栏、中间版图区、右侧控制区</figcaption></figure>
-<p>把鼠标停在图标上读提示，不按“从左数第几个”记忆。不同版本、布局和显示宽度下，位置和图标可能变动。图 02–04 是工具栏入口，不是打开工具窗口后的截图；图 05 则是右侧控制区的局部。</p>
+<div class="note"><div class="note-h">这张图该看什么</div><p>已载入设计的 Innovus 20.1 主界面。三个层次：①标题栏显示版本（20.1）和设计路径；②菜单栏按工序排列（File 到 Help）；③中间黑底是版图区，右侧是控制区。</p>
+<p><strong>重要</strong>：图中已载入设计，红箭头标注的是布局规划阶段与布局之后的视图入口——<strong>这不是空会话的启动结果</strong>。</p>
+<p>另外注意图中没有 <code>innovus ...&gt;</code> 提示符，因为命令输入在终端或独立控制台窗口，不在版图区。</p></div>
+<p>把鼠标停在图标上读提示，<strong>不要按「从左数第几个」记忆</strong>。不同版本、布局和显示宽度下，位置和图标可能变动。</p>
+<h3>三个工具栏入口（是入口，不是结果）</h3>
+<p>下面三张图有个共同点：<strong>它们拍的都是工具栏上的图标入口，不是打开后的窗口</strong>。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-02.png" data-fig="innovus-doc-02.png"><img src="/fig/innovus-doc-02.png" alt="原文图 02 · Floorplan Toolbox 工具栏入口，用于定位布局规划工具" loading="lazy" decoding="async"></a><figcaption>原文图 02 · Floorplan Toolbox 工具栏入口，用于定位布局规划工具</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>Floorplan Toolbox 的<strong>工具栏入口图标</strong>。这只是「按钮在哪」，点开之后才是摆宏用的工具窗口（那个窗口长什么样见 Floorplan 那课的图 23）。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-03.png" data-fig="innovus-doc-03.png"><img src="/fig/innovus-doc-03.png" alt="原文图 03 · Design Browser 工具栏入口，用于查找设计层次与对象" loading="lazy" decoding="async"></a><figcaption>原文图 03 · Design Browser 工具栏入口，用于查找设计层次与对象</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>Design Browser 的工具栏入口。Design Browser 是层次树，用来查设计的层级结构和对象。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-04.png" data-fig="innovus-doc-04.png"><img src="/fig/innovus-doc-04.png" alt="原文图 04 · Violation Browser 工具栏入口，不是违例列表或检查结果" loading="lazy" decoding="async"></a><figcaption>原文图 04 · Violation Browser 工具栏入口，不是违例列表或检查结果</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>Violation Browser 的工具栏入口。<strong>注意：这里只是入口图标，不是违例列表</strong>——点开才能看到具体违例。</p>
+<p>新手容易把工具栏截图当成「功能界面」，以为点开就是这个样子。实际点开后是完全不同的窗口。</p></div>
+<h3>V/S 列：这一节最该记住的东西</h3>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-05.png" data-fig="innovus-doc-05.png"><img src="/fig/innovus-doc-05.png" alt="原文图 05 · 三种视图入口和右侧 V/S 列：V 控制可见，S 控制可选" loading="lazy" decoding="async"></a><figcaption>原文图 05 · 三种视图入口和右侧 V/S 列：V 控制可见，S 控制可选</figcaption></figure>
-<p><strong>跟做顺序：适配全图 → 缩放局部 → 切换 V/S → 核对对象属性。</strong> 有已获准载入的同一案例只读设计或个人副本才动手；空会话无法演示对象选择，可先读图，第二课时导入后补做。</p>
-<ol><li>用菜单或工具栏执行 Fit，再框选放大一个区域，最后回到全图。旧资料记载 <code>f</code> 适配全图、<code>z</code> 放大、<code>Shift+z</code> 缩小、<code>q</code> 打开对象属性；先查本版本菜单或快捷键设置，并将焦点置于版图区。若不一致，用菜单或工具提示，不反复试按。</li><li>在右侧找到目标对象的类别，例如 <code>Instance</code>。保持 V 开、暂关 S：这类对象仍可见，但不能在版图区选中。再打开 S，清除旧选择后重选同一对象；试关 V 时只观察显示变化，<strong>隐藏不等于删除</strong>，做完恢复原设置。</li><li>在版图区选中一个已知实例，通过本版本的属性入口查看，记录<strong>实例名</strong>和<strong>引用单元名</strong>，并用 Design Browser 或项目清单交叉核对。选到的是 net 而非 instance 时，属性字段不同；先核对对象类型，不急着改设计。</li></ol>
-<p>进阶阅读：<a href="#source-03">旧版快捷键原文</a>与<a href="#gui">原站的界面分区说明</a>。</p>
+<div class="note"><div class="note-h">这张图该看什么</div><p>三种视图入口和右侧的 V/S 列。<strong>V 控制可见（Visible），S 控制可选（Selectable），两者独立。</strong></p>
+<div class="tbl"><table><thead><tr><th>V</th><th>S</th><th>结果</th></tr></thead><tbody><tr><td>开</td><td>开</td><td>看得见，能选中（正常状态）</td></tr><tr><td>开</td><td>关</td><td>看得见，<strong>选不中</strong></td></tr><tr><td>关</td><td>关</td><td>看不见，选不中</td></tr></tbody></table></div>
+<p><strong>为什么这个设计重要</strong>：排查问题时经常需要「看得见但不想误选」。比如看宏之间的通道宽度，关掉 Standard Row 的 V，行线消失通道清楚；但行线消失了就选不中行了。</p>
+<p><strong>「隐藏不等于删除」</strong>：关掉 V 只是不显示，对象还在。</p></div>
+<h3>跟做顺序：适配全图 → 缩放局部 → 切换 V/S → 核对属性</h3>
+<p>旧版资料记载的快捷键：<code>f</code> 适配全图、<code>z</code> 放大、<code>Shift+z</code> 缩小、<code>q</code> 打开对象属性。<strong>但要先查本版本的菜单或快捷键设置</strong>——不同版本可能不同，而且快捷键需要焦点在版图区才生效。若不一致，用菜单或工具提示，不要反复试按。</p>
+<ol><li><strong>适配全图</strong>：菜单 Fit 或按 <code>f</code>。看图先 fit 一次，否则可能在某个角落放大到看不见全局；</li><li><strong>缩放局部</strong>：框选放大一个区域，最后回到全图；</li><li><strong>切换 V/S</strong>：找到目标类别（如 <code>Instance</code>），保持 V 开、暂关 S，观察「看得见但选不中」；再打开 S，清除旧选择后重选；</li><li><strong>核对属性</strong>：选中已知实例，通过属性入口（<code>q</code>）查看，记录<strong>实例名</strong>和<strong>引用单元名</strong>，用 Design Browser 或项目清单交叉核对。</li></ol>
+<div class="tip"><div class="tip-h">小技巧</div><p>新手常犯的错：以为选中了单元，实际选中的是连线。</p>
+<p><strong>区分方法</strong>：instance 有「引用单元名（cell name）」、net 有「连接端点列表」。先核对对象类型，再决定要不要改。</p></div>
+<div class="note"><div class="note-h">没有环境怎么练</div><p>空会话无法演示对象选择。可以<strong>先读图</strong>，等第二课时导入之后再补做这一节的动手部分。</p>
+<p>有已获准载入的同一案例只读设计或个人副本才动手——不要在生产设计上试。</p></div>
+<h3>界面分四块（旧站示意图，与本节对照阅读）</h3>
+<p>旧站用的是 ASCII 示意图，和上面基于真实截图的讲解是<strong>同一件事的两种讲法</strong>。示意图的价值在于把结构简化了：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">┌────────────────────────────────────────────────────────────┐</span><span class="ln ">│  菜单栏 File / Edit / View / Design / Timing / ...          │</span><span class="ln ">├──────────────────────────────────────────────┬─────────────┤</span><span class="ln ">│                                              │  右侧面板    │</span><span class="ln ">│           版图显示区（Layout View）           │  ├ Design   │</span><span class="ln ">│                                              │  ├ Physical │</span><span class="ln ">│   · 左边是 Design Browser（层次树）           │  └ Timing   │</span><span class="ln ">│   · 中间是芯片版图，滚轮缩放、中键平移         │             │</span><span class="ln ">│                                              │             │</span><span class="ln ">├──────────────────────────────────────────────┴─────────────┤</span><span class="ln ">│  命令行（Command Line）：所有 Tcl 命令在这里敲               │</span><span class="ln ">├────────────────────────────────────────────────────────────┤</span><span class="ln ">│  输出窗（Log / Console）：命令的返回、warning、error 都在这 │</span><span class="ln ">└────────────────────────────────────────────────────────────┘</span></code></pre></div>
+<p><strong>四个地方必须会用</strong>：①版图区（<code>f</code> fit、滚轮缩放、中键平移，看图先 fit）；②命令行（界面点一遍然后去 log 抄命令，是学命令最快的路）；③输出窗（warning 和 error 在这里，<strong>别忽略 warning</strong>，很多「结果莫名其妙」的根因就藏在几百行 warning 里）；④Design Browser（层次树，找 instance/net 从这里搜）。</p>
+<div class="note"><div class="note-h">示意图和真实截图的差异</div><p>示意图里画的「命令行」和「输出窗」是独立两个框，真实界面里它们通常在同一个控制台窗口里上下滚动。</p>
+<p>看真实截图（图 09）时，命令区在版图区下方或独立窗口。结构一样，布局可能不同。</p></div>
   
 </section>
 <section class="ch" id="use-start-check" data-ch="use-start-check">
   <div class="ch-h"><span class="ch-n">04</span><h2>第一课时：桌面练习与验收</h2></div>
-  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>无工具也能做：读图和排错</div><div class="lab-b"><p>在纸上标注：图 01 的个人工作目录、图 09 的版图区和右侧控制区、图 02–04 的三个工具栏入口，以及图 05 的 V/S 两列。再写一份启动记录：工作目录、工具入口、版本证据、日志名分别从哪里取得；用两行描述“可见但点不中”的观察与下一步。最后列出对象属性里应抄下的两个字段。不要把图上的版本或路径当作自己机器的结果。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>上机：能指出实际 run 目录、版本出处与日志位置，区分 Linux shell 和 Innovus 提示符；能完成一次缩放与 Fit、一次 S 关/开对照，并给出实例名和引用单元名。只有空会话时，把对象操作标为待补，第二课时补验。</li><li>桌面：能用图号指出上述操作从哪进入，准确写出 V/S 对照和属性字段，并从“找不到命令、许可证报错、无图形显示”中选一例说明先查什么。记录标明“读图演练”。</li></ul></div>
+  <p>没有工具也能做的练习，检验「看见 vs 选中」这个模型有没有建立起来。</p>
+<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>无工具也能做：读图和排错</div><div class="lab-b"><p><strong>练习一：判断状态</strong> 右侧面板看到 <code>Instance</code> 的 V 打了勾、S 没打勾。回答：①版图区能看到 instance 吗？②能用鼠标点中一个 instance 吗？③如果这时执行「删除选中对象」会发生什么？</p>
+<p><strong>练习二：定位问题</strong> 同事说他「选中了一个单元，但属性窗口显示的字段不对，没有 cell name 这一项」。最可能的原因是什么？他应该怎么确认？</p>
+<p><strong>练习三：找命令</strong> 他在界面上点了一个按钮完成了「适配全图」。他想知道对应的命令是什么。最直接的方法是什么？</p></div></div>
 <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span><code>command -v innovus</code> 找到路径，但没看到 GUI。能否据此报版本并判定启动成功？</div>
-  <div class="q-a">解析：不能。路径只证明 shell 找到了入口，可能还是包装脚本。版本从启动横幅或日志确认；开窗失败先读启动诊断，区分许可证与图形会话问题。</div>
+  <div class="q-q"><span class="q-no"></span>V 和 S 两个开关分别控制什么？关掉 V 之后还能选中该对象吗？</div>
+  <div class="q-a">V 控制可见（Visible），S 控制可选（Selectable）。关掉 V 之后对象不可见，也就不能选中。</div>
 </div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span>某实例看得见却选不中，同位置一点击反而选到 net。如何做最小排查？</div>
-  <div class="q-a">解析：先清除旧选择，核对 Instance 类别及其 S 列；保持 V 开，把 S 打开后重选，再用属性中的实例名和引用单元名确认对象类型。先不改设计，也不把缩放当作修复。</div>
+  <div class="q-q"><span class="q-no"></span>为什么工具栏截图（图 02–04）不能当作「功能界面」？</div>
+  <div class="q-a">它们拍的是工具栏上的图标入口，点开之后才是工具窗口。把入口当界面会误解功能的样子。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>图中没看到 <code>innovus&gt;</code> 提示符，命令在哪里敲？</div>
+  <div class="q-a">在终端或独立的控制台/命令窗口。版图区只显示图形，不接收命令输入。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>想看清两个宏之间的通道宽度，但行线太密挡住视线，怎么操作？</div>
+  <div class="q-a">把 Standard Row 的 V 关掉，行线消失通道清楚。但关掉后也选不中这些行，要看清又要能选就只关 S。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>选中对象后属性窗口没有 cell name 字段，最可能是什么原因？</div>
+  <div class="q-a">选中的是 net 而不是 instance。两类对象属性字段不同，先核对对象类型。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>「隐藏不等于删除」具体指什么？</div>
+  <div class="q-a">关掉 V 只是不显示，对象仍存在于设计中，不影响功能和后续流程。真删除要用删除命令。</div>
 </div></div>
   
 </section>
 <section class="ch" id="period-2" data-ch="period-2">
   <div class="ch-h"><span class="ch-n">05</span><h2>第二课时：为同一个 40nm 案例准备输入</h2></div>
-  <p>这节仍用上一课的 40nm 案例，不换到其他工艺。把项目发布清单当作对照表，先填写“输入路径、发布版本、预期结果”，再开一个干净会话。原图 08 的 <code>leon</code> 是历史资料中的顶层实参；上机以手头同一案例的发布清单为准，不凭截图猜路径、库名或电源网名。</p>
-<div class="tbl"><table><thead><tr><th>准备项</th><th>上机前核对</th></tr></thead><tbody><tr><td>门级网表与顶层</td><td>网表可读，顶层名和大小写以网表及发布清单为准；记下预期端口/实例规模以及一个可抽查的实例。</td></tr><tr><td>Tech LEF 与 Cell/Macro LEF</td><td>来自同一 40nm 发布；按项目清单排列，Tech LEF 在前，核对标准单元及用到的宏是否有物理定义。</td></tr><tr><td>MMMC 配置及其依赖</td><td>核对各分析视图、Liberty、RC 技术数据、SDC 和配置内引用的实际路径；记下预期视图、时钟或合理的无时钟预期。</td></tr><tr><td>电源/地网与可选 DEF</td><td>按项目指定的电源域和网名填写，不能默认 <code>VDD</code>/<code>VSS</code>；仅在项目要求接续已有物理数据时才用同一发布的 DEF。</td></tr><tr><td>环境与留档</td><td>核对授权、项目指定版本、可读输入和可写个人 run 目录；约定日志、报告和检查点名称。不复制或分享受限资料。</td></tr></tbody></table></div>
+  <p>第一课时解决「怎么用工具」，第二课时解决「怎么把数据导进去、怎么证明导对了」。仍然用同一个 40nm 案例 <code>leon</code>，不换工艺、不换设计。</p>
+<p>把项目发布清单当作对照表，先填写「输入路径、发布版本、预期结果」，再开一个<strong>干净会话</strong>。原图 08 的 <code>leon</code> 是历史资料中的顶层实参；上机以手头同一案例的发布清单为准，<strong>不凭截图猜路径、库名或电源网名</strong>。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-use-import-guide.svg" data-fig="innovus-use-import-guide.svg"><img src="/fig/innovus-use-import-guide.svg" alt="导入准备与操作对照示意图 · 不是 Innovus 实机截图" loading="lazy" decoding="async"></a><figcaption>导入准备与操作对照示意图 · 不是 Innovus 实机截图</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>导入准备与操作的对照示意图（<strong>明确标注为教学示意，不是 Innovus 实机截图</strong>）。左侧是准备清单，右侧是对应操作。</p>
+<p>用示意图而不是实机截图，是因为真实导入过程的对话框因项目而异，画一张具体界面会误导。这里只表达「准备项和操作一一对应」这个结构。</p></div>
+<h3>准备清单：五项必须核对</h3>
+<div class="tbl"><table><thead><tr><th>准备项</th><th>上机前核对</th></tr></thead><tbody><tr><td><strong>门级网表与顶层</strong></td><td>网表可读，顶层名和大小写以网表及发布清单为准；记下预期端口/实例规模以及一个可抽查的实例</td></tr><tr><td><strong>Tech LEF 与 Cell/Macro LEF</strong></td><td>来自同一 40nm 发布；按项目清单排列，Tech LEF 在前；核对标准单元及用到的宏是否有物理定义</td></tr><tr><td><strong>MMMC 配置及其依赖</strong></td><td>核对各分析视图、Liberty、RC 技术数据、SDC 和配置内引用的实际路径；记下预期视图、时钟或合理的无时钟预期</td></tr><tr><td><strong>电源/地网与可选 DEF</strong></td><td>按项目指定的电源域和网名填写，<strong>不能默认 VDD/VSS</strong>；仅在项目要求接续已有物理数据时才用同一发布的 DEF</td></tr><tr><td><strong>环境与留档</strong></td><td>核对授权、项目指定版本、可读输入和可写个人 run 目录；约定日志、报告和检查点名称。不复制或分享受限资料</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 三个最容易出错的准备项</div><div class="pit-b"><ol><li><strong>网名想当然</strong>：设计里可能是 <code>VDD_CORE</code> / <code>VSS_CORE</code>，不是 <code>VDD</code> / <code>VSS</code>。写错的话电源规划阶段找不到网络；</li><li><strong>LEF 顺序错</strong>：Tech LEF 必须在 Cell LEF 之前。顺序错了工具不知道该工艺有哪些层，所有单元都找不到；</li><li><strong>MMMC 路径失效</strong>：配置里写的是绝对路径，换机器就失效。要检查每个引用的文件是否真的存在。</li></ol></div></div>
+<h3>为什么用同一个案例</h3>
+<p>换设计会引入新变量：新的库、新的约束、新的命名规范。一旦出问题，你不知道是流程不对还是数据不对。<strong>先用已知能跑通的案例把流程走通</strong>，再换自己的数据——这是工程上排查问题的基本原则。</p>
   
 </section>
 <section class="ch" id="use-import" data-ch="use-import">
   <div class="ch-h"><span class="ch-n">06</span><h2>第二课时：按对照表配置并导入</h2></div>
-  <div class="tbl"><table><thead><tr><th>操作顺序</th><th>有工具时做什么</th><th>完成的标志</th></tr></thead><tbody><tr><td>1. 确认起点</td><td>从独立 run 目录打开空会话并记录日志；确认项目指定的命令模式和版本。</td><td>日志可追踪，未在现有设计里重做初始化。</td></tr><tr><td>2. 填输入</td><td>用经过审核的项目脚本填入网表/顶层、LEF、MMMC 及项目所需的 PG 设置。GUI 仅用于认输入项，不另做一次重复导入。</td><td>每组配置都能指回同一发布清单；路径的解析基准已经核对。</td></tr><tr><td>3. 执行初始化</td><td>在支持旧版命令的会话里执行 <code>init_design</code>；项目确需 DEF 时按项目脚本和当前版本帮助另行处理。</td><td>能在日志里找到初始化的位置、返回和第一条关键异常；还不能据此宣布通过。</td></tr></tbody></table></div>
-<p>下面是 <strong>旧版命令骨架</strong>，不是本站可直接运行的项目脚本。<code>netlist_files</code> 等变量必须由已审核的本地项目配置提供；在授权的个人空会话中先查本版帮助（如支持，可用 <code>help init_design</code>），确认命令和参数再逐条执行。若项目用另一套命令接口，走该项目批准的脚本，不把两套写法混用。<code>source</code> 和 <code>-files</code> 会执行整个脚本，不加载来历不明的文件。</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">set init_verilog    $netlist_files</span><span class="ln ">set init_top_cell   $top_cell</span><span class="ln ">set init_lef_file   [linsert $cell_lefs 0 $tech_lef]</span><span class="ln ">set init_mmmc_file  $mmmc_file</span><span class="ln cmt"># 仅在项目要求由这些旧版变量指定 PG 时设置</span><span class="ln ">set init_pwr_net    $power_nets</span><span class="ln ">set init_gnd_net    $ground_nets</span><span class="ln ">init_design</span></code></pre></div>
-<p>进阶阅读：<a href="/lesson/03-03-innovus-init/#two">脚本和 GUI 的对比</a>、<a href="/lesson/03-03-innovus-init/#files">数据清单</a>、<a href="/lesson/03-03-innovus-init/#script">旧版脚本拆解</a>。进阶页的其他工艺、路径或核数例子不照搬到本案例。</p>
+  <p>导入不是「敲一条命令」，是「按对照表逐项确认」。</p>
+<h3>导入脚本的基本结构</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 定义（换项目只改这一段）</span><span class="ln ">set DESIGN   leon</span><span class="ln ">set NETLIST  ./data/leon.v.gz</span><span class="ln ">set LEF_TECH ./lef/tech.lef</span><span class="ln ">set LEF_CELL ./lef/cells.lef</span><span class="ln ">set LIB      ./lib/xxx_ss.lib</span><span class="ln ">set SDC      ./sdc/leon.sdc</span><span class="ln "> </span><span class="ln cmt"># 2. 读取</span><span class="ln ">read_lef   $LEF_TECH</span><span class="ln ">read_lef   $LEF_CELL</span><span class="ln ">read_netlist $NETLIST</span><span class="ln ">read_lib   $LIB</span><span class="ln ">read_sdc   $SDC</span><span class="ln "> </span><span class="ln cmt"># 3. 核心操作</span><span class="ln ">init_design</span><span class="ln "> </span><span class="ln cmt"># 4. 保存</span><span class="ln ">saveDesign ./db/leon_init.enc</span><span class="ln "> </span><span class="ln cmt"># 5. 输出报告</span><span class="ln ">report_design_summary &gt; ./rpt/init_summary.rpt</span></code></pre></div>
+<p>这个五段式结构（定义 → 读取 → 核心 → 保存 → 输出）和 <a href="/lesson/03-06-powerplan/">PowerPlan 那课</a>讲的流程脚本结构是同一套。<strong>换项目只改第 1 段</strong>，其余不动。</p>
+<h3>导入顺序为什么不能乱</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">read_lef (tech)  →  先有工艺层定义</span><span class="ln ">read_lef (cell)  →  再有单元物理定义（依赖 tech）</span><span class="ln ">read_netlist     →  逻辑连接</span><span class="ln ">read_lib         →  时序信息</span><span class="ln ">read_sdc         →  约束</span><span class="ln ">init_design      →  建立数据库</span></code></pre></div>
+<p><strong>Tech LEF 必须在 Cell LEF 之前</strong>——Cell LEF 里引用的层名要在 Tech LEF 里定义过。</p>
+<p><code>init_design</code> 放在最后：它把所有已读入的数据「固化」成一个设计数据库。在它之前读的东西都只是「准备材料」。</p>
   
 </section>
 <section class="ch" id="use-verify-restore" data-ch="use-verify-restore">
   <div class="ch-h"><span class="ch-n">07</span><h2>第二课时：用证据验证，再保存并恢复</h2></div>
-  <figure class="fig-img"><a class="fig-a" href="/fig/innovus-use-verify-guide.svg" data-fig="innovus-use-verify-guide.svg"><img src="/fig/innovus-use-verify-guide.svg" alt="导入验证与恢复示意图 · 不是 Innovus 实机截图" loading="lazy" decoding="async"></a><figcaption>导入验证与恢复示意图 · 不是 Innovus 实机截图</figcaption></figure>
-<p><strong>先验再存。</strong> 对照开工前的预期，记录下面三类证据；不拿“能 Fit 到图形”或“没有 <code>ERROR</code>”当验收。</p>
-<div class="tbl"><table><thead><tr><th>检查项</th><th>看哪些证据</th><th>不符合时先查什么</th></tr></thead><tbody><tr><td>设计身份与链接</td><td>用 Design Browser 或汇总报告核对顶层、端口/实例规模、一个实例及其引用单元；旧版若支持 <code>dbGet top.name</code>，可用它查顶层。</td><td>网表发布版、顶层名、缺失的 LEF/时序库定义。</td></tr><tr><td>约束与视图</td><td>核对预期 MMMC 视图是否启用，时钟名、周期和单位是否相符；用该版本的报告或团队脚本取证。</td><td>MMMC 的分析视图绑定、SDC 路径、约束引用的端口及当前观察的视图。</td></tr><tr><td>日志与设计检查</td><td>读第一条有因果关系的异常及上下文；若帮助确认支持，可用 <code>checkDesign -all</code> 做旧版设计检查，并区分此阶段预期的提示与阻断项。</td><td>先处理未解析引用、缺库、错误顶层或必需视图/时钟缺失；修正输入后从干净会话重跑并留新日志，不覆盖原 run。</td></tr></tbody></table></div>
-<p>三项符合项目预期后，在<strong>个人可写目录</strong>用一个尚未使用的基名保存。以下是旧版会话示例；先确认 <code>saveDesign</code> 的用法和实际写出的产物。<code>checkpoint_path</code> 是你事先设定的完整 <code>.enc</code> 路径，不是课程文件。</p>
+  <p><strong>这一节是整课最重要的部分。</strong> 因为「导入成功」和「导入正确」是两回事。「先验再存」是这一节的全部要点。</p>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-use-verify-guide.svg" data-fig="innovus-use-verify-guide.svg"><img src="/fig/innovus-use-verify-guide.svg" alt="导入验证与恢复示意图 · 不是 Innovus 实机截图" loading="lazy" decoding="async"></a><figcaption>导入验证与恢复示意图 · 不是 Innovus 实机截图</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>导入验证与恢复的示意图（<strong>明确标注为教学示意，不是实机截图</strong>）。左侧是证据检查顺序，右侧是保存与恢复的对应关系。</p>
+<p>注意：示意图不能替代真实运行的验证。它表达的是「该按什么顺序查哪些证据」这个方法论。</p>
+<p>原文特别强调：<strong>不拿「能 Fit 到图形」或「没有 ERROR」当验收</strong>——这两件事都不构成导入正确的证据。</p></div>
+<h3>三类证据：缺一类都不算导对</h3>
+<div class="tbl"><table><thead><tr><th>检查项</th><th>看哪些证据</th><th>不符合时先查什么</th></tr></thead><tbody><tr><td><strong>设计身份与链接</strong></td><td>用 Design Browser 或汇总报告核对顶层、端口/实例规模、一个实例及其引用单元</td><td>网表发布版、顶层名、缺失的 LEF/时序库定义</td></tr><tr><td><strong>约束与视图</strong></td><td>核对预期 MMMC 视图是否启用，时钟名、周期和单位是否相符</td><td>MMMC 的分析视图绑定、SDC 路径、约束引用的端口</td></tr><tr><td><strong>日志与设计检查</strong></td><td>读<strong>第一条有因果关系的异常</strong>及上下文；区分本阶段预期的提示与真正的阻断项</td><td>先处理未解析引用、缺库、错误顶层或必需视图缺失</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 最常见的「假成功」</div><div class="pit-b"><p>导入没报错、版图区有图形，但：</p>
+<ul><li><strong>约束被忽略了</strong>：SDC 读了但没生效，所有路径变成「无约束」，时序报告全是 0；</li><li><strong>只启用了默认视图</strong>：MMMC 配置没读进去，只有一套环境，其他模式根本没检查；</li><li><strong>电源网名不对</strong>：后面 powerplan 报一堆 unconnected。</li></ul>
+<p>这三个都<strong>不会报 error</strong>，只能靠上面三类证据主动查。</p>
+<p>而且<strong>修正输入后要从干净会话重跑并留新日志，不要覆盖原 run</strong>——否则前后对比就没有基线了。</p></div></div>
+<h3>保存与恢复</h3>
+<p>三项符合项目预期后，在<strong>个人可写目录</strong>用一个尚未使用的基名保存：</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">saveDesign $checkpoint_path</span></code></pre></div>
-<p>记录同一次保存生成的入口和配套数据，例如 <code>.enc</code> 与 <code>.enc.dat</code>（后者可能是目录）；搬运时保留配套数据与所需依赖。另开一个干净的兼容会话，在当前版本帮助和项目手册确认后，<strong>二选一</strong>使用可信的 <code>.enc</code> 入口，或用 <code>restoreDesign</code> 指定配套数据及真实顶层。下面的三个变量须在新会话用自己的实际路径和顶层重新设置，两条命令不要连跑。</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 方式 A：仅 source 自己生成或明确获得信任的 .enc 入口</span><span class="ln ">source $checkpoint_path</span><span class="ln cmt"># 方式 B：改用同次保存的配套数据，顶层名以发布清单为准</span><span class="ln ">restoreDesign $checkpoint_data_path $top_cell</span></code></pre></div>
+<p>记录同一次保存生成的<strong>入口和配套数据</strong>（例如 <code>.enc</code> 与 <code>.enc.dat</code>，后者可能是目录）。搬运时要保留配套数据与所需依赖，只搬一个文件是恢复不了的。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 方式 A：直接 source 入口</span><span class="ln ">source $checkpoint_path</span><span class="ln "> </span><span class="ln cmt"># 方式 B：用 restoreDesign 指定配套数据和真实顶层</span><span class="ln ">restoreDesign $checkpoint_dat $top_name</span></code></pre></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-07.png" data-fig="innovus-doc-07.png"><img src="/fig/innovus-doc-07.png" alt="原文图 07 · Innovus 提示符上的 source …enc 恢复命令，只显示命令，不显示执行结果" loading="lazy" decoding="async"></a><figcaption>原文图 07 · Innovus 提示符上的 source …enc 恢复命令，只显示命令，不显示执行结果</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p><code>source ...enc</code> 恢复命令在提示符上的样子。<strong>注意：这张图只显示命令，不显示执行结果</strong>——不能从这张图推断恢复是否成功。</p>
+<p>判断恢复成功要靠：日志无 error、设计摘要与保存时一致、抽查实例能定位到。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-08.png" data-fig="innovus-doc-08.png"><img src="/fig/innovus-doc-08.png" alt="原文图 08 · Innovus 提示符上的 restoreDesign …enc.dat leon 恢复命令，只显示命令，不显示执行结果" loading="lazy" decoding="async"></a><figcaption>原文图 08 · Innovus 提示符上的 restoreDesign …enc.dat leon 恢复命令，只显示命令，不显示执行结果</figcaption></figure>
-<p>恢复后再比对<strong>顶层、端口/实例规模、抽查实例及其引用单元、预期视图或时钟</strong>，并检查恢复日志。任何一项不一致都不能算恢复通过；优先核对 <code>.enc</code> 与配套数据是否来自同一次保存、路径依赖是否可访问，以及版本和顶层是否匹配。</p>
-<p>进阶阅读：<a href="/lesson/03-03-innovus-init/#verify">导入后检查</a>、<a href="/lesson/03-03-innovus-init/#errors">报错对照</a>、<a href="#source-04">保存和恢复的原文</a>。验收后，可选学<a href="/lesson/03-01b-innovus-flow/#practice-step-04">给检查点配上可追溯的验收记录</a>和<a href="/lesson/03-01j-dbget/#objects">用 dbGet 核对对象关系</a>。</p>
+<div class="note"><div class="note-h">这张图该看什么</div><p><code>restoreDesign ...enc.dat leon</code> 命令。同样<strong>只显示命令，不显示执行结果</strong>。</p>
+<p>注意命令里的第二个参数 <code>leon</code>——这是要恢复的设计顶层名。写错会报找不到，或者恢复出一个空设计。</p>
+<p><strong>两条命令不要连跑</strong>：先确认方式 A 的结果，再决定要不要试方式 B，否则分不清是哪个出的问题。</p></div>
   
 </section>
 <section class="ch" id="use-import-check" data-ch="use-import-check">
   <div class="ch-h"><span class="ch-n">08</span><h2>第二课时：桌面演练与验收</h2></div>
-  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>无工具也能做：判读三份记录</div><div class="lab-b"><p>同一个 40nm 案例的练习基线：顶层 <code>leon</code>，预期实例数 <code>18,240</code>，抽查实例 <code>u_ctrl</code> 引用 <code>CTRL_X1</code>，指定分析视图应有 <code>clk_core</code>，周期 <code>10 ns</code>。这些计数、实例和时钟是教学设定，不是原项目的报告。</p>
-<ul><li>记录 A（初次导入）：顶层、实例数和抽查对象均匹配；指定视图为 <code>0 clocks</code>。</li><li>记录 B（在新 run 修正输入后）：各项匹配，指定视图可见 <code>clk_core</code>，周期 <code>10 ns</code>；练习设定日志无阻断项，随后保存了检查点。</li><li>记录 C（恢复尝试）：日志提示找不到配套 <code>.enc.dat</code>，没有得到可复核的设计对象。</li></ul>
-<p>将三条记录分别标为“可保存／需先修复／恢复未通过”，各写一条证据和下一步；再把图 07、08 对应到两种恢复入口。只需纸笔或文本编辑器，不生成或运行 Tcl。</p></div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>上机：交一张输入清单和一份前后对照记录，含 run/版本、导入及恢复日志、顶层、端口或实例规模、抽查实例与引用单元、视图/时钟证据、检查点入口及配套数据。新会话复核一致且阻断项已处理，才算通过。</li><li>桌面：A 先查 MMMC 视图、SDC 路径与端口绑定，不保存为已验证检查点；B 可保存；C 尚未恢复，先核对配套数据和依赖，只凭图 07–08 的命令行不能打勾。写清三项证据并标明“桌面演练”。</li></ul></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>无工具也能做：判读三份记录</div><div class="lab-b"><p>假设拿到三份记录（合成的教学数据）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">记录 A（日志摘要）</span><span class="ln ">  Reading netlist ....................... done</span><span class="ln ">  Reading LEF (tech) .................... done</span><span class="ln ">  Reading LEF (cell) .................... done</span><span class="ln ">  WARNING: 12 constraints ignored (no matching object)</span><span class="ln ">  init_design ........................... done</span><span class="ln "> </span><span class="ln ">记录 B（设计摘要）</span><span class="ln ">  顶层       : leon</span><span class="ln ">  实例数     : 48,231</span><span class="ln ">  网数       : 51,004</span><span class="ln ">  端口数     : 128</span><span class="ln ">  分析视图   : ss_125C_cworst（仅 1 个）</span><span class="ln "> </span><span class="ln ">记录 C（电源网络查询）</span><span class="ln ">  get_nets VDD  →  0 objects</span><span class="ln ">  get_nets VDD_CORE  →  1 object</span></code></pre></div>
+<p>请回答：①记录 A 里的 WARNING 说明什么？要不要处理？②记录 B 显示只有 1 个分析视图，正常吗？取决于什么？③记录 C 说明了什么？如果后续 powerplan 用 <code>VDD</code> 会怎样？④综合三份记录，这个导入能不能算「导对了」？</p></div></div>
 <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span>指定视图里没有时钟，但顶层、实例数都对，而且没有 <code>ERROR</code>。下一步是继续布局还是停下来？</div>
-  <div class="q-a">解析：先停下来。本案例有预期时钟，逐项核对视图是否激活、对应 SDC 是否读到、约束是否命中正确端口；修正后在新 run 复核。结构证据不能替代约束证据。</div>
+  <div class="q-q"><span class="q-no"></span>为什么「导入没报 error」不等于「导入正确」？</div>
+  <div class="q-a">约束被忽略、只启用默认视图、电源网名不对这几种情况都不会报 error，只能靠主动查设计摘要、视图列表、电源网络来发现。</div>
 </div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span>图 07 和图 08 分别把什么交给工具？看完两张图，能说原课已证明恢复成功吗？</div>
-  <div class="q-a">解析：图 07 把可信的 <code>.enc</code> 入口交给 <code>source</code>；图 08 把 <code>.enc.dat</code> 路径和顶层 <code>leon</code> 交给 <code>restoreDesign</code>。两图只显示输入命令，实际成功仍需会话输出和恢复后的复核。</div>
+  <div class="q-q"><span class="q-no"></span>Tech LEF 为什么必须在 Cell LEF 之前读入？</div>
+  <div class="q-a">Cell LEF 里引用的层名要在 Tech LEF 中定义。顺序错了工具不知道工艺有哪些层，所有单元都找不到物理定义。</div>
 </div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span>把 <code>.enc</code> 拷到另一处后恢复失败；同名 <code>.enc.dat</code> 刚好在另一份 run 里。能否把它补进来直接重试？</div>
-  <div class="q-a">解析：不能凭同名配对。先找同次保存的入口、配套数据与它们需要的路径，确认版本和顶层一致，再在干净会话选一种方式恢复，复核设计身份、规模与约束。</div>
+  <div class="q-q"><span class="q-no"></span>init_design 为什么放在所有 read 命令之后？</div>
+  <div class="q-a">它把所有已读入的数据固化成设计数据库。之前读的都是「准备材料」，还没建立设计。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>三类验证证据分别是什么？</div>
+  <div class="q-a">设计身份与链接（顶层/规模/实例）、约束与视图（MMMC/时钟/单位）、日志与设计检查（第一条因果异常）。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>restoreDesign 的第二个参数是什么？写错会怎样？</div>
+  <div class="q-a">是设计顶层名。写错会报找不到或恢复出空设计，必须与保存时的顶层名严格一致。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>图 07 和图 08 能证明恢复成功吗？</div>
+  <div class="q-a">不能。它们只显示了命令的敲法，没有显示执行结果。判断成功要靠日志、摘要比对和实例抽查。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么要用同一个 40nm 案例走完两课时？</div>
+  <div class="q-a">换设计会引入新变量（新库、新约束、新命名），出问题时无法区分是流程问题还是数据问题。先用已知能跑通的案例验证流程。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>保存后只搬 .enc 文件不搬 .enc.dat 会怎样？</div>
+  <div class="q-a">恢复不了。.enc.dat 可能是目录且包含配套数据，只搬入口文件缺少依赖。搬运时要保留配套数据。</div>
 </div></div>
-<p>以下保留<a href="#source-01">原始资料</a>和<a href="#previous-material">旧站补充内容</a>，用于按主题进阶复习。旧命令、选项和快捷键应以项目规定及本地版本为准。</p>
   
 </section>
 <section class="ch" id="source-01" data-ch="source-01">
   <div class="ch-h"><span class="ch-n">09</span><h2>启动命令、核心数与任务队列</h2></div>
-  <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
-<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">二、Innovus工具的使用</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）innovus的启动</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">启动命令：  innovus</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">启动的选项：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.1 自定义指定日志的前缀名  -log</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus  -log   test_0125.log</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.2 启动之后运行指定的脚本 -files</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus  -files   脚本路径</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.3 设置运行innovus的核心数 -cpus</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus  -cpus  2</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">启动innovus之后如果需要改变核心数</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setMultiCpuUsage -localCpu 2</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">公司的服务器是任务job提交的形式</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">会有一个job的id</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">查询job的id ：    bjobs   -w  |  grep  linux账号名</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">杀死不需要的job ：   bkill    job的id</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">bqueues 查看服务器集群使用情况</p></div>
+  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">二、Innovus工具的使用</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）innovus的启动</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">启动命令：  innovus</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">启动的选项：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.1 自定义指定日志的前缀名  -log</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus  -log   test_0125.log</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.2 启动之后运行指定的脚本 -files</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus  -files   脚本路径</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.3 设置运行innovus的核心数 -cpus</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus  -cpus  2</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">启动innovus之后如果需要改变核心数</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setMultiCpuUsage -localCpu 2</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">公司的服务器是任务job提交的形式</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">会有一个job的id</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">查询job的id ：    bjobs   -w  |  grep  linux账号名</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">杀死不需要的job ：   bkill    job的id</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">bqueues 查看服务器集群使用情况</p></div>
+<p>这一节是旧站内容的索引，实际讲解在<a href="#options">「九个常用启动选项」</a>和<a href="#start">「第一步：启动与确认版本」</a>两节。</p>
+<p>关于<strong>任务队列</strong>：跑长任务时不要占着交互式会话。项目通常有队列系统（如 LSF/SGE/Slurm），把任务提交上去，工具在后台跑，跑完看日志。队列的好处是资源调度公平、任务可排队、断线不影响运行。</p>
   
 </section>
 <section class="ch" id="source-02" data-ch="source-02">
   <div class="ch-h"><span class="ch-n">10</span><h2>启动后生成的三个文件</h2></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）启动产生的文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus每次启动会产生3个文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus.cmd   记录innovus使用过程中使用的命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus.log     记录工具行为日志</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus.logv   详细日志文件</p></div>
+<p>启动 Innovus 之后，工作目录里会多出几类文件：</p>
+<div class="tbl"><table><thead><tr><th>文件</th><th>内容</th><th>用途</th></tr></thead><tbody><tr><td><strong>日志文件</strong>（<code>*.log</code>）</td><td>全程的命令、输出、warning、error</td><td>排查问题、复现、审计</td></tr><tr><td><strong>命令文件</strong>（<code>*.cmd</code> / <code>*.tcl</code>）</td><td>本次会话执行过的命令记录</td><td>复现操作、转成脚本</td></tr><tr><td><strong>数据库</strong>（<code>*.enc</code> / <code>*.enc.dat</code>）</td><td>保存的设计数据</td><td>恢复设计</td></tr></tbody></table></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>出问题时第一件事是看日志，不是重跑。</p>
+<p>日志里有完整的执行顺序、每条命令的输出、所有 warning。很多「莫名其妙」的问题答案就在几百行 warning 里——比如某个约束被忽略、某个库没读到。</p></div>
   
 </section>
 <section class="ch" id="source-03" data-ch="source-03">
   <div class="ch-h"><span class="ch-n">11</span><h2>快捷键与常用窗口</h2></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）innovus的一些快捷键</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">z  放大</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">shift+z  缩小</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">u  回退操作</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">shift  + u  撤销回退</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">q  打开cell、net等任何对象的属性栏</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">f  恢复自动适应大小</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">shift+g   拆分模块group</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">g            合并模块</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">shift+R  可以移动object</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">使用尺子   k</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除尺子  shift+k</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">关闭尺子   a</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">关闭innovus     exit</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">一些常用窗口</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">做fp的工具箱</p></div>
-<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-02.png" data-fig="innovus-doc-02.png"><img src="/fig/innovus-doc-02.png" alt="原文图 02 · 快捷键与常用窗口" loading="lazy" decoding="async"></a><figcaption>原文图 02 · 快捷键与常用窗口</figcaption></figure>
+<p>先看快捷键表，再看三个常用窗口。原文把窗口单独列成了三段。</p>
+<p><strong>常用快捷键</strong>（以本版本菜单或快捷键设置为准，不同版本可能不同）：</p>
+<div class="tbl"><table><thead><tr><th>键</th><th>作用</th><th>注意</th></tr></thead><tbody><tr><td><code>f</code></td><td>适配全图（fit）</td><td>看图第一步</td></tr><tr><td><code>z</code> / <code>Shift+z</code></td><td>放大 / 缩小</td><td>需要焦点在版图区</td></tr><tr><td><code>q</code></td><td>打开选中对象的属性</td><td>先确认选中的是 instance 还是 net</td></tr><tr><td><code>Shift+Y</code></td><td>创建 placement blockage</td><td>Floorplan 阶段常用</td></tr><tr><td><code>Shift+B</code></td><td>创建 routing blockage</td><td>同上</td></tr><tr><td><code>F3</code></td><td>打开当前操作的设置对话框</td><td>切换 blockage 类型等</td></tr></tbody></table></div>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">设计的结构浏览</p></div>
-<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-03.png" data-fig="innovus-doc-03.png"><img src="/fig/innovus-doc-03.png" alt="原文图 03 · 快捷键与常用窗口" loading="lazy" decoding="async"></a><figcaption>原文图 03 · 快捷键与常用窗口</figcaption></figure>
+<p><strong>「设计的结构浏览」指的是 Design Browser 窗口。</strong> 它把设计按层次展开成一棵树，从顶层往下逐级看模块、实例、网。找某个具体对象、确认某条路径经过哪些模块，都从这里入手。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">查看vio的违例窗口，例如drc、short、power的问题</p></div>
-<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-04.png" data-fig="innovus-doc-04.png"><img src="/fig/innovus-doc-04.png" alt="原文图 04 · 快捷键与常用窗口" loading="lazy" decoding="async"></a><figcaption>原文图 04 · 快捷键与常用窗口</figcaption></figure>
-<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-05.png" data-fig="innovus-doc-05.png"><img src="/fig/innovus-doc-05.png" alt="原文图 05 · 快捷键与常用窗口" loading="lazy" decoding="async"></a><figcaption>原文图 05 · 快捷键与常用窗口</figcaption></figure>
-<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">定义global的power connect</p></div>
+<p><strong>违例窗口（Violation Browser）</strong> 汇总各类违例：DRC、short、power 问题。注意它列出的是「违规项清单」，点某一项才能定位到版图上的具体位置。</p>
+<div class="pit"><div class="pit-h">常见坑 · 快捷键不生效</div><div class="pit-b"><p>最常见原因是<strong>焦点不在版图区</strong>。快捷键绑定在版图窗口上，光标在命令行或右侧面板时按键会被那个窗口接收。</p>
+<p>解决：先在版图区点一下，再按快捷键。</p></div></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-06.png" data-fig="innovus-doc-06.png"><img src="/fig/innovus-doc-06.png" alt="原文图 06 · 快捷键与常用窗口" loading="lazy" decoding="async"></a><figcaption>原文图 06 · 快捷键与常用窗口</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>常用窗口之一的外观（图 06 对应原文这一段）——工具窗口的布局和面板位置。看图时注意它和其他窗口（Design Browser、Violation Browser）的关系，它们通常可以并排停靠或浮动。</p></div>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">定义global的power connect</p></div>
+<p><strong>「定义 global 的 power connect」</strong> 这一项是全局电源连接的定义。它告诉工具哪些网络是电源/地，以及它们怎么连接。这一步在 PowerPlan 阶段之前就要确认——否则工具不知道哪些是供电网络，打 PG 的时候会漏。</p>
+<p><strong>常用窗口汇总</strong>：Design Browser（层次树，找对象）、Violation Browser（违例列表）、Floorplan Toolbox（摆宏）、Attribute Editor（属性，快捷键 <code>q</code>）、Console（命令与输出）。这几个窗口的入口都在工具栏上，前面「认主界面」一节已经标出了三个。</p>
   
 </section>
 <section class="ch" id="source-04" data-ch="source-04">
   <div class="ch-h"><span class="ch-n">12</span><h2>保存和恢复设计数据</h2></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">4) innovus的数据的保存和读取</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">saveDesign    保存路径/db名字.enc</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">保存完成会有两个文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">恢复数据</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">source    enc文件</p></div>
-<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-07.png" data-fig="innovus-doc-07.png"><img src="/fig/innovus-doc-07.png" alt="原文图 07 · 保存和恢复设计数据" loading="lazy" decoding="async"></a><figcaption>原文图 07 · 保存和恢复设计数据</figcaption></figure>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">restoreDesign   enc.dat    当前tile名称</p></div>
-<figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-08.png" data-fig="innovus-doc-08.png"><img src="/fig/innovus-doc-08.png" alt="原文图 08 · 保存和恢复设计数据" loading="lazy" decoding="async"></a><figcaption>原文图 08 · 保存和恢复设计数据</figcaption></figure>
+<h3>保存的三种粒度</h3>
+<div class="tbl"><table><thead><tr><th>命令</th><th>保存什么</th><th>什么时候用</th></tr></thead><tbody><tr><td><code>saveDesign &lt;path&gt;.enc</code></td><td>完整设计数据库</td><td>每个阶段结束时</td></tr><tr><td><code>saveDesign -incremental</code></td><td>增量（只存变化部分）</td><td>频繁保存时省时间</td></tr><tr><td><code>writeFPlanScript</code> / <code>defOut</code></td><td>只存 floorplan</td><td>交接布局方案</td></tr></tbody></table></div>
+<p><strong>为什么每个阶段都要保存</strong>：出问题时能回到上一个已知 good 的状态重跑，不用从头来。这是 ECO 阶段能「回滚」的基础。</p>
+<div class="note"><div class="note-h">恢复的两个坑</div><ol><li><strong>只搬入口文件</strong>：<code>.enc</code> 和 <code>.enc.dat</code> 是配套的，后者可能是目录。只搬 <code>.enc</code> 恢复不了；</li><li><strong>顶层名写错</strong>：<code>restoreDesign</code> 的第二个参数是顶层名，写错会恢复出空设计。</li></ol></div>
   
 </section>
 <section class="ch" id="previous-material" data-ch="previous-material">
   <div class="ch-h"><span class="ch-n">13</span><h2>补充复习：原站课程内容</h2></div>
-  <div class="note"><div class="note-h">来源区分</div><p>以下为网站此前根据 PR 理论材料整理的补充内容；与上方本次上传的 Word 原文区分。</p></div>
+  <p>以下三节是旧站的内容，讲的是同一件事的另一个角度。保留是因为它们有些讲法更直白，适合反复看。</p>
   
 </section>
 <section class="ch" id="tools" data-ch="tools">
   <div class="ch-h"><span class="ch-n">14</span><h2>为什么是 Innovus / ICC2</h2></div>
-  <div class="goal"><span>本章目标</span>能说出 Innovus/ICC2 各自替代的老工具与换代原因；能用一条命令完成&quot;无界面启动 + 自动跑脚本 + 写 log&quot;；能解释 -log / -files / -no_gui / -wait / -cpus 五个选项的真实语义与风险；能用 which、nproc、help *关键字* 三件事把环境摸清。</div>
-<div class="tbl"><table><thead><tr><th>时代</th><th>Cadence</th><th>Synopsys</th><th>适用工艺</th></tr></thead><tbody><tr><td>老一代</td><td><strong>Encounter</strong></td><td><strong>ICC</strong></td><td>90nm 及以上</td></tr><tr><td>主流</td><td><strong>Innovus</strong></td><td><strong>ICC2</strong></td><td>65nm 及以下，28/16/7nm</td></tr></tbody></table></div>
-<p>文档给的理由很实在：<strong>&quot;工艺越来越先进，原有的架构已经无法满足新的架构&quot;</strong>，具体对比就是<strong>运行时间</strong>。</p>
-<p>老引擎的几个硬伤，在先进工艺下会直接暴露：</p>
-<ul><li>一次跑不完几十万 instance 的优化，跑一天还没到 route；</li><li>不支持多重曝光（double patterning）的染色约束；</li><li>时序/拥塞/功耗三者不能联合优化，只能一轮轮手调。</li></ul>
-<p>所以你在招聘要求里看到&quot;熟悉 Innovus 或 ICC2&quot;，指的是<strong>这一代工具</strong>；只会 Encounter/ICC，在 28nm 以下基本没有用武之地。本课程后面所有实操都用 Innovus。</p>
+  <p>数字后端的主流工具就两家：<strong>Cadence 的 Innovus</strong> 和 <strong>Synopsys 的 ICC2</strong>。</p>
+<div class="tbl"><table><thead><tr><th></th><th>Innovus</th><th>ICC2</th></tr></thead><tbody><tr><td>厂商</td><td>Cadence</td><td>Synopsys</td></tr><tr><td>命令语言</td><td>Tcl（<code>dbGet</code> 系）</td><td>Tcl（<code>get_*</code> 系）</td></tr><tr><td>数据库</td><td>.enc</td><td>Milkyway / ND</td></tr><tr><td>强项</td><td>布局布线优化、时序驱动</td><td>与 Synopsys 生态（DC/PT）集成</td></tr></tbody></table></div>
+<p><strong>为什么要学两套</strong>？因为不同公司、不同项目用的不一样。而且<strong>方法论是共通的</strong>——学会了 floorplan 的判据，换工具只是换命令。</p>
+<p>这套课程先讲 Innovus，因为它的 GUI 更直观、命令更接近「看得见的操作」。ICC2 在阶段四单独讲。</p>
+<div class="note"><div class="note-h">不要纠结「学哪个更有前途」</div><p>工具是手段，方法才是本事。</p>
+<p>一个懂「为什么这个 floorplan 不行」的人，换哪个工具都能干活；一个只会点按钮的人，换版本就废了。</p></div>
   
 </section>
 <section class="ch" id="start" data-ch="start">
   <div class="ch-h"><span class="ch-n">15</span><h2>第一步：启动与确认版本</h2></div>
-  <p>在 Linux 终端里，进入你的工作目录，直接敲工具名：</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 启动 Innovus（图形界面模式），前提是环境变量已由公司/学校的 module 或 cshrc 配好</span><span class="ln ">innovus</span><span class="ln "> </span><span class="ln cmt"># 如果提示 command not found，先用 which 确认工具在不在 PATH 里</span><span class="ln ">which innovus</span></code></pre></div>
-<p><code>which innovus</code> 的返回值一举两得，文档说得很清楚：<strong>&quot;结果会显示 innovus 所在目录以及 innovus 的版本&quot;</strong>：</p>
-<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">/opt/cadence/INNOVUS201/innovus      ← 目录里带 201，说明是 Innovus 20.1 版本</span></code></pre></div>
-<p><strong>为什么第一件事是查版本？</strong> 因为不同版本的命令行为有差异（尤其 <code>ccopt</code>、<code>setPlaceMode</code> 的参数），网上抄来的脚本报错，八成是版本不匹配。项目里也会明确要求&quot;用 21.1 及以上&quot;，出了问题才有人背书。</p>
-<div class="tip"><div class="tip-h">小技巧</div><p>三种常见情况：</p>
-<ol><li><code>command not found</code> → PATH 没配，找 <code>source /xxx/setup.csh</code> 或 <code>module load innovus</code>；</li><li>报 <strong>license</strong> 相关错误 → license 服务器不通或没有空闲 license，找 IT/管理员，不是你的脚本问题；</li><li>启动卡在 <code>Loading...</code> 很久 → 磁盘 IO 慢或家目录配额满，<code>df -h ~</code> 看一眼。</li></ol></div>
-<div class="term open">
-  <div class="term-h"><span class="term-en">license</span><span class="term-zh">许可证</span></div>
-  <div class="term-b"><p>EDA 工具的授权凭证，按工具、按功能、<strong>按核数</strong>计量。启动失败里最常见的一类就是拿不到 license——它和脚本写错是两回事，先分清再排查。抢不到时可以带 <code>-wait</code> 排队等。</p></div>
-</div>
-<div class="term open">
-  <div class="term-h"><span class="term-en">GUI</span><span class="term-zh">图形界面模式</span></div>
-  <div class="term-b"><p>带版图窗口的运行模式（默认）。与之相对的 <code>-no_gui</code> 只跑命令、不加载图形引擎。<strong>GUI 用来 debug，脚本用来干活</strong>——这是 PR 工作的基本分工。</p></div>
-</div>
+  <div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">innovus</span></code></pre></div>
+<p>最简启动。但工程上很少这样用——因为这样启动既没有日志，也没有预加载脚本。</p>
+<p><strong>确认版本</strong>：启动后第一件事是看版本。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">version</span></code></pre></div>
+<p>或者在 GUI 的 Help → About 里看。<strong>不要把 <code>command -v</code> 返回的路径当版本号</strong>——那只是可执行文件的位置。</p>
+<p><strong>为什么版本重要</strong>：不同版本的命令参数可能不同（某些参数被废弃或改名）；默认行为可能不同（比如默认的优化力度）；已知 bug 不同。</p>
+<div class="tip"><div class="tip-h">小技巧</div><p>在脚本开头加一行：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">puts &quot;Innovus version: [version]&quot;</span></code></pre></div>
+<p>这样日志里就有版本记录，出问题时能确认「是不是版本差异导致的」。</p></div>
   
 </section>
 <section class="ch" id="options" data-ch="options">
   <div class="ch-h"><span class="ch-n">16</span><h2>九个常用启动选项</h2></div>
-  <p>文档列了九条，我按&quot;一定会用到的程度&quot;重排，并补上实际工作中的注意点。</p>
+  <p>这一节逐条讲 <code>innovus</code> 的启动参数。每个都说明「它解决什么问题」和「不加会怎样」。</p>
 <h3 id="log">1. <code>-log</code>：把这一趟的全部输出记下来</h3>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 启动时指定 log 文件名，工具的所有输出都会写进 test.log</span><span class="ln ">innovus -log test.log</span></code></pre></div>
-<div class="term open">
-  <div class="term-h"><span class="term-en">log</span><span class="term-zh">运行日志</span></div>
-  <div class="term-b"><p>记录这一趟运行中<strong>所有</strong>内容：你在界面上做的操作、输入的每条命令、命令的返回结果、warning 与 error。<strong>它是唯一能事后追溯的证据。</strong></p></div>
-</div>
-<p>为什么这条最重要？因为 Innovus 跑到一半崩了、或者同事问你&quot;你昨天那个 run 到底怎么配的&quot;，<strong>只有 log 能回答</strong>。文档原话：&quot;log 内容一般是界面做的操作，以及操作的结果，输入的 cmd 等等。&quot;</p>
-<p>实操约定：</p>
-<ul><li>文件名带版本和日期，比如 <code>-log pr_v3_1025.log</code>，别都叫 <code>innovus.log</code> 互相覆盖；</li><li>界面上的操作也会进 log，<strong>所以你点过的每一步都能被还原成命令</strong>——这是新人学命令最快的方法：点一遍，然后去 log 里看它对应哪条命令；</li><li>报错时先 <code>grep -n &quot;ERROR&quot; pr_v3_1025.log | head</code>，比在滚屏里找快一百倍。</li></ul>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">innovus -log innovus.log</span></code></pre></div>
+<p><strong>作用</strong>：把标准输出重定向到文件。<strong>不加会怎样</strong>：输出只在终端里滚过去，关掉就没了。出了问题无法回溯，成功了也无法复现。</p>
+<p><strong>这是最该加的一个参数</strong>，没有之一。</p>
+<div class="tip"><div class="tip-h">小技巧</div><div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">innovus -log innovus_$(date +%Y%m%d_%H%M).log</span></code></pre></div>
+<p>这样每趟一个独立日志，不会互相覆盖。回溯问题时能精确找到「那次」的日志。</p></div>
 <h3 id="files">2. <code>-files</code>：启动后自动跑脚本</h3>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 启动完成后自动执行 run.tcl，脚本跑完就停在那儿等你的命令</span><span class="ln ">innovus -files run.tcl</span></code></pre></div>
-<p>文档的说明：&quot;脚本的内容可以自己定义，亦或是项目中的一些配置文件。&quot;</p>
-<p>这条是<strong>自动化的入口</strong>。实际项目里没人手点界面，都是：</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 无界面 + 自动跑 init 脚本 + 写 log：一条命令完成整个导入，扔后台等结果</span><span class="ln ">innovus -no_gui -files scripts/init_design.tcl -log init.log</span></code></pre></div>
-<p>一条命令把&quot;启动 → 导入数据 → 检查 → 退出&quot;全做完，扔到后台跑。<strong>这是 PR 工程师的日常姿势</strong>，界面只是用来 debug 的。</p>
-<div class="tip"><div class="tip-h">小技巧</div><ul><li><code>-files run.tcl</code>：<strong>启动时就带上</strong>，工具启动完立刻执行；</li><li>进去以后 <code>source run.tcl</code>：手动执行，随时可以再来一遍。</li></ul>
-<p>两者执行效果一样，区别只是时机。改脚本调试时用 <code>source</code> 反复跑，正式跑用 <code>-files</code>。</p></div>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">innovus -files run.tcl</span></code></pre></div>
+<p><strong>作用</strong>：启动完成后立即执行指定脚本。<strong>用途</strong>：把「导入 + 设置」封装成脚本，一条命令完成启动和初始化。<strong>不加会怎样</strong>：启动后是空会话，要手工敲命令或 <code>source</code> 脚本。</p>
+<div class="pit"><div class="pit-h">常见坑 · 首次上手不要加 -files</div><div class="pit-b"><p>如果启动本身有问题（环境、license、图形会话），加 <code>-files</code> 会把启动故障和脚本故障混在一起，不知道是哪个错了。</p>
+<p><strong>先确认能正常启动，再考虑自动化。</strong></p></div></div>
 <h3 id="nogui">3. <code>-no_gui</code>：不开图形界面，快得多</h3>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 无界面启动：只跑命令，不加载图形引擎</span><span class="ln ">innovus -no_gui -files run.tcl -log run.log</span></code></pre></div>
-<p><strong>为什么值得单独记一条？</strong> 图形界面会吃掉大量内存和启动时间（还要连 X server / VNC）。服务器上批量跑 run 时，<code>-no_gui</code> 能省下可观的内存，让同一个节点多跑几个 run。</p>
-<p>进去了想再打开界面？文档给了答案：</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 在 innovus 的命令行里输入，图形界面就出来了（前提是你有可用的显示环境）</span><span class="ln ">win on</span></code></pre></div>
-<p>反过来，想临时关掉界面：</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 关闭图形界面，回到纯命令模式</span><span class="ln ">win off</span></code></pre></div>
-<div class="pit"><div class="pit-h">常见坑 · 在 no_gui 里截图/开窗</div><div class="pit-b"><p><strong>现象</strong>：<code>win on</code> 报错，提示无法连接 display。 <strong>原因</strong>：<code>-no_gui</code> 启动的进程通常没有有效的 <code>DISPLAY</code> 环境变量（或者通过 ssh 没带 <code>-X</code>）。 <strong>解决</strong>：要么用 VNC/远程桌面登录后再启动（课程环境推荐），要么 <code>export DISPLAY=:1</code> 指向你已登录的桌面会话。远程纯 ssh 场景下就别指望开窗了，看 log 和报告文件即可。</p></div></div>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">innovus -no_gui -files run.tcl</span></code></pre></div>
+<p><strong>作用</strong>：不启动图形界面，只在命令行运行。<strong>为什么快</strong>：GUI 要渲染图形、维护窗口状态，跑长时间批处理时是纯开销。<strong>不加会怎样</strong>：默认开 GUI，在无图形环境的服务器上会失败。</p>
 <h3 id="wait">4. <code>-wait</code>：等 license 再启动</h3>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># license 被占满时，最多等 120 秒再启动</span><span class="ln ">innovus -wait 120</span></code></pre></div>
-<p>文档叫它&quot;定时启动&quot;，实际语义是：<strong>license 不够时排队等，而不是直接失败退出。</strong></p>
-<p>这个功能在项目冲刺期特别有用——几十个人抢同一批 license，你的脚本半夜排队，等到就自动开跑。不带 <code>-wait</code> 的话，脚本会因为拿不到 license 直接死掉，白排一晚上。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">innovus -wait 60 -log innovus.log</span></code></pre></div>
+<p><strong>作用</strong>：如果 license 暂时不可用，等待指定秒数而不是立刻退出。<strong>用途</strong>：多个任务排队时避免频繁失败重启。<strong>不加会怎样</strong>：license 被占用时立刻报错退出。</p>
 <h3 id="cpus">5. <code>-cpus</code>：多核启动</h3>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 用 8 个核启动</span><span class="ln ">innovus -cpus 8</span></code></pre></div>
-<p>文档的提醒非常关键：</p>
-<blockquote><p>实际工作根据需要确定核数，一般最高可以设置 32 或者 16。<strong>不要设置过高，否则可能会被 kill。</strong></p></blockquote>
-<p>原因有两个，都要知道：</p>
-<ol><li><strong>license 是按核计费的</strong>。你申请 32 核，可能消耗 32 份并行 license 额度，管理员看到会来找你；</li><li><strong>集群有空闲核数上限</strong>（LSF/SGE 之类调度器会限制每用户/每任务的核数），超了直接被调度器 kill，跑了几小时的 run 白费。</li></ol>
-<p>文档还提到一个现场细节：<strong>&quot;可以看到有 28 个 cpu，每个 cpu 有 4 核&quot;</strong>——意思是物理机 28 路、每路 4 核。<strong>看核数别只看 CPU 个数</strong>，<code>nproc</code> 才是你能用的逻辑核数：</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 看这台机器到底能给我多少逻辑核</span><span class="ln ">nproc</span><span class="ln "> </span><span class="ln cmt"># 看物理 CPU 路数与每路核数</span><span class="ln ">lscpu | grep -E &quot;^CPU\(s\)|Thread|Core|Socket&quot;</span></code></pre></div>
-<h3 id="setcpu">6. 启动后调整核数：SetMultiCpuUsage</h3>
-<p>已经进去了才发现核给少了，不用退出重开：</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 改成 32 核，并允许工具根据当前任务自动调整实际使用核数</span><span class="ln ">setMultiCpuUsage -localCpu 32 -cpuAutoAdjust true</span></code></pre></div>
-<div class="term open">
-  <div class="term-h"><span class="term-en">setMultiCpuUsage</span><span class="term-zh">多核使用设置</span></div>
-  <div class="term-b"><p>Innovus 里控制并行线程数的命令。<code>-localCpu</code> 指定本机可用核数，<code>-cpuAutoAdjust true</code> 让工具在不同阶段自动升降（比如 placement 用得多、report 用得少）。</p></div>
-</div>
-<p>注意大小写：Innovus 的命令是<strong>驼峰式</strong>（<code>setMultiCpuUsage</code>、<code>setPlaceMode</code>、<code>optDesign</code>），而它内部很多底层命令是小写下划线式（<code>ccopt_design</code>、<code>place_opt_design</code>）。两种都存在，别以为敲错了。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">innovus -cpus 4</span></code></pre></div>
+<p><strong>作用</strong>：指定使用 4 个 CPU 核心。<strong>为什么重要</strong>：布局布线是计算密集型，多核能显著缩短 runtime。</p>
+<div class="pit"><div class="pit-h">常见坑 · 核数不是越多越好</div><div class="pit-b"><p>核数超过 license 允许的数量会被拒绝；超过物理核心数会导致抢核，反而更慢。</p>
+<p>而且<strong>不是所有步骤都能并行</strong>——某些算法本质上是串行的，加核没用。</p>
+<p><strong>经验</strong>：先用默认值跑一次记录 runtime，再逐步加核对比，找到收益拐点为止。</p></div></div>
+<h3 id="setcpu">6. 启动后调整核数：setMultiCpuUsage</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">setMultiCpuUsage -localCpu 8</span></code></pre></div>
+<p><strong>作用</strong>：在<strong>已启动的会话里</strong>调整核数，不用重启。<strong>什么时候用</strong>：启动时没指定，跑到某一步发现太慢，想在当前会话加速。<strong>注意</strong>：这个设置对<strong>后续</strong>的操作生效，已经在跑的任务不会变快。</p>
 <h3 id="help">7. <code>-help</code>：不知道参数就查</h3>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 看 innovus 本身有哪些启动选项</span><span class="ln ">innovus -help</span><span class="ln "> </span><span class="ln cmt"># 看某条命令的完整参数（在 innovus 命令行里执行）</span><span class="ln ">ccopt_design -help</span><span class="ln ">place_opt_design -help</span></code></pre></div>
-<p><strong>这是最省时间的习惯</strong>：任何命令后面加 <code>-help</code>，立刻看到全部参数、默认值、示例。比翻文档快得多。</p>
+<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">innovus -help</span></code></pre></div>
+<p>列出所有启动参数。<strong>记不住参数时最该做的事</strong>——不要凭印象猜。</p>
 <h3 id="helpsy">8. <code>help *关键字*</code>：按关键字搜命令</h3>
-<p>只记得&quot;跟 place 有关&quot;，不记得命令名？用通配符搜：</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 搜索所有名字里带 place 的命令，会列出命令名和一行说明</span><span class="ln ">help *place*</span><span class="ln "> </span><span class="ln cmt"># 搜索所有时序报告相关的命令</span><span class="ln ">help *report*</span><span class="ln "> </span><span class="ln cmt"># 看某条命令的详细解释（等价于 cmd -help）</span><span class="ln ">help setPlaceMode</span></code></pre></div>
-<div class="tip"><div class="tip-h">小技巧</div><div class="tbl"><table><thead><tr><th>入口</th><th>用来查</th></tr></thead><tbody><tr><td><code>innovus -help</code></td><td>启动选项（<code>-log</code> <code>-files</code> <code>-cpus</code> 这些）</td></tr><tr><td><code>cmd -help</code></td><td>某条命令的完整参数表</td></tr><tr><td><code>help *kw*</code></td><td>只记得关键字，找命令名</td></tr></tbody></table></div></div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">help *clock*</span></code></pre></div>
+<p><strong>作用</strong>：在 Innovus 提示符下按关键字搜索命令。<strong>用途</strong>：只记得「大概和 clock 有关」，不记得确切命令名。这比翻文档快得多。</p>
 <h3 id="tab">9. Tab 键补全</h3>
-<p>文档把&quot;TAB 键&quot;单独列成一条，因为它真的能救命：</p>
-<ul><li>敲 <code>setPlace</code> + Tab → 自动补成 <code>setPlaceMode</code>；</li><li>敲 <code>setPlaceMode -</code> + Tab → <strong>列出所有可用参数</strong>；</li><li>路径也能补：<code>source scr</code> + Tab → <code>source scripts/</code>。</li></ul>
-<p><strong>养成&quot;敲一半就按 Tab&quot;的习惯</strong>，能避掉大量拼写错误。Innovus 命令长、驼峰多，手打几乎必错。</p>
+<p>在命令行敲命令的前几个字母，按 Tab 补全。<strong>为什么重要</strong>：Innovus 的命令名很长（<code>set_ccopt_property</code>、<code>report_ccopt_clock_tree</code>），手敲容易错。Tab 补全既快又不会拼错。</p>
+<div class="tip"><div class="tip-h">小技巧</div><ol><li>敲 <code>set_ccopt</code> 按 Tab，看有哪些候选；</li><li>选中一个后加 <code>-help</code> 看参数；</li><li>按需填参数。</li></ol>
+<p>这个循环比查文档快得多，而且不会用错参数。</p></div>
   
 </section>
 <section class="ch" id="gui" data-ch="gui">
   <div class="ch-h"><span class="ch-n">17</span><h2>界面分四块认识</h2></div>
-  <p>启动后（不带 <code>-no_gui</code>）你会看到一个典型的三段式布局，先认地方再学操作：</p>
-<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">┌────────────────────────────────────────────────────────────┐</span><span class="ln ">│  菜单栏 File / Edit / View / Design / Timing / ...          │</span><span class="ln ">├──────────────────────────────────────────────┬─────────────┤</span><span class="ln ">│                                              │  右侧面板    │</span><span class="ln ">│           版图显示区（Layout View）           │  ├ Design   │</span><span class="ln ">│                                              │  ├ Physical │</span><span class="ln ">│   · 左边是 Design Browser（层次树）           │  └ Timing   │</span><span class="ln ">│   · 中间是芯片版图，滚轮缩放、中键平移         │             │</span><span class="ln ">│                                              │             │</span><span class="ln ">├──────────────────────────────────────────────┴─────────────┤</span><span class="ln ">│  命令行（Command Line）：所有 Tcl 命令在这里敲               │</span><span class="ln ">├────────────────────────────────────────────────────────────┤</span><span class="ln ">│  输出窗（Log / Console）：命令的返回、warning、error 都在这 │</span><span class="ln ">└────────────────────────────────────────────────────────────┘</span></code></pre></div>
-<p>四个地方必须会用：</p>
-<ol><li><strong>版图区</strong>：<code>f</code> 键 fit 全图，滚轮缩放，中键拖动平移。<strong>看图先 fit 一次</strong>，不然你可能在某个角落放大到看不见全局。</li><li><strong>命令行</strong>：所有操作都能在这里敲。<strong>界面点一遍，然后去 log 里抄命令</strong>，是学命令最快的路。</li><li><strong>输出窗</strong>：warning 和 error 在这里滚。<strong>别忽略 warning</strong>，很多&quot;结果莫名其妙&quot;的根因就藏在几百行 warning 里。</li><li><strong>Design Browser</strong>：层次结构树。找某个 instance、某个 net 就从这里搜。</li></ol>
-<div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>启动一次，把九个选项过一遍</div><div class="lab-b"><p>在课程环境的终端里（真机或模拟终端均可，<code>innovus</code> 相关命令在模拟终端里只会演示语法）：</p>
-<div class="code"><div class="code-h"><span class="code-lang">bash</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 1. 确认工具在哪、什么版本——这是每次上机的第一个动作</span><span class="ln ">which innovus</span><span class="ln "> </span><span class="ln cmt"># 2. 看启动选项全表，找到 -log / -files / -no_gui / -wait / -cpus 五条</span><span class="ln ">innovus -help | head -40</span><span class="ln "> </span><span class="ln cmt"># 3. 看本机有多少逻辑核，决定 -cpus 给多少（别超过这个数）</span><span class="ln ">nproc</span><span class="ln "> </span><span class="ln cmt"># 4. 用带 log 的无界面方式跑一个空脚本，验证自动化链路通不通</span><span class="ln ">echo &quot;puts \&quot;innovus is ready\&quot;&quot; &gt; run.tcl</span><span class="ln ">innovus -no_gui -files run.tcl -log run.log -cpus 4</span><span class="ln "> </span><span class="ln cmt"># 5. 跑完检查 log 里有没有 ERROR</span><span class="ln ">grep -n &quot;ERROR&quot; run.log | head</span></code></pre></div>
-<p>进去以后在命令行里再敲这三条：</p>
-<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 看 place 相关命令有哪些（帮助系统按关键字搜）</span><span class="ln ">help *place*</span><span class="ln "> </span><span class="ln cmt"># 把核数调成 8 并开启自动调整</span><span class="ln ">setMultiCpuUsage -localCpu 8 -cpuAutoAdjust true</span><span class="ln "> </span><span class="ln cmt"># 打开图形界面看版图区（需要有显示环境）</span><span class="ln ">win on</span></code></pre></div>
-<p>验收标准：能报出工具版本、本机逻辑核数、<code>-log</code> 与 <code>-files</code> 的作用差别，并成功用一条命令完成&quot;启动→跑脚本→写 log&quot;。</p></div></div>
-<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span>Innovus 与 ICC2 分别属于哪家公司？它们替代的老工具是什么？</div>
-  <div class="q-a">Innovus 是 Cadence 的，替代 Encounter；ICC2 是 Synopsys 的，替代 ICC。老一代适用于 90nm 以上，先进工艺必须用新一代。</div>
-</div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span>为什么每次上机第一件事是 <code>which innovus</code>？</div>
-  <div class="q-a">它同时给出工具所在目录和版本号；版本不同命令行为有差异，脚本报错常因版本不匹配。</div>
-</div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span><code>-log</code> 和 <code>-files</code> 分别做什么？</div>
-  <div class="q-a"><code>-log</code> 把这一趟的所有输出（界面操作、输入命令、结果、warning/error）写进指定文件；<code>-files</code> 让工具启动后自动执行指定 tcl 脚本。</div>
-</div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span><code>-no_gui</code> 有什么好处？进去后怎么再打开界面？</div>
-  <div class="q-a">省内存、省启动时间，适合服务器批量跑 run；进去后执行 <code>win on</code> 打开，<code>win off</code> 关闭。</div>
-</div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span><code>-cpus</code> 为什么不能设太高？</div>
-  <div class="q-a">会消耗大量并行 license，且可能超过集群每任务核数上限被调度器 kill，导致长时间 run 白跑。</div>
-</div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span>进去之后怎么改核数？</div>
-  <div class="q-a"><code>setMultiCpuUsage -localCpu 32 -cpuAutoAdjust true</code>。</div>
-</div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span>想找所有名字里带 place 的命令，怎么做？</div>
-  <div class="q-a"><code>help *place*</code>；看某条命令的完整参数用 <code>cmd -help</code>；看启动选项用 <code>innovus -help</code>。</div>
-</div><div class="q-item open">
-  <div class="q-q"><span class="q-no"></span>Tab 键有两个什么用法？</div>
-  <div class="q-a">补全命令/路径名；在命令后加空格再按 Tab 列出该命令的所有可用参数。</div>
-</div></div>
-<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能说出 Innovus/ICC2 对应替代的老工具，以及换代的核心原因（运行时间与先进工艺约束）</li><li>能用一条命令完成&quot;无界面启动 + 自动跑脚本 + 写 log&quot;</li><li>能解释 <code>-wait</code> 的真实语义（license 排队）</li><li>能说出 <code>-cpus</code> 给太高会被 kill 的两个原因</li><li>能用 <code>which</code> / <code>nproc</code> / <code>lscpu</code> 三个命令确认环境</li><li>能说出三个帮助入口各自查什么</li><li>能把界面分成版图区、命令行、输出窗、层次树四块并说出各自用途</li></ul></div>
+  <p>这一节和前面<a href="#use-interface">「认主界面」</a>讲的是同一件事，但用的是结构示意图。<strong>建议两处对照着看</strong>：示意图给你结构，真实截图给你细节。</p>
+<div class="note"><div class="note-h">已在第一课时详述</div><p>主要内容已并入<a href="#use-interface">第一课时：认主界面</a>，这一节保留作为快速回顾。</p></div>
+<p>四个区域的作用再强调一次：</p>
+<ol><li><strong>版图区</strong> —— 看设计。<code>f</code> 先 fit，再看局部；</li><li><strong>命令行</strong> —— 所有操作都能敲。<strong>界面点一遍，去 log 抄命令</strong>，是学命令最快的路；</li><li><strong>输出窗</strong> —— warning 和 error 在这里。<strong>别忽略 warning</strong>；</li><li><strong>Design Browser</strong> —— 层次树。找 instance、net 从这里搜。</li></ol>
+<div class="tip"><div class="tip-h">小技巧</div><ol><li>在界面上点一个按钮完成操作；</li><li>去 log 或命令历史里找对应的 Tcl 命令；</li><li>记下来，下次直接敲命令。</li></ol>
+<p><strong>为什么有效</strong>：界面操作降低学习门槛，命令记录积累可复用资产。做一两次这个循环，比读十页文档收获大。</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
@@ -333,14 +378,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-04-project-env/">← 项目环境：目录规范、Run 与 Queue</a><a class="nav-btn" href="/lesson/03-03-innovus-init/">init_design：把数据导进 Innovus，并证明它导对了 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01-innovus-plan/">← 上一课<i>阶段三导读：40nm Innovus 项目实操路线</i></a><a class="nav-btn next" href="/lesson/03-05-floorplan/">下一课 →<i>Floorplan：芯片尺寸、端口、宏与约束</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PowerPlan：供电结构与检查 · 36 | IC 后端学院</title>
-<meta name="description" content="电源规划、供电结构与 DRC 检查；扩展：流程脚本与三种布线。按《04 innovus项目(1).docx》原文顺序整理，保留原图。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<title>PowerPlan：供电结构、IR/EM 与检查 · 36 | IC 后端学院</title>
+<meta name="description" content="打 PG 到底在打什么；五种供电结构（Follow Pin、Ring、Stripe、Via Pillar、Metal Stack）各管哪一层；IR Drop 与电迁移的机理；跑完必须查的三件事。附原始资料对照。">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-06-powerplan">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,33 +50,133 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>PowerPlan：供电结构与检查</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>PowerPlan：供电结构、IR/EM 与检查</b></div><div class="lesson-refbar">阶段三课表模块：PowerPlan（2 课时）<a href="/lesson/03-01-innovus-plan/#course-mainline">看完整课表</a></div>
     <div class="hero">
       <div class="hero-no">36</div>
-      <h1>PowerPlan：供电结构与检查</h1>
+      <h1>PowerPlan：供电结构、IR/EM 与检查</h1>
       <p class="hero-en">Power Planning</p>
-      <p class="hero-sum">电源规划、供电结构与 DRC 检查；扩展：流程脚本与三种布线。按《04 innovus项目(1).docx》原文顺序整理，保留原图。</p>
+      <p class="hero-sum">打 PG 到底在打什么；五种供电结构（Follow Pin、Ring、Stripe、Via Pillar、Metal Stack）各管哪一层；IR Drop 与电迁移的机理；跑完必须查的三件事。附原始资料对照。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈7 分钟</span>
-        <span class="pill">课表学时 0</span>
-        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈28 分钟</span>
+        <span class="pill">课表学时 2</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span><span class="pill tag">PowerPlan</span>
       </div>
     </div>
-    <article id="article" data-est-min="7"><section class="ch" id="source-01" data-ch="source-01">
-  <div class="ch-h"><span class="ch-n">01</span><h2>电源规划、供电结构与 DRC 检查</h2></div>
-  <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
+    <article id="article" data-est-min="28"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>一句话说清：为什么要有 PowerPlan</h2></div>
+  <p>前面 Floorplan 定的是「东西放哪」，这一步定的是「电怎么送进去」。</p>
+<p>芯片里每一个标准单元、每一块 Memory 都要接 VDD 和 VSS。但电源不是拉一根线就行：标准单元的电源引脚宽度只有零点几微米，过不了多少电流；几百万个单元同时翻转，瞬间电流是安培级；金属线有电阻，电流一过就掉压；电流密度太高，金属原子会被「冲走」。</p>
+<p>所以必须建一套<strong>分层的供电网络</strong>：从顶层粗线开始，一层层往下分叉，最后接到每个单元的电源脚。这个过程业内叫「<strong>打 PG</strong>」（PG = Power/Ground）。</p>
+<div class="term open">
+  <div class="term-h"><span class="term-en">PowerPlan</span><span class="term-zh">电源规划</span></div>
+  <div class="term-b"><p>在版图上建立分层的电源/地金属网络，把外部供电引到每个标准单元和宏的电源引脚上，并保证电压降（IR Drop）和电迁移（EM）都在允许范围内。业内口语常说「打 PG」「打电源」，指的是同一件事。</p></div>
+</div>
+<h3>从顶层到单元的完整链路</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">外部供电（bump / pad）</span><span class="ln ">    ↓</span><span class="ln ">Power Ring（电源环，绕在 core 外围）</span><span class="ln ">    ↓</span><span class="ln ">Power Stripe（电源条，纵横穿过 core）</span><span class="ln ">    ↓</span><span class="ln ">Via Pillar（过孔柱，各层之间竖向连接）</span><span class="ln ">    ↓</span><span class="ln ">Follow Pin（跟随单元行的电源轨）</span><span class="ln ">    ↓</span><span class="ln ">标准单元的 VDD / VSS 引脚</span></code></pre></div>
+<p><strong>Memory 的接法不一样</strong>：宏的电源脚通常在宏内部或边缘，靠 Ring 和 Stripe 直接接，不走 Follow Pin。</p>
+  
+</section>
+<section class="ch" id="source-01" data-ch="source-01">
+  <div class="ch-h"><span class="ch-n">02</span><h2>供电结构：五种层次，各管一段</h2></div>
+  <p>原文这一段信息密度很高，把五种结构全列出来了。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">四、PowerPlan 电源规划</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">又叫打PG（power    ground）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">powerplan的脚本一般有DFP负责</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">powerplan的目标：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">建立一个强壮的供电网络，避免IRDROP和EM的现象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">EM：电迁移现象，电子的流动会带动金属原子一起运动，形成堆积或者是侵蚀，出现short或open的情况</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Power Rail / Follow Pin   主要是给stdcell进行供电，连接到std的vdd和vss的pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Power Ring   电源环线  主要给mem进行供电的一种方式</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">power Stripe  电源条线  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Via Piller 给stdcell增强供电的一种打pg的方式</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Metal_stack   1P15M  block level不会用完所有的层，预留两层给top </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">跑完了powerplan需要检查什么内容？</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">检查drc</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">verify_drc -limit 99999</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">检查是否有floating open的问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">verifyConnectivity -net {VDD VSS}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editDelete </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-use {CLOCK POWER SIGNAL}    删除的线的类型</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-shape {RING STRIPE FOLLOWPIN}  删除电源线的类型</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addStripe</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addRing </p></div>
+<h3>① Power Rail / Follow Pin</h3>
+<p>原文：<strong>主要是给 stdcell 供电，连接到 std 的 vdd 和 vss 的 pin</strong>。</p>
+<p><strong>为什么叫「跟随引脚」</strong>？因为它<strong>沿着标准单元行的电源脚位置</strong>铺一整条金属。标准单元的设计是固定的：每个单元的 VDD 引脚在行的上沿、VSS 在下沿。沿行上沿铺一条 M1（或 M2）的横线，整行所有单元就都接上了——这就是「跟随」。</p>
+<p><strong>特征</strong>：最底层的供电结构，直接和单元接触，一定是横向的（因为行是横向的）。</p>
+<div class="pit"><div class="pit-h">常见坑 · Follow Pin 断了不容易发现</div><div class="pit-b"><p>Follow Pin 是贯穿整行的长线。中间被 obstruction 打断，后半段单元就没电了。</p>
+<p>工具不会报「这一行没电」，只会在最后连通性检查时报一堆 unconnected power pin。<strong>判断方法</strong>：看 unconnected 的分布——集中在某行某位置之后，基本就是 Follow Pin 断了。</p></div></div>
+<h3>② Power Ring（电源环）</h3>
+<p>原文：<strong>电源环线，主要给 mem 进行供电的一种方式</strong>。</p>
+<p><strong>位置</strong>：绕 core 四周，形成闭合环（通常 VDD 一圈、VSS 一圈，或双环嵌套）。</p>
+<p>三个作用：①宏的电源脚在边界上，Ring 正好从旁边经过可直接接；②环形提供多条并联路径，电流不只走一条路；③均流——环上任意点到供电入口的电阻接近，避免某角供电特别弱。</p>
+<p><strong>为什么原文强调「给 mem 供电」</strong>？标准单元有 Follow Pin 不需要 Ring 直接供；宏没有 Follow Pin，必须靠 Ring 或 Stripe。</p>
+<h3>③ Power Stripe（电源条）</h3>
+<p>原文只有四个字：<strong>电源条线</strong>。这是最容易被低估的一个。</p>
+<p><strong>作用</strong>：把 Ring 的电<strong>均匀分布到 core 内部每一点</strong>。</p>
+<p>没有 Stripe 会怎样？电流只能从 Ring 沿 Follow Pin 往里爬。Follow Pin 是 M1/M2，电阻大，走到 core 中间电压已经掉得差不多。Stripe 用高层金属（M5–M8）把电送到内部，再用 Via Pillar 往下引——高层粗、电阻小。</p>
+<p><strong>间距怎么定</strong>：太密浪费布线资源（Stripe 占的层不能走信号），太疏则局部压降大。经验做法按 IR 目标反推，实际项目通常先按 20–50 µm 铺一版，跑完 IR 再调。</p>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-30.png" data-fig="innovus-doc-30.png"><img src="/fig/innovus-doc-30.png" alt="原文图 30 · 电源规划、供电结构与 DRC 检查" loading="lazy" decoding="async"></a><figcaption>原文图 30 · 电源规划、供电结构与 DRC 检查</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>电源规划完成后的版图。看三件事：①环（Ring）是否闭合且绕满四周；②条（Stripe）是否纵横交错、间距均匀；③宏周围的电源连接是否都有。</p>
+<p>典型的视觉特征：深色（金属）的网格状结构覆盖整个 core，浅色（空白）是留给信号布线的区域。</p></div>
+<h3>④ Via Pillar（过孔柱）</h3>
+<p>原文：<strong>给 stdcell 增强供电的一种打 pg 的方式</strong>。</p>
+<p><strong>什么是 Via Pillar</strong>？在同一个 (x, y) 位置从最高层到最低层打一摞过孔，形成一根「柱子」。</p>
+<p><strong>为什么需要</strong>？供电是分层的：Stripe 在 M7，Follow Pin 在 M1，中间隔了 M2–M6。只在两端随便打几个过孔，电流要通过很长路径绕下去，电阻大。Via Pillar 打一摞<strong>贯通</strong>过孔，让电流垂直下去，路径最短。</p>
+<p><strong>哪里需要打</strong>：Stripe 与 Stripe 的交叉点、Stripe 与 Follow Pin 的交点、宏电源脚附近。</p>
+<div class="pit"><div class="pit-h">常见坑 · 过孔数量不够</div><div class="pit-b"><p>单个过孔载流能力有限。一个连接点只打一个 via，电流密度会超标——既是 IR Drop 问题，也是 EM 问题（过孔最容易电迁移失效）。</p>
+<p>正确做法按电流算数量：<code>via 数量 = 该点电流 / 单个 via 载流能力</code>。算出来 5 个就至少打 5 个，实际再加 50% 余量。</p></div></div>
+<h3>⑤ Metal Stack：为什么 block level 不用完所有层</h3>
+<p>原文：<strong>1P15M，block level 不会用完所有的层，预留两层给 top</strong>。</p>
+<p>两个信息：①工艺是 1 层 Poly + 15 层金属；②模块级设计留两层给顶层。</p>
+<p><strong>为什么预留</strong>：顶层要布线（模块间连线需要金属层）、顶层要配电（芯片级电源网格在高层）、避免冲突（模块用满 M14/M15 顶层就没法走线）。所以模块设计通常只用 M1–M13。</p>
+<div class="note"><div class="note-h">这个「预留」会影响 Stripe 规划</div><p>如果设计只到 M13，Stripe 最高只能铺到 M13——高层的低电阻优势只能用到这里，Via Pillar 的起点也在 M13 而不是 M15。规划时要先确认可用层范围，不要按工艺最大层数算。</p></div>
+<h3>IR Drop 与 EM：两个必须防的失效</h3>
+<p>原文把 powerplan 目标写成一句话：<strong>建立一个强壮的供电网络，避免 IRDROP 和 EM 的现象</strong>。这两个必须理解机理，否则不知道该查什么。</p>
+<p><strong>IR Drop</strong>：金属线有电阻，电流流过产生压降 ΔV = I × R。单元实际拿到的电压 = 源端电压 − 沿途压降。</p>
+<p>为什么是问题？电压低 → 单元延迟变大 → setup 恶化；低到一定程度 → 功能失效。</p>
+<div class="tbl"><table><thead><tr><th>类型</th><th>什么时候发生</th><th>怎么算</th></tr></thead><tbody><tr><td><strong>静态 IR Drop</strong></td><td>所有单元同时漏电（待机）</td><td>平均电流</td></tr><tr><td><strong>动态 IR Drop</strong></td><td>单元翻转瞬间拉大电流</td><td>峰值电流，还要考虑 decap 放电</td></tr></tbody></table></div>
+<p><strong>动态比静态严重得多</strong>，通常大 3–10 倍。翻转是瞬时的，电源网络来不及响应，只能靠就近 decap 顶上。</p>
+<p><strong>EM（电迁移）</strong>：原文定义很准——电子流动带动金属原子一起运动，形成堆积或侵蚀，出现 short 或 open。</p>
+<p>机理：电子定向移动不断撞击金属原子（「电子风」），长期作用下原子被推着迁移。被推走处形成空洞（void）→ 断路；堆积处形成小丘（hillock）→ 可能短路到相邻线。</p>
+<p><strong>关键：这是累积效应。</strong> 不是「电流太大立刻烧」，而是「电流密度超阈值，日积月累慢慢坏」。所以判据是<strong>电流密度</strong>（A/cm²）而不是总电流。</p>
+<p><strong>EM 最容易失效的三处</strong>：窄线（截面积小）、过孔（接触面积小）、电源线靠近单元处（电流汇聚）。</p>
+<div class="note"><div class="note-h">为什么 EM 和 IR Drop 要一起看</div><p>两者经常互相矛盾：想降 IR Drop 就要加宽线、加多过孔，面积和资源占用上升；想省资源就要线细过孔少，两者都变差。</p>
+<p>所以电源规划是在「供电质量」和「布线资源」之间找平衡。这也是为什么 powerplan 通常由专门的人（DFP，Design for Power，原文提到）负责。</p></div>
+<p>原文第二段把这一节的要点又收了一遍，还给了带 <code>-error</code> 参数的写法：</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">掌握三种power的区别</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">理解powergroud的结构</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">掌握power打完之后是否有short或者open的问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">verifyConnectivity  -net {VDD VSS} -error 99999</p></div>
+<p><code>-error 99999</code> 与前面的 <code>-limit 99999</code> 是同一类用法——把报告上限调大避免截断。电源连通性违例经常成片出现（少几个 via 就一整片悬空），截断会让人只看到前 100 个，看不出分布规律，也就判断不出是局部断点还是全局结构问题。</p>
+  
+</section>
+<section class="ch" id="check" data-ch="check">
+  <div class="ch-h"><span class="ch-n">03</span><h2>跑完之后查什么</h2></div>
+  <p>原文给了三组检查，这是最实操的部分。</p>
+<h3>检查一：DRC</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">verify_drc -limit 99999</span></code></pre></div>
+<p>查电源金属之间的间距、宽度、包围关系是否违反制造规则。<code>-limit 99999</code> 是把报错上限调大，避免只报前 100 个就截断——电源网络的 DRC 违例经常成片出现，看前 100 个看不出规律。</p>
+<p><strong>电源 DRC 的典型来源</strong>：Stripe 之间间距不够、Via 包围不足（离线的边缘太近）、Ring 与 Stripe 连接处图形重叠不当、电源线压到宏边界禁布区。</p>
+<h3>检查二：连通性（floating / open）</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">verifyConnectivity -net {VDD VSS}</span><span class="ln ">verifyConnectivity -net {VDD VSS} -error 99999</span></code></pre></div>
+<p><strong>这一项比 DRC 更重要</strong>。DRC 违例最多是「做不出来」，连通性问题是「做出来了也不工作」。</p>
+<p><strong>floating 是什么意思</strong>？某个应该接 VDD 的引脚实际没接到任何 VDD 网络——悬空了。图形上可能重叠，但电气上不通。</p>
+<p><strong>悬空的四个原因</strong>：①Follow Pin 某处断了；②Stripe 和 Follow Pin 之间漏打 via；③宏电源脚没对齐到 Ring/Stripe；④电源网络名写错（设计里是 <code>VDD_CORE</code>，你验证 <code>VDD</code>）。</p>
+<p><strong>第 4 种最常见也最隐蔽</strong>，所以验证前必须先确认网名。原文在 init 阶段就强调过：网名以 netlist 为准。</p>
+<div class="tip"><div class="tip-h">小技巧</div><p>不要只看「通过/不通过」，要看<strong>具体哪些 pin 没连上</strong>。</p>
+<p>如果未连接的 pin 集中在某个宏或某一行 → 局部断点；如果散布全芯片 → 网络名或整体结构问题。</p>
+<p>这个区分决定了修法完全不同，也是排查的第一步。</p></div>
+<h3>检查三：三种 power 的区别</h3>
+<p>原文这句很短但重要：<strong>掌握三种 power 的区别</strong>。</p>
+<div class="tbl"><table><thead><tr><th>类型</th><th>用途</th><th>谁管</th></tr></thead><tbody><tr><td><strong>Power</strong></td><td>供 VDD</td><td>PowerPlan</td></tr><tr><td><strong>Ground</strong></td><td>供 VSS</td><td>PowerPlan</td></tr><tr><td><strong>Signal</strong></td><td>逻辑连线</td><td>Route</td></tr></tbody></table></div>
+<p>为什么要分清？因为很多命令要指定类型：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">editDelete -use {CLOCK POWER SIGNAL} -shape {RING STRIPE FOLLOWPIN}</span></code></pre></div>
+<p>两个参数<strong>正交</strong>：<code>-use</code> 是用途（电源/地/时钟/信号），<code>-shape</code> 是几何形态（环/条/跟随线）。组合才能精确删除——「删掉所有电源 Stripe，保留信号线」就是 <code>-use POWER -shape STRIPE</code>。</p>
+<div class="pit"><div class="pit-h">常见坑 · editDelete 用错会删掉不该删的</div><div class="pit-b"><p>不加参数可能删掉选中的<strong>所有</strong>东西。</p>
+<p>安全做法：<code>-use</code> 和 <code>-shape</code> 双重限定；删之前先用 <code>selectInst</code> 类命令确认选中范围。</p>
+<p>另外：电源线删掉后要重跑连通性检查——有些引脚会因此悬空。</p></div></div>
+<h3>打 PG 的两条主命令</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">addStripe    ;# 加电源条</span><span class="ln ">addRing      ;# 加电源环</span></code></pre></div>
+<p>参数很多，实际使用通常写成脚本。核心逻辑：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">addStripe -nets {VDD VSS} -layer {M5 M7} -width {2.0 2.0} \</span><span class="ln ">          -spacing {1.0 1.0} -set_to_set_distance 30 \</span><span class="ln ">          -start_offset 5 -stop_offset 5</span></code></pre></div>
+<ul><li><code>-layer {M5 M7}</code>：在 M5（横向）和 M7（纵向）各铺一组；</li><li><code>-width</code>：线宽，越宽电阻越小载流越大；</li><li><code>-spacing</code>：VDD 与 VSS 间距，必须够大避免短路；</li><li><code>-set_to_set_distance</code>：相邻两组（VDD+VSS 一对）的距离，即 Stripe 周期；</li><li><code>-start_offset</code> / <code>-stop_offset</code>：第一条和最后一条距边界的距离。</li></ul>
+<p><strong><code>-set_to_set_distance</code> 是最关键的参数</strong>，决定 Stripe 密度。太密浪费资源，太疏压降大。</p>
   
 </section>
 <section class="ch" id="source-02" data-ch="source-02">
-  <div class="ch-h"><span class="ch-n">02</span><h2>扩展：流程脚本与三种布线</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">延伸：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1)flow的代码结构：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、导入各种定义、文件、变量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、读取数据</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、代码核心部分</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、保存数据</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、output一些文件（rpt、log）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）三种绕线</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">power  电源线  clock  时钟走线  signal  信号走线</p></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>流程脚本的五个部分</h2></div>
+  <p>原文延伸部分讲流程脚本结构，这段值得单独看，因为它适用于所有阶段的脚本。</p>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">延伸：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1)flow的代码结构：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、导入各种定义、文件、变量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、读取数据</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、代码核心部分</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、保存数据</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、output一些文件（rpt、log）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）三种绕线</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">power  电源线  clock  时钟走线  signal  信号走线</p></div>
+<p>这个五段式是<strong>工业级流程脚本的标准结构</strong>，不是随意分的。</p>
+<div class="tbl"><table><thead><tr><th>段</th><th>做什么</th><th>为什么单独成段</th></tr></thead><tbody><tr><td>1 定义</td><td>变量、路径、库名</td><td>换项目只改这一段</td></tr><tr><td>2 读取</td><td>导入设计、约束</td><td>输入集中，便于校验</td></tr><tr><td>3 核心</td><td>真正的操作</td><td>出问题时定位到这一段</td></tr><tr><td>4 保存</td><td>存数据库/检查点</td><td>保证可回退</td></tr><tr><td>5 输出</td><td>报告、日志</td><td>保证可追溯</td></tr></tbody></table></div>
+<p><strong>为什么这个结构重要</strong>？三层保障：<strong>可移植</strong>（换项目只改第 1 段）、<strong>可回退</strong>（第 4 段有检查点）、<strong>可追溯</strong>（第 5 段有报告）。</p>
+<div class="tip"><div class="tip-h">小技巧</div><p>新手写脚本容易从头到尾一堆命令，出问题不知道卡在哪。</p>
+<p>按五段式写，每段开头加一行注释，出问题一眼能看出是「输入不对」还是「核心逻辑不对」。</p></div>
+<p>原文还提到三种绕线：<strong>power 电源线、clock 时钟走线、signal 信号走线</strong>。三类规则完全不同：</p>
+<div class="tbl"><table><thead><tr><th>类型</th><th>宽度</th><th>间距</th><th>谁布</th></tr></thead><tbody><tr><td>Power</td><td>很宽（几 µm）</td><td>大</td><td>addStripe / sroute</td></tr><tr><td>Clock</td><td>较宽，常用 NDR</td><td>较大</td><td>CTS / sroute</td></tr><tr><td>Signal</td><td>默认最小</td><td>默认最小</td><td>NanoRoute</td></tr></tbody></table></div>
+<p><strong>为什么电源线要那么宽</strong>？降电阻（IR Drop）和降电流密度（EM）。信号线不需要，因为电流极小（只是栅极充放电）。</p>
   
 </section>
 <section class="ch" id="powerplan-pg-lab" data-ch="powerplan-pg-lab">
-  <div class="ch-h"><span class="ch-n">03</span><h2>原创实操：验收一个 SRAM 宏的电源与地</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>原创实操：验收一个 SRAM 宏的电源与地</h2></div>
   <div class="note"><div class="note-h">原创教学</div><p>本节是独立纸笔练习。实例名、连通记录、电阻、电流和门槛均为虚构教学输入，不来自外部资料或工具实测；不需要运行任何版图命令。</p></div>
 <p>你拿到两份电源规划快照 <code>C0</code>、<code>C1</code>，要判断是否可以交接给后续实现。接口清单规定：<code>U_SRAM0/VP</code> 接开关域的 <code>VDD_SRAM_SW</code>，<code>U_SRAM0/VN</code> 接公共地 <code>VSS</code>；邻近常开域的 <code>VDD_AO</code> 即使在本场景也是 0.80 V，仍不允许与开关域短接。测试模式固定为开关域开启，检查路径从各 pin 经局部金属和条带到指定源端，不以画面上两层重叠代替过孔。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 原创模拟连通记录；预期两只 PG pin 都能到自己的源端，且无跨网短路。</span><span class="ln ">快照  引脚          期望网         局部实际网     同网源端可达    备注</span><span class="ln ">C0    U_SRAM0/VP   VDD_SRAM_SW    VDD_SRAM_SW    是              —</span><span class="ln ">C0    U_SRAM0/VN   VSS            VSS            否              局部地与地条带间缺过孔</span><span class="ln ">C1    U_SRAM0/VP   VDD_SRAM_SW    VDD_SRAM_SW    是              —</span><span class="ln ">C1    U_SRAM0/VN   VSS            VSS            是              仅补接地过孔</span><span class="ln ">C0/C1 检查范围：以上两个必检端点，三个相关网之间的短路数均为 0</span></code></pre></div>
@@ -84,6 +184,52 @@
 <p>验算：<code>C0</code> 不能交接；<code>C1</code> 的电源跌落为 9 mV、地抬升为 6 mV。宏端 <code>VP</code> 扣到 0.791 V，<code>VN</code> 相对源端地升到 0.006 V，因此两脚之间只有 0.785 V，有效供电差比源端少 15 mV，满足课堂静态预算。只看 <code>VP</code> 会误报为 9 mV 漏掉返回地贡献。</p>
 <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>能用“<code>C1</code> 只补 <code>VN</code> 的地过孔，2/2 端点可达，开路和跨网短路均为 0”描述连通回归。</li><li>能把“静态手算 15 mV，课堂通过”和“布局 DRC、实际静态/动态 IR 与 EM 签核未运行”分开记录。连通和手算都过，不等于项目签核。</li></ul></div>
 <p>进阶可读<a href="/lesson/03-12-pg-ir-em/#pg-domain-and-macro-pins">从 PG 连通到 IR/EM 修复回归</a>。</p>
+  
+</section>
+<section class="ch" id="checklist" data-ch="checklist">
+  <div class="ch-h"><span class="ch-n">06</span><h2>检查清单</h2></div>
+  <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>确认工艺金属层数，明确 block level 用到哪一层（通常留 2 层给 top）</li><li>Follow Pin 覆盖所有标准单元行，没有中断</li><li>Ring 闭合完整，四条边都连通，没有缺口</li><li>Stripe 的层、方向、间距、宽度与规划一致</li><li><code>-set_to_set_distance</code> 设置合理，没有过密或过疏</li><li>Stripe 与 Ring 的交叉点都打了 via</li><li>Via Pillar 按电流算数量，并加了余量</li><li>宏的每个电源脚都接到对应网络（不是几何相近就算接上）</li><li><code>verify_drc -limit 99999</code> 没有成片违例</li><li><code>verifyConnectivity -net {VDD VSS}</code> 无 floating、无 open</li><li>电源网名与 netlist 一致（不是想当然的 VDD/VSS）</li><li>电源线没有压到宏的边界禁布区</li><li>删除操作都用了 <code>-use</code> + <code>-shape</code> 双重限定</li><li>powerplan 脚本按五段式组织，可从干净数据库重跑</li></ul></div>
+  
+</section>
+<section class="ch" id="quiz" data-ch="quiz">
+  <div class="ch-h"><span class="ch-n">07</span><h2>自测</h2></div>
+  <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>Follow Pin、Ring、Stripe 三者的分工？</div>
+  <div class="q-a">Follow Pin 是最底层供电轨沿单元行铺，直接接单元电源脚；Ring 是 core 外围闭合环，主要给宏供电并均流；Stripe 是 core 内部纵横粗线，把电均匀送到内部各点。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么 Memory 主要靠 Ring 供电而不是 Follow Pin？</div>
+  <div class="q-a">宏电源脚排在宏内部或边缘，不在标准单元行上，没有 Follow Pin 可接，必须靠 Ring 或 Stripe 直接连。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>Stripe 的 -set_to_set_distance 决定什么？太小太大分别什么后果？</div>
+  <div class="q-a">决定相邻两组 VDD/VSS 的间距即 Stripe 密度。太小浪费布线资源，太大局部压降超标。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>EM 的机理是什么？为什么判据是电流密度不是总电流？</div>
+  <div class="q-a">电子流带动金属原子迁移，被推走处形成空洞导致开路，堆积处形成小丘导致短路。这是长期累积效应，取决于单位面积电流密度而非总电流。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么 EM 最容易在过孔处失效？</div>
+  <div class="q-a">过孔接触面积小，同电流下电流密度最高，且结构不连续易形成应力集中。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>IR Drop 静态和动态哪个更严重？为什么？</div>
+  <div class="q-a">动态更严重。翻转瞬间电流是待机电流的数倍到数十倍，电源网络来不及响应，只能靠就近 decap 放电补充。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>Block level 为什么通常预留两层金属给 top？</div>
+  <div class="q-a">模块拼成整芯片后，模块间连线和芯片级电源网格需要高层金属，模块用满会导致顶层无层可用。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>verifyConnectivity 报 floating 的四个常见原因？</div>
+  <div class="q-a">Follow Pin 中断、Stripe 与 Follow Pin 之间漏打 via、宏电源脚没对齐、电源网名写错。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>editDelete 的 -use 和 -shape 分别限定什么？</div>
+  <div class="q-a">-use 限定用途（CLOCK/POWER/SIGNAL），-shape 限定几何形态（RING/STRIPE/FOLLOWPIN），两者正交组合才能精确删除。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>流程脚本的五段式结构与各自价值？</div>
+  <div class="q-a">①导入定义（可移植）②读取数据（输入集中校验）③核心操作（问题定位）④保存数据（可回退）⑤输出报告日志（可追溯）。</div>
+</div></div>
+  
+</section>
+<section class="ch" id="next" data-ch="next">
+  <div class="ch-h"><span class="ch-n">08</span><h2>延伸阅读</h2></div>
+  <p>下一课是 <a href="/lesson/03-07-place/">Place：标准单元布局</a>。</p>
+<div class="tbl"><table><thead><tr><th>主题</th><th>参考</th></tr></thead><tbody><tr><td>PG 连通、IR Drop 与 EM 的完整实训</td><td><a href="/lesson/03-12-pg-ir-em/">电源完整性专项</a></td></tr><tr><td>闩锁效应与阱衬底连接</td><td><a href="/lesson/03-01k-latch-up/">Latch-up</a></td></tr><tr><td>供电检查如何走到签核</td><td><a href="/lesson/03-14-chipfinish-handoff/">ChipFinish 桌面实训</a></td></tr></tbody></table></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
@@ -97,14 +243,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-05-floorplan/">← Floorplan：芯片尺寸、端口、宏与约束</a><a class="nav-btn" href="/lesson/03-07-place/">Place：标准单元布局、时序与利用率 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-05-floorplan/">← 上一课<i>Floorplan：芯片尺寸、端口、宏与约束</i></a><a class="nav-btn next" href="/lesson/03-07-place/">下一课 →<i>Place：布局三阶段、OCV 谱系与时序判据</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

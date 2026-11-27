@@ -1101,7 +1101,7 @@ def next_lesson(request: Request):
     lessons = cat.get("lessons") or []
     if not lessons:
         return {"lesson": "", "chapter": "", "reason": "no-catalog"}
-    order = [L["id"] for L in lessons]
+    order = _study_order(lessons)
     ch_of = {L["id"]: [c["id"] for c in (L.get("chapters") or [])] for L in lessons}
 
     with closing(db()) as c:
@@ -1116,13 +1116,18 @@ def next_lesson(request: Request):
         return None
 
     # 1) 上次学习位置
+    #    参考页（阶段三选学、不在主线上）只在最近一段时间内优先恢复：
+    #    否则学员某天点开一篇参考页，之后每次「继续学习」都被拉回那里，
+    #    主线永远推不动。主线课不受此限制。
     last = None
     try:
         last = localStorage_last_lesson(u["id"])
     except Exception:
         last = None
     if last and last in ch_of:
-        if first_undone(last) is not None:
+        is_ref = last not in set(order)
+        fresh = _last_seen_seconds(u["id"], last)
+        if first_undone(last) is not None and (not is_ref or fresh <= RESUME_REF_SECONDS):
             return {"lesson": last, "chapter": first_undone(last), "reason": "resume"}
 
     # 2) 第一门没学完的课
@@ -1134,6 +1139,36 @@ def next_lesson(request: Request):
 
     # 3) 全部学完
     return {"lesson": order[-1], "chapter": "", "reason": "all-done"}
+
+
+RESUME_REF_SECONDS = 3 * 86400   # 参考页的「续学」有效期，主线课不受限
+
+
+def _last_seen_seconds(user_id: int, lesson: str) -> float:
+    """该课最近一次进度写入距今多少秒；查不到当作很久以前。"""
+    with closing(db()) as c:
+        r = c.execute(
+            "SELECT ts FROM progress_u WHERE user_id=? AND lesson=? ORDER BY ts DESC LIMIT 1",
+            (user_id, lesson)).fetchone()
+    if not r:
+        return float("inf")
+    return max(0.0, time.time() - float(r["ts"] or 0))
+
+
+def _study_order(lessons: list) -> list:
+    """「继续学习」的顺序：构建时写入 catalog 的课表主线。
+
+    阶段三的物理目录里混着导读、31a–31p 和补充页，直接按目录找「下一门
+    没学完的课」会把学员带进参考课。catalog 里的 route 是构建器按上传课表
+    生成的唯一学习顺序；缺失时退回目录顺序，保证旧数据也能用。
+    """
+    route = _catalog().get("route") or []
+    ids = {L["id"] for L in lessons}
+    ordered = [i for i in route if i in ids]
+    # 新加、但还没进 route 的课补在末尾，避免它们永远不出现在继续学习里
+    seen = set(ordered)
+    ordered.extend(L["id"] for L in lessons if L["id"] not in seen)
+    return ordered
 
 
 def localStorage_last_lesson(user_id: int) -> Optional[str]:

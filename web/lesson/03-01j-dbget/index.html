@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>dbGet：从对象关系查找宏实例 · 31j | IC 后端学院</title>
 <meta name="description" content="用对象路径和回溯定位宏实例，判断空结果，并区分数据库读取与状态修改。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-01j-dbget">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,7 +50,7 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>dbGet：从对象关系查找宏实例</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>dbGet：从对象关系查找宏实例</b></div><div class="lesson-refbar">本页是「Innovus 的使用」模块的参考阅读，不计入自动学习路线。<a href="/lesson/03-02-innovus-start/">回本模块主课 →</a><a href="/lesson/03-01-innovus-plan/#course-mainline">看阶段三课表</a></div>
     <div class="hero">
       <div class="hero-no">31j</div>
       <h1>dbGet：从对象关系查找宏实例</h1>
@@ -64,7 +64,8 @@
     </div>
     <article id="article" data-est-min="14"><section class="ch" id="objects" data-ch="objects">
   <div class="ch-h"><span class="ch-n">01</span><h2>先画对象关系，再写查询</h2></div>
-  <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-j.svg" data-fig="innovus-practice-j.svg"><img src="/fig/innovus-practice-j.svg" alt="原创教学示意图 · dbGet：筛选的位置不等于返回的对象" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · dbGet：筛选的位置不等于返回的对象</figcaption></figure>
+  <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>dbGet 查询</strong> · 贯穿全流程的工具。这一讲不属于某一道工序，而是所有工序都要用的查询手段。学会它，前面几讲里所有&quot;抓清单核对&quot;的动作才能自己做。</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-j.svg" data-fig="innovus-practice-j.svg"><img src="/fig/innovus-practice-j.svg" alt="原创教学示意图 · dbGet：筛选的位置不等于返回的对象" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · dbGet：筛选的位置不等于返回的对象</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 14 项的主题独立编写，不转载原文、图或项目参数。实例名、报告和验收数据均为合成。Innovus legacy <code>dbGet</code> 命令用于讲解查询思路，未在 Innovus 中实测，属性名和选项以本机版本帮助为准。</p></div>
 <p>先区分<strong>实例</strong>和<strong>库单元</strong>。<code>top</code> 指当前顶层设计；<code>top.insts</code> 是实例集合；实例的 <code>name</code> 是设计中的名字，实例的 <code>cell</code> 则指向所引用的库单元。一个库单元可以被多个实例引用。核对宏的放置数量时，计数单位是实例；核对设计用了几种宏时，计数单位才是库单元类型。前者可以发现漏放一份宏，后者无法发现漏掉一个同型号的副本。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">                         +--&gt; inst: u_sram0 --+</span><span class="ln ">top: core_demo -- insts -+--&gt; inst: u_sram1 --+--&gt; cell: SRAM_TINY --&gt; baseClass: block</span><span class="ln ">                         +--&gt; inst: u_buf --------&gt; cell: BUFX2 -----&gt; baseClass: core</span></code></pre></div>
@@ -85,33 +86,33 @@
   
 </section>
 <section class="ch" id="lab-input" data-ch="lab-input">
-  <div class="ch-h"><span class="ch-n">04</span><h2>实验输入：实例清单为什么少了一行？</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>实例清单为什么少了一行</h2></div>
   <p>练习从交接表开始：<code>F07</code> 快照内有三条实例记录，宏清单应列出 <code>u_sram0</code>、<code>u_sram1</code>，两者母版均为 <code>SRAM_TINY</code>，另有 <code>u_buf</code> 引用 <code>BUFX2</code>。旧脚本的导出只有一行 <code>SRAM_TINY</code>，列名却是“宏实例”，导致下游只登记了一个放置对象。另提供 <code>F06_stdonly</code> 对照快照，里面只有 <code>u_buf</code>，预期宏清单为空。两个快照分开判读，不能拿对照快照的零行解释 <code>F07</code> 的缺行。</p>
 <p>操作顺序：先写出交接表的预期实例名，再核对旧脚本查询从哪个对象取 <code>.name</code>。然后分别列出全部实例、筛中库单元和筛中实例，记下每一步的对象粒度。旧结果不一定是筛选失败：它筛对了类别，但错把母版当成交付对象，随后对母版名称去重，只剩一行。这条证据比“重新运行一次得到两行”更能说明根因。</p>
   
 </section>
 <section class="ch" id="lab-tcl" data-ch="lab-tcl">
-  <div class="ch-h"><span class="ch-n">05</span><h2>本地练习：只用 Tcl 复现清单差异</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>只用 Tcl 复现清单差异</h2></div>
   <p>下方是可单独交给 <code>tclsh</code> 的教学 mock，只依赖标准 Tcl。它用三列记录模拟对象引用，不调用 Innovus，也不模拟 <code>dbGet</code> 的语法、空指针或真实数据库结构。<code>legacy</code> 模拟旧导出对母版去重，<code>fixed</code> 模拟修正后取实例名；两者看相同的原始输入。</p>
 <div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">proc inventory {rows} {</span><span class="ln ">    set legacy {}</span><span class="ln ">    set fixed {}</span><span class="ln ">    foreach row $rows {</span><span class="ln ">        lassign $row inst cell baseClass</span><span class="ln ">        if {$baseClass ne &quot;block&quot;} { continue }</span><span class="ln ">        lappend legacy $cell</span><span class="ln ">        lappend fixed $inst</span><span class="ln ">    }</span><span class="ln ">    return [list [lsort -unique $legacy] [lsort $fixed]]</span><span class="ln ">}</span><span class="ln ">set f07 {{u_buf BUFX2 core} {u_sram0 SRAM_TINY block} {u_sram1 SRAM_TINY block}}</span><span class="ln ">set f06 {{u_buf BUFX2 core}}</span><span class="ln ">foreach {snapshot rows} [list F07 $f07 F06_stdonly $f06] {</span><span class="ln ">    lassign [inventory $rows] legacy fixed</span><span class="ln ">    puts &quot;$snapshot legacy=[list $legacy] ([llength $legacy]) fixed=[list $fixed] ([llength $fixed])&quot;</span><span class="ln ">}</span></code></pre></div>
 <p>阅读输出时先对清单再对数量。即使新版凑巧输出两条，如果第二条属于其他实例，还是不合格。可把对照中的 <code>u_buf</code> 换成一个类别同为 <code>block</code> 的测试记录，再预测新旧两种输出；这只是改变 mock 输入，不代表生产数据库或真实工艺属性发生变化。</p>
   
 </section>
 <section class="ch" id="lab-verify" data-ch="lab-verify">
-  <div class="ch-h"><span class="ch-n">06</span><h2>对照验收与回退清单</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>查询结果的对照验收与回退</h2></div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成验收预期                     旧列值 (数量)          新列值 (数量)</span><span class="ln ">F07: 宏实例清单                  SRAM_TINY (1)         u_sram0 u_sram1 (2)</span><span class="ln ">F06_stdonly: 宏实例清单          &lt;空&gt; (0)              &lt;空&gt; (0)</span><span class="ln ">F07: 输入实例总数                3                     3</span><span class="ln ">F06_stdonly: 输入实例总数        1                     1</span></code></pre></div>
 <p>验收时再随机挑一个输出实例反查母版：这里两条均指向 <code>SRAM_TINY</code>，所以一套完整的交接记录可以同时包含“两个宏实例”和“一种宏母版”，但不能把这两个统计字段互换。另检查排序、列名和上一版消费脚本的读取方式；若下游确实要的是唯一母版列表，应保留原口径并另交付实例清单，而不是让同名字段悄悄变义。</p>
 <ul><li>改动前：保留旧查询、导出、所用设计标识和预期清单，确认它们不是来自不同快照。</li><li>改动后：同快照双跑，保留准确名单、错误输出和有效零结果；确认 <code>u_buf</code> 没混入宏清单。</li><li>若实例范围或下游契约未获确认：撤回新导出，恢复原查询版本并标注原口径的已知缺陷，暂停用旧结果做放置判断。这里只更改脚本与报告，无需回滚物理设计。</li></ul>
   
 </section>
 <section class="ch" id="lab-triage" data-ch="lab-triage">
-  <div class="ch-h"><span class="ch-n">07</span><h2>扩展排查：清单对不上时从哪里下手？</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>清单对不上时从哪里下手</h2></div>
   <p>在实际交接中，可以把预期和实际清单并列，标出“只在预期”“只在实际”和“双方都有但母版不同”三类差异。第一类优先确认快照标识、设计名和层级范围；第二类复核筛选条件是否把交接表未纳入的单元类型也抓进来；第三类检查实例是否被合法换版，以及工程清单的母版列是否尚未更新。这三类证据指向不同责任方，不能用一句“数量差一”代替。也不要拿同名但不同层级的对象凑齐清单；若数据库返回的名称和交接表层级表示不同，应先明确各自的命名规则，再对照一条实际对象记录。</p>
 <p>对象引用适合留在当前工具查询中，不宜作为跨快照的交接主键；清单至少应带上设计标识、实例名称和母版名称。对于本例，可以借 <code>F06_stdonly</code> 测空清单，再使旧脚本和新脚本在 <code>F07</code> 看同一份输入：前者检查正常的零行不会被误报为故障，后者检查同一母版的多个实例不会被折叠。若交接表本身有错，先修订预期并让责任人确认，再回到实例查询验收，不要为了让结果看起来对齐而改筛选。</p>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">08</span><h2>自检：你数的是哪一层对象？</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>你数的是哪一层对象</h2></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>两个 SRAM 实例引用同一母版，筛选后为什么不能停在 -p？</div>
   <div class="q-a">在该查询路径上，-p 返回库单元层；需用 -p2 返回实例层，再读取各实例的 name。</div>
@@ -125,13 +126,13 @@
   
 </section>
 <section class="ch" id="deep-lab-batch-null-guard" data-ch="deep-lab-batch-null-guard">
-  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：批量只读巡检里，哪些快照能发布？</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>批量只读巡检里，哪些快照可以发布</h2></div>
   <p><strong>模拟批检日志（不是 Innovus 输出）。</strong> 同一作业逐个加载快照，读取宏实例后再逐一取摆放状态；结果只有正式报表会被下游接收，失败明细另外保存。此处 <code>0x0</code> 是空指针，空串不是合法摆放状态。预期宏数来自独立交接清单，<code>ERR</code> 表示工具调用失败。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟快照  预期宏数  查询返回         逐实例状态返回</span><span class="ln ">Q0        0         OK: 0x0          无须读取</span><span class="ln ">Q1        2         OK: p1 p2        p1:fixed, p2:&quot;&quot;</span><span class="ln ">Q2        1         ERR: 属性不可用  未执行</span><span class="ln ">Q3        1         OK: p3           p3:fixed</span></code></pre></div>
 <p><strong>先独立交付。</strong> 给四个快照各填一项状态和是否发布正式报表，再写出程序应在哪一步拦截空值、在哪一步停止当前快照。说明整批能否标为通过，以及为什么不能把缺失状态默认成未摆放。</p>
 <p><strong>标准判断。</strong> Q0 核对加载成功、查询范围和预期零数后，可发布明确标注的零行；哨兵不参与计数，也不向下取属性。Q1 有两个有效引用，但第二条缺必填状态，整份快照暂扣，不能只发布第一条。Q2 是调用失败，不是零匹配。只有 Q0、Q3 可发布；作业继续扫完其余快照，但最终必须报告部分失败。每次切换设计都重置临时结果，不跨快照复用对象引用。</p>
 <p><strong>验收与回退。</strong> 用这四类数据验证发布清单、失败原因和批次退出状态；用独立快照标识防止旧报告被当作本轮成功。若补丁误把空值发布为零或泄出半份清单，撤回该批导出、恢复上一版发布流程并标注缺陷，保留原只读数据库。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1" data-go="/lesson/03-02-innovus-start/">读完本篇 · 回本模块主课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -144,14 +145,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01i-calibre-drc/">← Calibre DRC：手修与复查</a><a class="nav-btn" href="/lesson/03-01k-latch-up/">Latch-up：从寄生回路检查阱与衬底连接 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01b-innovus-flow/">← 参考上一篇<i>Innovus 项目流程：每个阶段到底交付什么？</i></a><a class="nav-btn next" href="/lesson/03-04-project-env/">参考下一篇 →<i>项目环境：目录规范、Run 与 Queue</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>阶段三导读：40nm Innovus 项目实操路线 · 31 | IC 后端学院</title>
 <meta name="description" content="按阶段三课表的 9 个模块安排主课和选学，标明待补课时，并原样保留钉钉知识库的 20 项资料顺序。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-01-innovus-plan">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -65,8 +65,7 @@
     <article id="article" data-est-min="6"><section class="ch" id="course-mainline" data-ch="course-mainline">
   <div class="ch-h"><span class="ch-n">01</span><h2>阶段三主线：按课表顺序学</h2></div>
   <p>按表从上往下学。<strong>主课</strong>是该模块的学习入口，<strong>选学</strong>用于预习、查漏或进阶，不另计课表学时。学时为课表安排，不代表现有课件已覆盖全部学时；OptCTS 保留位置，待核实并补成独立课。</p>
-<div class="tbl"><table><thead><tr><th>模块</th><th>课表学时</th><th>主课</th><th>选学</th></tr></thead><tbody><tr><td>使用</td><td>2</td><td><a href="/lesson/03-02-innovus-start/#period-1">第 1 课时</a>、<a href="/lesson/03-02-innovus-start/#period-2">第 2 课时</a></td><td><a href="/lesson/03-01b-innovus-flow/">Innovus 项目全流程</a>、<a href="/lesson/03-01j-dbget/">dbGet 只读查询</a></td></tr><tr><td>Floorplan</td><td>10</td><td><a href="/lesson/03-05-floorplan/">芯片尺寸、端口、宏与约束</a></td><td><a href="/lesson/03-01a-flp-lab/">切角与端口清单实操</a>、<a href="/lesson/03-01c-project-details/">Memory 面积与 Floorplan 评估</a>、<a href="/lesson/03-01d-floorplan-advanced/">宏单元分层摆放与 Kick-Off Run</a></td></tr><tr><td>PowerPlan</td><td>2</td><td><a href="/lesson/03-06-powerplan/">供电结构与检查</a></td><td><a href="/lesson/03-12-pg-ir-em/">PG 连通、IR Drop 与 EM</a>、<a href="/lesson/03-01k-latch-up/">闩锁效应</a></td></tr><tr><td>Placement / Setup Hold</td><td>4</td><td><a href="/lesson/03-07-place/">Placement：标准单元布局</a>、<a href="/lesson/03-01h-timing-noise/#timing-stages">按阶段读 Setup 和 Hold</a></td><td><a href="/lesson/03-01e-placement-diagnostics/">布局密度与拥塞诊断</a>、<a href="/lesson/03-01l-overflow/">GCell Overflow</a></td></tr><tr><td>CTS</td><td>14</td><td><a href="/lesson/03-08-cts/">时钟树综合、约束与检查</a></td><td><a href="/lesson/03-01f-cts-practice/">CTS 前置检查与验收</a>、<a href="/lesson/03-01o-clock-skew/">Clock Skew 报告分析</a></td></tr><tr><td>OptCTS</td><td>2</td><td><strong>待补：暂无已核实的独立课程，不用 CTS 课件代替。</strong></td><td>—</td></tr><tr><td>Route</td><td>4</td><td><a href="/lesson/03-09-route/">布线引擎与短路、开路排查</a></td><td><a href="/lesson/03-01g-route-debug/">天线效应、串扰与连通性排查</a></td></tr><tr><td>OptRoute</td><td>1</td><td><a href="/lesson/03-10-optroute/">布线后优化</a></td><td><a href="/lesson/03-01n-drv-repair/">修复 DRV</a>、<a href="/lesson/03-01m-eco-commands/">ECO 命令与验收</a>、<a href="/lesson/03-13-mmmc-eco-lab/">寄生回标与多场景 ECO</a></td></tr><tr><td>ChipFinish</td><td>2</td><td><a href="/lesson/03-14-chipfinish-handoff/">签核与交付实训</a></td><td><a href="/lesson/03-11-eco/">ECO 与签核问题</a>、<a href="/lesson/03-01i-calibre-drc/">Calibre DRC 手修与复查</a>、<a href="/lesson/03-01p-double-patterning/">双重图形化与签核</a></td></tr></tbody></table></div>
-<p>下方钉钉目录按知识库原序保留，用于对照资料，不是另一套主课顺序。</p>
+<div class="ml-table"><table><thead><tr><th>模块</th><th>课表学时</th><th>主课（按顺序学）</th><th>选学（参考，不计入路线）</th></tr></thead><tbody><tr><td>Innovus 的使用</td><td class="ml-h">2</td><td><a href="/lesson/03-02-innovus-start/#period-1">第 1 课时：启动与界面</a>、<a href="/lesson/03-02-innovus-start/#period-2">第 2 课时：导入与验证</a></td><td><a href="/lesson/03-01b-innovus-flow/">31b Innovus 项目流程：每个阶段到底交付什么？</a>、<a href="/lesson/03-01j-dbget/">31j dbGet：从对象关系查找宏实例</a>、<a href="/lesson/03-04-project-env/">32 项目环境：目录规范、Run 与 Queue</a>、<a href="/lesson/03-03-innovus-init/">34 init_design：把数据导进 Innovus，并证明它导对了</a></td></tr><tr><td>Floorplan</td><td class="ml-h">10</td><td><a href="/lesson/03-05-floorplan/">Floorplan：芯片尺寸、端口、宏与约束</a></td><td><a href="/lesson/03-01a-flp-lab/">31a Floorplan 实操：看懂芯片切角与端口清单</a>、<a href="/lesson/03-01c-project-details/">31c Innovus 项目细节：算清 Memory 面积，看懂布局报告</a>、<a href="/lesson/03-01d-floorplan-advanced/">31d Floorplan 进阶：从 Die Size 输入到 Kick-Off Run</a></td></tr><tr><td>PowerPlan</td><td class="ml-h">2</td><td><a href="/lesson/03-06-powerplan/">PowerPlan：供电结构、IR/EM 与检查</a></td><td><a href="/lesson/03-01k-latch-up/">31k Latch-up：从寄生回路检查阱与衬底连接</a>、<a href="/lesson/03-12-pg-ir-em/">41a PG、IR Drop 与 EM：从电源连通到修复回归</a></td></tr><tr><td>Placement / Setup 与 Hold</td><td class="ml-h">4</td><td><a href="/lesson/03-07-place/">Place：布局三阶段、OCV 谱系与时序判据</a></td><td><a href="/lesson/03-01e-placement-diagnostics/">31e Place 诊断：从一条坏路径找到布局热点</a>、<a href="/lesson/03-01h-timing-noise/">31h 按流程阶段诊断时序与噪声</a>、<a href="/lesson/03-01l-overflow/">31l 布线溢出：从 GCell 边读懂拥塞热点</a></td></tr><tr><td>CTS</td><td class="ml-h">14</td><td><a href="/lesson/03-08-cts/">CTS：时钟树综合，从 skew 定义到建树验收</a></td><td><a href="/lesson/03-01f-cts-practice/">31f CTS：从前置检查到时钟树验收</a>、<a href="/lesson/03-01o-clock-skew/">31o 时钟偏斜：从时钟树指标定位到具体路径</a></td></tr><tr><td>OptCTS</td><td class="ml-h">2</td><td><b class="ml-todo">待补：暂无已核实的独立课程，不用 CTS 课件代替。</b></td><td>—</td></tr><tr><td>Route</td><td class="ml-h">4</td><td><a href="/lesson/03-09-route/">Route：三种引擎、短路开路与串扰</a></td><td><a href="/lesson/03-01g-route-debug/">31g Route：检查天线、串扰、短路与开路</a></td></tr><tr><td>OptRoute</td><td class="ml-h">1</td><td><a href="/lesson/03-10-optroute/">OptRoute：布线后优化到底在优化什么</a></td><td><a href="/lesson/03-01m-eco-commands/">31m ECO 命令：从局部修改到签核验收</a>、<a href="/lesson/03-01n-drv-repair/">31n DRV 修复：先分清是哪条电气规则超限</a>、<a href="/lesson/03-13-mmmc-eco-lab/">41b MMMC ECO 实训：从 SPEF 回标到多角验收</a></td></tr><tr><td>ChipFinish</td><td class="ml-h">2</td><td><a href="/lesson/03-14-chipfinish-handoff/">ChipFinish 桌面实训：从最终流出到签核放行</a></td><td><a href="/lesson/03-01i-calibre-drc/">31i Calibre DRC：手修与复查</a>、<a href="/lesson/03-01p-double-patterning/">31p 双重图形化：为什么两条线分开了仍会报错</a>、<a href="/lesson/03-11-eco/">41 ECO：项目视角的六类修复与交接</a></td></tr></tbody></table></div>
   
 </section>
 <section class="ch" id="plan" data-ch="plan">
@@ -106,14 +105,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/02-08-pr-sdc/">← SDC 时序约束：告诉工具&quot;做到什么程度算合格&quot;</a><a class="nav-btn" href="/lesson/03-01a-flp-lab/">Floorplan 实操：看懂芯片切角与端口清单 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/02-08-pr-sdc/">← 上一课<i>SDC 时序约束：告诉工具&quot;做到什么程度算合格&quot;</i></a><a class="nav-btn next" href="/lesson/03-02-innovus-start/">下一课 →<i>Innovus 的使用</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

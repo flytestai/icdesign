@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Floorplan 实操：看懂芯片切角与端口清单 · 31a | IC 后端学院</title>
 <meta name="description" content="第一讲对应知识库第 01 项主题，用上传 Word 的实操原文和原图理解 Die、Core、切角，以及全部端口与未摆放端口的区别。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-01a-flp-lab">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,7 +50,7 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Floorplan 实操：看懂芯片切角与端口清单</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Floorplan 实操：看懂芯片切角与端口清单</b></div><div class="lesson-refbar">本页是「Floorplan」模块的参考阅读，不计入自动学习路线。<a href="/lesson/03-05-floorplan/">回本模块主课 →</a><a href="/lesson/03-01-innovus-plan/#course-mainline">看阶段三课表</a></div>
     <div class="hero">
       <div class="hero-no">31a</div>
       <h1>Floorplan 实操：看懂芯片切角与端口清单</h1>
@@ -98,7 +98,7 @@
 <p><strong>先独立交付。</strong> 写出任一点从局部到顶层的换算式，并把缺口两个角点、两根端口的坐标逐一算出。选一份可交接的导出；说明另一份为何看起来外框正确、端口也全部已摆，却仍不能对接。不要交换两个端口的名字来迎合顶层的位置。</p>
 <p><strong>标准判断。</strong> <code>X=1000+400−x</code>，<code>Y=500+y</code>，因此 B 正确。镜像会交换原来两角的横坐标次序，计算矩形边界时要重新取最小值和最大值；纵坐标只平移，缺口仍在下边。A 只做了平移，外包矩形与 B 相同，但实际轮廓和两端口所在边都错了。单看包框或未摆计数都发现不了这类错误。</p>
 <p><strong>验收与回退。</strong> 从未改动的局部快照重新导出，再用顶层实际轮廓对比缺口边界、按名称核对全部接口，并确认端口仍在允许的边和轨道上。若导出与拼装结果不符，撤回本次坐标转换产物，恢复原导出配置，保留差异；不要移动局部端口来抵消顶层变换错误。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1" data-go="/lesson/03-05-floorplan/">读完本篇 · 回本模块主课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -111,14 +111,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01-innovus-plan/">← 阶段三导读：40nm Innovus 项目实操路线</a><a class="nav-btn" href="/lesson/03-01b-innovus-flow/">Innovus 项目流程：每个阶段到底交付什么？ →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-05-floorplan/">← 回本模块主课<i>Floorplan：芯片尺寸、端口、宏与约束</i></a><a class="nav-btn next" href="/lesson/03-01c-project-details/">参考下一篇 →<i>Innovus 项目细节：算清 Memory 面积，看懂布局报告</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

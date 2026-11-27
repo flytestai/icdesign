@@ -13,17 +13,7 @@ summary: 按阶段三课表的 9 个模块安排主课和选学，标明待补�
 
 按表从上往下学。**主课**是该模块的学习入口，**选学**用于预习、查漏或进阶，不另计课表学时。学时为课表安排，不代表现有课件已覆盖全部学时；OptCTS 保留位置，待核实并补成独立课。
 
-| 模块 | 课表学时 | 主课 | 选学 |
-|---|---:|---|---|
-| 使用 | 2 | [第 1 课时](/lesson/03-02-innovus-start/#period-1)、[第 2 课时](/lesson/03-02-innovus-start/#period-2) | [Innovus 项目全流程](/lesson/03-01b-innovus-flow/)、[dbGet 只读查询](/lesson/03-01j-dbget/) |
-| Floorplan | 10 | [芯片尺寸、端口、宏与约束](/lesson/03-05-floorplan/) | [切角与端口清单实操](/lesson/03-01a-flp-lab/)、[Memory 面积与 Floorplan 评估](/lesson/03-01c-project-details/)、[宏单元分层摆放与 Kick-Off Run](/lesson/03-01d-floorplan-advanced/) |
-| PowerPlan | 2 | [供电结构与检查](/lesson/03-06-powerplan/) | [PG 连通、IR Drop 与 EM](/lesson/03-12-pg-ir-em/)、[闩锁效应](/lesson/03-01k-latch-up/) |
-| Placement / Setup Hold | 4 | [Placement：标准单元布局](/lesson/03-07-place/)、[按阶段读 Setup 和 Hold](/lesson/03-01h-timing-noise/#timing-stages) | [布局密度与拥塞诊断](/lesson/03-01e-placement-diagnostics/)、[GCell Overflow](/lesson/03-01l-overflow/) |
-| CTS | 14 | [时钟树综合、约束与检查](/lesson/03-08-cts/) | [CTS 前置检查与验收](/lesson/03-01f-cts-practice/)、[Clock Skew 报告分析](/lesson/03-01o-clock-skew/) |
-| OptCTS | 2 | **待补：暂无已核实的独立课程，不用 CTS 课件代替。** | — |
-| Route | 4 | [布线引擎与短路、开路排查](/lesson/03-09-route/) | [天线效应、串扰与连通性排查](/lesson/03-01g-route-debug/) |
-| OptRoute | 1 | [布线后优化](/lesson/03-10-optroute/) | [修复 DRV](/lesson/03-01n-drv-repair/)、[ECO 命令与验收](/lesson/03-01m-eco-commands/)、[寄生回标与多场景 ECO](/lesson/03-13-mmmc-eco-lab/) |
-| ChipFinish | 2 | [签核与交付实训](/lesson/03-14-chipfinish-handoff/) | [ECO 与签核问题](/lesson/03-11-eco/)、[Calibre DRC 手修与复查](/lesson/03-01i-calibre-drc/)、[双重图形化与签核](/lesson/03-01p-double-patterning/) |
+:::mainline
 
 下方钉钉目录按知识库原序保留，用于对照资料，不是另一套主课顺序。
 

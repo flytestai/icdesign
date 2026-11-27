@@ -590,12 +590,11 @@
         }
         if (d.reason === 'all-done') {
           btn.textContent = '全部学完 · 去复习 →';
-          if (sub) sub.textContent = '恭喜，209 章都学过了';
+          if (sub) sub.textContent = '恭喜，主线课程都学过了';
           return;
         }
         btn.textContent = '继续学习 →';
         if (sub) {
-          var t = btn.getAttribute('data-title') || '';
           sub.textContent = d.reason === 'resume' ? '接着上次的位置' : '下一门没学完的课';
         }
       }).catch(function () { });
@@ -616,6 +615,10 @@
         }
       }
 
+      /* 参考页末节带 data-go：固定回本模块主课，不走主线续学位置 */
+      var go = btn.getAttribute('data-go');
+      if (go) { location.href = go; return; }
+
       var nextCh = btn.getAttribute('data-next');
       if (nextCh) {
         var target = document.getElementById(nextCh);
@@ -624,7 +627,7 @@
           return;
         }
       }
-      /* 本课最后一章：问服务端下一门该学什么 */
+      /* 本课最后一章：问服务端下一门该学什么（主线续学位置） */
       fetch(API + '/next').then(function (r) { return r.json(); }).then(function (d) {
         if (d && d.lesson && d.lesson !== lessonId) {
           location.href = '/lesson/' + d.lesson + '/' + (d.chapter ? '#' + d.chapter : '');
@@ -820,31 +823,19 @@
     if (!r.ok) throw new Error(r.status);
     return r.json();
   }).then(function (cat) {
-    var lessons = (cat.lessons || []).slice().sort(function (a, b) { return a.no - b.no; });
+    var all = cat.lessons || [];
+    var byId = {};
+    all.forEach(function (L) { byId[L.id] = L; });
+    /* 学习顺序以 catalog.route 为准（课表主线）；没有 route 才退回课号排序 */
+    var route = (cat.route || []).map(function (id) { return byId[id]; }).filter(Boolean);
+    var lessons = route.length ? route : all.slice().sort(function (a, b) {
+      return String(a.no).localeCompare(String(b.no), 'zh-Hans-CN', { numeric: true });
+    });
 
-    /* 2) 课程页：上一课 / 下一课 */
-    if (page === 'lesson') {
-      var id = body.getAttribute('data-lesson') || '';
-      var i = -1;
-      for (var k = 0; k < lessons.length; k++) if (lessons[k].id === id) { i = k; break; }
-      if (i >= 0) {
-        var main = document.querySelector('.main');
-        if (main) {
-          var prev = lessons[i - 1], next = lessons[i + 1];
-          var nav = document.createElement('div');
-          nav.className = 'pnnav';
-          nav.innerHTML =
-            '<a class="pn' + (prev ? '' : ' empty') + '" href="' + (prev ? '/lesson/' + prev.id + '/' : '#') + '">' +
-            '<span>← 上一课</span><b>' + (prev ? '第 ' + prev.no + ' 课 · ' + prev.title : '已经是第一课') + '</b></a>' +
-            '<a class="pn next' + (next ? '' : ' empty') + '" href="' + (next ? '/lesson/' + next.id + '/' : '/progress/') + '">' +
-            '<span>' + (next ? '下一课 →' : '全部学完 →') + '</span><b>' +
-            (next ? '第 ' + next.no + ' 课 · ' + next.title : '去进度看板回顾') + '</b></a>';
-          main.appendChild(nav);
-        }
-      }
-    }
+    /* 2) 课程页：底部「上一课 / 下一课」已由构建器按主线渲染，这里不再追加
+       第二套导航，避免同页出现两条顺序不同的翻页。 */
 
-    /* 3) 首页：续学卡（老学员接着学，新学员直接开始） */
+    /* 3) 首页：续学卡（按主线顺序找下一章没学完的位置） */
     if (page === 'home') {
       var done = loadJSON(LS_DONE, '{}');
       var nDone = 0, nAll = 0, target = null;
@@ -867,7 +858,7 @@
         if (nDone === 0) {
           card.innerHTML = '<span class="rc-t">第一次来？</span><b>从第 1 课开始，按顺序学，每课都有实战和自测</b>' +
             '<a class="pri" href="/lesson/' + lessons[0].id + '/">开始学习 →</a>' +
-            '<a class="ghost" href="/lesson/00-02-howto/">先看使用说明</a>';
+            '<a class="ghost" href="/#plan">先看学习路线</a>';
         } else if (target) {
           card.innerHTML = '<span class="rc-t">继续学习</span><b>上次学到：第 ' + target.L.no + ' 课 · ' +
             esc2(target.L.title) + '</b><span class="rc-p">' + nDone + '/' + nAll + ' 章已完成</span>' +

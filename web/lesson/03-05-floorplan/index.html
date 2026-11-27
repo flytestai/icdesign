@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Floorplan：芯片尺寸、端口、宏与约束 · 35 | IC 后端学院</title>
-<meta name="description" content="视图与布局规划基础；定义芯片尺寸与异形 Die；摆放端口与引脚约束；摆放 Memory、SRAM 与宏单元；添加物理单元；布局与布线约束练习；导入导出与质量评估；常见问题；实操：定义形状与抓取、摆放端口。按《04 innovus项目(1).docx》原文顺序整理，保留原图。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<meta name="description" content="从 site/row/port/pin/terminal 这些基本概念，到 Die/Core 定义、端口摆放、宏摆放四规则、六类物理单元、guide/region/fence 三种分组约束、四类 blockage，最后是质量评估标准。每段原文后都有展开讲解，21 张原图配逐图说明。">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-05-floorplan">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,98 +50,417 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Floorplan：芯片尺寸、端口、宏与约束</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>Floorplan：芯片尺寸、端口、宏与约束</b></div><div class="lesson-refbar">阶段三课表模块：Floorplan（10 课时）<a href="/lesson/03-01-innovus-plan/#course-mainline">看完整课表</a></div>
     <div class="hero">
       <div class="hero-no">35</div>
       <h1>Floorplan：芯片尺寸、端口、宏与约束</h1>
       <p class="hero-en">Floorplan</p>
-      <p class="hero-sum">视图与布局规划基础；定义芯片尺寸与异形 Die；摆放端口与引脚约束；摆放 Memory、SRAM 与宏单元；添加物理单元；布局与布线约束练习；导入导出与质量评估；常见问题；实操：定义形状与抓取、摆放端口。按《04 innovus项目(1).docx》原文顺序整理，保留原图。</p>
+      <p class="hero-sum">从 site/row/port/pin/terminal 这些基本概念，到 Die/Core 定义、端口摆放、宏摆放四规则、六类物理单元、guide/region/fence 三种分组约束、四类 blockage，最后是质量评估标准。每段原文后都有展开讲解，21 张原图配逐图说明。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈10 分钟</span>
-        <span class="pill">课表学时 0</span>
-        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈56 分钟</span>
+        <span class="pill">课表学时 10</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span><span class="pill tag">Floorplan</span>
       </div>
     </div>
-    <article id="article" data-est-min="10"><section class="ch" id="source-01" data-ch="source-01">
-  <div class="ch-h"><span class="ch-n">01</span><h2>视图与布局规划基础</h2></div>
-  <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
+    <article id="article" data-est-min="56"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>先说清楚：Floorplan 定错了，后面全白干</h2></div>
+  <p>Floorplan 是整条流程里<strong>唯一一个&quot;错了要全部重来&quot;</strong>的步骤。</p>
+<p>原因很简单：后面所有阶段都在这个地基上干活。</p>
+<ul><li>宏放错位置 → 布线通道不够 → 大量短路 → 回 Floorplan 挪宏 → place、CTS、route 全部重跑；</li><li>Die 定小了 → 单元摆不下 → 只能压利用率 → 密度过高 → 拥塞和时序双崩；</li><li>端口分配错了 → 顶层对接不上 → 芯片做出来封不了装。</li></ul>
+<p>而且这几件事<strong>互相牵制</strong>：Die 大了浪费成本，Die 小了摆不下；宏集中放省通道，但会造成局部密度爆炸；端口全堆一边好走线，但顶层 PCB 接不出来。</p>
+<p>所以 Floorplan 不是&quot;填几个数字&quot;，是在一堆矛盾里找可行解。本课按实际操作顺序走，每一步告诉你<strong>判据是什么、错了会怎样</strong>。</p>
+<div class="term open">
+  <div class="term-h"><span class="term-en">Floorplan</span><span class="term-zh">布局规划</span></div>
+  <div class="term-b"><p>确定芯片物理边界（Die）、可摆放区域（Core）、输入输出端口（Port）位置、宏单元（Memory/IP）位置与朝向，以及各种约束区域的过程。它决定了后续所有阶段可用的空间资源。</p></div>
+</div>
+  
+</section>
+<section class="ch" id="source-01" data-ch="source-01">
+  <div class="ch-h"><span class="ch-n">02</span><h2>视图与基本概念：先认词，再动手</h2></div>
+  <p>Floorplan 里有五个词天天用，但它们的关系很多人一直没理清：<strong>site、row、port、pin、terminal</strong>。这五个词搞混了，后面所有命令参数都会填错。</p>
+<h3>三种视图，看到的东西不一样</h3>
+<p><strong>Floorplan 阶段的视图</strong>和 <strong>place 之后的视图</strong>是两个东西：前者主要看宏、core 边界、端口；后者密密麻麻的标准单元行铺满，宏被单元包围。</p>
+<p>切换靠右侧面板的 V/S 两列。<strong>V（Visible）控制看得见，S（Selectable）控制选得中，两者独立。</strong> 这是排查问题的核心技巧——想看清宏之间的通道，把 Standard Row 的 V 关掉，行线消失、通道一目了然；但关掉 V 之后那些行也选不中了。只想看得清又要能选，就留 V 开、只关 S。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">三、Floorplan</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">innovus的几种视图</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-09.png" data-fig="innovus-doc-09.png"><img src="/fig/innovus-doc-09.png" alt="原文图 09 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 09 · 视图与布局规划基础</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>顶部菜单按工序排列：Floorplan → Power → Place → ECO → Clock → Route → Timing，这就是流程顺序。左侧竖排是快捷按钮，右侧面板的 V/S 两列是工具最实用的设计。版图区颜色不是随意的：紫色通常是宏，细密横纹是标准单元摆放行，黄色小方块是引脚。左上角 <code>TU=69.9%</code> 是总利用率。</p></div>
+<h3>site：摆放的最小单位</h3>
+<p>这句话是整个布局的基础：<strong>任何标准单元的宽度，一定是 site 宽度的整数倍。</strong></p>
+<p>为什么必须这样？因为标准单元的电源轨（VDD/VSS rail）要横贯整行。如果宽度不是 site 整数倍，相邻单元的电源轨就对不上，行就连不起来。</p>
+<p><strong>实用推论</strong>：估算一行能放多少单元，用「行宽 ÷ site 宽度」得到<strong>格数</strong>，再把每个单元占的格数加起来。不是按面积除，是按格子数。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）一些floorplan的概念</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">site:  placement的最小单位，任何cell的宽度一定是site的整数倍</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-10.png" data-fig="innovus-doc-10.png"><img src="/fig/innovus-doc-10.png" alt="原文图 10 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 10 · 视图与布局规划基础</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>右侧控制面板展开后的完整层级。注意 Row 分类下 Standard Row / Row Pattern / CoreSite / Macro Pattern 各有独立的 V 和 S 复选框——不是总开关。</p>
+<p>实用场景：检查宏之间通道多宽时，只关 Standard Row 的 V，通道边界立刻清楚。但关 V 后也选不中这些行了。</p></div>
+<h3>row：单元必须站在行上</h3>
+<p>行（row）是水平条带，高度正好等于标准单元高度，由 site 沿横向重复排成。</p>
+<p>原文给了一个很具体的后果链，值得逐个环节理解：</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">row： 约束cell的摆放，必须摆在row上，高度等于stdcell的高度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果不在row上会有什么问题？</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果不在row上，就是没有legalize， 会导致底层color不对 ，引发basedrc问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">dobulepattern </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">解决方法：  如果数量不多，可以手动legalize,手动挪动cell到row上</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果数量较多，用Legalize placement 自动legalize</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-11.png" data-fig="innovus-doc-11.png"><img src="/fig/innovus-doc-11.png" alt="原文图 11 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 11 · 视图与布局规划基础</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>关闭摆放行显示后的同一设计。左侧紫色宏仍可见，中间行线已隐藏，只剩 core 边界和空白区。这就是靠关闭 V 得到的视图——对比前一张图即可建立「开关不同看到的东西完全不同」的直觉。</p></div>
+<p><strong>后果链拆解</strong>：</p>
+<ol><li><strong>不在 row 上 = 没 legalize</strong>：单元坐标不在任何一行的格点上；</li></ol>
+<ol><li><strong>底层 color 不对</strong>：20nm 以下工艺的底层金属要做双重图形（double patterning），同一层图形分成两种颜色分别曝光。单元的颜色在库设计时就与位置、朝向绑定，没对齐格点颜色映射就乱了；</li></ol>
+<ol><li><strong>base DRC 违例</strong>：颜色冲突直接表现为规则违例，版图做不出来。</li></ol>
+<p>修法两档：数量少手动挪，数量多用 <code>Legalize placement</code> 自动处理。</p>
+<div class="tip"><div class="tip-h">小技巧</div><ol><li><strong>手改坐标</strong>：为避让障碍把单元 <code>dbset</code> 到任意坐标；</li><li><strong>ECO 插单元</strong>：<code>ecoAddRepeater -loc</code> 给的坐标不在格点；</li><li><strong>导入别处的 DEF</strong>：坐标系或 site 定义不一致。</li></ol>
+<p>第三种最隐蔽——DEF 导进来看着都对，一跑 DRC 一片违例。所以导入 DEF 后必须做一次 legalize 检查。</p></div>
+<h3>port、pin、terminal：三个层次别混</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">port:  是整个模块的端口、信号接口</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-12.png" data-fig="innovus-doc-12.png"><img src="/fig/innovus-doc-12.png" alt="原文图 12 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 12 · 视图与布局规划基础</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>局部放大到宏边角的视图。紫色斜纹是宏，红色三角是工具标出的违例/警告标记，黄色交叉线框是选中对象的边界框。</p>
+<p>红色三角不要慌，先双击或按 <code>q</code> 查它属于哪一类标记——不同原因的标记长得一样，修法完全不同。</p></div>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">pin：标准单元或者mem的输入端口输出端口</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-13.png" data-fig="innovus-doc-13.png"><img src="/fig/innovus-doc-13.png" alt="原文图 13 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 13 · 视图与布局规划基础</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>标准单元或宏的引脚在版图上的呈现（黄色小方块/细长条）。这类引脚是有物理尺寸的金属 shape，不是抽象连接点。</p></div>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">terminal：为了将port的逻辑连接，变成物理连接，需要创建metalshape，也就是一段金属，这就是terminal</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-14.png" data-fig="innovus-doc-14.png"><img src="/fig/innovus-doc-14.png" alt="原文图 14 · 视图与布局规划基础" loading="lazy" decoding="async"></a><figcaption>原文图 14 · 视图与布局规划基础</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>terminal 的实际形态——模块边界上的一段金属。它把 port 的逻辑名字变成可布线的物理对象。</p></div>
+<p>三者的关系可以这样串起来：</p>
+<div class="tbl"><table><thead><tr><th>词</th><th>是什么</th><th>在哪一层</th></tr></thead><tbody><tr><td><strong>port</strong></td><td>整个模块对外的信号接口</td><td>模块边界（顶层）</td></tr><tr><td><strong>pin</strong></td><td>标准单元或宏的输入输出脚</td><td>单元/宏边界</td></tr><tr><td><strong>terminal</strong></td><td>port 的物理实现——一段金属 shape</td><td>模块边界上的实际图形</td></tr></tbody></table></div>
+<p><strong>报错信息经常在这三个层次间跳</strong>，分清才知改哪里：</p>
+<ul><li><code>port not placed</code> → 逻辑接口没分配物理位置；</li><li><code>terminal out of boundary</code> → 物理图形超出 die 边界；</li><li><code>unconnected port</code> → 有 port 但没接线。</li></ul>
+<h3>cell density：密度高为什么会短路</h3>
+<p>原文一句话把因果讲完了，展开就是一条完整的链条：</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">cell density  单元的密度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果density过高，会导致什么问题？会导致routing resource（绕线的资源） 不足</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">出现short</p></div>
   
 </section>
 <section class="ch" id="source-02" data-ch="source-02">
-  <div class="ch-h"><span class="ch-n">02</span><h2>定义芯片尺寸与异形 Die</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2） floorplan的流程</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">教学版：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、定义芯片的大小</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">页面上的操作</p></div>
+  <div class="ch-h"><span class="ch-n">03</span><h2>定义芯片尺寸与异形 Die</h2></div>
+  <p>这一节从「概念」进入「动手」：把 die 和 core 的边界定下来。</p>
+<h3>定尺寸的入口</h3>
+<p>原文流程是「1、定义芯片的大小 → 页面上的操作」，即从菜单进。</p>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2） floorplan的流程</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">教学版：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、定义芯片的大小</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">页面上的操作</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-15.png" data-fig="innovus-doc-15.png"><img src="/fig/innovus-doc-15.png" alt="原文图 15 · 定义芯片尺寸与异形 Die" loading="lazy" decoding="async"></a><figcaption>原文图 15 · 定义芯片尺寸与异形 Die</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>Specify Floorplan 菜单的打开路径。下拉按用途分四组：定义边界（Specify/Resize/Relative/Automatic）、辅助工具（Floorplan Toolbox/Trace Macro/Macro Timing Slack Display）、编辑（Edit Floorplan 含各类 blockage、Snap、Clear）、检查生成（Check/Generate）。</p>
+<p>日常最常用三个：Specify Floorplan 定尺寸、Floorplan Toolbox 摆宏、Edit Floorplan 加约束区。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-16.png" data-fig="innovus-doc-16.png"><img src="/fig/innovus-doc-16.png" alt="原文图 16 · 定义芯片尺寸与异形 Die" loading="lazy" decoding="async"></a><figcaption>原文图 16 · 定义芯片尺寸与异形 Die</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>这是整门课最该看懂的一张。逐项拆解：</p>
+<p><strong>① Specify By 三选一</strong>：Core Size by（给利用率反推 die）、Die Size by（直接给宽高，最常见）、Die/IO/Core Coordinates（直接给坐标）。本例选 Core Size by。</p>
+<p><strong>② Aspect Ratio = 0.7097</strong>：高宽比，由封装或顶层占位决定。偏离 1 太多会让长边走线过长，时序吃亏。</p>
+<p><strong>③ Core Utilization 0.706 vs Cell Utilization 0.513</strong>：前者算 core 内所有占用（含宏和物理单元），后者只算标准单元。差值约 19% 就是宏占的面积。</p>
+<p><strong>④ Dimension 596.79 vs Die Size 600.21</strong>：差 3.42，正好等于上下边距 1.71 × 2。所以 Die 高 = Core 高 + 上边距 + 下边距，这个算式每次都要手工核一遍。</p>
+<p><strong>⑤ Core Margins</strong>：Core to IO Boundary（从 IO 环内侧算）或 Core to Die Boundary（从 die 边界算）。本例选后者，左右 0、上下 1.71，不对称是为电源环留空间。</p>
+<p><strong>⑥ Floorplan Origin at</strong>：左下角或中心，影响后续所有坐标解读。以上游交接清单为准，不要凭习惯选。</p></div>
+<h3>异形 Die：切角怎么写</h3>
+<p>现实中的芯片很少是纯矩形，经常要切掉一角。看这张图的三个要点：</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">定义异形die（针对die区域剪切的）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">界面：</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-17.png" data-fig="innovus-doc-17.png"><img src="/fig/innovus-doc-17.png" alt="原文图 17 · 定义芯片尺寸与异形 Die" loading="lazy" decoding="async"></a><figcaption>原文图 17 · 定义芯片尺寸与异形 Die</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>切异形的入口。①切角通常切在 core 边界上，不是 die 边界；②切口是直角台阶（rectilinear）不是斜线——制造用正交掩模；③切掉的区域不能再放东西，注意切口处没有摆放行。</p>
+<p>切角的三个常见原因：封装需要（角落有定位结构）、顶层拼接（角落让给相邻模块）、避开物理障碍（TSV、bump）。</p>
+<p>拿到切角要求后必须确认：切掉的区域里原本是否计划放宏？如果是，那些宏要重新找位置，可能连带改变通道宽度。</p></div>
+<h3>命令形式：三个关键参数</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置支持异型剪切：setPreference EnableRectilinearDesign 1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">剪切命令：addObjFPlanCutBox cell leon 0 0 20 80</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">吐出die的命令：writeFPlanScript -fileName box.tcl -sections {boundary block pins}</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-18.png" data-fig="innovus-doc-18.png"><img src="/fig/innovus-doc-18.png" alt="原文图 18 · 定义芯片尺寸与异形 Die" loading="lazy" decoding="async"></a><figcaption>原文图 18 · 定义芯片尺寸与异形 Die</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>floorplan.tcl 脚本内容。最能说明问题的是：GUI 里填的所有参数最终都变成一行 <code>floorplan</code> 命令——对照上一张图的对话框，<code>930.000000 600.210000000</code> 正是 Die Size 的宽高。</p>
+<p>两条 addObjFPlanCutBox 叠加，正好形成上一张图里的 L 形切角。</p>
+<p><strong>为什么必须脚本化</strong>：GUI 参数只在内存，重跑凭记忆重填会有微小差异（这次 1.71、下次 1.7），所有坐标都变，此前检查报告全部作废。</p></div>
+<p>三行命令各有用处：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">setPreference EnableRectilinearDesign 1     ;# 前提：不开这个，切角命令被忽略</span><span class="ln ">addObjFPlanCutBox cell leon 0 0 20 80       ;# 切角本体</span><span class="ln ">writeFPlanScript -fileName box.tcl -sections {boundary block pins}  ;# 只导边界/阻挡/引脚</span></code></pre></div>
+<p><code>-sections</code> 只导三类，脚本短、可读、适合交接。</p>
   
 </section>
 <section class="ch" id="source-03" data-ch="source-03">
-  <div class="ch-h"><span class="ch-n">03</span><h2>摆放端口与引脚约束</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、摆放port</p></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>摆放端口（Port）</h2></div>
+  <p>端口位置定错了，后果比内部布线错更严重——内部错了还能改，端口错了可能要重新流片。</p>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、摆放port</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-19.png" data-fig="innovus-doc-19.png"><img src="/fig/innovus-doc-19.png" alt="原文图 19 · 摆放端口与引脚约束" loading="lazy" decoding="async"></a><figcaption>原文图 19 · 摆放端口与引脚约束</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>Pin Editor 的打开路径。旁边几项也相关：Edit Pin Group（按组编辑，总线常用）、Edit Pin Guide（指定出线方向）、Bus Guide（总线级引导）。</p></div>
+<h3>单层摆 vs 多层摆</h3>
+<p>原文给了两套命令，区别在于引脚是否分到多层金属。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">单层摆port命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editPin -pinWidth 0.08  pin宽</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pinDepth 0.32              pin深</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-fixOverlap 1   禁止重叠</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-unit TRACK  对齐track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-spreadDirection clockwise  顺时针</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-layer 5      摆pin的层数</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-spreadType start 从开始点摆</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-spacing 2 间隔2个track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-start 0 220 开始摆port坐标</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pin $input_ports 指定摆放的port </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-fixedPin 固定port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-side LEFT 摆放方位</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">多层摆port命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editPin -fixOverlap 1 -fixedPin 1 -layer {M6 M8 M10} -pin &quot;$exif $sif&quot; -pinDepth 0.6 -pinWidth 0.038 -edge 3 -snap TRACK -spreadDirection counterclockwise -offsetStart 609 -unit TRACK -spacing 1 -pattern fill_checkerboard</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">解析</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editPin -fixOverlap 1 自动修复引脚重叠</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-fixedPin 1 锁定引脚位置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-layer {M6 M8 M10} 摆放金属层配置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pin &quot;$exif $sif&quot; 操作对象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pinDepth 0.6 引脚深度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pinWidth 0.038 引脚宽度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-edge 3 摆放位置（0左 1上 2右 3下）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-snap TRACK 对齐track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-spreadDirection counterclockwise 排布方向逆时针（clockwise 顺时针）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-offsetStart 609 从起点开始偏移多少个track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-unit TRACK -spacing 1 间隔2个track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pattern fill_checkerboard 交错排布</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">man 命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">命令 -help  查看命令详细使用方法</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">port 面宽计算：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">（port数量-1）* track间距/摆port层数</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例：（51-1）*（0.2*2）/3     单位都是um</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">多层摆port 上下必须同一层（5 7 9）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere"> 左右必须同一层（6 8 10）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">port的约束  pinBlkage</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-20.png" data-fig="innovus-doc-20.png"><img src="/fig/innovus-doc-20.png" alt="原文图 20 · 摆放端口与引脚约束" loading="lazy" decoding="async"></a><figcaption>原文图 20 · 摆放端口与引脚约束</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>引脚附近的保护区域。两块红色斜纹矩形上沿标 50%，这是<strong>部分阻挡</strong>——限制该区域密度到 50%，不是完全禁止（完全禁止通常标 100%）。</p>
+<p>50% 的用途：既保证有走线空间，又不浪费面积。标 100% 会让那块地方完全空着，变成「有空间但放不了东西」的浪费。</p>
+<p>下方可见 proc0/cmem0/dddata0/u0/fd0 和 proc0/cmem0/tags0/u0/fd0 两个实例名，中间黄色虚线是引脚连接。</p></div>
+<p><strong>选择依据</strong>：引脚少、一层放得下用单层；引脚多（尤其总线）必须多层。</p>
+<p>原文还给了一个<strong>面宽计算公式</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">port 面宽 = (port数量 - 1) × track间距 / 摆port层数</span><span class="ln ">例：(51 - 1) × (0.2 × 2) / 3 = 33.3 µm</span></code></pre></div>
+<p>这个数用来确认 die 那条边够不够长。算出来要 33.3 µm 而那边只有 30 µm，就必须加层数或改分配。</p>
+<h3>多层摆的两条硬规则</h3>
+<p>原文两条都是踩坑总结：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">多层摆port  上下必须同一层（5 7 9）</span><span class="ln ">            左右必须同一层（6 8 10）</span></code></pre></div>
+<p>原因在金属层的 Preferred Direction：M5/M7/M9 通常垂直（上下走），M6/M8/M10 通常水平（左右走）。引脚所在层方向不对，引线就出不来。填错不会立刻报错，布线时才发现「这根线怎么都接不出来」。</p>
+<h3>editPin 参数逐个说清</h3>
+<div class="tbl"><table><thead><tr><th>参数</th><th>本例值</th><th>含义</th><th>填错的后果</th></tr></thead><tbody><tr><td><code>-fixOverlap</code></td><td>1</td><td>自动修复引脚重叠</td><td>0 时引脚可能叠在一起短路</td></tr><tr><td><code>-fixedPin</code></td><td>1</td><td>锁定位置</td><td>不加则后续优化会移动引脚，顶层对接错位</td></tr><tr><td><code>-layer</code></td><td>{M6 M8 M10}</td><td>可用金属层，按序分配</td><td>层方向不对，引线出不来</td></tr><tr><td><code>-pin</code></td><td>&quot;$exif $sif&quot;</td><td>操作对象（变量）</td><td>变量未定义则空操作</td></tr><tr><td><code>-pinDepth</code></td><td>0.6</td><td>向内深度（µm）</td><td>太浅接不上，太深占内部空间</td></tr><tr><td><code>-pinWidth</code></td><td>0.038</td><td>宽度（µm）</td><td>太窄电阻大、EM 风险</td></tr><tr><td><code>-edge</code></td><td>3</td><td>摆哪条边：<strong>0左 1上 2右 3下</strong></td><td>数字含义与直觉不同，最易错</td></tr><tr><td><code>-snap</code></td><td>TRACK</td><td>对齐轨道</td><td>不对齐则布线器接不上，报开路</td></tr><tr><td><code>-spreadDirection</code></td><td>counterclockwise</td><td>沿边展开方向</td><td>与相邻模块相反则对接错位</td></tr><tr><td><code>-offsetStart</code></td><td>609</td><td>起点偏移（track 数）</td><td>与相邻模块不对齐</td></tr><tr><td><code>-unit</code></td><td>TRACK</td><td>数值单位</td><td>填 µm 却给 track 数，位置差几十倍</td></tr><tr><td><code>-spacing</code></td><td>1</td><td>引脚间隔（track）</td><td>太小串扰，太大放不下</td></tr><tr><td><code>-pattern</code></td><td>fill_checkerboard</td><td>交错排布</td><td>直排占轨道多</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 引脚摆放最常见的四个坑</div><div class="pit-b"><ol><li><strong>漏 <code>-snap TRACK</code></strong>：引脚落在两条 track 之间，布线器接不上，报开路但图上看着连着；</li><li><strong><code>-edge</code> 数字搞错</strong>：3 是下边不是右边，放错边等于整个模块接口方向错了；</li><li><strong><code>-unit</code> 与数值不匹配</strong>：单位写 TRACK 却按 µm 算，位置差几十倍；</li><li><strong>忘了 <code>-fixedPin</code></strong>：摆好的引脚在后续优化中被移动。</li></ol>
+<p>这四个在版图上都不明显，只有跑连通性检查才暴露。摆完必须立刻验证：总数、每条边数量、坐标是否在轨道上。</p></div></div>
+<p>原文最后一句提到 <code>port的约束 pinBlkage</code>——引脚附近要留空间，因为引脚本身占金属、引线需要缓冲带、宏的引脚尤其拥挤。</p>
   
 </section>
 <section class="ch" id="source-04" data-ch="source-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>摆放 Memory、SRAM 与宏单元</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、摆放mem/sram/macro</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">摆放mem的规则</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）所有的mem需要根据模块进行划分、标记, 同模块的要尽量摆在一块</p></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>摆放 Memory / SRAM / 宏</h2></div>
+  <p>宏的摆放是 Floorplan 里最花时间、最影响结果的部分。宏一旦放定，标准单元只能在剩下的空间里挤。</p>
+<h3>四条摆放规则</h3>
+<p>每条都有明确的工程理由。</p>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、摆放mem/sram/macro</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">摆放mem的规则</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）所有的mem需要根据模块进行划分、标记, 同模块的要尽量摆在一块</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-21.png" data-fig="innovus-doc-21.png"><img src="/fig/innovus-doc-21.png" alt="原文图 21 · 摆放 Memory、SRAM 与宏单元" loading="lazy" decoding="async"></a><figcaption>原文图 21 · 摆放 Memory、SRAM 与宏单元</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>一个典型布局：左侧一块大紫色宏、中间大片灰色标准单元行、下方三块较小深色模块。红箭头指向 Design Browser 打开入口。</p>
+<p>这个布局符合四条规则：大宏贴边、标准单元区保持完整、小宏填在底部、黄色引脚朝内。</p></div>
+<p><strong>规则一：按模块分组摆放</strong>——同一模块内部连线最密集，聚在一起线短、省资源、时序好。分散在两端的话模块内线要横穿整个芯片。</p>
+<p><strong>规则二：贴边放、先大后小</strong>——宏占的地方不能放标准单元，放中间会把核心区打碎成放不下一行单元的碎片。先定对位置敏感的大宏，再用灵活的小宏填空。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）所有的mem尽量贴边摆放，先摆较大的，再摆较小的</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）mem和mem之间一定留有channel（沟道）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.如果mem很多，可以用marchlearning跑一版，建议每个阶段都用它跑一版</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">marchlearning可以通过配置文件约束边界要求，间距要求，自动摆一版floorplan</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.先摆一版导出，基于这一版做调整</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4）mem摆放尽量避开io的port位置，mem出pin尽量朝里面</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">摆放fp的工具栏</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-22.png" data-fig="innovus-doc-22.png"><img src="/fig/innovus-doc-22.png" alt="原文图 22 · 摆放 Memory、SRAM 与宏单元" loading="lazy" decoding="async"></a><figcaption>原文图 22 · 摆放 Memory、SRAM 与宏单元</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>Floorplan Toolbox 的入口（Floorplan 菜单 → Floorplan Toolbox…）。这是摆宏的主力工具窗口。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-23.png" data-fig="innovus-doc-23.png"><img src="/fig/innovus-doc-23.png" alt="原文图 23 · 摆放 Memory、SRAM 与宏单元" loading="lazy" decoding="async"></a><figcaption>原文图 23 · 摆放 Memory、SRAM 与宏单元</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>Floorplan Toolbox 面板的三组功能（红字已标注）：</p>
+<p><strong>① Shift（贴边）</strong>：To Core Box / To Die Box / 1 by 1，把宏精确推到边界。手工拖很难精确贴边。</p>
+<p><strong>② Space（间距）</strong>：批量设置宏间距。多个宏并排时间距必须一致，否则通道宽度不均匀、布线资源分配失衡。<strong>Honor Halo</strong> 勾选后会考虑 halo 存在，避免算出的间距被 halo 吃掉。</p>
+<p><strong>③ Align（对齐）</strong>：多宏边对齐。不对齐会留锯齿状空隙——放不下单元，布线还要绕，双重浪费。</p>
+<p>右侧版图中宏标注的 14.715 是尺寸数字。</p></div>
+<p><strong>规则三：宏之间一定留 channel</strong>。原文还给了两个实用做法：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">1. mem 很多时用 marchlearning 跑一版，建议每个阶段都跑一版</span><span class="ln ">2. 先摆一版导出，基于这一版做调整</span></code></pre></div>
+<p>marchlearning 是自动摆宏工具，可配边界和间距要求。<strong>关键在「先摆一版导出，再基于这版调整」</strong>——把它当起步方案生成器，不要指望一次给最优解。</p>
+<p><strong>规则四：避开 IO port，出 pin 朝里</strong>。IO 附近走线需求最大，宏摆那里会抢资源；引脚朝外等于对着墙，线只能绕一大圈回来。</p>
+<h3>通道到底留多宽：原文给了算法</h3>
+<p>这是原文最有价值的干货之一：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">根据 mem 出 pin 情况、pin 数量、要走 metal 层的 pitch，算出总线宽</span><span class="ln ">例：出 30 个 pin，走 M6、M8，pitch 0.1 µm</span><span class="ln ">30 × 0.1 / 2 = 1.5 µm</span></code></pre></div>
+<p>推导：30 根线各占 1 个 pitch 需 3 µm 单层宽；分两层每层 15 根，得到 1.5 µm。</p>
+<p><strong>但 1.5 µm 只是理论下限</strong>，工程上要加余量：</p>
+<div class="tbl"><table><thead><tr><th>因素</th><th>加多少</th></tr></thead><tbody><tr><td>线间需要间距（不只占 track）</td><td>×1.5–2</td></tr><tr><td>过孔和绕行空间</td><td>×1.2</td></tr><tr><td>电源线穿过通道</td><td>加固定值 2–5 µm</td></tr></tbody></table></div>
+<p>所以 1.5 µm 的理论值，实际通常留 <strong>4–6 µm</strong>。</p>
+<div class="pit"><div class="pit-h">常见坑 · 通道留窄了不会立刻报错</div><div class="pit-b"><p>后果不是「布线失败」，而是<strong>大量绕远路</strong>：线绕到别处走，那片区域时序变差、拥塞上升。要到 route 阶段才暴露，那时改通道意味着重跑 place、CTS、route 全部流程。</p>
+<p>所以 floorplan 阶段要按<strong>上限</strong>估，不要按下限。</p></div></div>
+<h3>背靠背摆法</h3>
+<p>原文提到的进阶技巧：两个宏引脚都朝同侧时，背对背放置（引脚都朝外）中间只需很小通道甚至不需要，相比面对面省下整整一条通道。</p>
+<p><strong>代价</strong>：引脚朝外意味着线要绕过宏才能到内部区域。适合引脚少、连线不密集的宏，或配合顶层走线使用。原文提醒「需要特定的角度」——不是简单贴一起，要考虑出线方向。</p>
+<div class="tip"><div class="tip-h">小技巧</div><ol><li>每个宏都贴边或有记录的理由</li><li>同类宏引脚朝向一致</li><li>相邻宏间距相等（用 Space 批量设）</li><li>宏与 core 边界之间没有小于 3 µm 的窄缝</li><li>halo 之间没有互相重叠</li><li>宏没有压住电源网格（PowerPlan 后必须复查）</li></ol>
+<p>第 6 条最容易漏：宏在 PowerPlan <strong>之前</strong>摆，摆时看不到电源网格。</p></div>
   
 </section>
 <section class="ch" id="source-05" data-ch="source-05">
-  <div class="ch-h"><span class="ch-n">05</span><h2>添加物理单元</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、添加physicalcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">概念：什么是physical only cell？  只有物理信息，没有时序信息的单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）endcap cell（boundary cell）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 防止边缘效应，防止过刻蚀的情况出现，打在core四周以及mem的四周</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">需要检查：打完之后有没有缺失的情况</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）tap cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 为了防止闩锁效应（Latch-up）,（闩锁效应： VDD和VSS形成一个低阻通路，容易造成短路、烧毁）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）tiecell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：为了防止一些pin出现floating悬空的情况，需要插入tiecell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">tiecell种类分为两种</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">TieHigh   始终为1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">TieLow   始终为0</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4）Decap   cell   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：为了防止IRDROP的问题，相当于一个小电容，需要额外的电荷时提供电荷，不需要额外电荷时，进行充电到最大</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">IRDROP:电压降，电压经过导线的传输，随着距离的加大，会出现电压降低的现象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5）Filler Cell </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 用于填充空白区域，方便进行生产，形成完整的井连接</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">6）ESD cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：防止静电的影响，通过esd释放静电电流</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">特别的单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">spare cell    inv最多，buf次之， flop较少  预备单元，在eco阶段使用</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">延伸：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">抓取所有的endcap</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">selectInst [dbGet top.insts.name ENDCAP_*]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">抓取所有的tapcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">selectInst [dbGet top.insts.name WELLTAP_*]</p></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>添加物理单元（physical only cell）</h2></div>
+  <p>概念先行：<strong>physical only cell 是只有物理信息、没有时序信息的单元</strong>。它们不参与逻辑功能、不参与时序分析，但<strong>必须存在</strong>，否则芯片造不出来或有可靠性问题。</p>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、添加physicalcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">概念：什么是physical only cell？  只有物理信息，没有时序信息的单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）endcap cell（boundary cell）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 防止边缘效应，防止过刻蚀的情况出现，打在core四周以及mem的四周</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">需要检查：打完之后有没有缺失的情况</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）tap cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 为了防止闩锁效应（Latch-up）,（闩锁效应： VDD和VSS形成一个低阻通路，容易造成短路、烧毁）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3）tiecell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：为了防止一些pin出现floating悬空的情况，需要插入tiecell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">tiecell种类分为两种</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">TieHigh   始终为1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">TieLow   始终为0</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4）Decap   cell   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：为了防止IRDROP的问题，相当于一个小电容，需要额外的电荷时提供电荷，不需要额外电荷时，进行充电到最大</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">IRDROP:电压降，电压经过导线的传输，随着距离的加大，会出现电压降低的现象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5）Filler Cell </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的： 用于填充空白区域，方便进行生产，形成完整的井连接</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">6）ESD cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">目的：防止静电的影响，通过esd释放静电电流</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">特别的单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">spare cell    inv最多，buf次之， flop较少  预备单元，在eco阶段使用</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">延伸：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">抓取所有的endcap</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">selectInst [dbGet top.insts.name ENDCAP_*]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">抓取所有的tapcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">selectInst [dbGet top.insts.name WELLTAP_*]</p></div>
+<p>原文列了六类加一个特殊类别，逐类说清「为什么需要」。</p>
+<h3>① Endcap cell（boundary cell）</h3>
+<p>防边缘效应和过刻蚀，打在 core 四周以及 mem 四周。</p>
+<p><strong>为什么</strong>：制造时刻蚀速率在图形边缘和中间不同（负载效应）。行两端的单元没有保护会被过刻蚀，导致尺寸偏差、漏电增加。Endcap 是「牺牲边」。</p>
+<p><strong>检查项</strong>：打完查有没有<strong>缺失</strong>。缺失位置往往是宏拐角、异形切口边缘——这些地方工具容易算错。</p>
+<h3>② Tap cell</h3>
+<p>防闩锁效应（Latch-up）。原文的定义很准确：<strong>VDD 和 VSS 形成一条低阻通路，容易造成短路、烧毁</strong>。</p>
+<p><strong>机理</strong>：CMOS 天然存在寄生的 NPN 和 PNP 三极管，交叉耦合形成可控硅结构。正常时关断，但电流注入（ESD、电源浪涌）会触发导通，形成 VDD→VSS 低阻通路。导通后即使触发条件消失也<strong>自己维持</strong>（这就是「闩锁」），电流持续增大直到烧毁。</p>
+<p>Tap cell 给阱和衬底提供密集偏置接触，把寄生三极管的基极电位钉住，让它不容易被触发。</p>
+<h3>③ Tie cell</h3>
+<p>防 pin 悬空。网表里的 <code>1'b0</code>/<code>1'b1</code> 常量，综合工具不会真的接电源地，而是留一个待接常量的端口。直接接 VDD/VSS 金属有 ESD 和可靠性风险，所以要插 tie cell：<strong>TieHigh 恒为 1，TieLow 恒为 0</strong>。</p>
+<h3>④ Decap cell</h3>
+<p>防 IR drop。原文的比喻很到位：<strong>相当于一个小电容，需要电荷时提供，不需要时充电到最大</strong>。</p>
+<p>数字电路翻转时瞬间拉大电流，电源网格来不及供就会局部掉压（动态 IR drop）。Decap 就近储能、瞬间放电补上。原文对 IR drop 的定义：<strong>电压经导线传输，随着距离加大出现电压降低</strong>。</p>
+<h3>⑤ Filler cell</h3>
+<p>填充空白区域，方便生产，<strong>形成完整的阱连接</strong>。单元之间空隙里没有阱接触结构，会导致阱不连续（闩锁风险）和制造图形不连续（DRC 违例）。Filler 让整行阱连成一片。</p>
+<div class="pit"><div class="pit-h">常见坑 · Filler 的插入时机</div><div class="pit-b"><p><strong>必须在时序优化之后、布线之前。</strong></p>
+<ul><li>太早：优化要插 buffer，行里已填满 Filler，插不进去 → 优化失败；</li><li>太晚：布线已完成，Filler 塞进去和走线冲突 → 大量 DRC。</li></ul>
+<p>正确位置：Place → 时序优化 → Filler/Tap → Route。</p></div></div>
+<h3>⑥ ESD cell</h3>
+<p>防静电，通过 ESD 单元释放静电电流。主要用在 IO 附近——生产、封装、测试、使用中都可能遭遇静电放电，瞬时电压可达数千伏，ESD 单元提供安全泄放路径。</p>
+<h3>特别单元：spare cell</h3>
+<p>原文给了实用经验值：<strong>inv 最多，buf 次之，flop 较少</strong>。</p>
+<p><strong>为什么预留</strong>：流片后的 ECO 不能新增单元（掩模已做好，只能改连线），版图里没有空闲单元就改不了。spare cell 就是留后路。<strong>为什么 inv 最多</strong>：反相器最简单、面积最小、最容易改造成想要的功能（两个串起来就是 buffer）。</p>
+<h3>抓取命令与数量核对</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">selectInst [dbGet top.insts.name ENDCAP_*]   ;# 抓所有 endcap</span><span class="ln ">selectInst [dbGet top.insts.name WELLTAP_*]  ;# 抓所有 tap cell</span></code></pre></div>
+<p><code>top.insts</code> 是顶层所有实例，<code>.name</code> 取名字，<code>ENDCAP_*</code> 是通配符。dbGet 用法见 <a href="/lesson/03-01j-dbget/">dbGet 专题</a>。</p>
+<div class="tip"><div class="tip-h">小技巧</div><p>不要只看「抓到几个」，要算<strong>应该有几个</strong>：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">endcap 数量 ≈ (core 周长 / endcap 宽度) × 2 + 宏周长相关</span><span class="ln "> tap cell 数量 ≈ core 面积 / tap 间距规则</span></code></pre></div>
+<p>实际与估算差太多就说明有区域漏打。这比肉眼看图可靠。</p></div>
   
 </section>
 <section class="ch" id="source-06" data-ch="source-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>布局与布线约束练习</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、添加布局约束布线约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5.1摆放stdcell的约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">guide   可进可出：属于该模块的可以放在guide里面，也可以不放在guide里面，其他模块也可以放guide里面</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">region  可进不可出：属于该模块的stdcell只能放在region里面，不属于的可以放也可以不放  bound</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">fence   不可进不可出：属于该模块的stdcell只能放在fence里面，不属于的不可以放在fence区域</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">创建的命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setup.tcl </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">post init {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">prefloorplan {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postfloorplan {    }</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">preplace {  }</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postplace {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">prects {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postcts {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPlaceMode -place_hard_fence true 强制布局阶段，将region视为强约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setOptMode -opt_honor_fence true  强制优化阶段，遵循region/fence 约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">根据group创建约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group1 -fence {58 343 180 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addInstToInstGroup group1 {proc0/iu0/FE_OCP_DRV_C1140_n_1 proc0/iu0/FE_OFC1055_n_1376}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例子</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group1 -fence {58 343 180 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group2 -guide  {221 343 347 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group3 -region   {385 343 520 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除fence</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteInstGroup group1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5.2阻止工具在区域内摆放单元 placement blockage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">soft   place阶段不能摆放cell,但是optcts、route等阶段可以</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">hard  任何阶段都不能摆放stdcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">partial 需要设置百分比，控制区域内的cell的密度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Macro_only  不允许摆放macro，stdcell可以摆放</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">使用命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createPlaceBlockage -box {37 149 156 218} -type hard  -name hard_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createPlaceBlockage -box {238 153 390 218} -type soft -density 50 -name soft_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createPlaceBlockage -box {478 167 674 228} -type partial   -density 50  -name part_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">页面</p></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>布局与布线约束</h2></div>
+  <p>约束区域是「人工干预工具决策」的手段。用得好解决局部问题，用滥了让全局变差。</p>
+<h3>5.1 三种分组约束：guide / region / fence</h3>
+<p>这三个词的区别是面试常考，也是操作最容易混的。原文定义非常精准，值得逐字读。</p>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、添加布局约束布线约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5.1摆放stdcell的约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">guide   可进可出：属于该模块的可以放在guide里面，也可以不放在guide里面，其他模块也可以放guide里面</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">region  可进不可出：属于该模块的stdcell只能放在region里面，不属于的可以放也可以不放  bound</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">fence   不可进不可出：属于该模块的stdcell只能放在fence里面，不属于的不可以放在fence区域</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">创建的命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setup.tcl </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">post init {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">prefloorplan {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postfloorplan {    }</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">preplace {  }</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postplace {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">prects {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">postcts {}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setPlaceMode -place_hard_fence true 强制布局阶段，将region视为强约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">setOptMode -opt_honor_fence true  强制优化阶段，遵循region/fence 约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">根据group创建约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group1 -fence {58 343 180 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addInstToInstGroup group1 {proc0/iu0/FE_OCP_DRV_C1140_n_1 proc0/iu0/FE_OFC1055_n_1376}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例子</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group1 -fence {58 343 180 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group2 -guide  {221 343 347 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createInstGroup group3 -region   {385 343 520 388}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除fence</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteInstGroup group1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5.2阻止工具在区域内摆放单元 placement blockage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">soft   place阶段不能摆放cell,但是optcts、route等阶段可以</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">hard  任何阶段都不能摆放stdcell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">partial 需要设置百分比，控制区域内的cell的密度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Macro_only  不允许摆放macro，stdcell可以摆放</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">使用命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createPlaceBlockage -box {37 149 156 218} -type hard  -name hard_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createPlaceBlockage -box {238 153 390 218} -type soft -density 50 -name soft_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createPlaceBlockage -box {478 167 674 228} -type partial   -density 50  -name part_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">页面</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-24.png" data-fig="innovus-doc-24.png"><img src="/fig/innovus-doc-24.png" alt="原文图 24 · 布局与布线约束练习" loading="lazy" decoding="async"></a><figcaption>原文图 24 · 布局与布线约束练习</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>工具栏 Create Placement Blockage 按钮（提示文字标注快捷键 Shift+Y，F3 用于切换类型）。版图中中间一块深红色矩形被两侧灰色标准单元行包围，区域内标了引脚位置——这块区域被禁止摆放标准单元。</p></div>
+<p>用一个停车场的比喻理解三者：</p>
+<ul><li><strong>guide 像「推荐停车区」</strong>：你的车可以停这儿也可以停别处，别人的车也能停这儿；</li><li><strong>region 像「专属车位」</strong>：你的车必须停这儿，别人的车可以停（但不保证）；</li><li><strong>fence 像「私家车库」</strong>：你的车只能停这儿，别人的车绝对不能进。</li></ul>
+<div class="tbl"><table><thead><tr><th>类型</th><th>原文定义</th><th>通俗解释</th></tr></thead><tbody><tr><td><strong>guide</strong></td><td>可进可出</td><td>建议区，不强制</td></tr><tr><td><strong>region</strong></td><td>可进不可出</td><td>软边界</td></tr><tr><td><strong>fence</strong></td><td>不可进不可出</td><td>硬边界</td></tr></tbody></table></div>
+<p><strong>选择依据</strong>：想引导聚集但不限制死 → guide；想保证不散开但容忍混入 → region；想彻底隔离（如模拟电路远离数字噪声）→ fence。</p>
+<p>创建与删除：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">createInstGroup group1 -fence  {58 343 180 388}</span><span class="ln ">createInstGroup group2 -guide  {221 343 347 388}</span><span class="ln ">createInstGroup group3 -region {385 343 520 388}</span><span class="ln ">addInstToInstGroup group1 {proc0/iu0/FE_OCP_DRV_C1140_n_1 ...}</span><span class="ln ">deleteInstGroup group1</span></code></pre></div>
+<p>坐标 <code>{x1 y1 x2 y2}</code> 是矩形左下角和右上角。</p>
+<h3>两个强制遵循的开关</h3>
+<p>不加这两行，工具可能「不完全遵守」约束：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">setPlaceMode -place_hard_fence true   ;# 布局阶段把 region 当强约束</span><span class="ln ">setOptMode -opt_honor_fence true      ;# 优化阶段也遵循 region/fence</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 加了 fence 但结果没生效</div><div class="pit-b"><p>最常见原因是漏了上面两个开关。</p>
+<p>判断方法：跑完 place 后用 <code>dbGet</code> 查 fence 区域内的实例列表，看有没有不属于该组的实例混进来。有就是没生效。</p></div></div>
+<h3>setup.tcl 的流程钩子</h3>
+<p>原文列了一串空函数（<code>post init {}</code>、<code>prefloorplan {}</code>、<code>postfloorplan {}</code>、<code>preplace {}</code>、<code>postplace {}</code>、<code>prects {}</code>、<code>postcts {}</code>），这是<strong>流程脚本的钩子机制</strong>：把各阶段前后要执行的操作挂在这些函数里，流程跑到对应阶段自动调用。</p>
+<p>实际用途：<code>postfloorplan</code> 加约束区并检查宏摆放；<code>preplace</code> 设 place 模式参数；<code>postplace</code> 跑检查导报告。这样整个流程一条命令跑完，不需要人工中途敲命令——<strong>这也是可复现的关键</strong>。</p>
+<h3>5.2 四种 placement blockage</h3>
+<p>区别在于「什么时候生效」：</p>
+<div class="tbl"><table><thead><tr><th>类型</th><th>什么时候挡</th><th>用途</th></tr></thead><tbody><tr><td><strong>soft</strong></td><td>place 阶段不能摆，optcts、route 阶段可以</td><td>给布线留临时通道</td></tr><tr><td><strong>hard</strong></td><td>任何阶段都不能摆 stdcell</td><td>永久禁放区</td></tr><tr><td><strong>partial</strong></td><td>按百分比控制密度</td><td>降低局部密度</td></tr><tr><td><strong>Macro_only</strong></td><td>不允许摆 macro，stdcell 可摆</td><td>防宏挤进某区域</td></tr></tbody></table></div>
+<p><strong>soft 与 hard 的核心区别</strong>：soft 只在 place 阶段生效，后续优化和布线阶段单元可以进去。适合「我预留空间给布线，布线完空间可以还回去」的场景。<strong>partial 最实用</strong>：不禁止只限密度，如设 50% 则最多填一半，剩下一半留给布线。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">createPlaceBlockage -box {37 149 156 218} -type hard -name hard_blk01</span><span class="ln ">createPlaceBlockage -box {238 153 390 218} -type soft -density 50 -name soft_blk01</span><span class="ln ">createPlaceBlockage -box {478 167 674 228} -type partial -density 50 -name part_blk01</span></code></pre></div>
+<p>快捷键 <code>Shift+Y</code> 创建，<code>F3</code> 切换类型。删除：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">deletePlaceBlockage -all          ;# 删全部</span><span class="ln ">deletePlaceBlockage &lt;name&gt;        ;# 按名字</span><span class="ln ">deletePlaceBlockage -type soft    ;# 按类型</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 按类型删很危险</div><div class="pit-b"><p><code>-type soft</code> 会删掉<strong>所有</strong> soft blockage，包括精心设置的那些。</p>
+<p>调试时想删一个测试用的 blockage，用 <code>-all</code> 或 <code>-type</code> 都是灾难。正确做法是<strong>给每个 blockage 起有意义的名字</strong>，按名字删。</p></div></div>
+<h3>5.3 halo：宏的保护圈</h3>
+<p>在 mem 四周打一圈 halo，不允许在范围内摆 cell。三个理由：宏引脚要从边上出来需要走线空间、电源环通常布在周围、边界有制造规则要求。</p>
+<p>原文提到<strong>「一般 flow 自带会打 halo」</strong>——标准流程脚本通常已设默认 halo。但如果手工挪了宏，要检查 halo 有没有跟着移动。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">快捷键： shift+y    </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">切换placementblkage 类型:  F3</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除palcementblkage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deletePlaceBlockage -all</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deletePlaceBlockage name</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deletePlaceBlockage  -type  soft</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5.3 halo  一般flow自带会打halo</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">在mem四周打一圈halo，不允许在mem的halo范围内摆cell</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-25.png" data-fig="innovus-doc-25.png"><img src="/fig/innovus-doc-25.png" alt="原文图 25 · 布局与布线约束练习" loading="lazy" decoding="async"></a><figcaption>原文图 25 · 布局与布线约束练习</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>Edit Floorplan 子菜单的完整清单，这是约束区域的「总目录」：</p>
+<div class="tbl"><table><thead><tr><th>菜单项</th><th>阻挡什么</th><th>用途</th></tr></thead><tbody><tr><td>Cut Rectilinear</td><td>——</td><td>切异形边界</td></tr><tr><td>Create Size Blockage</td><td>尺寸调整</td><td>保护区域不被 resize</td></tr><tr><td>Create Placement Blockage</td><td>标准单元摆放</td><td>留通道、避障碍</td></tr><tr><td>Create Routing Blockage</td><td>布线</td><td>保护敏感区域</td></tr><tr><td>Create Pin Blockage</td><td>引脚区域</td><td>引脚附近留缓冲</td></tr><tr><td>Edit Halo</td><td>宏保护圈</td><td>调整禁放范围</td></tr><tr><td>Color Module</td><td>——</td><td>视觉区分（不影响物理）</td></tr><tr><td>Legalize Floorplan</td><td>——</td><td>检查宏重叠、越界</td></tr></tbody></table></div></div>
+<h3>5.4 布线约束 routing blockage</h3>
+<p>不允许工具在指定范围内走线。<strong>注意可只挡指定层</strong>，其他层照常走——这是 routing blockage 比 placement blockage 更精细的地方。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5.4布线的约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">概念：routing blockage 不允许工具在指定的范围内走线</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">命令：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">createRouteBlk  -box {743 173 876 228} -layer {M3 M5} -name route_blk01</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">页面</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-26.png" data-fig="innovus-doc-26.png"><img src="/fig/innovus-doc-26.png" alt="原文图 26 · 布局与布线约束练习" loading="lazy" decoding="async"></a><figcaption>原文图 26 · 布局与布线约束练习</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>含多种约束区域的实际版图。深红色实心块是 Routing Blockage（线不能过）；棕色 group1(TU=0.1%) 是几乎空的区域；黄色/粉色/白色网格块是不同密度的约束区，粉色标 100% 表示允许填满。</p>
+<p>读这张图的方法<strong>不看颜色，看标注的百分比</strong>：0% 完全禁止，100% 允许放满，中间值是密度上限。</p></div>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">createRouteBlk -box {743 173 876 228} -layer {M3 M5} -name route_blk01</span><span class="ln "> </span><span class="ln ">deleteRouteBlk -all              ;# 删全部</span><span class="ln ">deleteRouteBlk -name &lt;name&gt;      ;# 按名字</span><span class="ln ">deleteRouteBlk -layer {M1 M3}    ;# 按层</span><span class="ln ">deleteRouteBlk -box {}           ;# 按区域</span></code></pre></div>
+<p>快捷键 <code>Shift+B</code>。</p>
+<div class="note"><div class="note-h">四种 Blockage 的关键区别</div><div class="tbl"><table><thead><tr><th></th><th>挡什么</th><th>挡不挡布线</th></tr></thead><tbody><tr><td>Placement Blockage</td><td>标准单元<strong>摆放</strong></td><td><strong>不挡</strong>，线可过</td></tr><tr><td>Routing Blockage</td><td><strong>布线</strong></td><td>挡</td></tr><tr><td>Pin Blockage</td><td><strong>引脚区域</strong></td><td>部分挡</td></tr><tr><td>Size Blockage</td><td><strong>尺寸调整</strong></td><td>不挡</td></tr></tbody></table></div>
+<p>最容易混的是第一个：<strong>Placement Blockage 不挡布线</strong>。所以「给布线留通道」用它是对的——你只是不让单元占地方，线还是要从这里过。</p></div>
+<div class="pit"><div class="pit-h">常见坑 · 约束区域设太多</div><div class="pit-b"><p>新手遇到问题就加 blockage，越加越多，最后设计被切得七零八落。</p>
+<p><strong>判断标准</strong>：约束区域总面积超过 core 的 <strong>20%</strong>，就该怀疑 floorplan 本身有问题。正确做法是回去调宏位置或通道宽度，而不是用 blockage 打补丁。</p>
+<p>blockage 的正确用途是<strong>局部微调</strong>，不是<strong>全局重排</strong>。</p></div></div>
+<h3>原文的 9 步练习</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">快捷键： shift+b</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除routeblkage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteRouteBlk -all   删除所有</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteRouteBlk -name   blk的name</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteRouteBlk -layer  {M1 M3}  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">deleteRouteBlk -box  {}   删除指定区域的blkage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">练习：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、创建一个fence    </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、创建一个hard  placeblkage（用命令）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、创建partial placeblkage（用命令）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、创建soft  blkage （用界面）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、创建routing blkage  (用命令)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">6、删除hardblkage</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7、写一个tcl实现上面的操作， 加上注释</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">8、删除之前的所有约束</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">9、执行自己的脚本</p></div>
+<p>这套练习很完整，<strong>第 7 步是关键</strong>：把界面操作翻译成 tcl。做完这一步才算真的理解每个参数。</p>
   
 </section>
 <section class="ch" id="source-07" data-ch="source-07">
-  <div class="ch-h"><span class="ch-n">07</span><h2>导入导出与质量评估</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">6、吐出flooplan的tcl文件/产生一个fp.tcl文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">产生fp的tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">writeFPlanScript  -selected    -fileName ../scripts/stu_0131_placemem.tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">吃fp的tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">source  ../scripts/stu_0131_placemem.tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">吐出def文件(innovus)        注：01版本只动了mem</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">defOut -floorplan  data/floorplan_01.def </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">读入def文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">defIn data/floorplan_01.def</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7 如何评估floorplan的好坏</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7.1 整体看上去整齐，美观</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7.2 要根据place的结果来评判，place的setup时序是否有违例， congestion map是否有大量红色， cell density是否有较高的地方</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion map:  会有个图层可以查看congestion分布，颜色深度就是严重程度，颜色越深，越严重</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion：绕线资源的拥塞程度，congestion越严重，线就越绕不通</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion可以通过命令查看overflow的值  H(横向)和V(纵向)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">overflow的值不要超过1%    0.1%-0.2%(3nm)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">reportCongestion -hotSpot -overflow  </p></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>导入导出与质量评估</h2></div>
+  <h3>吐出与吃进：四种交接方式</h3>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">6、吐出flooplan的tcl文件/产生一个fp.tcl文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">产生fp的tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">writeFPlanScript  -selected    -fileName ../scripts/stu_0131_placemem.tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">吃fp的tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">source  ../scripts/stu_0131_placemem.tcl</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">吐出def文件(innovus)        注：01版本只动了mem</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">defOut -floorplan  data/floorplan_01.def </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">读入def文件</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">defIn data/floorplan_01.def</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7 如何评估floorplan的好坏</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7.1 整体看上去整齐，美观</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">7.2 要根据place的结果来评判，place的setup时序是否有违例， congestion map是否有大量红色， cell density是否有较高的地方</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion map:  会有个图层可以查看congestion分布，颜色深度就是严重程度，颜色越深，越严重</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion：绕线资源的拥塞程度，congestion越严重，线就越绕不通</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">congestion可以通过命令查看overflow的值  H(横向)和V(纵向)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">overflow的值不要超过1%    0.1%-0.2%(3nm)</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">reportCongestion -hotSpot -overflow  </p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-27.png" data-fig="innovus-doc-27.png"><img src="/fig/innovus-doc-27.png" alt="原文图 27 · 导入导出与质量评估" loading="lazy" decoding="async"></a><figcaption>原文图 27 · 导入导出与质量评估</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>reportCongestion -overflow 的输出。逐项读：</p>
+<p><code>Usage: (4.0%H 5.1%V)</code> 是横向/纵向<strong>轨道使用率</strong>（floorplan 阶段几乎没走线，很低正常）；<code>(1.521e+05um 2.175e+05um)</code> 是总轨道长度；<code>(30183 43159)</code> 是轨道数量。</p>
+<p><code>Overflow: 214 = 214 (0.42% H) + 0 (0.00% V)</code> 是关键：214 个轨道需求超容量，<strong>全部来自横向</strong>（占横向容量 0.42%），纵向为 0。</p>
+<p><strong>判读</strong>：横向轻微溢出，远低于 1% 阈值，横向资源略紧但可接受。横向纵向分开看的意义在于——若横向严重而纵向为 0，说明该增加横向布线层或调整单元朝向。</p></div>
+<p>四组命令对应四种交接方式，区别在于 tcl 与 def：</p>
+<div class="tbl"><table><thead><tr><th></th><th>tcl 脚本</th><th>def 文件</th></tr></thead><tbody><tr><td>内容</td><td>命令序列（做了什么）</td><td>数据（结果是什么）</td></tr><tr><td>可读性</td><td>人可读，能看懂意图</td><td>机器可读，格式固定</td></tr><tr><td>可修改</td><td>能改参数重跑</td><td>改起来麻烦</td></tr><tr><td>用途</td><td>交接、复现</td><td>跨工具交换</td></tr></tbody></table></div>
+<p>实践建议：自己用 tcl（能改能读），跨工具/跨团队用 def（标准格式）。</p>
+<p>原文有个注记很实用：<strong>「01 版本只动了 mem」</strong>。这是版本命名习惯——每次改动给编号并说明改了什么，出问题能快速回退。</p>
+<h3>怎么评估 floorplan 好不好</h3>
+<p>原文给两条：</p>
+<p><strong>7.1 整体看上去整齐、美观</strong> —— 听起来主观，但有道理：<strong>整齐意味着资源分配均匀</strong>。宏对齐、间距一致、没有奇形怪状的空隙，通常说明空间利用合理。歪歪扭扭的布局几乎一定有资源分配问题。</p>
+<p><strong>7.2 根据 place 的结果来评判</strong> —— 这才是硬指标，三个检查点：place 的 setup 时序是否违例、congestion map 是否大量红色、cell density 是否有较高处。</p>
+<p><strong>为什么用 place 结果反评 floorplan</strong>？因为 floorplan 阶段还看不出来，只有真正摆了单元、做了全局布线，才知道空间够不够。</p>
+<h3>congestion 与 overflow：最硬的判据</h3>
+<p>原文给了很具体的阈值，这是全书最有价值的数据之一：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">overflow 的值不要超过 1%    0.1%-0.2%(3nm)</span><span class="ln ">reportCongestion -hotSpot -overflow</span></code></pre></div>
+<div class="tbl"><table><thead><tr><th>工艺</th><th>可接受 overflow</th></tr></thead><tbody><tr><td>一般工艺</td><td>&lt; 1%</td></tr><tr><td>3nm 等先进工艺</td><td>0.1% – 0.2%</td></tr></tbody></table></div>
+<p><strong>为什么先进工艺要求更严</strong>：先进工艺 pitch 更小、双重图形等规则更复杂，布线资源更紧张，一点溢出就造成大面积绕不通。</p>
+<div class="tip"><div class="tip-h">小技巧</div><p>调整 floorplan 后用<strong>同样命令参数</strong>再跑一次，对比溢出总量和横纵比例。</p>
+<p>这比看拥塞图颜色可靠——颜色受图例阈值影响，数字不会。</p></div>
   
 </section>
 <section class="ch" id="source-08" data-ch="source-08">
-  <div class="ch-h"><span class="ch-n">08</span><h2>常见问题</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">8 floorplan的一些问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">8.1 init design之后有很多mem/分给自己的模块有很多mem/mcaro，怎么更快的进行fp</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）使用工具自动摆放macro的界面，但是这种方法较为粗糙</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">或者使用命令   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Set_fp_stragety  -macros_on_edge  on  </p></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>常见问题与进阶技巧</h2></div>
+  <p>原文这节是问答形式，每个问题都是真实遇到的。</p>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">8 floorplan的一些问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">8.1 init design之后有很多mem/分给自己的模块有很多mem/mcaro，怎么更快的进行fp</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1）使用工具自动摆放macro的界面，但是这种方法较为粗糙</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">或者使用命令   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Set_fp_stragety  -macros_on_edge  on  </p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-28.png" data-fig="innovus-doc-28.png"><img src="/fig/innovus-doc-28.png" alt="原文图 28 · 常见问题" loading="lazy" decoding="async"></a><figcaption>原文图 28 · 常见问题</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>Generate Floorplan 子菜单，红箭头指向 Place Macros…——自动摆宏的入口。子菜单还有 Prototype Design（原型设计）、Initialize Fast Timing Analysis（快速时序）、Fast Slack Analysis/Display（快速裕量分析）、Analyze Floorplan（分析布局）、Generate Fence（生成围栏）。</p>
+<p><strong>自动摆宏的结果绝不能直接交付</strong>：它的目标函数（通常总线长最短）不等于项目目标，可能把该相邻的宏分开，或把宏放在挡住电源网格的位置。正确用法是「自动摆 → 人工逐个检查调整 → 定稿」。</p></div>
+<h3>问题一：宏很多，怎么更快做 floorplan</h3>
+<p><strong>方案 A 自动摆放</strong>：<code>Generate Floorplan → Place Macros…</code>，或命令 <code>set_fp_strategy -macros_on_edge on</code>（把宏往边上推）。<strong>原文评价「较为粗糙」</strong>，只能给初始方案。</p>
+<p><strong>方案 B marchlearning</strong>：设置 fp 约束规则，让工具自动摆放 mem。比方案 A 可控，因为能配边界、间距等约束。</p>
+<p>两个方案的共同点：生成<strong>初始版本</strong>，然后人工调整。</p>
+<h3>问题二：通道宽度怎么算</h3>
+<p>原文答得最详细，也是面试高频题：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">根据 mem 出 pin 情况、pin 数量、metal 层 pitch，算出总线宽</span><span class="ln ">例：30 个 pin，走 M6、M8，pitch 0.1 µm → 30 × 0.1 / 2 = 1.5 µm</span></code></pre></div>
+<p>原文还问了三个反问——这是真正的工作经验：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">如何确定 mem 之间的 channel 是足够的？依据是什么？</span><span class="ln ">通常你们工作中 mem 之间 channel 留多大？为什么？</span></code></pre></div>
+<p>这三问没有标准答案，取决于项目。但思考框架固定：<strong>按最坏情况估 + 留余量</strong>。</p>
+<h3>问题三：还有别的摆法吗</h3>
+<p><strong>背靠背摆法</strong>：channel 可减到最小，节省大量面积。分上下结构（长边相邻）和左右结构（短边相邻）——前者通道更长更窄，后者相反，选哪个看引脚分布。</p>
+<p>原文提醒「需要特定的角度」：背靠背不是简单贴一起，要考虑出线方向。两个宏引脚都朝内时背靠背会让引脚面对面，反而更糟。</p>
+<h3>问题四：dontuse cell list</h3>
+<p>原文这段讲<strong>流程管控</strong>：PR 每个阶段 flow 会设 dontuse cell 禁止使用某些单元；ECO 阶段要检查设计里有没有 dontuse 的单元，需要替换。</p>
+<p><strong>为什么有 dontuse list</strong>：某些单元有已知硅后问题、某些在特定工艺角下时序不收敛、某些功耗或面积过大。</p>
+<p><strong>为什么必须检查</strong>：flow 可能在早期用了某单元，后来该单元被加入禁list。设计里已有它，签核时不替换会被判不合格。这是<strong>签核固定项</strong>，漏了会导致流片后才发现问题。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2）使用marchlearning</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置fp的一些约束规则，让工具ai自动摆放mem</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、macro之间Chanel的计算方法？ </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如何确定mem之间的chanel是足够的？依据是什么？</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">通常你们工作中mem之间chanel留多大？为什么？</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">根据mem的摆放出pin情况，以及pin的数量，以及要走的metal层的pitch，计算得出总线宽</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例如：有一个mem，出pin为30个，走M6，M8，假设pitch是0.1um</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">30*0.1/2= 1.5um</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、除了通常的摆放mem方法还有什么方法可以摆放</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">背靠背摆法，chanel可以减小到最低，节省大量面积</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">上下结构，左右结构</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">注意：背靠背，中间也会有chanel，只是很小，需要特定的角度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、关于dontuse cell 的list</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">在PR每个阶段，flow会设置dontusecell,禁止工具使用一些指定的cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">在eco阶段，会有一个检查，是否有dontuse的cell在design中，需要进行替换</p></div>
   
 </section>
 <section class="ch" id="source-09" data-ch="source-09">
-  <div class="ch-h"><span class="ch-n">09</span><h2>实操：定义形状与抓取、摆放端口</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5）实操</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.定义形状</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">floorplan -noSnapToGrid -b 0 0 935.712 456.456  0 0 935.712 456.456</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.2 1.2285 934.512 455.2275 #die 坐标 IO 坐标 core 坐标</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addObjFPlanCutBox cell bpu40_vae_top_wrapper  0 0 566.352 228.228</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">#切角坐标。</p></div>
+  <div class="ch-h"><span class="ch-n">10</span><h2>实操：完整的 floorplan 脚本</h2></div>
+  <p>原文最后给了一个真实项目的完整操作，值得逐行读。</p>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5）实操</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.定义形状</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">floorplan -noSnapToGrid -b 0 0 935.712 456.456  0 0 935.712 456.456</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.2 1.2285 934.512 455.2275 #die 坐标 IO 坐标 core 坐标</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">addObjFPlanCutBox cell bpu40_vae_top_wrapper  0 0 566.352 228.228</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">#切角坐标。</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-29.png" data-fig="innovus-doc-29.png"><img src="/fig/innovus-doc-29.png" alt="原文图 29 · 实操：定义形状与抓取、摆放端口" loading="lazy" decoding="async"></a><figcaption>原文图 29 · 实操：定义形状与抓取、摆放端口</figcaption></figure>
+<div class="note"><div class="note-h">这张图该看什么</div><p>完成切角后的版图轮廓，灰色区域呈 L 形：左上角被切掉一块矩形，形成直角台阶。区域内密排横线是标准单元摆放行，左下角黄色小标记是引脚。<strong>这个形状就是脚本里 addObjFPlanCutBox 命令的结果。</strong></p></div>
+<h3>第一步：定义形状</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.抓取port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">--抓取所有 port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set all_ports [dbget top.terms.name]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set fh [open &quot;ports_from_db.txt&quot; w]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">puts $fh [join $all_ports &quot;\n&quot;]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">close $fh</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">--抓取 unplace 的 port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set unplaced [dbget [dbget -p top.terms.pStatus unplaced].name]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set f [open &quot;unplaced_terms.txt&quot; w]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">foreach t $unplaced { puts $f $t }</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">close $f</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">redirect -file physicalcell_name.txt {puts [dbget top.physInsts.name ]}</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">--抓取 input/output port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">get_ports -filter &quot;direction == in/out&quot;</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">--取消摆放</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">dbset top.terms.pStatus unplaced</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">dbset selected.pStatus unplaced</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3.摆放port</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">设置变量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set A  [get_object_name [get_ports A*]]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editPin -fixOverlap 1  -fixedPin 1    -layer {M6 M8 M10}    -pin &quot;$exif $sif&quot;    -pinDepth 0.6   -pinWidth 0.038 -edge 3   -snap TRACK -spreadDirection counterclockwise  -offsetStart 609    -unit TRACK -spacing 1   -pattern fill_checkerboard</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">解析</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">editPin -fixOverlap 1        自动修复引脚重叠</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-fixedPin 1                  锁定引脚位置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-layer {M6 M8 M10}           摆放金属层配置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pin &quot;$exif $sif&quot;            操作对象</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pinDepth 0.6                引脚深度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pinWidth 0.038              引脚宽度</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-edge 3                      摆放位置（0左 1上 2右 3下）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-snap TRACK                  对齐track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-spreadDirection counterclockwise  排布方向逆时针（clockwise 顺时针）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-offsetStart 609             从起点开始偏移多少个track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-unit TRACK -spacing 1       间隔2个track</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-pattern fill_checkerboard   交错排布</p></div>
+<p><code>-b</code> 后面是三组坐标，原文注释说得很清楚：<code>die 坐标 / IO 坐标 / core 坐标</code>。完整形式是：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">floorplan -b &lt;die_x1 die_y1 die_x2 die_y2&gt; &lt;io...&gt; &lt;core...&gt;</span></code></pre></div>
+<p>本例 die 和 IO 坐标相同（无独立 IO ring），core 那组在注释里给了（<code>1.2 1.2285 934.512 455.2275</code>）。</p>
+<p><code>-noSnapToGrid</code> 是不对齐网格，用于大尺寸非整数坐标场景。切角坐标 <code>0 0 566.352 228.228</code> 从原点切掉 566 × 228 µm——接近一半面积，说明这是 L 形大模块。</p>
+<h3>第二步与第三步：抓取、验证、摆放</h3>
+<p>脚本后半段的价值在于展示了<strong>完整工作流</strong>，中间有两次验证动作（抓 port 两次）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">定义形状 → 抓取检查 → 摆端口 → 再抓取验证</span></code></pre></div>
+<p><strong>「抓两次对比」是核心工程习惯</strong>：第一次抓所有 port 知道总数，第二次抓 unplaced 知道还剩多少。摆完再抓一次，应该为空；不空就说明漏了。</p>
+<p><strong><code>dbset top.terms.pStatus unplaced</code> 很危险</strong>——如果之前精心摆过，一执行全没了。所以要先把当前状态导出（<code>writeFPlanScript</code>）再操作。</p>
+<p>**<code>set A [get_object_name [get_ports A*]]</code>** 是变量赋值示例。用变量的理由：端口组经常需要重复操作（摆一次、检查一次、改一次），写死端口名的话加一个端口就要改三处。</p>
+  
+</section>
+<section class="ch" id="checklist" data-ch="checklist">
+  <div class="ch-h"><span class="ch-n">11</span><h2>完整检查清单</h2></div>
+  <p>Floorplan 做完，逐项过一遍：</p>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>Die/Core 尺寸与上游清单一致，手工核对「Die 高 = Core 高 + 上下边距」算式</li><li>原点位置（左下角/中心）与上游约定一致，没有凭习惯选</li><li>异形切角坐标与要求一致，切掉的区域原本不需要放宏</li><li>所有 port 已摆放，<code>unplaced_terms.txt</code> 为空或有明确解释</li><li>端口对齐到轨道（<code>-snap TRACK</code>），总数与网表一致</li><li>多层摆 port 的层方向正确：上下用 5/7/9，左右用 6/8/10</li><li>引脚附近有 pin blockage，密度设置合理</li><li>每个宏都贴边或有记录的理由，同类宏引脚朝向一致</li><li>相邻宏间距相等，宏之间没有小于 3 µm 的窄缝</li><li>所有宏设了 halo，halo 之间没有重叠</li><li>通道宽度按「引脚数 × pitch ÷ 层数」估算并留了 1.5–2 倍余量</li><li>六类 physical cell（endcap/tap/tie/decap/filler/ESD）该加的已加，数量核对过</li><li><code>reportCongestion -overflow</code> 已跑，overflow &lt; 1%，横向纵向分别记录</li><li>guide/region/fence 三种分组约束按需设置，<code>-place_hard_fence</code> 已开</li><li>四类 blockage 没有遗留的临时设置，按名字管理而非按类型批量删</li><li>所有 floorplan 参数已写入 tcl，可从干净数据库重跑</li><li>dontuse cell 检查已做，设计中没有被禁用的单元</li></ul></div>
+  
+</section>
+<section class="ch" id="quiz" data-ch="quiz">
+  <div class="ch-h"><span class="ch-n">12</span><h2>自测</h2></div>
+  <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>site 和 row 分别是什么？为什么标准单元宽度必须是 site 的整数倍？</div>
+  <div class="q-a">site 是摆放的最小宽度单位，row 是高度等于标准单元高度、由 site 横向重复组成的条带。宽度为 site 整数倍才能保证相邻单元电源轨对齐连续。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>单元不在 row 上会导致什么问题？为什么？</div>
+  <div class="q-a">没有 legalize，底层图形颜色映射错乱，在双重图形工艺下引发 base DRC 违例。修法是手动或自动 legalize。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>port、pin、terminal 三者的区别是什么？</div>
+  <div class="q-a">port 是模块对外的逻辑接口名；pin 是单元或宏的输入输出脚；terminal 是 port 的物理实现，即边界上的一段金属 shape。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>Core Utilization 0.706 和 Cell Utilization 0.513 差 19 个百分点，差在哪？</div>
+  <div class="q-a">差在宏和其他物理单元占的面积。前者算所有占用，后者只算标准单元。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>Dimension 高 596.79、Die Size 高 600.21、Core to Top/Bottom 各 1.71，三者什么关系？</div>
+  <div class="q-a">Die 高 = Core 高 + 上边距 + 下边距，600.21 = 596.79 + 1.71 + 1.71。手工核对能确认参数生效。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>摆放宏的四条规则是什么？各为什么？</div>
+  <div class="q-a">①按模块分组（模块内连线最密）；②贴边放先大后小（贴边保持核心区完整，大宏对位置敏感）；③宏间留 channel（走线需要空间）；④避开 IO、引脚朝里（IO 附近需求大，朝外等于对墙）。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>一个 mem 出 30 个 pin 走 M6/M8，pitch 0.1 µm，通道理论宽度多少？实际留多少？</div>
+  <div class="q-a">理论 30×0.1÷2 = 1.5 µm。实际加线间距、过孔绕行、电源线，通常留 4–6 µm。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>guide、region、fence 三种约束的区别？</div>
+  <div class="q-a">guide 可进可出（建议区）；region 可进不可出（软边界）；fence 不可进不可出（硬边界）。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>placement blockage 的 soft、hard、partial、Macro_only 分别什么时候生效？</div>
+  <div class="q-a">soft 只在 place 阶段挡；hard 任何阶段都挡 stdcell；partial 按百分比限密度；Macro_only 只挡宏不挡 stdcell。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>Placement Blockage 会不会挡住布线？为什么「留布线通道」用它是对的？</div>
+  <div class="q-a">不挡布线，线可穿过。所以用它只是不让单元占地，走线空间仍保留。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>endcap、tap、tie、decap、filler、ESD 六类物理单元各解决什么问题？</div>
+  <div class="q-a">endcap 防边缘过刻蚀；tap 防闩锁；tie 防 pin 悬空；decap 抑制 IR drop；filler 填缝保持阱连续；ESD 泄放静电。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>filler 为什么必须在时序优化之后、布线之前插入？</div>
+  <div class="q-a">太早占满行导致 buffer 插不进去；太晚和已完成布线冲突产生大量 DRC。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>reportCongestion 显示 Overflow: 214 = 214 (0.42% H) + 0 (0.00% V) 怎么解读？</div>
+  <div class="q-a">214 个轨道溢出全部来自横向，占横向容量 0.42%（低于 1% 阈值），纵向无溢出，横向资源略紧。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>overflow 的通用阈值是多少？先进工艺呢？</div>
+  <div class="q-a">一般工艺 &lt; 1%；3nm 等先进工艺 0.1%–0.2%。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么先进工艺对 overflow 要求更严？</div>
+  <div class="q-a">pitch 更小、双重图形等规则更复杂，布线资源更紧张，一点溢出就大面积绕不通。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么 floorplan 参数必须写进 tcl 而不能只用 GUI 定稿？</div>
+  <div class="q-a">GUI 参数只在内存，重跑凭记忆重填会有微小差异，导致所有坐标变化、此前检查报告作废。只有脚本可复现。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>dontuse cell list 是什么？为什么 ECO 阶段要专门检查？</div>
+  <div class="q-a">流程禁止使用的单元清单（可靠性、时序、功耗原因）。早期流程可能用过后来被禁的单元，签核时必须替换。</div>
+</div></div>
+  
+</section>
+<section class="ch" id="next" data-ch="next">
+  <div class="ch-h"><span class="ch-n">13</span><h2>下一步与延伸阅读</h2></div>
+  <p>Floorplan 定稿后，下一步是 <a href="/lesson/03-06-powerplan/">PowerPlan：打电源网格</a>。</p>
+<div class="tbl"><table><thead><tr><th>主题</th><th>参考</th></tr></thead><tbody><tr><td>切角与端口清单实操</td><td><a href="/lesson/03-01a-flp-lab/">Floorplan 实操：看懂切角与端口</a></td></tr><tr><td>Memory 面积怎么算、利用率分母怎么取</td><td><a href="/lesson/03-01c-project-details/">算清 Memory 面积，看懂布局报告</a></td></tr><tr><td>从 Die Size 输入到 Kick-Off Run</td><td><a href="/lesson/03-01d-floorplan-advanced/">Floorplan 进阶</a></td></tr><tr><td>布局密度与拥塞诊断</td><td><a href="/lesson/03-01e-placement-diagnostics/">Place 诊断</a></td></tr></tbody></table></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
@@ -155,14 +474,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-03-innovus-init/">← init_design：把数据导进 Innovus，并证明它导对了</a><a class="nav-btn" href="/lesson/03-06-powerplan/">PowerPlan：供电结构与检查 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-02-innovus-start/">← 上一课<i>Innovus 的使用</i></a><a class="nav-btn next" href="/lesson/03-06-powerplan/">下一课 →<i>PowerPlan：供电结构、IR/EM 与检查</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

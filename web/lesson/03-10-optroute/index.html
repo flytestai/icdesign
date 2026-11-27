@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OptRoute：布线后优化 · 40 | IC 后端学院</title>
-<meta name="description" content="布线后调优类型；时序、DRC、短路与开路优化。按《04 innovus项目(1).docx》原文顺序整理，保留原图。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<title>OptRoute：布线后优化到底在优化什么 · 40 | IC 后端学院</title>
+<meta name="description" content="布线后为什么必须优化；timing、DRC、short、open 四类目标怎么排优先级；PreRoute 与 PostRoute 脚本的分工；PR 流程终点与 ECO 的交界。附原始资料对照。">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-10-optroute">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,27 +50,125 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>OptRoute：布线后优化</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>OptRoute：布线后优化到底在优化什么</b></div><div class="lesson-refbar">阶段三课表模块：OptRoute（1 课时）<a href="/lesson/03-01-innovus-plan/#course-mainline">看完整课表</a></div>
     <div class="hero">
       <div class="hero-no">40</div>
-      <h1>OptRoute：布线后优化</h1>
+      <h1>OptRoute：布线后优化到底在优化什么</h1>
       <p class="hero-en">Post-route Optimization</p>
-      <p class="hero-sum">布线后调优类型；时序、DRC、短路与开路优化。按《04 innovus项目(1).docx》原文顺序整理，保留原图。</p>
+      <p class="hero-sum">布线后为什么必须优化；timing、DRC、short、open 四类目标怎么排优先级；PreRoute 与 PostRoute 脚本的分工；PR 流程终点与 ECO 的交界。附原始资料对照。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈2 分钟</span>
-        <span class="pill">课表学时 0</span>
-        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈14 分钟</span>
+        <span class="pill">课表学时 1</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span><span class="pill tag">OptRoute</span>
       </div>
     </div>
-    <article id="article" data-est-min="2"><section class="ch" id="source-01" data-ch="source-01">
-  <div class="ch-h"><span class="ch-n">01</span><h2>布线后调优类型</h2></div>
-  <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
-<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">八、OptRoute</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">主要是绕线之后的优化,一般优化后的结果会比route好很多</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">具体的优化的设置取决于工程师自己的一些配置，加在tune里面</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">tune的类型一般有两种</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例如：在route阶段,  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">PreRoute.tcl  在绕线之前执行的脚本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">PostRoute.tcl 在绕线之后执行的脚本</p></div>
+    <article id="article" data-est-min="14"><section class="ch" id="why" data-ch="why">
+  <div class="ch-h"><span class="ch-n">01</span><h2>为什么要单独有一步&quot;布线后优化&quot;</h2></div>
+  <p>上一课说过，Route 的首要任务是<strong>把所有线连上</strong>。这是一个&quot;约束满足&quot;问题：只要连上，就算完成。</p>
+<p>但&quot;连上&quot;和&quot;连得好&quot;是两件事：</p>
+<ul><li>为了绕开拥堵，工具可能选了很长的路径 → <strong>时序变差</strong>；</li><li>为了塞进窄通道，工具可能用了最小间距 → <strong>SI 风险升高</strong>；</li><li>为了强制连通，工具可能用了勉强合法的 via → <strong>DRC 边缘</strong>；</li><li>局部资源紧张的地方，可能出现<strong>少量短路或开路</strong>。</li></ul>
+<p>所以布线跑完，得到的是一个&quot;技术上连通&quot;的版图，不是&quot;可以交付&quot;的版图。OptRoute 就是在<strong>不改连接关系</strong>的前提下，把上面这些问题往下压。</p>
+<div class="term open">
+  <div class="term-h"><span class="term-en">OptRoute</span><span class="term-zh">布线后优化</span></div>
+  <div class="term-b"><p>在已完成详细布线的版图上，通过调整走线路径、换层、插入/移动缓冲器等方式，改善时序、DRC 和布通率，但不改变逻辑连接关系。</p></div>
+</div>
   
 </section>
-<section class="ch" id="source-02" data-ch="source-02">
-  <div class="ch-h"><span class="ch-n">02</span><h2>时序、DRC、短路与开路优化</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">优化的方向：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">timing</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">DRC</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">short</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">open</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">===========================PR流程结束==============================</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">FinalPR  最后一轮PR，fp不能在调整！</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">进入ECO修复阶段,(如果结果很差，没法eco修复，只能RePR)</p></div>
+<section class="ch" id="targets" data-ch="targets">
+  <div class="ch-h"><span class="ch-n">02</span><h2>四类优化目标，优先级不是并列的</h2></div>
+  <p>原始资料列了四个方向：<code>timing</code>、<code>DRC</code>、<code>short</code>、<code>open</code>。它没说谁先谁后，但顺序其实是有硬约束的。</p>
+<h3>第一优先：open 和 short（连通性）</h3>
+<p><strong>这两项不通，后面全都无意义。</strong></p>
+<ul><li><strong>open（开路）</strong>：该连的没连上，功能直接错误。时序分析甚至无法给这条路径算值。</li><li><strong>short（短路）</strong>：不该连的连上了，功能直接错误，而且可能造成电源短接。</li></ul>
+<p>一项都不许留。这不是&quot;优化目标&quot;，是&quot;合格门槛&quot;。</p>
+<h3>第二优先：DRC（可制造性）</h3>
+<p>DRC 违例意味着这个版图<strong>做不出来</strong>。哪怕时序全绿，工厂也造不出。</p>
+<p>但这里有个现实权衡：极少数 DRC 违例（比如某些特殊规则）在项目里可能被<strong>豁免（waiver）</strong>，需要签核确认。但&quot;能豁免&quot;和&quot;现在就先不管&quot;是两件事——先修，修不掉再走豁免流程。</p>
+<h3>第三优先：timing（性能）</h3>
+<p>时序在前面两者都过关之后才有意义。</p>
+<p>原因很直接：修 timing 的手段（插 buffer、加宽线、换层）<strong>会增加布线资源占用</strong>，可能反过来制造 DRC 或 short。所以必须先把连通和规则做干净，再动时序。</p>
+<div class="pit"><div class="pit-h">常见坑 · 一上来就修时序</div><div class="pit-b"><p>新手常见操作：Route 完看到 WNS 是负的，立刻跑时序优化。结果优化过程插了一堆 buffer，把原本干净的布线搞出一片 DRC 和 short，最后连通性都保不住，只能回退重跑。</p>
+<p>正确顺序永远是：<strong>连通 → 规则 → 时序</strong>。</p></div></div>
+  
+</section>
+<section class="ch" id="tune" data-ch="tune">
+  <div class="ch-h"><span class="ch-n">03</span><h2>PreRoute 与 PostRoute：同一套 tune，两个挂载点</h2></div>
+  <p>原始资料提到两种 tune：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">PreRoute.tcl   在绕线之前执行的脚本</span><span class="ln ">PostRoute.tcl  在绕线之后执行的脚本</span></code></pre></div>
+<p>它说&quot;具体的优化设置取决于工程师自己的配置，加在 tune 里面&quot;。这句话是对的，但要展开一下——<strong>同一个参数放在哪个脚本里，效果完全不同</strong>。</p>
+<div class="tbl"><table><thead><tr><th></th><th>PreRoute.tcl</th><th>PostRoute.tcl</th></tr></thead><tbody><tr><td>执行时机</td><td>详细布线<strong>之前</strong></td><td>详细布线<strong>之后</strong></td></tr><tr><td>能改什么</td><td>布线策略、层分配偏好、间距偏好、禁布区</td><td>已有走线的调整、局部重布、缓冲器插入</td></tr><tr><td>影响范围</td><td>全局（影响工具怎么规划所有线）</td><td>局部（只动被点名的网或区域）</td></tr><tr><td>典型用途</td><td>让工具一开始就往正确的方向走</td><td>修补工具没做好的个别地方</td></tr><tr><td>风险</td><td>改错会影响整个布线结果</td><td>改错只影响局部，好回退</td></tr></tbody></table></div>
+<p><strong>经验法则</strong>：能在 PreRoute 解决的，不要留到 PostRoute。</p>
+<p>原因：PreRoute 是&quot;告诉工具怎么做&quot;，成本低；PostRoute 是&quot;在成品上动刀&quot;，每改一处都要重新做局部提取和检查，成本高，而且可能引入新问题。</p>
+<p>举个具体例子：如果一个设计中大量网需要走 M5 以上层，那应该在 PreRoute 里设置层偏好，让工具一开始就这么规划。如果留到 PostRoute，就得一条一条网去改，工作量爆炸，而且改完之后层间的 via 结构可能不合法。</p>
+<div class="tip"><div class="tip-h">小技巧</div><p>PreRoute.tcl / PostRoute.tcl 必须放进版本管理，并且能被同一条流程脚本调用。写在 GUI 里点出来的设置，下次重跑就没了——这是&quot;结果无法复现&quot;的头号原因。</p></div>
+  
+</section>
+<section class="ch" id="pr-end" data-ch="pr-end">
+  <div class="ch-h"><span class="ch-n">04</span><h2>PR 流程的终点在哪里</h2></div>
+  <p>原始资料有一行很关键：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">===========================PR流程结束==============================</span><span class="ln ">FinalPR  最后一轮PR，fp不能在调整！</span><span class="ln ">进入ECO修复阶段,(如果结果很差，没法eco修复，只能RePR)</span></code></pre></div>
+<p>这行字里藏着两个重要判断：</p>
+<h3>1. &quot;fp 不能再调整&quot;是什么意思</h3>
+<p>走到 FinalPR，意味着 floorplan 已经冻结。<strong>宏的位置、Die 的尺寸、端口的分配都不能再动。</strong></p>
+<p>为什么？因为前面所有阶段的结果（place、CTS、route、所有报告）都是基于这个 floorplan 产生的。一旦 floorplan 变了，<strong>前面所有报告全部作废</strong>，必须从头重跑。这个代价在项目后期是不可接受的。</p>
+<p>所以 FinalPR 阶段的优化手段被严格限制在&quot;不动 floorplan&quot;的范围内：改走线、换层、插 buffer、局部重布。</p>
+<h3>2. &quot;没法 ECO 修复只能 RePR&quot;是什么意思</h3>
+<p>ECO（Engineering Change Order）是在<strong>已有版图上做局部修改</strong>。它的前提是：问题局部化，改动不影响全局。</p>
+<p>如果出现下面这些情况，ECO 就救不了了：</p>
+<ul><li>布线资源整体不够（大面积溢出的后果）；</li><li>时序违例遍布所有路径组（不是局部问题）；</li><li>电源网络本身设计不足（IR drop 超标）。</li></ul>
+<p>这些都必须回到 PR 流程重跑（RePR），甚至回到 floorplan。</p>
+<div class="note"><div class="note-h">判断能不能 ECO 的方法</div><p>看违例的<strong>分布</strong>，不是看数量。</p>
+<ul><li>100 个违例集中在 3 个区域 → 大概率能 ECO；</li><li>20 个违例散布在 20 个区域，且分属不同路径组 → 可能需要 RePR。</li></ul>
+<p>数量少但分散，往往比数量多但集中更难修。</p></div>
+  
+</section>
+<section class="ch" id="verify" data-ch="verify">
+  <div class="ch-h"><span class="ch-n">05</span><h2>优化之后怎么验收</h2></div>
+  <p>OptRoute 跑完，不能只看&quot;优化报告说改善了&quot;。要按下面的顺序自己核一遍：</p>
+<ol><li><strong>连通性</strong>：open = 0，short = 0。注意要看<strong>最终版图</strong>的报告，不是优化过程中的中间报告。</li><li><strong>DRC</strong>：违例数下降，且剩余违例有明确豁免依据。要确认 DRC 跑的是<strong>最终版图 + 最终层映射</strong>。</li><li><strong>时序</strong>：对比优化前后的 WNS / TNS，<strong>必须同场景、同工艺角、同路径组</strong>。跨场景比较没有意义。</li><li><strong>SI</strong>：优化改了走线，耦合关系变了，串扰要重算。</li><li><strong>寄生提取</strong>：走线变了，寄生必须重新提取，否则时序数字是旧版图的。</li></ol>
+<div class="pit"><div class="pit-h">常见坑 · 拿优化前的时序报告当结论</div><div class="pit-b"><p>OptRoute 改了走线 → 寄生变了 → 时序必须重算。如果直接拿优化前的 SPEF 去看时序，看到的是&quot;旧版图的时序&quot;，跟实际交付的版图对不上。</p>
+<p>顺序永远是：<strong>改版图 → 重提取 → 重算时序 → 重跑 DRC</strong>。</p></div></div>
+  
+</section>
+<section class="ch" id="to-eco" data-ch="to-eco">
+  <div class="ch-h"><span class="ch-n">06</span><h2>和下一步 ECO 的衔接</h2></div>
+  <p>OptRoute 做完，如果还有少量违例修不掉，就进入 ECO 阶段。ECO 的详细做法见：</p>
+<ul><li><a href="/lesson/03-01m-eco-commands/">ECO 常用命令与验收</a> —— 命令层面的操作</li><li><a href="/lesson/03-11-eco/">ECO：DRV、时序、DRC 与签核</a> —— 项目层面的交接</li><li><a href="/lesson/03-13-mmmc-eco-lab/">SPEF 回标与多场景 ECO</a> —— 多角度的验收</li></ul>
+  
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">07</span><h2>动手：判断该 PreRoute 还是 PostRoute</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>三个场景，各自该放哪个脚本</div><div class="lab-b"><p>下面三个需求，判断应该写进 PreRoute.tcl 还是 PostRoute.tcl，并说明理由：</p>
+<ol><li>这个设计里所有时钟网必须走 M6 以上层，且用 2W2S 规则。</li><li>Route 跑完发现某个宏附近有 5 条短路，集中在 200 µm × 200 µm 的窗口里。</li><li>全局布线显示某个区域纵向拥塞严重，需要减少那里的纵向布线需求。</li></ol>
+<p>提示：想清楚&quot;这个设置是告诉工具怎么规划，还是在成品上打补丁&quot;。</p></div></div>
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>OptRoute 的四类目标为什么必须按 open/short → DRC → timing 的顺序？</div>
+  <div class="q-a">连通性不通功能直接错；DRC 不过版图造不出来；修 timing 的手段会增加布线资源，可能破坏前两者。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>PreRoute 和 PostRoute 的核心区别是什么？</div>
+  <div class="q-a">PreRoute 在布线前影响工具的全局规划，成本低影响面大；PostRoute 在成品上做局部修补，成本高但好回退。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>FinalPR 阶段为什么不能再调 floorplan？</div>
+  <div class="q-a">前面所有阶段结果和报告都基于该 floorplan，一旦改动全部作废需从头重跑。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>什么情况下 ECO 救不了，必须 RePR？</div>
+  <div class="q-a">布线资源整体不足、违例遍布多个路径组、电源网络本身设计不足等非局部问题时。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>OptRoute 改了走线之后，为什么时序必须重算？</div>
+  <div class="q-a">走线变化导致寄生参数变化，旧 SPEF 对应的是旧版图，算出来的时序与交付版图不符。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>违例 100 个集中在 3 个区域，和 20 个散布在 20 个区域，哪个更难修？</div>
+  <div class="q-a">后者。ECO 依赖问题局部化，分散违例往往涉及全局结构问题，可能需要 RePR。</div>
+</div></div>
+  
+</section>
+<section class="ch" id="source-appendix" data-ch="source-appendix">
+  <div class="ch-h"><span class="ch-n">08</span><h2>原始资料对照</h2></div>
+  <p>以下为《04 innovus项目(1).docx》第八节的原文，按原顺序保留。上面的讲解是对这些要点的展开。</p>
+<h3 id="source-01">原文：布线后调优类型</h3>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">八、OptRoute</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">主要是绕线之后的优化,一般优化后的结果会比route好很多</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">具体的优化的设置取决于工程师自己的一些配置，加在tune里面</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">tune的类型一般有两种</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例如：在route阶段,  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">PreRoute.tcl  在绕线之前执行的脚本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">PostRoute.tcl 在绕线之后执行的脚本</p></div>
+<h3 id="source-02">原文：时序、DRC、短路与开路优化</h3>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">优化的方向：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">timing</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">DRC</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">short</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">open</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">===========================PR流程结束==============================</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">FinalPR  最后一轮PR，fp不能在调整！</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">进入ECO修复阶段,(如果结果很差，没法eco修复，只能RePR)</p></div>
   <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
 </section></article>
 
@@ -84,14 +182,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-09-route/">← Route：布线引擎与短路、开路排查</a><a class="nav-btn" href="/lesson/03-11-eco/">ECO：DRV、时序、DRC 与签核问题 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-09-route/">← 上一课<i>Route：三种引擎、短路开路与串扰</i></a><a class="nav-btn next" href="/lesson/03-14-chipfinish-handoff/">下一课 →<i>ChipFinish 桌面实训：从最终流出到签核放行</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

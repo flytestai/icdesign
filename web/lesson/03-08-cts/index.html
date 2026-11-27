@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CTS：时钟树综合、约束与检查 · 38 | IC 后端学院</title>
-<meta name="description" content="时钟树基础、特殊网络与保护；CTS 约束与 Sink 统计；CTS 后检查与延迟调整；通用 ECO 操作；时序报告与布局检查。按《04 innovus项目(1).docx》原文顺序整理，保留原图。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<title>CTS：时钟树综合，从 skew 定义到建树验收 · 38 | IC 后端学院</title>
+<meta name="description" content="为什么时钟必须建树；latency、skew、global/local 的准确含义与算法；NDR 为什么是 2W2S；ICG 的三种角色；约束命令的使用场景；CTS 后五项检查与延迟调整方案。附原始资料对照。">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-08-cts">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,46 +50,343 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>CTS：时钟树综合、约束与检查</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>CTS：时钟树综合，从 skew 定义到建树验收</b></div><div class="lesson-refbar">阶段三课表模块：CTS（14 课时）<a href="/lesson/03-01-innovus-plan/#course-mainline">看完整课表</a></div>
     <div class="hero">
       <div class="hero-no">38</div>
-      <h1>CTS：时钟树综合、约束与检查</h1>
+      <h1>CTS：时钟树综合，从 skew 定义到建树验收</h1>
       <p class="hero-en">Clock Tree Synthesis</p>
-      <p class="hero-sum">时钟树基础、特殊网络与保护；CTS 约束与 Sink 统计；CTS 后检查与延迟调整；通用 ECO 操作；时序报告与布局检查。按《04 innovus项目(1).docx》原文顺序整理，保留原图。</p>
+      <p class="hero-sum">为什么时钟必须建树；latency、skew、global/local 的准确含义与算法；NDR 为什么是 2W2S；ICG 的三种角色；约束命令的使用场景；CTS 后五项检查与延迟调整方案。附原始资料对照。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈5 分钟</span>
-        <span class="pill">课表学时 0</span>
-        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈47 分钟</span>
+        <span class="pill">课表学时 14</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span><span class="pill tag">CTS</span>
       </div>
     </div>
-    <article id="article" data-est-min="5"><section class="ch" id="source-01" data-ch="source-01">
-  <div class="ch-h"><span class="ch-n">01</span><h2>时钟树基础、特殊网络与保护</h2></div>
-  <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
+    <article id="article" data-est-min="47"><section class="ch" id="why-tree" data-ch="why-tree">
+  <div class="ch-h"><span class="ch-n">01</span><h2>先想清楚：为什么时钟需要专门&quot;建一棵树&quot;</h2></div>
+  <p>数据信号的路径是设计决定的——网表里写谁连谁，就怎么连。时钟不一样：<strong>时钟要到达每一个触发器，而触发器的位置是布局算出来的。</strong></p>
+<p>假设一个设计有 20 万个触发器，散落在 2 mm × 2 mm 的芯片上。时钟源只有一个，在某个角落。如果从时钟源直接拉一根线到每个触发器，会发生三件事：</p>
+<ol><li><strong>驱动能力不够</strong>：一个源驱动 20 万个负载，边沿会被拖成斜坡，根本不像时钟；</li><li><strong>延迟巨大</strong>：线太长，RC 延迟让时钟到得极晚；</li><li><strong>到达时间完全不同</strong>：近的触发器早到，远的晚到，差几纳秒——时序无法收敛。</li></ol>
+<p>所以必须建一棵<strong>缓冲器树</strong>：时钟源先驱动几个一级缓冲，每个一级缓冲再驱动几个二级缓冲，层层展开，直到每个触发器都被一个&quot;就在附近&quot;的缓冲驱动。</p>
+<p>这棵树要同时优化四个互相矛盾的指标：</p>
+<div class="tbl"><table><thead><tr><th>指标</th><th>含义</th><th>为什么要控制</th></tr></thead><tbody><tr><td><strong>Latency</strong>（插入延迟）</td><td>时钟从源到叶节点的时间</td><td>太长会吃掉时序余量</td></tr><tr><td><strong>Skew</strong>（偏斜）</td><td>不同叶节点到达时间的差</td><td>差太大，时序无法收敛</td></tr><tr><td><strong>Transition</strong>（转换时间）</td><td>边沿的陡峭程度</td><td>太缓会导致短路功耗和时序偏差</td></tr><tr><td><strong>Power/Area</strong></td><td>树本身的功耗和面积</td><td>时钟树常常吃掉全芯片 30% 以上的动态功耗</td></tr></tbody></table></div>
+<div class="term open">
+  <div class="term-h"><span class="term-en">CTS</span><span class="term-zh">Clock Tree Synthesis 时钟树综合</span></div>
+  <div class="term-b"><p>在已完成布局的设计上，自动插入缓冲器/反相器，把时钟从源分发到所有叶节点（触发器、宏的时钟脚），并控制插入延迟、偏斜和转换时间的过程。业内也说「建树」「做时钟树」。<br><strong>同义词提醒</strong>：叶节点在资料里可能叫 sink、端点、叶节点、balance point，都是同一个东西——时钟树的终点。</p></div>
+</div>
+  
+</section>
+<section class="ch" id="latency-skew" data-ch="latency-skew">
+  <div class="ch-h"><span class="ch-n">02</span><h2>Latency 和 Skew：两个容易混的概念</h2></div>
+  <p>原始资料的定义是&quot;latency: 时钟的传播延迟；skew: 时钟延迟的差值&quot;。这个定义对，但要精确到能算。</p>
+<h3>Latency 是&quot;一个点&quot;的延迟</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Latency(叶节点 i) = 时钟源出发时刻 → 叶节点 i 收到边沿的时刻</span></code></pre></div>
+<p>这是一个<strong>绝对量</strong>，单位是时间（ps）。</p>
+<h3>Skew 是&quot;两个点&quot;的差</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Skew(i, j) = Latency(i) − Latency(j)</span></code></pre></div>
+<p>这是一个<strong>相对量</strong>。注意它可以是正也可以是负，取决于谁先到。</p>
+<h3>Global Skew 与 Local Skew 的区别</h3>
+<p>原始资料写：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">分为Global Skew（工具更关注）和Local skew</span><span class="ln ">Gs：同一时钟域，任意两个路径的最大skew。CTS阶段工具更关注的是gs，尽可能把gs做小</span><span class="ln ">Ls：同一时钟域，任意两个有逻辑关联关系的路径最大skew。分析timing时更多关注ls</span></code></pre></div>
+<p>这段话是整门课最重要的一句，但&quot;任意两个&quot;这个说法容易误解。展开一下：</p>
+<p><strong>Global Skew（GS）</strong>：在一个时钟域内，取<strong>所有</strong>叶节点，找出最晚到达的和最早到达的，两者之差。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">GS = max(Latency) − min(Latency)   对域内所有叶节点</span></code></pre></div>
+<p><strong>Local Skew（LS）</strong>：只考虑<strong>有逻辑关联</strong>的两个叶节点——也就是一条真实时序路径的发射端和接收端。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">LS = |Latency(接收端) − Latency(发射端)|   对某一条具体路径</span></code></pre></div>
+<h3>为什么 CTS 阶段压 GS，时序分析看 LS</h3>
+<p>这是最反直觉的一点，但道理很清晰：</p>
+<p><strong>GS 是&quot;整体控制力&quot;的度量。</strong> CTS 阶段树还没建完，工具能做的是把整棵树的延迟分布压窄。GS 小，说明树建得均衡，后面无论哪条路径，两端的差都不会太离谱。</p>
+<p><strong>LS 才是真正影响时序的量。</strong> 时序检查的是具体路径：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Setup: 数据到达时间 &lt; 捕获时钟到达时间 − 建立时间</span></code></pre></div>
+<p>这里用的是<strong>这条路径两端的时钟延迟差</strong>，不是全局最差。可能出现这种情况：GS 很大（某个远端分支特别晚），但所有关键路径的 LS 都很小，时序照样全绿。</p>
+<p>反过来也成立：GS 很小（整体很均衡），但某条特定路径的 LS 很大（恰好这条路径的两端一个早一个晚），这条路径就违例。</p>
+<div class="pit"><div class="pit-h">常见坑 · 只看 GS 就宣布 CTS 通过</div><div class="pit-b"><p>GS 达标只是&quot;树建得均衡&quot;，不代表时序能过。必须另外跑 STA，按路径看 LS。</p>
+<p>正确顺序：GS 作为 CTS 的优化目标（工具内部会压），LS 作为时序验收的依据（你要自己查）。</p></div></div>
+<div class="note"><div class="note-h">一个常见误区</div><p>&quot;skew 越小越好&quot;是错的。</p>
+<p>skew 压到极小通常要靠插入大量缓冲器，代价是 latency 变长、功耗上升、面积增大。实际项目里是在 latency、skew、power 之间找平衡点。有些设计甚至<strong>故意</strong>给某些分支加延迟（见下面的 balance points），让它们和另一条路径对齐。</p></div>
+  
+</section>
+<section class="ch" id="latency-target" data-ch="latency-target">
+  <div class="ch-h"><span class="ch-n">03</span><h2>Latency 达标怎么判断</h2></div>
+  <p>原始资料给了一个具体例子：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">target_latency      DCLK     850ps</span><span class="ln ">target_skew</span><span class="ln ">如果latency低于target latency， 需要垫tree</span><span class="ln ">如果latency高于target latency 需要分析为什么latency变得这么长</span></code></pre></div>
+<p>这段话逻辑很实用，但要理解&quot;为什么低也要修&quot;。</p>
+<h3>Latency 偏低为什么要&quot;垫tree&quot;</h3>
+<p>看起来&quot;延迟小是好事&quot;，但在多时钟设计里不是。</p>
+<p>假设设计有两个时钟域 A 和 B，需要它们之间有数据交互。如果 A 的 latency 是 300 ps，B 的 latency 是 850 ps，那么从 A 到 B 的路径就要多等 550 ps，时序极难收敛。</p>
+<p>所以项目会规定一个<strong>目标延迟（target latency）</strong>，让所有相关时钟都对齐到这个值。某个时钟延迟不够，就要<strong>故意加缓冲器把它垫长</strong>——这就是&quot;垫 tree&quot;。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 给某个 pin 单独做长 latency（正数 = 做长）</span><span class="ln ">set_clock_balance_points -clock [get_clocks CLK] -delay 50 \</span><span class="ln ">    -balance_points [get_pins U2/CLK]</span><span class="ln "> </span><span class="ln cmt"># 做短 latency（负数 = 做短）</span><span class="ln ">set_clock_balance_points -clock [get_clocks CLK] -delay -200 \</span><span class="ln ">    -balance_points [get_pins U2/CLK]</span></code></pre></div>
+<p><strong>注意这里 delay 的正负号含义</strong>：正数表示&quot;这条路径要比基准晚 50 ps&quot;，负数表示&quot;早 200 ps&quot;。这是相对量，不是绝对值。</p>
+<h3>Latency 偏高怎么查</h3>
+<p>原始资料给了三个排查方向，都很实用：</p>
+<ol><li><strong>找最长路径并高亮</strong>：看是否有 detour（绕路）或兜圈。物理距离远的两个点之间建树，延迟必然大。</li><li><strong>看 latency 报告</strong>：<code>rpts/clock_latency.rpt.gz</code>，找哪一段 delay 特别大。通常是 net delay 大（线太长）而不是 cell delay 大。</li><li><strong>看是否插了过多缓冲器</strong>：约束太严格（比如 skew 目标定得过小）会逼工具堆缓冲器，延迟叠加。</li></ol>
+<h3>调整方案</h3>
+<div class="tbl"><table><thead><tr><th>情况</th><th>方案</th></tr></thead><tbody><tr><td>物理距离太远</td><td>手动 bound sink，把远端负载分配到就近的缓冲器</td></tr><tr><td>需要缩短</td><td><code>set_clock_balance_points -delay -200</code></td></tr><tr><td>需要加长</td><td><code>set_clock_balance_points -delay +200</code></td></tr><tr><td>约束过严导致堆 buffer</td><td>放宽 skew 目标，重新建树</td></tr></tbody></table></div>
+  
+</section>
+<section class="ch" id="ndr" data-ch="ndr">
+  <div class="ch-h"><span class="ch-n">04</span><h2>NDR：为什么时钟线要用&quot;非默认规则&quot;</h2></div>
+  <p>原始资料的说明是：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">什么是NDR： Not Default Routing Rule   非默认绕线规则</span><span class="ln ">针对cts tree的部分的走线单独设置绕线规则，  宽度和间距</span><span class="ln ">2W2S  2倍的宽度width  2倍的间距spacing</span><span class="ln ">2W1S</span><span class="ln ">4W2S</span><span class="ln ">创建ndr的方法</span></code></pre></div>
+<p>清楚，但没解释&quot;为什么&quot;。</p>
+<h3>三个理由</h3>
+<ol><li><strong>降低电阻</strong>：宽度加倍，电阻减半，延迟下降。时钟要送到全芯片，电阻影响巨大。</li><li><strong>提高抗干扰能力</strong>：间距加倍，耦合电容下降，串扰风险降低。时钟是全芯片翻转最频繁的网，最怕干扰。</li><li><strong>提高可靠性</strong>：更宽的线抗电迁移能力更强，不容易因长期电流而断线。</li></ol>
+<h3>2W2S 是什么意思</h3>
+<ul><li><code>2W</code> = 线宽是默认值的 <strong>2 倍</strong></li><li><code>2S</code> = 与相邻线的间距是默认值的 <strong>2 倍</strong></li></ul>
+<p>常见组合的选择依据：</p>
+<div class="tbl"><table><thead><tr><th>规则</th><th>适用场景</th><th>代价</th></tr></thead><tbody><tr><td><strong>1W2S</strong></td><td>一般时钟，主要防串扰</td><td>面积增加较小</td></tr><tr><td><strong>2W1S</strong></td><td>长距离主干，主要降电阻</td><td>抗串扰一般</td></tr><tr><td><strong>2W2S</strong></td><td>时钟主干，兼顾电阻和串扰（最常用）</td><td>面积和布线资源占用大</td></tr><tr><td><strong>4W2S</strong></td><td>顶层超长主干、大驱动</td><td>资源占用很大，只在必要时用</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 全树都上 4W2S</div><div class="pit-b"><p>NDR 越宽越占布线资源。给整棵树都设 4W2S，会导致时钟区域布线资源枯竭，数据网绕不出去，反而制造大量 DRC 和 short。</p>
+<p>合理做法是<strong>分层设置</strong>：主干（top 几层）用宽规则，叶支（靠近触发器）用默认或 1W2S。</p></div></div>
+  
+</section>
+<section class="ch" id="icg" data-ch="icg">
+  <div class="ch-h"><span class="ch-n">05</span><h2>ICG：门控时钟不只是&quot;省电开关&quot;</h2></div>
+  <p>原始资料说：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">clk gating： 门控时钟， 类似于一个与门，控制时钟信号的翻转，</span><span class="ln ">在不需要工作的时候，可以关闭某些path的时钟翻转，达到节省功耗目的</span></code></pre></div>
+<p>这个理解是对的，但 ICG（Integrated Clock Gating）在 CTS 里的角色比&quot;省电&quot;复杂得多。</p>
+<h3>ICG 在树里的三个身份</h3>
+<p><strong>身份一：负载（load）</strong>。ICG 本身是时钟树上的一个节点，它有自己的时钟输入脚，CTS 要把它当叶节点对待。</p>
+<p><strong>身份二：分叉点（branch point）</strong>。ICG 的输出驱动下游一批触发器，形成子分支。所以 ICG 的位置直接影响树的结构。</p>
+<p><strong>身份三：可克隆对象（clonable）</strong>。当某个 ICG 驱动的负载太多、或者位置不佳导致 DRV 问题时，可以<strong>克隆</strong>出多个副本，每个副本驱动一部分负载，改善扇出和延迟。</p>
+<p>原始资料给的两条命令正是对应&quot;身份三&quot;：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 允许 CTS 通过克隆 clock gate 来修复 DRV（扇出、转换时间超标）</span><span class="ln ">set_ccopt_property clone_clock_gates true</span><span class="ln "> </span><span class="ln cmt"># 允许通过克隆 ICG 来减少平衡冲突（多个分支抢同一个节点）</span><span class="ln ">set_ccopt_property clustering_clone_cells_to_reduce_balancing_conflicts true</span></code></pre></div>
+<div class="pit"><div class="pit-h">常见坑 · 无脑打开 clone</div><div class="pit-b"><p>克隆 ICG 会让时钟树的网表与原始 RTL 综合结果不一致，影响后续的 formal 检查（形式验证）和功耗分析。开启前要确认流程允许，并在交付时说明。</p>
+<p>另外克隆会增加 ICG 数量，功耗未必下降。</p></div></div>
+  
+</section>
+<section class="ch" id="shield" data-ch="shield">
+  <div class="ch-h"><span class="ch-n">06</span><h2>屏蔽（Shielding）：给关键网穿件外套</h2></div>
+  <p>原始资料：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">特殊保护的net</span><span class="ln ">shielding</span><span class="ln ">一般使用VSS，打在需要保护的net的上下track上</span></code></pre></div>
+<p><strong>做法</strong>：在受害网的上下（或左右）相邻 track 上，平行布一根接地线（VSS）。</p>
+<p><strong>原理</strong>：耦合电容是并联关系。加了屏蔽之后，受害网的耦合对象从&quot;旁边那根会翻转的信号线&quot;变成&quot;一根不动的地线&quot;。地线电位恒定，不会通过电容注入电荷，干扰就被&quot;吸&quot;到地上了。</p>
+<p><strong>代价</strong>：</p>
+<ul><li>每根被屏蔽的网要占用 2 条额外 track；</li><li>屏蔽线本身要接到地网，增加布线复杂度；</li><li>大面积屏蔽可能造成局部资源不足。</li></ul>
+<p>所以只对<strong>真正关键</strong>的网做屏蔽：时钟主干、复位、敏感模拟信号。</p>
+  
+</section>
+<section class="ch" id="transition" data-ch="transition">
+  <div class="ch-h"><span class="ch-n">07</span><h2>Clock Transition 超标怎么修</h2></div>
+  <p>原始资料给了两步法：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">clock_transtion怎么修复</span><span class="ln ">1、根据rpt的net，找到对应net</span><span class="ln ">2、查看电路图，找到net前后一级的buf，在net中间插buffer</span></code></pre></div>
+<p>原理：转换时间（transition）本质是 RC 充电太慢。在中间插一个缓冲器，等于把一段长 RC 拆成两段短 RC，每段充电更快，边沿更陡。</p>
+<p>但要注意两点：</p>
+<ol><li><strong>插 buffer 会增加 latency</strong>：因为多了一级门延迟。所以要权衡：transition 改善了，latency 变长了，可能超出 target。</li><li><strong>插的位置要对</strong>：应该插在&quot;RC 负担最重&quot;的那一段中间，不是随便插。通常看报告里 net 的负载分布。</li></ol>
+  
+</section>
+<section class="ch" id="post-check" data-ch="post-check">
+  <div class="ch-h"><span class="ch-n">08</span><h2>CTS 之后必须检查的五项</h2></div>
+  <p>原始资料列了检查项，但顺序和判据需要补全。</p>
+<h3>检查一：DRV（设计规则违例）</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_ccopt_clock_tree</span></code></pre></div>
+<p>看什么：</p>
+<ul><li><strong>max transition</strong>：边沿是否过缓</li><li><strong>max capacitance</strong>：负载是否过重</li><li><strong>max fanout</strong>：单个缓冲器驱动是否过多</li></ul>
+<p>任一项超标，说明树的结构有问题，需要调整（加 buffer、克隆 ICG、改 NDR）。</p>
+<h3>检查二：Latency 是否达到 target</h3>
+<p>这是原始资料标为&quot;重点检查&quot;的一项。</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_clock_timing -type latency -clock FCLK -nosplit</span></code></pre></div>
+<p>判断逻辑见上文「Latency 达标怎么判断」。</p>
+<h3>检查三：Setup 和 Hold</h3>
+<p>原始资料给了一个重要提示：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">3、检查setup和hold（可选，可以放到optcts再检查）</span><span class="ln ">此时clock不是idea的，是真实的，需要检查hold</span></code></pre></div>
+<p><strong>这句话的关键是&quot;clock 不是 ideal 的&quot;</strong>。</p>
+<p>CTS 之前做时序分析时，时钟被当作理想网络：延迟为 0（或统一值），skew 为 0。CTS 之后，时钟有了真实的延迟和偏斜，<strong>所有时序数字都要重算</strong>。</p>
+<p>尤其是 <strong>hold</strong>：CTS 之前 hold 通常很容易过（因为时钟理想），CTS 之后 hold 违例会冒出来。原因是 hold 检查的两个时钟边沿在同一个周期，skew 直接进入计算：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">Hold 余量 = Latency(捕获) − Latency(发射) − 数据路径延迟 − hold 时间</span></code></pre></div>
+<p>如果捕获端比发射端早到（负 skew），hold 余量就被吃掉。</p>
+<h3>检查四：时钟树结构合理性</h3>
+<p>看树的分支是否均衡、是否有异常长的单支、是否有扇出特别大的节点。</p>
+<h3>检查五：时钟覆盖完整性</h3>
+<p>确认所有应该在树上的叶节点都上了树。检查方法就是原始资料里的 sink 统计（见下节）。</p>
+  
+</section>
+<section class="ch" id="sink-count" data-ch="sink-count">
+  <div class="ch-h"><span class="ch-n">09</span><h2>Sink 统计：用脚本查时钟覆盖</h2></div>
+  <p>原始资料给了一组查询命令：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># 得到所有 clock tree 的名字</span><span class="ln ">get_ccopt_clock_trees *</span><span class="ln "> </span><span class="ln cmt"># 得到 HCLK 的所有 sink 名字</span><span class="ln ">get_ccopt_clock_tree_sinks * -in_clock_tree HCLK</span><span class="ln "> </span><span class="ln cmt"># 获取 test_clk 的 sink 点数量</span><span class="ln ">llength [get_ccopt_clock_tree_sinks * -in_clock_trees test_clk]</span></code></pre></div>
+<p>注意第三条命令里有个细节：<code>-in_clock_trees</code>（复数）和 <code>-in_clock_tree</code>（单数）是两个不同选项。前者用于按名字集合过滤，后者指定单个树。用错会得到空结果或报错。</p>
+<h3>为什么必须统计 sink 数量</h3>
+<p>因为<strong>&quot;时钟没上树&quot;是最隐蔽的错误</strong>。</p>
+<p>一个触发器如果在约束里被漏掉了，CTS 根本不会给它建时钟路径。工具不会报错——它只是&quot;没看见&quot;这个负载。结果就是这个触发器没有时钟，功能直接错。</p>
+<p>所以必须做集合对比：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">应该上树的 sink 集合（从约束和网表推出来）</span><span class="ln ">        vs.</span><span class="ln ">实际上树的 sink 集合（get_ccopt_clock_tree_sinks 查出来）</span></code></pre></div>
+<p>两个集合必须完全一致。差集里的每一个对象都要有解释：是被有意排除了（比如测试逻辑），还是漏了。</p>
+<h3>原始资料的脚本要求</h3>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">实现一个脚本  count_sinks.tcl，写完之后可以 source count_sinks.tcl</span><span class="ln ">1.0版本：自动统计出所有的clk的sink点数量</span><span class="ln ">输出：my_clk is .... sinks / div_clk is ...sinks / test_clk is ... sinks</span><span class="ln ">2.0版本：自动根据clk数量不同，自动统计每个clk的数量</span></code></pre></div>
+<p>这是一个很好的练手题目。下面给一个可运行的实现思路：</p>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln cmt"># count_sinks.tcl —— 统计每个时钟树的 sink 数量</span><span class="ln cmt"># 用法： source count_sinks.tcl</span><span class="ln "> </span><span class="ln ">set trees [get_ccopt_clock_trees *]</span><span class="ln "> </span><span class="ln ">if {[llength $trees] == 0} {</span><span class="ln ">    puts &quot;WARNING: 没有找到任何 clock tree，检查约束是否加载&quot;</span><span class="ln ">} else {</span><span class="ln ">    puts &quot;==========================================&quot;</span><span class="ln ">    puts &quot;时钟树 sink 统计&quot;</span><span class="ln ">    puts &quot;==========================================&quot;</span><span class="ln ">    foreach t $trees {</span><span class="ln ">        set name [get_object_name $t]</span><span class="ln ">        set sinks [get_ccopt_clock_tree_sinks * -in_clock_tree $name]</span><span class="ln ">        set n [llength $sinks]</span><span class="ln ">        puts [format &quot;%-20s : %6d sinks&quot; $name $n]</span><span class="ln ">    }</span><span class="ln ">    puts &quot;==========================================&quot;</span><span class="ln ">}</span></code></pre></div>
+<div class="tip"><div class="tip-h">小技巧</div><p>只打印实际数量，你还是不知道对不对。更实用的版本是：把预期数量写进一张对照表（或者从另一份报告读），脚本同时打印&quot;实际 / 预期 / 差值&quot;。差值非 0 的地方就是要查的地方。</p></div>
+  
+</section>
+<section class="ch" id="frequency" data-ch="frequency">
+  <div class="ch-h"><span class="ch-n">10</span><h2>时钟频率与周期：一个必须会算的换算</h2></div>
+  <p>原始资料最后有一段：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">时钟的频率和时钟的周期是倒数关系</span><span class="ln ">时钟频率 = 1/时钟周期</span><span class="ln ">已知时钟周期是1000ps，计算时钟的频率</span><span class="ln ">频率 = 1s/1000ps      1s=1x10的9次方ps</span><span class="ln ">1Ghz = 1000Mhz</span></code></pre></div>
+<p>这是基础但容易算错的换算。把单位关系理清楚：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">1 s   = 10^9 ns = 10^12 ps</span><span class="ln ">1 GHz = 10^9 Hz</span><span class="ln ">1 GHz 的周期 = 1 / 10^9 s = 10^-9 s = 1000 ps</span></code></pre></div>
+<p>所以：</p>
+<div class="tbl"><table><thead><tr><th>周期</th><th>频率</th></tr></thead><tbody><tr><td>1000 ps</td><td>1 GHz</td></tr><tr><td>500 ps</td><td>2 GHz</td></tr><tr><td>2000 ps</td><td>500 MHz</td></tr><tr><td>2500 ps</td><td>400 MHz</td></tr><tr><td>100 ps</td><td>10 GHz</td></tr></tbody></table></div>
+<div class="note"><div class="note-h">记住这个锚点</div><p><strong>1 GHz = 1000 ps 周期。</strong> 其他都可以按比例推：</p>
+<ul><li>周期减半 → 频率加倍</li><li>周期 ×2 → 频率 ÷2</li></ul>
+<p>例：周期 400 ps → 1000/400 = 2.5 GHz。</p></div>
+  
+</section>
+<section class="ch" id="lab" data-ch="lab">
+  <div class="ch-h"><span class="ch-n">11</span><h2>动手：读一份 CTS 报告</h2></div>
+  <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>从三个数字判断 CTS 是否可交付</div><div class="lab-b"><p>假设你拿到一份 CTS 完成后的报告，关键数字如下（合成的教学数据）：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">时钟域       target_latency   actual_latency   GS      LS(最差路径)</span><span class="ln ">DCLK         850 ps           852 ps           38 ps   22 ps</span><span class="ln ">SCLK         850 ps           1240 ps          95 ps   110 ps</span></code></pre></div>
+<p>WNS = -0.09 ns（SCLK 域，setup）</p>
+<p>请回答：</p>
+<ol><li>DCLK 的 latency 是 852 ps，target 是 850 ps，这个偏差要不要处理？</li><li>SCLK 的 latency 超出 target 390 ps，优先怀疑什么？说出两个最可能的原因。</li><li>SCLK 的 GS 是 95 ps、LS 是 110 ps。为什么 LS 会大于 GS？这说明了什么？</li><li>如果你要缩短 SCLK 的 latency，用哪条命令？参数写多少？</li></ol></div></div>
+<div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>Global Skew 和 Local Skew 的区别是什么？</div>
+  <div class="q-a">GS 是时钟域内所有叶节点的最晚减最早；LS 只取有逻辑关联的一对发射/接收端的延迟差。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么 CTS 阶段压 GS，而时序验收看 LS？</div>
+  <div class="q-a">GS 反映整棵树的均衡程度，是 CTS 的优化目标；真正影响某条路径时序的是这条路径两端的延迟差，即 LS。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>Latency 低于 target 为什么也要修？</div>
+  <div class="q-a">多时钟域需要对齐延迟，某个时钟太短会导致跨域路径时序难收敛，所以要&quot;垫 tree&quot;故意加长。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>set_clock_balance_points 的 delay 参数正负号分别表示什么？</div>
+  <div class="q-a">正数表示把该点做长（延迟增加），负数表示做短（延迟减少），是相对基准的偏移量。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>NDR 的 2W2S 表示什么？为什么时钟要用宽线宽间距？</div>
+  <div class="q-a">线宽 2 倍、间距 2 倍。宽降低电阻和电迁移风险，间距降低耦合电容和串扰。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么 1 GHz 的时钟周期是 1000 ps？</div>
+  <div class="q-a">周期 = 1/频率 = 1/10^9 s = 10^-9 s，而 1 s = 10^12 ps，故为 1000 ps。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>CTS 之后为什么 hold 违例会变多？</div>
+  <div class="q-a">CTS 前时钟被视为理想（延迟为 0、skew 为 0），CTS 后有了真实延迟差，负 skew 会直接吃掉 hold 余量。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>sink 统计为什么必须做？</div>
+  <div class="q-a">漏掉约束的触发器不会被建时钟路径，工具也不报错，只能靠&quot;应上树集合&quot;与&quot;实际在树集合&quot;对比发现。</div>
+</div></div>
+  
+</section>
+<section class="ch" id="tree-shapes" data-ch="tree-shapes">
+  <div class="ch-h"><span class="ch-n">12</span><h2>时钟树长什么样：四种基本结构</h2></div>
+  <p>前面说了&quot;要建一棵树&quot;，但树有很多种形状。选错结构，后面无论怎么调参数都吃力。</p>
+<h3>① 单级星形（Single-Level Star）</h3>
+<p>一个根缓冲器直接驱动所有叶节点。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">        ┌── FF1</span><span class="ln ">   BUF ─┼── FF2</span><span class="ln ">        ├── FF3</span><span class="ln ">        └── ...（几十上百个）</span></code></pre></div>
+<p><strong>适用</strong>：叶节点很少（十几二十个）、面积很小。</p>
+<p><strong>问题</strong>：扇出太大。一个缓冲器驱动上百个负载，边沿会被拖成斜坡，transition 超标。所以现实中很少用纯星形。</p>
+<h3>② 多级树（Multi-Level Tree）</h3>
+<p>层层分叉，每级驱动少量下级。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">              ┌── BUF ─┬── FF1</span><span class="ln ">        ┌─────┤        └── FF2</span><span class="ln ">   ROOT ─┤     └── BUF ─┬── FF3</span><span class="ln ">        │              └── FF4</span><span class="ln ">        └───── BUF ─┬── FF5</span><span class="ln ">                     └── FF6</span></code></pre></div>
+<p><strong>适用</strong>：绝大多数设计。这是 CTS 工具的默认产出。</p>
+<p><strong>关键参数</strong>：每级扇出多少、分几级。扇出大则级数少、延迟短但边沿缓；扇出小则级数多、边沿好但延迟长。</p>
+<h3>③ H-Tree（H 形树）</h3>
+<p>一种几何上刻意对称的结构，形如字母 H 的递归。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">   ┌─────────────┐</span><span class="ln ">   │             │</span><span class="ln ">───┼─────────────┼───</span><span class="ln ">   │             │</span><span class="ln ">   └─────────────┘</span></code></pre></div>
+<p><strong>适用</strong>：对偏斜要求极高的场景（比如高速接口、时钟网格）。</p>
+<p><strong>优点</strong>：几何对称意味着到各叶节点的路径长度接近，skew 天然小。</p>
+<p><strong>缺点</strong>：需要预留专门的布线通道，占用大量资源；而且只适合叶节点分布规整的情况。</p>
+<h3>④ 时钟网格（Clock Mesh / Grid）</h3>
+<p>不建树，直接铺一张网格，所有叶节点从网格就近取时钟。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">  ──┬──┬──┬──┬──┬──</span><span class="ln ">    │  │  │  │  │</span><span class="ln ">  ──┼──┼──┼──┼──┼──</span><span class="ln ">    │  │  │  │  │</span><span class="ln ">  ──┴──┴──┴──┴──┴──</span></code></pre></div>
+<p><strong>优点</strong>：skew 极小（网格上任意两点电位几乎相同），抗 PVT 变化能力强。</p>
+<p><strong>缺点</strong>：功耗极高（整张网格每个周期都在充放电）、面积占用大、布线资源消耗巨大。</p>
+<p><strong>适用</strong>：高性能 CPU 的关键时钟域，普通设计用不起。</p>
+<div class="note"><div class="note-h">怎么选</div><p>实际项目里 95% 的情况用<strong>多级树</strong>。H-tree 和 mesh 是特殊情况：</p>
+<ul><li>叶节点分布极规整 + skew 要求极严 → 考虑 H-tree；</li><li>高性能处理器核心 + 愿意付功耗代价 → 考虑 mesh；</li><li>其余 → 多级树 + 调参数。</li></ul>
+<p>工具默认给你多级树，你需要做的是<strong>判断这棵树建得对不对</strong>，而不是自己设计形状。</p></div>
+  
+</section>
+<section class="ch" id="pre-cts" data-ch="pre-cts">
+  <div class="ch-h"><span class="ch-n">13</span><h2>CTS 之前必须确认的五件事</h2></div>
+  <p>CTS 是&quot;在已有基础上建树&quot;，如果基础有问题，树建得再好也没用。这五项必须在跑 CTS 之前确认。</p>
+<h3>① 布局合法且稳定</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">checkPlace</span></code></pre></div>
+<p><strong>为什么</strong>：CTS 会根据单元的实际位置计算树的结构。如果布局还有大量重叠、非法位置，工具算出的位置是错的，树也会建歪。</p>
+<p><strong>判据</strong>：无 overlap、无 unplaced、无 VT 不匹配。</p>
+<h3>② 时钟定义完整</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_clocks</span></code></pre></div>
+<p><strong>要确认</strong>：</p>
+<ul><li>每个时钟域的源在哪（是 port 还是内部引脚）；</li><li>周期、波形（占空比）对不对；</li><li>生成时钟（分频、倍频）的源和关系定义了吗；</li><li>有没有时钟完全没定义（会导致那部分路径&quot;无约束&quot;）。</li></ul>
+<div class="pit"><div class="pit-h">常见坑 · 漏定义的时钟最危险</div><div class="pit-b"><p>一个时钟如果 SDC 里根本没定义，CTS 不会给它建树——那些触发器就没有时钟路径。</p>
+<p><strong>工具不会报错</strong>，它只是&quot;没看见&quot;。结果就是这部分逻辑上电后不工作。</p>
+<p>所以必须做集合对比：网表里所有时钟引脚 vs SDC 里定义的时钟。</p></div></div>
+<h3>③ 时钟例外（exceptions）已就位</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">report_exceptions</span></code></pre></div>
+<p><strong>要确认</strong>：</p>
+<ul><li>false path 是不是真的不用检查（写错了会漏掉真实路径）；</li><li>multicycle path 的周期数对不对；</li><li>有没有 <code>set_disable_timing</code> 把不该断的路径断了。</li></ul>
+<p><strong>为什么在 CTS 前确认</strong>：CTS 会根据例外调整优化重点。例外错了，工具优化的方向就错了。</p>
+<h3>④ 时序库与 RC 技术文件对应正确</h3>
+<p><strong>要确认</strong>：MMMC 里每个视图引用的 Liberty、RC tech 是不是同一套发布。混用会导致延迟计算错误。</p>
+<h3>⑤ 电源网络已就位</h3>
+<div class="code"><div class="code-h"><span class="code-lang">tcl</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">verifyConnectivity -net {VDD VSS}</span></code></pre></div>
+<p><strong>为什么</strong>：CTS 要插大量缓冲器，这些缓冲器需要电源。如果电源网格还没打好，新插的单元会悬空。</p>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li><code>checkPlace</code> 无 overlap、无 unplaced</li><li><code>report_clocks</code> 覆盖所有时钟域，生成时钟关系正确</li><li><code>report_exceptions</code> 的 false path / multicycle 都核对过</li><li>MMMC 各视图的库和 RC tech 来自同一发布</li><li><code>verifyConnectivity</code> 无 floating</li></ul></div>
+  
+</section>
+<section class="ch" id="tradeoff" data-ch="tradeoff">
+  <div class="ch-h"><span class="ch-n">14</span><h2>时钟树的三个代价：latency、skew、power 不可兼得</h2></div>
+  <p>前面讲了三个指标，但没说它们<strong>互相冲突</strong>。这一节把冲突关系讲清楚，因为实际调参就是在三者之间取舍。</p>
+<h3>冲突一：压 skew 会让 latency 变长</h3>
+<p><strong>为什么</strong>：压 skew 需要让所有分支的延迟接近。做法通常是给&quot;跑得快&quot;的分支<strong>故意加延迟</strong>（多插缓冲器、绕远路）。</p>
+<p>结果：最慢的那条分支没变，但整体延迟被拉长了。</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">初始：分支 A 到 800ps，分支 B 到 900ps    → skew = 100ps，latency = 900ps</span><span class="ln ">压后：分支 A 加延迟到 890ps                → skew = 10ps，latency = 900ps</span></code></pre></div>
+<p>这个例子 latency 没变，但如果 A 原本只有 600ps：</p>
+<div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">初始：A=600ps，B=900ps  → skew=300ps，latency=900ps</span><span class="ln ">压后：A 加到 890ps      → skew=10ps，latency=900ps（多插了很多缓冲器）</span></code></pre></div>
+<p><strong>代价</strong>：为了把 A 从 600 拉到 890，插了一堆缓冲器——<strong>功耗上升、面积增大</strong>。</p>
+<h3>冲突二：压 latency 会让 skew 变差</h3>
+<p>反过来，如果为了缩短 latency 而减少缓冲器级数，各分支的延迟差异会变大（因为少了调节手段）。</p>
+<h3>冲突三：加大驱动（压 transition）会增加功耗</h3>
+<p>驱动强的缓冲器，输入电容大，时钟树整体的动态功耗上升。</p>
+<p>时钟树的功耗通常占全芯片动态功耗的 <strong>20%–40%</strong>，所以这个代价很实在。</p>
+<h3>怎么取舍</h3>
+<div class="tbl"><table><thead><tr><th>优先级</th><th>场景</th><th>做法</th></tr></thead><tbody><tr><td><strong>latency 优先</strong></td><td>多时钟域需要对齐</td><td>先定 target latency，再压 skew</td></tr><tr><td><strong>skew 优先</strong></td><td>单时钟域、时序紧张</td><td>尽量压 skew，接受 latency 变长</td></tr><tr><td><strong>power 优先</strong></td><td>低功耗设计</td><td>减少缓冲器级数，接受 skew 稍大</td></tr></tbody></table></div>
+<div class="pit"><div class="pit-h">常见坑 · 三个指标都想最优</div><div class="pit-b"><p>新手常想&quot;我要 skew 最小、latency 最短、功耗最低&quot;。</p>
+<p><strong>这在物理上不可能</strong>——它们共享同一组资源（缓冲器、布线、驱动能力）。加一个必然牺牲另一个。</p>
+<p>正确心态：先明确这个设计的<strong>首要目标</strong>是什么，然后接受其他两项的合理退化。</p></div></div>
+  
+</section>
+<section class="ch" id="failure-modes" data-ch="failure-modes">
+  <div class="ch-h"><span class="ch-n">15</span><h2>CTS 的五种常见失效模式</h2></div>
+  <p>跑完 CTS，报告可能&quot;看起来还行&quot;但实际有问题。这五种是最常见的。</p>
+<h3>① 时钟没到（missing sink）</h3>
+<p>某些触发器完全没接上时钟。</p>
+<p><strong>怎么发现</strong>：sink 数量对比（应上树 vs 实际在树）。</p>
+<p><strong>原因</strong>：约束漏了、时钟定义不全、或者被 <code>set_disable_timing</code> 误断。</p>
+<h3>② 时钟到了但延迟极大（long branch）</h3>
+<p>某条分支的 latency 远大于其他分支。</p>
+<p><strong>怎么发现</strong>：看 latency 分布，找离群值。</p>
+<p><strong>原因</strong>：物理距离远（单元分布在芯片两端）、约束太严导致堆了过多缓冲器。</p>
+<h3>③ 偏斜看起来小但时序不过（hidden skew）</h3>
+<p>GS 很小，但某些路径的 LS 很大。</p>
+<p><strong>怎么发现</strong>：必须跑 STA，按路径看。</p>
+<p><strong>原因</strong>：GS 是全局统计，会掩盖局部异常。某条路径的收发两端恰好一个在最早分支、一个在最晚分支。</p>
+<h3>④ Transition 超标但被忽略</h3>
+<p>时钟边沿太缓，但没超过 <code>max_transition</code> 的设定值（因为约束设得太松）。</p>
+<p><strong>怎么发现</strong>：对比实际 transition 和工艺库推荐的典型值，不要只看是否违例。</p>
+<p><strong>后果</strong>：边沿缓会导致触发器采样点漂移、短路功耗上升。</p>
+<h3>⑤ 树上有非法单元</h3>
+<p>CTS 插入了被禁用的单元（dontuse list 里的），或者用了不该用的驱动强度。</p>
+<p><strong>怎么发现</strong>：<code>checkDesign</code> 或检查单元类型。</p>
+<p><strong>后果</strong>：签核时被判不合格，要重做。</p>
+<div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>sink 数量与预期一致，无缺失</li><li>latency 分布无离群值（最长分支不超过最短的 1.5 倍）</li><li>GS 和 LS 都查过，不只看 GS</li><li>transition 实际值接近库推荐值，不只是&quot;没违例&quot;</li><li>树上没有 dontuse 单元</li></ul></div>
+  
+</section>
+<section class="ch" id="source-appendix" data-ch="source-appendix">
+  <div class="ch-h"><span class="ch-n">16</span><h2>原始资料对照</h2></div>
+  <p>以下为《04 innovus项目(1).docx》第六节的原文，按原顺序保留，含 4 张随文原图。上面的讲解是对这些要点的展开。</p>
+<h3 id="source-01">原文：时钟树基础、特殊网络与保护</h3>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">六、CTS 时钟树综合</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、基本概念</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">latency:   时钟的传播延迟</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">skew: 时钟延迟的差值</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">分为Global Skew（工具更关注）和Local skew</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Gs：同一时钟域，任意两个路径的最大skew。CTS阶段工具更关注的是gs，尽可能把gs做小；</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Ls：同一时钟域，任意两个有逻辑关联关系的路径最大skew，分析timing时更多关注ls。</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">什么是NDR： Not Default Routing Rule   非默认绕线规则</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">针对cts tree的部分的走线单独设置绕线规则，  宽度和间距</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2W2S  2倍的宽度width  2倍的间距spacing</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2W1S</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4W2S</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">创建ndr的方法</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-38.png" data-fig="innovus-doc-38.png"><img src="/fig/innovus-doc-38.png" alt="原文图 38 · 时钟树基础、特殊网络与保护" loading="lazy" decoding="async"></a><figcaption>原文图 38 · 时钟树基础、特殊网络与保护</figcaption></figure>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">clk gating： 门控时钟， 类似于一个与门，控制时钟信号的翻转，在不需要共做的时候，可以关闭某些path的时钟翻转，达到节省功耗目的</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">三种特殊的pin的设置</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-39.png" data-fig="innovus-doc-39.png"><img src="/fig/innovus-doc-39.png" alt="原文图 39 · 时钟树基础、特殊网络与保护" loading="lazy" decoding="async"></a><figcaption>原文图 39 · 时钟树基础、特殊网络与保护</figcaption></figure>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">特殊保护的net</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">shielding</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">一般使用VSS，打在需要保护的net的上下track上</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">clock_transtion怎么修复</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、根据rpt的net，找到对应net</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、查看电路图，找到net前后一级的buf，在net中间插buffer</p></div>
-  
-</section>
-<section class="ch" id="source-02" data-ch="source-02">
-  <div class="ch-h"><span class="ch-n">02</span><h2>CTS 约束与 Sink 统计</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、CTS的一些约束命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、设置某些pin的delay，做长latency或者做短latency       </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">delay为正数，表示要做长，delay为负数，表示要做短</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_clock_balance_points -clock [get_clocks CLK] -delay 50 -balance_points [get_pins U2/CLK]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、多个不同的时钟做平</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">create_clock_balance_group -objects {clk1 clk2 clk3} -name balance_group1 </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、clone ICG的开关</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">允许 CTS 通过 clone clock gates 来修复 DRV</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_ccopt_property clone_clock_gates true</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">允许 CTS 通过 clone clock gates 来缩短 delay</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_ccopt_property clustering_clone_cells_to_reduce_balancing_conflicts</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">true</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">获取sink点的信息</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">得到所有 clock tree 的名字</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">get_ccopt_clock_trees *</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">得到 HCLK 的所有 sink 名字</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">get_ccopt_clock_tree_sinks * -in_clock_tree HCLK</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">获取test_clk的sink点数量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">llength [get_ccopt_clock_tree_sinks * -in_clock_trees test_clk]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">实现一个脚本  count_sinks.tcl, 写完之后可以source   count_sinks.tcl    </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.0版本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">自动统计出所有的clk的sink点数量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">输出以下 结果：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">my_clk is .... sinks</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">div_clk is ...sinks</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">test_clk is ... sinks</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.0版本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">自动根据clk数量不同，自动统计每个clk的数量</p></div>
-  
-</section>
-<section class="ch" id="source-03" data-ch="source-03">
-  <div class="ch-h"><span class="ch-n">03</span><h2>CTS 后检查与延迟调整</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、cts之后的check</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、检查drv的情况</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_ccopt_clock_tree</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、检查latency是否达到要求（重点检查部分）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">target_latency      DCLK     850ps   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">target_skew</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果latency低于target latency， 需要垫tree</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果latency高于target latency 需要分析为什么latency变得这么长</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、检查setup和hold  （可选， 可以放到optcts再检查）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">此时clock不是idea的，是真实的，需要检查hold</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">分析的思路：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、找到最长的path， highlight 这条path， 看是否有dutor的情况    要不就是有兜圈，要不就是物理距离很远</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、查看latency的rpt(rpts/clock_latency.rpt.gz)， 分析哪一段delay很大， 例如netdelay 很大</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、查看path上是否是插了很多buf，导致delay叠加， 可能约束不合理，太严格导致</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">调整latency的方案：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">使用手动bound sink的方法，适用于物理距离太远的情况</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">使用该命令可以做短latency</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_clock_balance_points -clock [get_clocks CLK] -delay -200 -balance_points [get_pins U2/CLK]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报latency的命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_clock_timing  -type latency  -clock  FCLK  -nosplit </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">时钟的频率</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">时钟的频率和时钟的周期是倒数关系</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">时钟频率 =   1/时钟周期</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">已知时钟周期是1000ps ,计算时钟的频率  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">频率 = 1s/1000ps       1s=1x10的9次方ps   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1Ghz = 1000Mhz </p></div>
-  
-</section>
-<section class="ch" id="source-04" data-ch="source-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>通用 ECO 操作</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、通用的ECO</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">插入一个buffer或者inv</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ecoAddRepeater   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-cell   buf名字</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-loc   插入的buf的物理位置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-name  buf的实例名字     类似 fix_drv_0308_01 含义： 在3月8日，为了修复drv问题插入的第一个单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-net   在哪根net上插入单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-newNetName  插入单元连线的名字</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-term  在某个pin上插入单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除一个buf或inv</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ecoDeleteRepeater</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-inst {&lt;inst1&gt; &lt;inst2&gt;}  要删除的单元的ins名字</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-invPair  删除成对的inv</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">更换一个buf或者inv或cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ecoChangeCell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、报时序的方法以及highlight(重点掌握)</p></div>
-  
-</section>
-<section class="ch" id="source-05" data-ch="source-05">
-  <div class="ch-h"><span class="ch-n">05</span><h2>时序报告与布局检查</h2></div>
-  <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing使用方法</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报出setup的时序   默认只报一条</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -early </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报出hold的时序</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -late</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报多条</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -early   -nworst 3</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">指定pathgroup</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -early   -path_group  FCLK</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">显示clk的完整路径</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing  -path_type full_clock</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报时序，同时显示中间的net</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -net</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">手动报具体的path</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报出某个startpoint开始的时序</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing  -from  pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报到某个endpoint的时序</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -to  pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报从a到b结束的时序</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -from  start_pin   -to   end_pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果需要报和rpt里面一模一样的时序</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -from 起点 -to 终点 -through  穿过点</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">checkplace</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">主要检查整体的布局是否有问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例如是否有overlap的问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">是否有vt不match的问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">查看cts的结构</p></div>
+<h3 id="source-02">原文：CTS 约束与 Sink 统计</h3>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、CTS的一些约束命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、设置某些pin的delay，做长latency或者做短latency       </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">delay为正数，表示要做长，delay为负数，表示要做短</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_clock_balance_points -clock [get_clocks CLK] -delay 50 -balance_points [get_pins U2/CLK]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、多个不同的时钟做平</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">create_clock_balance_group -objects {clk1 clk2 clk3} -name balance_group1 </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、clone ICG的开关</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">允许 CTS 通过 clone clock gates 来修复 DRV</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_ccopt_property clone_clock_gates true</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">允许 CTS 通过 clone clock gates 来缩短 delay</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_ccopt_property clustering_clone_cells_to_reduce_balancing_conflicts</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">true</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">获取sink点的信息</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">得到所有 clock tree 的名字</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">get_ccopt_clock_trees *</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">得到 HCLK 的所有 sink 名字</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">get_ccopt_clock_tree_sinks * -in_clock_tree HCLK</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">获取test_clk的sink点数量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">llength [get_ccopt_clock_tree_sinks * -in_clock_trees test_clk]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">实现一个脚本  count_sinks.tcl, 写完之后可以source   count_sinks.tcl    </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1.0版本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">自动统计出所有的clk的sink点数量</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">输出以下 结果：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">my_clk is .... sinks</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">div_clk is ...sinks</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">test_clk is ... sinks</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2.0版本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">自动根据clk数量不同，自动统计每个clk的数量</p></div>
+<h3 id="source-03">原文：CTS 后检查与延迟调整</h3>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、cts之后的check</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、检查drv的情况</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_ccopt_clock_tree</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、检查latency是否达到要求（重点检查部分）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">target_latency      DCLK     850ps   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">target_skew</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果latency低于target latency， 需要垫tree</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果latency高于target latency 需要分析为什么latency变得这么长</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、检查setup和hold  （可选， 可以放到optcts再检查）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">此时clock不是idea的，是真实的，需要检查hold</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">分析的思路：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、找到最长的path， highlight 这条path， 看是否有dutor的情况    要不就是有兜圈，要不就是物理距离很远</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、查看latency的rpt(rpts/clock_latency.rpt.gz)， 分析哪一段delay很大， 例如netdelay 很大</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、查看path上是否是插了很多buf，导致delay叠加， 可能约束不合理，太严格导致</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">调整latency的方案：</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">使用手动bound sink的方法，适用于物理距离太远的情况</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">使用该命令可以做短latency</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">set_clock_balance_points -clock [get_clocks CLK] -delay -200 -balance_points [get_pins U2/CLK]</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报latency的命令</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_clock_timing  -type latency  -clock  FCLK  -nosplit </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">时钟的频率</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">时钟的频率和时钟的周期是倒数关系</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">时钟频率 =   1/时钟周期</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">已知时钟周期是1000ps ,计算时钟的频率  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">频率 = 1s/1000ps       1s=1x10的9次方ps   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">1Ghz = 1000Mhz </p></div>
+<h3 id="source-04">原文：通用 ECO 操作</h3>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、通用的ECO</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">插入一个buffer或者inv</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ecoAddRepeater   </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-cell   buf名字</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-loc   插入的buf的物理位置</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-name  buf的实例名字     类似 fix_drv_0308_01 含义： 在3月8日，为了修复drv问题插入的第一个单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-net   在哪根net上插入单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-newNetName  插入单元连线的名字</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-term  在某个pin上插入单元</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">删除一个buf或inv</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ecoDeleteRepeater</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-inst {&lt;inst1&gt; &lt;inst2&gt;}  要删除的单元的ins名字</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">-invPair  删除成对的inv</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">更换一个buf或者inv或cell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ecoChangeCell</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、报时序的方法以及highlight(重点掌握)</p></div>
+<h3 id="source-05">原文：时序报告与布局检查</h3>
+<div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing使用方法</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报出setup的时序   默认只报一条</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -early </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报出hold的时序</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -late</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报多条</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -early   -nworst 3</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">指定pathgroup</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -early   -path_group  FCLK</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">显示clk的完整路径</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing  -path_type full_clock</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报时序，同时显示中间的net</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -net</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">手动报具体的path</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报出某个startpoint开始的时序</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing  -from  pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报到某个endpoint的时序</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -to  pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">报从a到b结束的时序</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -from  start_pin   -to   end_pin</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果需要报和rpt里面一模一样的时序</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">report_timing -from 起点 -to 终点 -through  穿过点</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">checkplace</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">主要检查整体的布局是否有问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">例如是否有overlap的问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">是否有vt不match的问题</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">查看cts的结构</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-40.png" data-fig="innovus-doc-40.png"><img src="/fig/innovus-doc-40.png" alt="原文图 40 · 时序报告与布局检查" loading="lazy" decoding="async"></a><figcaption>原文图 40 · 时序报告与布局检查</figcaption></figure>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">查看电路图</p></div>
 <figure class="fig-img"><a class="fig-a" href="/fig/innovus-doc-41.png" data-fig="innovus-doc-41.png"><img src="/fig/innovus-doc-41.png" alt="原文图 41 · 时序报告与布局检查" loading="lazy" decoding="async"></a><figcaption>原文图 41 · 时序报告与布局检查</figcaption></figure>
@@ -106,14 +403,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-07-place/">← Place：标准单元布局、时序与利用率</a><a class="nav-btn" href="/lesson/03-09-route/">Route：布线引擎与短路、开路排查 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-07-place/">← 上一课<i>Place：布局三阶段、OCV 谱系与时序判据</i></a><a class="nav-btn next" href="/lesson/03-09-route/">下一课 →<i>Route：三种引擎、短路开路与串扰</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

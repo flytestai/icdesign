@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>布线溢出：从 GCell 边读懂拥塞热点 · 31l | IC 后端学院</title>
 <meta name="description" content="用 GCell 边的需求与容量算出溢出，再通过分层报告定位能验证的修复方向。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-01l-overflow">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,7 +50,7 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>布线溢出：从 GCell 边读懂拥塞热点</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>布线溢出：从 GCell 边读懂拥塞热点</b></div><div class="lesson-refbar">本页是「Placement / Setup 与 Hold」模块的参考阅读，不计入自动学习路线。<a href="/lesson/03-07-place/">回本模块主课 →</a><a href="/lesson/03-01-innovus-plan/#course-mainline">看阶段三课表</a></div>
     <div class="hero">
       <div class="hero-no">31l</div>
       <h1>布线溢出：从 GCell 边读懂拥塞热点</h1>
@@ -64,7 +64,8 @@
     </div>
     <article id="article" data-est-min="13"><section class="ch" id="gcell-edges" data-ch="gcell-edges">
   <div class="ch-h"><span class="ch-n">01</span><h2>先弄清容量算在哪里</h2></div>
-  <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-l.svg" data-fig="innovus-practice-l.svg"><img src="/fig/innovus-practice-l.svg" alt="原创教学示意图 · 两条 GCell 边要分别计算溢出" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 两条 GCell 边要分别计算溢出</figcaption></figure>
+  <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>布线溢出</strong> · 承接 Place 的拥塞图。上一讲看拥塞图定性判断，本讲给出定量算法：GCell 边上怎么算溢出、热区是需求涨还是容量被扣。</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-l.svg" data-fig="innovus-practice-l.svg"><img src="/fig/innovus-practice-l.svg" alt="原创教学示意图 · 两条 GCell 边要分别计算溢出" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 两条 GCell 边要分别计算溢出</figcaption></figure>
 <div class="note"><div class="note-h">原创专题</div><p>本讲参考钉钉目录第 16 项的主题独立编写，不转载原文、图或项目参数。边、报告、阈值与验收结果均为合成课堂样例，不是工具实测结果。</p></div>
 <p>全局布线把布局区域划分成 GCell 网格，相邻格子之间共用一条边。走线从一格到下一格，会占用过边资源。需求是全局布线估算的资源消耗；容量是扣除障碍、保留量等因素之后估计可用的资源。这里的计数单位叫“轨道等效资源”，不是导线长度或网络条数。<strong>溢出描述资源不足，不直接等于短路、开路或 DRC 违例。</strong> 两格共用的边只统计一次；从两端各做一次汇总会让相同缺口重复记账。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">                      north / possible detour</span><span class="ln ">                  +--------+--------+--------+</span><span class="ln ">                  | G(4,8) | G(5,8) | G(6,8) |</span><span class="ln ">                  +--------+--------+--------+</span><span class="ln ">    U_MEM0 side   | G(4,7) A G(5,7) B G(6,7) |   east</span><span class="ln ">                  +--------+--------+--------+</span><span class="ln ">                 A and B are vertical boundaries crossed east-west.</span></code></pre></div>
@@ -84,32 +85,32 @@
   
 </section>
 <section class="ch" id="lab-input" data-ch="lab-input">
-  <div class="ch-h"><span class="ch-n">04</span><h2>实验输入：热区是需求增加，还是容量被扣？</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>热区是需求涨了，还是容量被扣了</h2></div>
   <p>合成快照 <code>R04</code> 采用固定的 GCell 网格，局部窗口内查看 M4 东西向的 A、B 和北侧绕行边 C。报告按“原始轨道减宏阻挡及电源保留”定义净容量；同一条轨道至多计入一个扣减项。额外材料是一份样例阻挡登记表：宏边的 <code>OBS_M4_W</code> 是项目后加的临时施工保留区，不是不可碰的宏内建障碍；其外沿有两条轨道在当前交接版本已可释放，但发布前必须得到规则与电源负责人确认。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成报告 R04 / M4 / E-W / 轨道等效资源</span><span class="ln ">edge  from       to         raw  obs  pg  net-cap  demand  overflow</span><span class="ln ">A     G(4,7)     G(5,7)      14    3   1    10       13       3</span><span class="ln ">B     G(5,7)     G(6,7)      14    2   3     9        7       0</span><span class="ln ">C     G(4,8)     G(5,8)      14    1   1    12        8       0</span><span class="ln ">local: sum=3, max=3, positive_edges=1</span></code></pre></div>
   
 </section>
 <section class="ch" id="lab-change" data-ch="lab-change">
-  <div class="ch-h"><span class="ch-n">05</span><h2>修复实验：只释放获准的临时阻挡</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>只释放获准的临时阻挡</h2></div>
   <p>先在图上找到 A，再按报告复算 <code>14 - 3 - 1 = 10</code>；与 B、C 对照可知 A 同时有较高需求和偏低容量。接着把 A 的三个障碍资源与布置记录对齐：两条是过期的施工保留，一条须继续阻挡。选择只缩小临时阻挡边界；不删除宏的真实障碍、不改电源扣减、不改网表或宏位置。若两条轨道未获批准，这个实验分支不能进入生产；可以另立变更评估引脚分布或布局密度，而不是硬调容量报告。</p>
 <p>容量预计从 10 增至 12，若需求仍为 13，则残余溢出为 1。重跑时也可能出现局部改路，所以既要核对容量是否只在预期边上改变，还要确认需求去了哪里。本例的对照表假定其中一个单位需求移至 C 所在的替代路径；观察窗口外另有边，不能仅靠这三行推断全设计已清零。</p>
   
 </section>
 <section class="ch" id="lab-verify" data-ch="lab-verify">
-  <div class="ch-h"><span class="ch-n">06</span><h2>同设置复跑，并判断是否回退</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>同设置复跑，再判断要不要回退</h2></div>
   <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成对照 R04 -&gt; R05                  基线                   改后</span><span class="ln ">A  demand/capacity/overflow          13/10/3                12/12/0</span><span class="ln ">B  demand/capacity/overflow           7/ 9/0                 7/ 9/0</span><span class="ln ">C  demand/capacity/overflow           8/12/0                 9/12/0</span><span class="ln ">局部  sum / max / positive           3 / 3 / 1              0 / 0 / 0</span><span class="ln ">全域  sum / max / positive           7 / 3 / 4              4 / 2 / 3</span><span class="ln ">全域  估算线长 / 同视图 WNS            21.40 mm / -36 ps      21.52 mm / -38 ps</span></code></pre></div>
 <p>局部好转不等于可以签核。按本练习的筛选条件，估算线长增幅不超过 1%、同视图 WNS 恶化不超过 5 ps；这里分别约为 0.56% 和 2 ps，因此可保留候选进入下一轮评估。全域剩余 4 个单位溢出仍需跟踪，负 WNS 也不是已修复。后续需用项目的详细布线和时序流程复核，不能用课堂筛选阈值代替正式验收。</p>
 <ul><li>改前存 <code>R04</code>、规则版本、网格和路由设置，归档原阻挡边界及其责任人。</li><li>改后用同层范围、方向、容量口径和路由设置比较；查相邻通道、供电资源及全域差异。</li><li>若审批缺失、热点迁移到不可接受的位置或性能越界，恢复原边界及 <code>R04</code> 快照、以基线设置复跑并保留两组报告，不把旧缺口伪装成通过。</li></ul>
   
 </section>
 <section class="ch" id="report-sanity" data-ch="report-sanity">
-  <div class="ch-h"><span class="ch-n">07</span><h2>报告对比前先做三项一致性检查</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>对比报告前先做三项一致性检查</h2></div>
   <p>第一，固定边的身份。可用金属层和两个按固定顺序排列的相邻网格坐标对齐记录，不用热图像素或边昵称代替。如果改动改变了网格划分，原来的 A 和新的 A 未必表示同一条边，只能按共同物理窗口重做分析，不能直接逐行减数。第二，检查净容量能否由原始容量及扣减回算；若报告允许重叠扣减或还有未列出的影响项，就按实际工具口径辨别，不能用本算例的加减法硬凑。</p>
 <p>第三，把窗口和全域分别汇总，再判断局部收益是否真的保留。此例窗口中需求总量没有变，只是一部分从 A 转至 C；A 的容量增加才真正给窗口带来更多余量。若得到 A 清零而 C 新增溢出的结果，仍要按局部与全域分别合计，说明受影响的新通道是否关键。交接时附修订边界和每条边比较口径；只留一张颜色更淡的截图，下一个人无法区分容量真正恢复、网格改变，还是图例自动缩放。若复跑阶段不同，先补齐同阶段报告再决定是否保留变更。</p>
   
 </section>
 <section class="ch" id="review" data-ch="review">
-  <div class="ch-h"><span class="ch-n">08</span><h2>自检：总需求等于总容量就没问题吗？</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>总需求等于总容量就没问题吗</h2></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>边的需求为 12 和 4，容量都是 8，汇总需求等于容量，有溢出吗？</div>
   <div class="q-a">有，第一条边溢出 4，第二条溢出 0；应逐边截断再求和。</div>
@@ -123,13 +124,13 @@
   
 </section>
 <section class="ch" id="deep-lab-layer-pooling-trap" data-ch="deep-lab-layer-pooling-trap">
-  <div class="ch-h"><span class="ch-n">09</span><h2>独立深练：同一条边有上层余量，下层为什么仍溢出？</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>上层有余量，下层为什么还溢出</h2></div>
   <p><strong>模拟分层报告（单位：轨道等效资源）。</strong> 固定同一条 GCell 边、同一东西向过边方向。目标区域中，只有 <code>N7</code> 这一单位的需求获准换到 M6，且需要在边的两侧各完成一次合法换层；其余 M4 需求在本题均被端点接入或层约束锁定。候选 P 只有入口侧过孔位，候选 Q 两侧都找到合规的过孔位。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">模拟报告          M4 需求/容量   M6 需求/容量   两层合计需求/容量</span><span class="ln ">基线 / P 试算前   12/10          5/9            17/19</span><span class="ln ">Q 试跑后          11/10          6/9            17/19</span></code></pre></div>
 <p><strong>先独立交付。</strong> 分别算基线、Q 的逐层溢出和该边总溢出，指出合计列漏掉了什么。对 P 给出能否调剂的结论，对 Q 给出允许保留到下一轮还是已经清零的结论；另写出证明 <code>N7</code> 确实换层的最小证据。</p>
 <p><strong>标准判断。</strong> 基线 M4 溢出 2、M6 溢出 0，合计是 2；不能把 M6 的 4 个余量从 M4 的缺口中相减。P 只有一侧能换层，不能形成满足两端接入的完整路径。Q 实际迁走一单位后，M4 仍溢出 1、M6 溢出 0；可保留为下一轮候选，不能当作清零。合计列仍是 17/19，看不出这次改善。验算要保持同一物理边和固定方向。</p>
 <p><strong>验收与回退。</strong> 比对 <code>N7</code> 两侧的层转换、真实过边层和端到端连通，复跑分层报告并检查相邻边与过孔资源。若新增溢出、换层不合法或详细布线破坏接入，撤回候选、恢复基线走线并保留缺口；只有余量不构成放宽层限制的依据。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1" data-go="/lesson/03-07-place/">读完本篇 · 回本模块主课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -142,14 +143,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01k-latch-up/">← Latch-up：从寄生回路检查阱与衬底连接</a><a class="nav-btn" href="/lesson/03-01m-eco-commands/">ECO 命令：从局部修改到签核验收 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01h-timing-noise/">← 参考上一篇<i>按流程阶段诊断时序与噪声</i></a><a class="nav-btn next" href="/lesson/03-07-place/">回本模块主课 →<i>Place：布局三阶段、OCV 谱系与时序判据</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

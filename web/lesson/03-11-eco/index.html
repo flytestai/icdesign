@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ECO：DRV、时序、DRC 与签核问题 · 41 | IC 后端学院</title>
-<meta name="description" content="ECO 周期与工作内容；DRV 与 LVS；时序 ECO 与脚本交接；短路、开路和 DRC；功耗分析、IR Drop、EM 与 VSI。按《04 innovus项目(1).docx》原文顺序整理，保留原图。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<title>ECO：项目视角的六类修复与交接 · 41 | IC 后端学院</title>
+<meta name="description" content="ECO 为什么是 1-2 个月的长周期；六类修复内容（DRV、时序、short/open、DRC、功耗、VSI）各查什么改什么；FCT 出脚本与内部修到 0 的区别；吃脚本前后必须做什么。附原始资料对照。">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-11-eco">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,52 +50,177 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>ECO：DRV、时序、DRC 与签核问题</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>ECO：项目视角的六类修复与交接</b></div><div class="lesson-refbar">本页是「ChipFinish」模块的参考阅读，不计入自动学习路线。<a href="/lesson/03-14-chipfinish-handoff/">回本模块主课 →</a><a href="/lesson/03-01-innovus-plan/#course-mainline">看阶段三课表</a></div>
     <div class="hero">
       <div class="hero-no">41</div>
-      <h1>ECO：DRV、时序、DRC 与签核问题</h1>
+      <h1>ECO：项目视角的六类修复与交接</h1>
       <p class="hero-en">Engineering Change Order</p>
-      <p class="hero-sum">ECO 周期与工作内容；DRV 与 LVS；时序 ECO 与脚本交接；短路、开路和 DRC；功耗分析、IR Drop、EM 与 VSI。按《04 innovus项目(1).docx》原文顺序整理，保留原图。</p>
+      <p class="hero-sum">ECO 为什么是 1-2 个月的长周期；六类修复内容（DRV、时序、short/open、DRC、功耗、VSI）各查什么改什么；FCT 出脚本与内部修到 0 的区别；吃脚本前后必须做什么。附原始资料对照。</p>
       <div class="hero-meta">
-        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈8 分钟</span>
+        <span class="pill" title="按正常阅读速度估算的预计学习时长，用于防刷分校验">预计学习 ≈22 分钟</span>
         <span class="pill">课表学时 0</span>
-        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span>
+        <span class="pill tag">Innovus</span><span class="pill tag">40nm</span><span class="pill tag">项目实操</span><span class="pill tag">ECO</span>
       </div>
     </div>
-    <article id="article" data-est-min="8"><section class="ch" id="source-01" data-ch="source-01">
-  <div class="ch-h"><span class="ch-n">01</span><h2>ECO 周期与工作内容</h2></div>
-  <div class="note"><div class="note-h">资料来源</div><p>以下小节按《04 innovus项目(1).docx》原顺序收录。命令、用语及示例按原文保留；命令适用性以课程使用的工具版本与项目环境为准。</p></div>
+    <article id="article" data-est-min="22"><section class="ch" id="three-views" data-ch="three-views">
+  <div class="ch-h"><span class="ch-n">01</span><h2>先分清三种 ECO：这门课讲项目视角</h2></div>
+  <p>站内讲 ECO 的地方有三处，很容易混。先把边界划清：</p>
+<div class="tbl"><table><thead><tr><th>课</th><th>视角</th><th>回答什么问题</th></tr></thead><tbody><tr><td><strong>本课（41）</strong></td><td><strong>项目视角</strong></td><td>ECO 阶段整体在修什么、周期多长、和谁交接</td></tr><tr><td><a href="/lesson/03-01m-eco-commands/">ECO 常用命令</a></td><td>命令视角</td><td><code>ecoAddRepeater</code> / <code>ecoDeleteRepeater</code> / <code>ecoChangeCell</code> 怎么用</td></tr><tr><td><a href="/lesson/03-13-mmmc-eco-lab/">SPEF 回标与多场景 ECO</a></td><td>验收视角</td><td>多模式多工艺角下怎么证明改对了</td></tr></tbody></table></div>
+<p><strong>读的顺序建议</strong>：先看本课建立全局认识（ECO 是个 1–2 个月的长周期，不是「改几条线」），再去 31m 学具体命令，最后用 41b 的验收方法确认。</p>
+<div class="term open">
+  <div class="term-h"><span class="term-en">ECO</span><span class="term-zh">Engineering Change Order 工程变更</span></div>
+  <div class="term-b"><p>在已完成（或接近完成）的版图上做局部修改，用于修复时序、DRV、DRC、功能问题，而不重新跑完整流程。</p></div>
+</div>
+  
+</section>
+<section class="ch" id="why-long" data-ch="why-long">
+  <div class="ch-h"><span class="ch-n">02</span><h2>ECO 为什么是 1-2 个月的长周期</h2></div>
+  <p>原文第一句就给了一个令人印象深刻的事实，这句话本身就是最重要的信息。</p>
+<p><strong>为什么一个「局部修改」要一两个月</strong>？新手容易以为 ECO 就是「改几个 cell、连几根线」。实际不是。原因有四：</p>
+<p><strong>① 每一轮 ECO 都要跑完整验证。</strong> 改了一条线，走线变了 → 寄生变了 → 所有时序要重算；单元换了 → 布局变了 → 局部密度和拥塞要重查；新插了 buffer → DRC 和 LVS 要重跑。所以每一轮都是「小改动 + 全量验证」，一天能跑完的轮数有限。</p>
+<p><strong>② 问题是分批暴露的。</strong> 时序违例不是一次全暴露。第一轮修完可能又冒出新的一批（修 A 影响了 B），所以要反复迭代。</p>
+<p><strong>③ 多方交接。</strong> 原文提到的 FCT 负责出顶层 ECO 脚本，PV 部门需要一版 LVS 能过的数据。一个 ECO 要经过「发现 → 提工单 → 出脚本 → 吃脚本 → 验证 → 反馈」，每一环都有等待时间。</p>
+<p><strong>④ 后期改动风险高。</strong> 到了 ECO 阶段版图已接近冻结，任何改动都可能引入新问题，所以每次都要谨慎评估、完整回归，快不起来。</p>
+<div class="note"><div class="note-h">「每天需要起 eco 的 run」说明了什么</div><p>这句话说明 ECO 是<strong>按天迭代</strong>的：每天都有一轮新的 run，修一批、验证、第二天再来。</p>
+<p>这也解释了为什么 ECO 需要严格的可追溯性——几十轮下来如果没记录清楚「哪一轮改了什么」，出问题根本追不回来。</p></div>
+  
+</section>
+<section class="ch" id="source-01" data-ch="source-01">
+  <div class="ch-h"><span class="ch-n">03</span><h2>周期与内容总览</h2></div>
+  <p>原文这一段把周期和修复内容一起列了出来。</p>
 <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">九、ECO</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ECO的时间（1-2个月）</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">ECO需要修复的内容  </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">每天需要起eco的run</p></div>
+<p>这段话里最关键的三个信息：<strong>时间是 1-2 个月</strong>（不是几天）、<strong>要修的是一批内容</strong>（不是单项）、<strong>每天要起 eco 的 run</strong>（按天迭代）。</p>
+<p>「每天起 run」意味着 ECO 是<strong>流水线式</strong>的：今天修一批，明天验证完再修下一批。所以每一轮的<strong>可追溯性</strong>极其重要——几十轮下来，如果没记录清楚「哪一轮改了什么、为什么改」，出了问题根本追不回来。</p>
+<p>下面五节按原文顺序，逐类讲这六类修复内容。</p>
   
 </section>
 <section class="ch" id="source-02" data-ch="source-02">
-  <div class="ch-h"><span class="ch-n">02</span><h2>DRV 与 LVS</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>① DRV 与 LVS：第一批要修的</h2></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">1、DRV</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">重点先修data transtion clk transtion </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">SI transtion</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">longnet</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">minplause</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">dontuse</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">short</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">open</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">PV的部门需要一版lvs能过的数据</p></div>
+<p><strong>为什么 DRV 排第一</strong>？因为 DRV 会掩盖时序问题。transition 太缓的单元延迟模型不准确——工具算出来的延迟和实际差很多，在这种情况下修时序等于在错误的基础上优化。</p>
+<p>原文列的 DRV 清单逐项解释：</p>
+<div class="tbl"><table><thead><tr><th>项</th><th>含义</th></tr></thead><tbody><tr><td>SI transition</td><td>串扰导致的边沿恶化（信号完整性）</td></tr><tr><td>longnet</td><td>走线太长</td></tr><tr><td>min_pulse</td><td>最小脉宽，时钟高低电平太短</td></tr><tr><td>dontuse</td><td>用了被禁用的单元</td></tr><tr><td>short</td><td>短路</td></tr><tr><td>open</td><td>开路</td></tr></tbody></table></div>
+<p><strong>注意 short 和 open 也在这里</strong>：它们严格说是「连通性」问题而不是「规则」问题，但在 ECO 阶段通常和 DRV 一起处理，因为都要改版图。</p>
+<p><strong>原文最后一句很关键</strong>：<code>PV 的部门需要一版 LVS 能过的数据</code>。</p>
+<p>这句话说明 DRV 阶段的交付物不是「DRV 清零」，而是「<strong>能通过 LVS 的数据</strong>」。因为 LVS 验证的是版图和网表是否一致——如果 ECO 改了单元但没同步网表，LVS 就过不了。</p>
+<div class="pit"><div class="pit-h">常见坑 · DRV 修完但 LVS 不过</div><div class="pit-b"><p>典型原因：ECO 插了 buffer，版图有了但网表没更新。LVS 会比较版图提取的连接关系和网表，多一个单元就报 mismatch。</p>
+<p><strong>所以每次 ECO 之后必须同步网表</strong>，这不是「顺手的事」，是交付条件。</p></div></div>
   
 </section>
 <section class="ch" id="source-03" data-ch="source-03">
-  <div class="ch-h"><span class="ch-n">03</span><h2>时序 ECO 与脚本交接</h2></div>
+  <div class="ch-h"><span class="ch-n">05</span><h2>② 时序：FCT 出脚本 vs 内部自己修</h2></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">2、timing </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">top层的timing FCT出ECO脚本 </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">注意吃的脚本前后，时序的变化</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果变得很差，需要反馈</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">如果影响不是很大，正常吃给的eco即可</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">internal 内部的时序全部修到0，修到满足margin 例如：15ps</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">dmsa来修复timing    Pteco.tcl 自动出eco脚本</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">（比较智能，可以实现多个corner一起修，尽量避免conflict）</p></div>
+<p>原文这一段区分了两个层次，很重要：</p>
+<div class="tbl"><table><thead><tr><th></th><th>top 层 timing</th><th>internal 内部 timing</th></tr></thead><tbody><tr><td>谁出脚本</td><td>FCT（外部）</td><td>自己（Pteco.tcl 等工具）</td></tr><tr><td>修到什么程度</td><td>看脚本影响，不一定修到 0</td><td><strong>修到 0，还要留 margin（如 15 ps）</strong></td></tr><tr><td>风险</td><td>别人给的脚本可能和自己的版图不匹配</td><td>自己完全掌控</td></tr></tbody></table></div>
+<p><strong>为什么 top 层不用修到 0</strong>？top 层时序涉及多个模块，单靠改自己这块可能修不动；而且 FCT 的脚本是全局折中方案。</p>
+<p><strong>为什么 internal 要修到 0 还要留 15 ps margin</strong>？这是「安全垫」，原因有三：提取精度有误差（SPEF 和实际硅片有差异）、OCV derate 可能没完全覆盖、后续还有改动避免「刚过又违例」。</p>
+<p><strong>「多个 corner 一起修，尽量避免 conflict」这句是高级功能的核心价值</strong>：多工艺角修时序最怕「修好 FF 角把 SS 角搞坏」。工具能同时看多个角，找出一组不冲突的改动，比人工逐角修快得多也可靠。</p>
+<div class="pit"><div class="pit-h">常见坑 · 吃脚本不检查前后变化</div><div class="pit-b"><p>原文特别提醒：<strong>注意吃的脚本前后，时序的变化</strong>。</p>
+<p>别人给的脚本基于<strong>他们的</strong>版图状态生成。你的版图如果已经和他不同（之前修过别的东西），脚本里的单元位置、网络名可能对不上。</p>
+<p><strong>正确流程</strong>：吃前存基线（数据库+时序报告）→ 吃脚本 → 立刻跑时序对比 → 变差就回退并反馈。</p>
+<p>「如果变得很差，需要反馈」—— 这句话说明反馈是被鼓励的，不是必须自己扛。</p></div></div>
   
 </section>
 <section class="ch" id="source-04" data-ch="source-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>短路、开路和 DRC</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>③ 短路、开路与 ④ DRC</h2></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">3、short、open</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">手动拉线、剪断一些net，挪一些cell、删除一些power</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">4、DRC</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Metal DRC  金属层           BASE DRC (overlap  VT不一致) </p><p style="white-space:pre-wrap;overflow-wrap:anywhere">M1.A.S1      Aera 不满足要求</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">VIA.S.        Spacing不满足要求</p></div>
+<h3>short 和 open：靠手动改</h3>
+<p>四种手段各有适用场景和风险：</p>
+<div class="tbl"><table><thead><tr><th>手段</th><th>适用</th><th>风险</th></tr></thead><tbody><tr><td>手动拉线</td><td>局部断开，补一段线连通</td><td>可能违反 DRC 或引入串扰</td></tr><tr><td>剪断 net</td><td>短路：剪掉落误连的那段</td><td>剪错会导致开路</td></tr><tr><td>挪 cell</td><td>两单元挤在一起导致短路</td><td>挪动可能违反布局约束</td></tr><tr><td>删除 power</td><td>电源线压到信号线导致短路</td><td>删了可能造成供电不足</td></tr></tbody></table></div>
+<p><strong>为什么 short/open 要手动改</strong>？因为工具自动修的能力有限——它能修规则违例，但「这两根线为什么撞在一起」往往需要人判断（floorplan 问题？某条网绕太远？），修法取决于根因。</p>
+<p><strong>手动改的纪律</strong>：每改一处立刻验证连通性。不要连续改十处再一起验——出问题不知道是哪一处。</p>
+<h3>DRC：两类规则</h3>
+<p>原文的分法很实用，逐项拆：</p>
+<p><strong>BASE DRC 的两个典型</strong>：<code>overlap</code>（两个图形重叠了不该重叠的地方）、<code>VT 不一致</code>（相邻单元阈值电压类型不匹配，某些工艺要求同类相邻）。</p>
+<p><strong>规则记号的读法</strong>：<code>M1.A.S1</code> 拆开是 <code>M1</code>（第 1 层金属）+ <code>A</code>（Area 面积）+ <code>S1</code>（第 1 条相关规则）。<code>VIA.S.</code> 是过孔间距规则。</p>
+<p><strong>为什么 DRC 排第四而不是第一</strong>？因为 DRC 违例不影响功能正确性（版图做不出来是制造问题，不是逻辑问题），而 DRV 和时序影响功能。顺序是先保功能、再保可制造。</p>
+<p>不过实际项目里 DRC 通常和 short/open 一起处理，因为都是改版图的操作。</p>
   
 </section>
 <section class="ch" id="source-05" data-ch="source-05">
-  <div class="ch-h"><span class="ch-n">05</span><h2>功耗分析、IR Drop、EM 与 VSI</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>⑤ 功耗分析 与 ⑥ VSI</h2></div>
   <div class="lesson-source"><p style="white-space:pre-wrap;overflow-wrap:anywhere">5、PA (Power Analysis)   IRDROP 、EM、Dynmaic</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">IRDROP</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">用高层走线、加power</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">crosstalk  加sheilding</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">Dynmaic   动态功耗太大    sizedown   减小cel的驱动    D12--&gt;  D6</p><p style="white-space:pre-wrap;overflow-wrap:anywhere">6、VSI  检查Tie cell不能连接两个cell</p></div>
+<div class="tbl"><table><thead><tr><th>问题</th><th>修法</th></tr></thead><tbody><tr><td>IRDROP</td><td>用高层走线、加 power</td></tr><tr><td>crosstalk</td><td>加 shielding</td></tr><tr><td>Dynamic</td><td>size down，减小 cell 驱动（D12 → D6）</td></tr></tbody></table></div>
+<p><strong>IR Drop 两个修法</strong>：用高层走线（高层金属更厚更宽、电阻小）、加 power（加电源条带或加宽现有条带）。</p>
+<p><strong>crosstalk 加 shielding</strong>：在受害网两侧打地线。原理前面 CTS 那课讲过——耦合对象从「会翻转的信号线」变成「不动的地线」。</p>
+<p><strong>Dynamic 用 size down</strong>：原文例子 <code>D12 → D6</code> 是驱动强度从 12 档降到 6 档。<strong>为什么降驱动能省功耗</strong>？驱动越强单元内部晶体管越大，充放电电容越大，动态功耗 P ∝ C·V²·f 越高。</p>
+<p><strong>但降驱动有代价</strong>：驱动弱了边沿变缓，transition 违例可能回来。所以这是<strong>功耗与时序的权衡</strong>。</p>
+<div class="pit"><div class="pit-h">常见坑 · size down 降过头</div><div class="pit-b"><p><code>D12 → D6</code> 省了功耗，但如果这条路径原本余量就不多，降到 D6 可能直接违例。</p>
+<p>正确做法：降一档，立刻查时序；过了再看能不能再降一档。<strong>逐步试，不要一次降到底</strong>。</p></div></div>
+<h3>VSI：一个很具体的检查</h3>
+<p>原文：<strong>VSI — 检查 Tie cell 不能连接两个 cell</strong>。VSI 是 Voltage Signal Integrity 相关检查。</p>
+<p><strong>含义</strong>：一个 tie cell（提供恒定 0 或 1 的单元）不能同时驱动两个以上的单元。</p>
+<p><strong>为什么</strong>？tie cell 的驱动能力很弱（它就是个小小的恒压源）。驱动太多负载时输出电压会被拉偏——本来该是稳定的 1，可能变成 0.7，导致下游误判。</p>
+<p><strong>怎么修</strong>？拆开——多加几个 tie cell，每个只驱动一个或少数几个负载。</p>
+<div class="note"><div class="note-h">这条规则很容易漏</div><p>因为它不在常规 DRV 列表里（不是 transition/fanout/cap/length），是工艺相关的特殊规则。</p>
+<p>而且只在特定条件下报——某些工艺库、某些 tie cell 类型才检查。看 DRC/LVS 报告时要专门找 VSI 这一项。</p></div>
   
 </section>
 <section class="ch" id="eco-functional-release" data-ch="eco-functional-release">
-  <div class="ch-h"><span class="ch-n">06</span><h2>进阶练习：有意改变功能的 ECO 怎样验收？</h2></div>
-  <p>以下为站点追加的原创纸面案例，不属于上传 Word 原文。批准单 <code>EC-27</code> 要求已唤醒的模块在 <code>req=1</code> 时，仅当 <code>enable=1</code> 才输出 <code>grant=1</code>。旧功能是 <code>grant = req</code>，新参考 <code>REF_B</code> 是 <code>grant = req AND enable</code>。本题只比较唤醒后的正常模式；复位、扫描和低功耗模式不能靠这张真值表推断，真实项目须另按批准范围验证。</p>
+  <div class="ch-h"><span class="ch-n">08</span><h2>进阶：有意改变功能的 ECO 怎么验收</h2></div>
+  <p>前面六类修的都是「让设计符合原有规格」。但 ECO 还有一类更难的：<strong>有意改变功能</strong>。下面这段是原文之外的站点原创练习，保留了原文的算例表格和手工核对答案。</p>
+<p>这类 ECO 的风险完全不同——前六类改错了，验证能查出来（时序/DRC/LVS 会报）；功能 ECO 改错了，可能所有检查都通过，但芯片做出来功能就是错的。</p>
+<p>以下为站点原创纸面案例，不属于上传 Word 原文。批准单 <code>EC-27</code> 要求已唤醒的模块在 <code>req=1</code> 时，仅当 <code>enable=1</code> 才输出 <code>grant=1</code>。旧功能是 <code>grant = req</code>，新参考 <code>REF_B</code> 是 <code>grant = req AND enable</code>。本题只比较唤醒后的正常模式；复位、扫描和低功耗模式不能靠这张真值表推断，真实项目须另按批准范围验证。</p>
 <div class="tbl"><table><thead><tr><th><code>req</code></th><th><code>enable</code></th><th>旧参考 <code>REF_A</code></th><th>新参考 <code>REF_B</code></th><th>错接为 OR 的候选</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td></tr></tbody></table></div>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>区分预期差异与错误实现</div><div class="lab-b"><p>先数 <code>REF_A</code> 对 <code>REF_B</code> 有几个不同的输入组合，再数错接候选对 <code>REF_B</code> 有几个组合失败。若错接候选的版图与错接网表恰好匹配、全量 DRC 也无未处置标记，写出为什么仍须阻断，再列出修正后的回归输入和交接项。</p></div></div>
 <p>核对：旧新参考只允许在 <code>(req, enable) = (1, 0)</code> 改变，共 <code>1</code> 组；OR 候选在 <code>(0, 1)</code> 和 <code>(1, 0)</code> 错，共 <code>2</code> 组。LVS 匹配说明版图忠实实现了错接网表，不证明实现了获批新功能；DRC 只检查几何规则。不能为了让逻辑等价通过而屏蔽 <code>grant</code>。修正后保留批准单和差异范围，拿最终网表对 <code>REF_B</code> 做逻辑等价，并验证批准单规定的功能范围；再用同一候选的最终网表、流出版图和新寄生做受影响的时序、电气及物理签核回归，传给逻辑、实现、物理验证三方确认。</p>
-<p>下一步：<a href="/lesson/03-14-chipfinish-handoff/#waiver-regression">44｜ChipFinish 桌面实训：整理回归证据并决定放行</a>。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+<p>下一步：<a href="/lesson/03-14-chipfinish-handoff/#waiver-regression">ChipFinish 桌面实训：整理回归证据并决定放行</a>。</p>
+<div class="note"><div class="note-h">一个真实的验收陷阱</div><p>场景：批准单要求把 <code>grant = req</code> 改成 <code>grant = req AND enable</code>。</p>
+<p>如果实现时错接成 <code>grant = req OR enable</code>：LVS 会通过（版图和网表一致）、DRC 会通过（几何没问题）、时序可能也通过。</p>
+<p><strong>但功能是错的。</strong> 唯一能发现的方法是<strong>逻辑等价检查</strong>（formal equivalence），用最终网表对新参考做比对。</p>
+<p>所以功能 ECO 的验收必须包含：逻辑等价 + 批准单规定的功能范围验证 + 受影响的时序/电气/物理签核回归。</p></div>
+  
+</section>
+<section class="ch" id="checklist" data-ch="checklist">
+  <div class="ch-h"><span class="ch-n">09</span><h2>检查清单</h2></div>
+  <div class="check"><div class="check-h">过关标准（都能做到才算学完）</div><ul><li>ECO 的改动范围有工单/批准单记录，不是口头传达</li><li>吃外部脚本前存了基线（数据库 + 时序报告）</li><li>吃脚本后立刻跑时序，与基线对比；变差已反馈而非硬吃</li><li>internal 时序修到 0 且留了 margin（如 15 ps）</li><li>多工艺角一起检查，没有「修好一个角搞坏另一个角」</li><li>DRV 六项都查过：transition / SI transition / longnet / min_pulse / dontuse / short / open</li><li>short/open 每改一处立刻验连通性，没有攒着一起验</li><li>DRC 的 BASE（overlap、VT 不一致）和 Area/Spacing 都查过</li><li>PA 三类都评估过：IR Drop、EM、Dynamic</li><li>size down 是逐步试的，每步都查了时序</li><li>VSI 检查过 tie cell 没有驱动多个负载</li><li>每次 ECO 后网表已同步（LVS 能过）</li><li>功能 ECO 做过逻辑等价检查，不是只看 LVS/DRC</li></ul></div>
+  
+</section>
+<section class="ch" id="quiz" data-ch="quiz">
+  <div class="ch-h"><span class="ch-n">10</span><h2>自测</h2></div>
+  <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么 ECO 一个「局部修改」要 1-2 个月？</div>
+  <div class="q-a">每轮改动都要跑全量验证（重提取、重算时序、重跑 DRC/LVS）；问题分批暴露需反复迭代；涉及 FCT、PV 多方交接有等待时间；后期改动风险高必须谨慎。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>为什么 DRV 要排在时序之前修？</div>
+  <div class="q-a">transition 太缓会让延迟模型不准确，工具算的延迟和实际差很多，在这种基础上修时序等于在错误基础上优化。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>top 层 timing 和 internal timing 的修法为什么不同？</div>
+  <div class="q-a">top 层涉及多模块，FCT 从全局视角出脚本，单个模块可能修不动；internal 完全自己掌控，所以要修到 0 并留 margin。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>internal 时序为什么留 15 ps margin 而不是修到 0 就算？</div>
+  <div class="q-a">提取精度有误差、OCV derate 可能没完全覆盖、后续还有改动。留余量避免「刚过又违例」。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>吃外部 ECO 脚本前后必须做什么？</div>
+  <div class="q-a">吃前存基线（数据库+时序报告），吃后立刻跑时序对比。变差就回退并反馈，不要硬吃。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>short/open 为什么主要靠手动改而不是工具自动修？</div>
+  <div class="q-a">工具能修规则违例，但「两根线为什么撞在一起」需要人判断（floorplan 问题？某条网绕太远？），修法取决于根因。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>DRV 阶段的交付物为什么是「LVS 能过的数据」而不是「DRV 清零」？</div>
+  <div class="q-a">ECO 改了单元必须同步网表，否则版图提取的连接关系和网表不一致，LVS 报 mismatch。交付看能否过 LVS。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>M1.A.S1 这个规则名怎么读？</div>
+  <div class="q-a">M1 是第 1 层金属，A 是 Area 面积，S1 是第 1 条相关规则。整条表示第 1 层金属的面积规则 1 不满足。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>修 Dynamic 功耗为什么用 size down？代价是什么？</div>
+  <div class="q-a">驱动越强单元晶体管越大、充放电电容越大，动态功耗 P∝C·V²·f 越高。代价是边沿变缓，transition 违例可能回来。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>VSI 检查「tie cell 不能连接两个 cell」的原因？</div>
+  <div class="q-a">tie cell 驱动能力弱，驱动多负载时输出电压被拉偏，本来稳定的 1 可能变 0.7，导致下游误判。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>功能 ECO 为什么 LVS 和 DRC 都过也可能是错的？</div>
+  <div class="q-a">LVS 只证明版图忠实于网表，DRC 只证明几何合法。若网表本身错接（AND 写成 OR），两者都会通过。必须用逻辑等价检查发现。</div>
+</div><div class="q-item open">
+  <div class="q-q"><span class="q-no"></span>功能 ECO 的完整验收包括哪三项？</div>
+  <div class="q-a">逻辑等价检查（对最终网表和新参考）、批准单规定的功能范围验证、受影响范围的时序/电气/物理签核回归。</div>
+</div></div>
+  
+</section>
+<section class="ch" id="next" data-ch="next">
+  <div class="ch-h"><span class="ch-n">11</span><h2>延伸阅读</h2></div>
+  <div class="tbl"><table><thead><tr><th>主题</th><th>参考</th></tr></thead><tbody><tr><td>ECO 命令的具体用法</td><td><a href="/lesson/03-01m-eco-commands/">ECO 常用命令与验收</a></td></tr><tr><td>多场景 ECO 的验收方法</td><td><a href="/lesson/03-13-mmmc-eco-lab/">SPEF 回标与多场景 ECO</a></td></tr><tr><td>从 ECO 走到签核放行</td><td><a href="/lesson/03-14-chipfinish-handoff/">ChipFinish 桌面实训</a></td></tr></tbody></table></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1" data-go="/lesson/03-14-chipfinish-handoff/">读完本篇 · 回本模块主课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -108,14 +233,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-10-optroute/">← OptRoute：布线后优化</a><a class="nav-btn" href="/lesson/03-12-pg-ir-em/">PG、IR Drop 与 EM：从电源连通到修复回归 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01p-double-patterning/">← 参考上一篇<i>双重图形化：为什么两条线分开了仍会报错</i></a><a class="nav-btn next" href="/lesson/03-14-chipfinish-handoff/">回本模块主课 →<i>ChipFinish 桌面实训：从最终流出到签核放行</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

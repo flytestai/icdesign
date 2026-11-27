@@ -185,7 +185,8 @@
       var hits = all.filter(function (x) {
         if (stage && String(x.stage) !== stage) return false;
         if (!k) return true;
-        return (x.en + ' ' + x.zh + ' ' + x.def).toLowerCase().indexOf(k) >= 0;
+        var al = (x.alias || []).join(' ');
+        return (x.en + ' ' + x.zh + ' ' + al + ' ' + x.def).toLowerCase().indexOf(k) >= 0;
       });
       if (n) n.textContent = hits.length + ' / ' + all.length + ' 条';
       if (!hits.length) {
@@ -194,7 +195,8 @@
       }
       list.innerHTML = hits.map(function (x) {
         return '<div class="gitem"><div><span class="ge">' + esc(x.en) + '</span>' +
-          (x.zh && x.zh !== x.en ? '<span class="gz">' + esc(x.zh) + '</span>' : '') + '</div>' +
+          (x.zh && x.zh !== x.en ? '<span class="gz">' + esc(x.zh) + '</span>' : '') +
+          ((x.alias && x.alias.length) ? '<span class="ga">又称 ' + esc(x.alias.join(' / ')) + '</span>' : '') + '</div>' +
           '<div class="gd">' + esc(x.def) + '</div>' +
           '<div class="gs">出自 <a href="/lesson/' + esc(x.lesson) + '/#' + esc(x.ch) + '">' +
           esc(x.no) + ' ' + esc(x.lessonTitle) + '</a> · ' + esc(x.chTitle) + '</div></div>';
@@ -297,22 +299,54 @@
 
     function draw() {
       var stages = cat.stages || [];
-      var lessons = cat.lessons || [];
+      var all = cat.lessons || [];
+      /* 展示与「下一步」都用学习主线 route 的顺序：阶段三的选学参考页排在
+         它所属模块后面，不再按课号插在主线中间。 */
+      var byId = {}, rank = {};
+      all.forEach(function (L) { byId[L.id] = L; });
+      (cat.route || []).forEach(function (id, i) { rank[id] = i; });
+      var lessons = all.slice().sort(function (a, b) {
+        var ra = rank[a.id], rb = rank[b.id];
+        if (ra === undefined) ra = 1e6 + Number(a.stage) * 1000;
+        if (rb === undefined) rb = 1e6 + Number(b.stage) * 1000;
+        return ra - rb;
+      });
       var total = 0, got = 0, nextLesson = null, nextCh = null;
       var byStage = {};
+      var routeIds = {};
+      (cat.route || []).forEach(function (id) { routeIds[id] = 1; });
 
+      all.forEach(function (L) {
+        var s = L.stage;
+        byStage[s] = byStage[s] || { lessons: [], doneCh: 0, allCh: 0, refCh: 0, refDone: 0 };
+      });
       lessons.forEach(function (L) {
         var s = L.stage;
-        byStage[s] = byStage[s] || { lessons: [], doneCh: 0, allCh: 0 };
         var d = 0;
         L.chapters.forEach(function (c) {
-          total++;
-          if (isDone(L.id, c.id)) { d++; got++; byStage[s].doneCh++; }
-          else if (!nextCh && !nextLesson) { nextLesson = L; nextCh = c; }
+          if (isDone(L.id, c.id)) d++;
         });
-        byStage[s].allCh += L.chapters.length;
-        byStage[s].lessons.push({ L: L, done: d });
+        var g = byStage[s];
+        g.lessons.push({ L: L, done: d, ref: !routeIds[L.id] });
+        if (routeIds[L.id]) {
+          /* 主线进度只算课表路线上的课：选学参考页不参与，否则永远到不了 100% */
+          g.doneCh += d;
+          g.allCh += L.chapters.length;
+          total += L.chapters.length;
+          got += d;
+        } else {
+          g.refDone += d;
+          g.refCh += L.chapters.length;
+        }
       });
+      /* 「下一步」只沿主线找：参考页不进自动学习路线 */
+      var route = (cat.route || []).map(function (id) { return byId[id]; }).filter(Boolean);
+      for (var r = 0; r < route.length && !nextCh; r++) {
+        var chs = route[r].chapters || [];
+        for (var c1 = 0; c1 < chs.length; c1++) {
+          if (!isDone(route[r].id, chs[c1].id)) { nextLesson = route[r]; nextCh = chs[c1]; break; }
+        }
+      }
 
       var pct = total ? Math.round(got / total * 100) : 0;
       q('#p-pct').textContent = pct + '%';
@@ -331,12 +365,15 @@
         var rows = g.lessons.map(function (x) {
           var dl = x.L.chapters.length;
           var fin = dl && x.done === dl;
-          return '<a class="prow' + (fin ? ' done' : '') + '" href="/lesson/' + esc(x.L.id) + '/">' +
-            '<span class="pn">' + esc(x.L.no) + '</span><span class="pt">' + esc(x.L.title) + '</span>' +
+          return '<a class="prow' + (fin ? ' done' : '') + (x.ref ? ' ref' : '') +
+            '" href="/lesson/' + esc(x.L.id) + '/">' +
+            '<span class="pn">' + esc(x.L.no) + '</span><span class="pt">' + esc(x.L.title) +
+            (x.ref ? '<i class="pr">选学</i>' : '') + '</span>' +
             '<span class="pc">' + x.done + '/' + dl + '</span></a>';
         }).join('');
+        var refNote = g.refCh ? ('<span class="pct ref">选学 ' + g.refDone + '/' + g.refCh + '</span>') : '';
         return '<div class="pstage" style="--c:' + esc(s.color) + '"><div class="psh"><h3>' + esc(s.name) + '</h3>' +
-          '<span class="pct">' + g.doneCh + '/' + g.allCh + ' 章 · ' + sp + '%</span></div>' +
+          '<span class="pct">主线 ' + g.doneCh + '/' + g.allCh + ' 章 · ' + sp + '%</span>' + refNote + '</div>' +
           '<div class="pmini"><i style="width:' + sp + '%"></i></div>' +
           exBadge(s.no) +
           '<div class="plist">' + rows + '</div></div>';

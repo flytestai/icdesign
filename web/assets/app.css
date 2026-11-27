@@ -126,6 +126,13 @@ th,td{text-align:left;padding:9px 13px;border-bottom:1px solid #edf1f6;vertical-
 th{background:#f4f8fc;color:#2b4a68;font-weight:650;font-size:13px;white-space:nowrap}
 tr:last-child td{border-bottom:0}
 td code{font-size:12.5px}
+/* 阶段三主线表：由 INNOVUS_MAINLINE 生成，和首页同一个顺序 */
+.ml-table{margin:16px 0;overflow:auto;border:1px solid #f0e6cf;border-radius:10px}
+.ml-table th{background:#fdfaf2;color:#8a6a1e}
+.ml-table td{font-size:13.5px;line-height:1.65}
+.ml-table .ml-h{font-family:var(--mono);color:#8a6a1e;font-weight:700;white-space:nowrap}
+.ml-table a{color:#a9741a}
+.ml-table .ml-todo{color:#b04a3a;font-weight:600}
 
 /* ---------- 自测 ---------- */
 .quiz{margin:20px 0;border:1px solid #e6e1f5;background:#faf8ff;border-radius:var(--radius);padding:14px 16px}
@@ -198,6 +205,26 @@ td code{font-size:12.5px}
 .ldone{flex:0 0 auto;background:#e7f6ee;color:#178a56;border:1px solid #bfe6d2;border-radius:99px;
   padding:2px 10px;font-size:11.5px;font-weight:600;white-space:nowrap}
 .lpart{flex:0 0 auto;color:#5b8fd9;font-size:11.5px;font-family:var(--mono);white-space:nowrap}
+/* 阶段三：课表模块下的选学参考页（折叠成一行小字，不干扰主线） */
+.lref{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:0 0 4px 38px;
+  padding:4px 0 6px;border-left:2px solid #f0e6cf;padding-left:10px}
+.lref>span{font-size:11px;color:var(--dim);flex:0 0 auto;white-space:nowrap}
+.lref a{font-size:11.5px;color:var(--muted);text-decoration:none;padding:1px 0}
+.lref a:hover{color:#c98a1e;text-decoration:underline}
+.lrow.guide{background:#fdfaf2;border:1px solid #f2e7cd}
+.lrow.guide:hover{background:#fbf4e4}
+.lrow.guide .lno{background:#c98a1e;color:#fff;border-radius:7px;text-align:center;
+  height:22px;line-height:22px;align-self:center;font-weight:700;font-size:11.5px;flex:0 0 26px}
+/* 课页：阶段三模块归属条 / 参考页提示条 */
+.lesson-refbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:0 0 14px;
+  padding:8px 12px;border-radius:9px;background:#fdfaf2;border:1px solid #f2e7cd;
+  font-size:12.5px;color:#8a6a1e}
+.lesson-refbar a{color:#a9741a;font-weight:600;text-decoration:none;white-space:nowrap}
+.lesson-refbar a:hover{text-decoration:underline}
+.nav-btn{display:flex;flex-direction:column;line-height:1.35}
+.nav-btn i{font-style:normal;font-size:11.5px;color:var(--dim);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+@media (max-width:620px){.lref{margin-left:0}.lesson-refbar{font-size:12px}}
 /* 阶段进度条 */
 .stage-prog{display:flex;align-items:center;gap:10px;margin:0 0 10px}
 .stage-prog .sp-bar{flex:1;max-width:280px;height:6px;border-radius:3px;background:#edf1f7;overflow:hidden}
@@ -368,6 +395,9 @@ select{border:1px solid var(--line);background:#fff;color:var(--ink2);border-rad
 .gitem{border:1px solid var(--line);border-radius:11px;background:#fff;padding:12px 14px}
 .gitem .ge{font-family:var(--mono);font-size:13.5px;color:#1d4e7c;font-weight:600}
 .gitem .gz{font-size:12.5px;color:var(--ink2);background:#eef3f8;border-radius:5px;padding:1px 7px;margin-left:6px}
+/* 术语别名：同一概念在不同课里的叫法，灰底小字跟在正名后面 */
+.gitem .ga{font-size:11.5px;color:#8a6a1e;background:#fdf6e3;border:1px solid #f0e2bd;
+  border-radius:5px;padding:1px 7px;margin-left:6px}
 .gitem .gd{font-size:13px;color:#42536a;margin-top:7px;line-height:1.75}
 .gitem .gs{font-size:11px;color:var(--dim);margin-top:8px}
 .gitem .gs a{color:var(--brand)}
@@ -406,6 +436,12 @@ select{border:1px solid var(--line);background:#fff;color:var(--ink2);border-rad
 .prow .pc{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
 .prow.done .pt{color:var(--mint)}
 .prow.done .pc::after{content:" ✓";color:var(--mint)}
+/* 进度看板：选学参考页与主线分开显示，避免主线完成度被参考页拉低 */
+.prow.ref{opacity:.72}
+.prow.ref .pt{color:var(--muted)}
+.prow .pr{font-style:normal;font-size:10.5px;color:#a9741a;background:#fdf6e3;
+  border:1px solid #f0e2bd;border-radius:99px;padding:0 6px;margin-left:6px}
+.psh .pct.ref{color:#a9741a;margin-left:8px}
 .pnote{font-size:12px;color:var(--dim);margin-top:18px;line-height:1.8}
 
 @media (max-width:760px){

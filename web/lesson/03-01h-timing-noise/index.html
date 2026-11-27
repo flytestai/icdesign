@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>按流程阶段诊断时序与噪声 · 31h | IC 后端学院</title>
 <meta name="description" content="在不同实现阶段判断时序报告可信度，并用寄生与噪声报告定位问题、验证修复。">
-<link rel="icon" href="/assets/logo.svg?v=3a2affe6ce2d" type="image/svg+xml">
-<link rel="stylesheet" href="/assets/app.css?v=3a2affe6ce2d">
+<link rel="icon" href="/assets/logo.svg?v=5bfab90ffe06" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/app.css?v=5bfab90ffe06">
 </head>
 <body data-page="lesson" data-lesson="03-01h-timing-noise">
 <header class="top">
-  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=3a2affe6ce2d" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
+  <a class="logo" href="/"><img class="mark" src="/assets/logo.svg?v=5bfab90ffe06" alt="IC 后端学院"><b>IC 后端学院</b><i>Backend Academy</i></a>
   <nav class="top-nav"><a href="/">课程</a><a href="/playground/">练习场</a><a href="/quiz/">题库</a><a href="/exam/">验收</a><a href="/glossary/">术语</a><a href="/abbr/">缩写</a><a href="/cheatsheet/">速查</a><a href="/search/">搜索</a><a href="/progress/">进度</a><a href="/leaderboard/">排行</a></nav>
   <div class="top-right"><div class="lp"><div class="lp-bar"><i id="lp-bar"></i></div><span id="lp-txt">0%</span></div><span class="lp-time" id="lp-time" title="本课累计学习时长（重学也会累加）"></span><button class="ghost" id="btn-reset" title="清除本课学习进度（重新滚动会再次自动记录）">清除进度</button>
 <div id="userchip" class="userchip" hidden>
@@ -50,7 +50,7 @@
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>按流程阶段诊断时序与噪声</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#stage-3">阶段三 · Innovus 40nm 项目实操</a><span>/</span><b>按流程阶段诊断时序与噪声</b></div><div class="lesson-refbar">本页是「Placement / Setup 与 Hold」模块的参考阅读，不计入自动学习路线。<a href="/lesson/03-07-place/">回本模块主课 →</a><a href="/lesson/03-01-innovus-plan/#course-mainline">看阶段三课表</a></div>
     <div class="hero">
       <div class="hero-no">31h</div>
       <h1>按流程阶段诊断时序与噪声</h1>
@@ -64,7 +64,8 @@
     </div>
     <article id="article" data-est-min="15"><section class="ch" id="timing-stages" data-ch="timing-stages">
   <div class="ch-h"><span class="ch-n">01</span><h2>按阶段读 Setup 和 Hold</h2></div>
-  <figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-h.svg" data-fig="innovus-practice-h.svg"><img src="/fig/innovus-practice-h.svg" alt="原创教学示意图 · 同一条路径，用不同报告回答问题" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 同一条路径，用不同报告回答问题</figcaption></figure>
+  <div class="note"><div class="note-h">这一讲在流程里的位置</div><p><strong>时序与噪声</strong> · 承接 Route 后的真实寄生。有了真实走线，时序数字才有意义。本讲按流程阶段读 Setup/Hold，并说明串扰为什么会同时影响时序和功能。</p></div>
+<figure class="fig-img"><a class="fig-a" href="/fig/innovus-practice-h.svg" data-fig="innovus-practice-h.svg"><img src="/fig/innovus-practice-h.svg" alt="原创教学示意图 · 同一条路径，用不同报告回答问题" loading="lazy" decoding="async"></a><figcaption>原创教学示意图 · 同一条路径，用不同报告回答问题</figcaption></figure>
 <div class="note"><div class="note-h">课程来源</div><p>本讲是网站原创专题；钉钉目录第 12 项仅用于确定主题与顺序，不转载原文、项目参数或图片。可另看上传 Word 整理的 <a href="/lesson/03-08-cts/#source-05">CTS 时序检查</a> 和 <a href="/lesson/03-11-eco/#source-03">时序 ECO</a>。</p></div>
 <p>Setup 要求数据在捕获边沿前及时稳定，Hold 要求数据在捕获边沿后不能过早改变。布局后通常用理想时钟和估算寄生；先核对约束，再找过长逻辑链和高延迟网，此时 Hold 只作初筛。CTS 后改用传播时钟：把发射与捕获时钟延迟单独列出来，不能把偏斜造成的变化误认成数据线变慢。布线后用提取寄生做签核，记录端点、检查类型、路径组、模式、库角和 RC 角，再逐项比较发射、数据、捕获、时钟不确定度与库约束的贡献。</p>
 <p>本例输入为同一小模块 <code>si_lab</code> 的布线后数据库、逻辑网表、功能／扫描 SDC、慢快时序与噪声库、对应角的耦合寄生，以及固定的降额和 SI 分析配置。下方报告是原创合成摘录，不是 PrimeTime 实测或命令。复查时各版寄生都从各自数据库生成；不要拿新网表配旧 SPEF。开始前排除未约束端点、断传播时钟及关键网寄生漏回标，否则裕量可被错误放大。</p>
@@ -82,7 +83,7 @@
   
 </section>
 <section class="ch" id="practice-step-04" data-ch="practice-step-04">
-  <div class="ch-h"><span class="ch-n">04</span><h2>建立多场景基线：定位同一段耦合</h2></div>
+  <div class="ch-h"><span class="ch-n">04</span><h2>多场景基线：先确认是同一段耦合</h2></div>
   <p>功能 Setup 路径从 <code>u_req_ff/Q</code> 到 <code>u_mem/REQ</code>，受害网是 <code>req_data</code>，其 M4 段与 <code>burst[2]</code> 的 M4 长直线相邻。耦合清单把 <code>burst[2]</code> 列为最大贡献者，时序报告也显示反向切换窗口重叠；源到受害端的主数据段需要先查这里。下面的毛刺检查给出相应脉宽对应的接收限值；同一线路在功能模式可触发毛刺检查，也可在不同窗口触发串扰延迟分析。</p>
 <div class="code"><div class="code-h"><span class="code-lang">text</span><button class="copy" type="button">复制</button></div><pre><code><span class="ln ">合成功能慢角基线（场景 FUNC_SS_RCmax，非命令）</span><span class="ln ">path u_req_ff/Q -&gt; u_mem/REQ, Setup</span><span class="ln ">arrival=831 ps; required=811 ps; slack=-20 ps</span><span class="ln ">included SI delay delta on req_data: +25 ps</span><span class="ln ">u_mem/REQ rise transition=128 ps; limit=110 ps</span><span class="ln ">victim req_data ; aggressor burst[2] ; Ccouple pair=9.0 fF</span><span class="ln ">quiet-low receiver: +89 mV at 32 ps; limit=75 mV at 32 ps</span></code></pre></div>
 <p>根因证据要能互相支持：同一条物理并行段有较大的成对耦合，且施扰翻转与功能路径的关键窗口重叠。若版图上虽平行但窗口互斥，应先核对该模式的活动条件和约束，不拿几何外观替代时序证据；若报告来源的逻辑网与物理网不一致，则先确认映射与寄生版本。</p>
@@ -95,7 +96,7 @@
   
 </section>
 <section class="ch" id="practice-step-06" data-ch="practice-step-06">
-  <div class="ch-h"><span class="ch-n">06</span><h2>用数值差复核修复逻辑</h2></div>
+  <div class="ch-h"><span class="ch-n">06</span><h2>用数值差复核修复逻辑，不靠观感</h2></div>
   <p>功能 Setup 的要求时间保持 811 ps，抵达提前 25 ps，其中 SI 延迟增量减少 19 ps，剩余 6 ps 来自本例局部线路非 SI 延迟下降。不能把全部改善都归因于串扰，也不必假设增距总能缩短非 SI 延迟。受害网对应的成对耦合降到 3.6 fF；噪声的接收限值随脉宽变化，修后 24 ps 的毛刺应与该脉宽的 81 mV 比，不直接沿用基线的 75 mV。最紧的正裕量只有 5 ps，如果项目另有大于 5 ps 的签核余量，该修复仍不合格。</p>
 <p>每个相关场景用修前同样的时钟传播、降额、例外路径处理和预先定义的项目门槛复查。扫描行是受影响逻辑范围的最坏路径，不一定还是功能路径的端点组合；做归因时要按同一端点配对，看整体有无新问题时再比较最坏路径和受影响范围。</p>
 <p>若修后重新展开路径，先对照端点选中的触发边沿、发射和捕获时钟渐变、公共时钟段处理以及时钟不确定度。固定这些分析配置不等于报告里的每个分项都应相同；只有确认线路改动没有牵动时钟树、同步关系或活动窗口，才能把差值集中解释到数据路径。快速核对可同时保留一份关闭串扰的对照报告，用它分辨基础 RC 和动态干扰的贡献；正式验收仍用项目规定的含串扰签核结果。</p>
@@ -103,12 +104,12 @@
   
 </section>
 <section class="ch" id="practice-step-07" data-ch="practice-step-07">
-  <div class="ch-h"><span class="ch-n">07</span><h2>复查与回退清单</h2></div>
+  <div class="ch-h"><span class="ch-n">07</span><h2>时序与噪声的复查和回退清单</h2></div>
   <ul><li>核对 SDC、RC 和库配对，确认耦合寄生已回标；保留修前后版图与两套报告，记录被移动的线段和相邻网络。</li><li>复跑连通性、DRC、天线及相关角的 Setup、Hold、噪声和三类设计规则；扩大到潜在的新受害网，并按项目要求做全量回归。</li><li>若 Hold 从正变负、宏输入边沿仍超限，或者几何／噪声新违例无法消除，恢复旧路线及其配套寄生，校验复原报告后再单独试换层或缓冲，不能改约束遮住退化。</li></ul>
   
 </section>
 <section class="ch" id="timing-check" data-ch="timing-check">
-  <div class="ch-h"><span class="ch-n">08</span><h2>小练习：判断一笔时序修复能否合入</h2></div>
+  <div class="ch-h"><span class="ch-n">08</span><h2>判断一笔时序修复能不能合入</h2></div>
   <div class="quiz"><div class="quiz-h">自测</div><div class="q-item open">
   <div class="q-q"><span class="q-no"></span>Hold 由负转正但 Setup 由正转负，且宏输入转换仍超限，能合入吗？</div>
   <div class="q-a">不能；比较数据和时钟分项，再在相关场景回归 Setup、Hold、转换和受影响的串扰。</div>
@@ -122,12 +123,12 @@
   
 </section>
 <section class="ch" id="timing-noise-window-drill" data-ch="timing-noise-window-drill">
-  <div class="ch-h"><span class="ch-n">09</span><h2>深入练习：同一对邻线在两个模式下要看哪种噪声？</h2></div>
+  <div class="ch-h"><span class="ch-n">09</span><h2>同一对邻线在两个模式下该看哪种噪声</h2></div>
   <p>独立桌面题：<code>resp</code> 与 <code>shift_en</code> 有 <code>7 fF</code> 成对耦合。表中区间都相对各自场景的检查边沿，单位是 <code>ps</code>。本题把稳定低电平的毛刺检查与受害网切换时的延迟检查分开；只用区间交集筛查是否重叠，不用交集宽度或耦合电容去推导峰值与延迟。</p>
 <div class="tbl"><table><thead><tr><th>模式／检查</th><th><code>resp</code> 易受扰窗口</th><th><code>shift_en</code> 翻转窗口</th><th>合成观察</th></tr></thead><tbody><tr><td>功能慢角 / Setup</td><td>210–244</td><td>230–252</td><td>反向切换；无 SI 到达 <code>764 ps</code>，含 SI 到达 <code>781 ps</code>，要求 <code>790 ps</code></td></tr><tr><td>扫描快角 / Hold</td><td>100–122</td><td>130–146</td><td>这一对翻转窗口不重叠；无 SI 与含 SI 到达均为 <code>102 ps</code>，要求 <code>96 ps</code></td></tr><tr><td>扫描快角 / 稳定低电平噪声</td><td>125–160</td><td>130–146</td><td>接收端毛刺 <code>+72 mV @ 18 ps</code>，相应上限 <code>65 mV</code></td></tr></tbody></table></div>
 <div class="lab"><div class="lab-h"><span class="lab-tag">动手</span>写出三个交集和各自的判定</div><div class="lab-b"><ol><li>算功能窗口重叠 <code>14 ps</code>，以及该路径的 SI 延迟增量 <code>+17 ps</code>；Setup 裕量由 <code>+26 ps</code> 降至 <code>+9 ps</code>，仍达到本题 <code>+5 ps</code> 门槛。</li><li>扫描 Hold 的交集为空，裕量 <code>+6 ps</code>；同一模式的稳定低电平窗口却重叠 <code>16 ps</code>，毛刺比上限高 <code>7 mV</code>，所以不能放行。</li><li>若采用局部屏蔽，候选表给出 <code>+55 mV @ 14 ps</code>（上限 <code>69 mV</code>），但功能路径无 SI 到达 <code>782 ps</code>、含 SI 到达 <code>787 ps</code>，要求仍为 <code>790 ps</code>。求功能 Setup 裕量，再决定是否接受。</li></ol></div></div>
 <p>候选的毛刺已达标，SI 延迟增量也从 <code>+17</code> 降至 <code>+5 ps</code>，但无 SI 到达比基线晚 <code>18 ps</code>，最终 Setup 只余 <code>+3 ps</code>，仍不能接受。项目中应请实现方核对屏蔽带来的对地电容或绕线变化，再用对应版图重提寄生；不能依据这组数直接断定哪个物理分项占了 <code>18 ps</code>。把形态、时序和门槛分开记录，再做 <a href="/lesson/03-13-mmmc-eco-lab/#lab-mmmc">03-13 的多视图裕量比较</a>。</p>
-  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>
+  <div class="ch-next"><button class="ch-next-btn" type="button" data-last="1" data-go="/lesson/03-07-place/">读完本篇 · 回本模块主课 →</button></div>
 </section></article>
 
     <section class="notes" id="notes">
@@ -140,14 +141,14 @@
       <div class="end-card">
         <h3>本课进度已自动记录 ✓</h3>
         <p>滚动阅读时，看完一章就自动记一章，无需手动标记。进度同步到服务器，换电脑用同一个浏览器还能接着看。</p>
-        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01g-route-debug/">← Route：检查天线、串扰、短路与开路</a><a class="nav-btn" href="/lesson/03-01i-calibre-drc/">Calibre DRC：手修与复查 →</a></div>
+        <div class="end-nav"><a class="nav-btn" href="/lesson/03-01e-placement-diagnostics/">← 参考上一篇<i>Place 诊断：从一条坏路径找到布局热点</i></a><a class="nav-btn next" href="/lesson/03-01l-overflow/">参考下一篇 →<i>布线溢出：从 GCell 边读懂拥塞热点</i></a></div>
       </div>
     </div>
   </main>
 </div>
-<script src="/assets/shell.js?v=3a2affe6ce2d"></script>
-<script src="/assets/tcl.js?v=3a2affe6ce2d"></script>
-<script src="/assets/app.js?v=3a2affe6ce2d"></script>
-<script src="/assets/aiwidget.js?v=3a2affe6ce2d" defer></script>
+<script src="/assets/shell.js?v=5bfab90ffe06"></script>
+<script src="/assets/tcl.js?v=5bfab90ffe06"></script>
+<script src="/assets/app.js?v=5bfab90ffe06"></script>
+<script src="/assets/aiwidget.js?v=5bfab90ffe06" defer></script>
 </body>
 </html>

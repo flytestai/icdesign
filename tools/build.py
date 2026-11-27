@@ -58,6 +58,129 @@ STAGE_NAME = {s[0]: s[1] for s in STAGES}
 STAGE_COLOR = {s[0]: s[3] for s in STAGES}
 STAGE_SHORT = {s[0]: s[1].split("· ")[-1] for s in STAGES}
 
+# ---------------------------------------------------------------- 阶段三教学主线
+# 上传课表的顺序，是全站唯一的学习顺序来源：首页、导读、课页上下课、
+# 「继续学习」都从这份配置派生。课程 ID、课号、锚点、进度记录一律不改。
+INNOVUS_GUIDE = "03-01-innovus-plan"      # 阶段三导读（主线起点）
+INNOVUS_MAINLINE = (
+    # (模块名, 课表课时, 主课 id 列表)
+    ("Innovus 的使用", 2, ["03-02-innovus-start"]),
+    ("Floorplan", 10, ["03-05-floorplan"]),
+    ("PowerPlan", 2, ["03-06-powerplan"]),
+    ("Placement / Setup 与 Hold", 4, ["03-07-place"]),
+    ("CTS", 14, ["03-08-cts"]),
+    ("OptCTS", 2, []),                    # 待补：独立课件核实后填在这里
+    ("Route", 4, ["03-09-route"]),
+    ("OptRoute", 1, ["03-10-optroute"]),
+    ("ChipFinish", 2, ["03-14-chipfinish-handoff"]),
+)
+# 选学参考课归属哪个模块：不进自动路线，但保留地址、进度和回主线入口。
+INNOVUS_REF_MODULE = {
+    "03-01b-innovus-flow": "Innovus 的使用",
+    "03-03-innovus-init": "Innovus 的使用",
+    "03-04-project-env": "Innovus 的使用",
+    "03-01j-dbget": "Innovus 的使用",
+    "03-01a-flp-lab": "Floorplan",
+    "03-01c-project-details": "Floorplan",
+    "03-01d-floorplan-advanced": "Floorplan",
+    "03-01k-latch-up": "PowerPlan",
+    "03-12-pg-ir-em": "PowerPlan",
+    "03-01e-placement-diagnostics": "Placement / Setup 与 Hold",
+    "03-01h-timing-noise": "Placement / Setup 与 Hold",
+    "03-01l-overflow": "Placement / Setup 与 Hold",
+    "03-01f-cts-practice": "CTS",
+    "03-01o-clock-skew": "CTS",
+    "03-01g-route-debug": "Route",
+    "03-01m-eco-commands": "OptRoute",
+    "03-01n-drv-repair": "OptRoute",
+    "03-13-mmmc-eco-lab": "OptRoute",
+    "03-11-eco": "ChipFinish",
+    "03-01i-calibre-drc": "ChipFinish",
+    "03-01p-double-patterning": "ChipFinish",
+}
+INNOVUS_MODULE_MAIN = {m: ids[0] for m, _, ids in INNOVUS_MAINLINE if ids}
+
+
+def _no_key(x):
+    m = re.match(r"\d+", str(x.get("no", "")))
+    return int(m.group()) if m else 9999
+
+
+def innovus_layout(lessons):
+    """阶段三的模块结构：每个模块一门主课 + 若干选学参考页。"""
+    by_id = {L["id"]: L for L in lessons}
+    mods = []
+    for name, hours, ids in INNOVUS_MAINLINE:
+        main = [i for i in ids if i in by_id]
+        refs = [i for i, m in INNOVUS_REF_MODULE.items() if m == name and i in by_id]
+        refs.sort(key=lambda i: _no_key(by_id[i]))
+        mods.append({"name": name, "hours": hours, "main": main, "refs": refs})
+    # 兜底：未登记归属的阶段三页面不能凭空消失，挂到最后一个模块的选学区
+    known = {INNOVUS_GUIDE}
+    for m in mods:
+        known.update(m["main"])
+        known.update(m["refs"])
+    stray = [L["id"] for L in lessons
+             if int(L.get("stage", 0)) == 3 and L["id"] not in known]
+    if stray and mods:
+        mods[-1]["refs"].extend(stray)
+    return mods
+
+
+def study_plan(lessons):
+    """全站自动学习路线 + 每课上下课。
+
+    主线只含各阶段的主课，阶段三的选学参考页不进自动路线；它们在自己的
+    模块内保留一条「参考阅读」小链，读完回该模块主课。这样首页、导读、
+    课页上下课、「继续学习」用的是同一个顺序。
+    """
+    by_id = {L["id"]: L for L in lessons}
+    mods = innovus_layout(lessons)
+    main3 = [INNOVUS_GUIDE] if INNOVUS_GUIDE in by_id else []
+    for m in mods:
+        main3.extend(m["main"])
+
+    # 阶段三的物理目录顺序里混着导读、31a–31p 和补充页，不能直接当路线；
+    # 走到第一门阶段三课程时，整体换成课表主线。
+    route, s3_done = [], False
+    for L in lessons:
+        if int(L.get("stage", 0)) == 3:
+            if not s3_done:
+                route.extend(main3)
+                s3_done = True
+            continue
+        route.append(L["id"])
+    if not s3_done:
+        route.extend(main3)
+
+    # 路线里去掉不存在的 key，并保序去重
+    seen, ordered = set(), []
+    for lid in route:
+        if lid in by_id and lid not in seen:
+            seen.add(lid)
+            ordered.append(lid)
+    route = ordered
+
+    nb = {}
+    for i, lid in enumerate(route):
+        nb[lid] = {"prev": route[i - 1] if i > 0 else None,
+                   "next": route[i + 1] if i + 1 < len(route) else None,
+                   "kind": "main", "module": ""}
+    mod_of = {m["name"]: m for m in mods}
+    for m in mods:
+        for lid in m["main"]:
+            if lid in nb:
+                nb[lid]["module"] = m["name"]
+        n = len(m["refs"])
+        for j, lid in enumerate(m["refs"]):
+            nxt = m["refs"][j + 1] if j + 1 < n else (m["main"][0] if m["main"] else None)
+            nb[lid] = {"prev": m["refs"][j - 1] if j > 0 else (m["main"][0] if m["main"] else None),
+                       "next": nxt, "kind": "ref", "module": m["name"]}
+    return {"route": route, "neighbors": nb, "modules": mods,
+            "stage3_main": main3,
+            "module_of": {lid: m["name"] for m in mods
+                          for lid in m["main"] + m["refs"]}}
+
 def asset_ver():
     """资源版本号 = 关键静态文件的「内容哈希」。
 
@@ -231,6 +354,8 @@ def render_block(name, arg, body):
         return render_tclsh("", "\n".join(body).strip())
     if name == "fig":
         return render_fig(arg)
+    if name == "mainline":
+        return render_mainline()
     if name == "svg":
         return '<div class="fig">' + "\n".join(body).strip() + "</div>"
     return md(chr(10).join(body))
@@ -257,6 +382,54 @@ def render_tclsh(arg, code):
 
 
 FIG_EXT = (".png", ".jpg", ".jpeg", ".webp", ".svg")
+
+
+# 构建期上下文：:::mainline 需要课程元数据才能生成主线表
+_CTX = {}
+MAINLINE_TOKEN = "%%MAINLINE%%"
+
+
+def render_mainline():
+    """:::mainline —— 按 INNOVUS_MAINLINE 生成阶段三课表。
+
+    这张表以前是手写在 md 里的，改配置后容易和首页对不上。现在由配置
+    直接生成，导读页、首页、课页上下课共用同一份顺序。
+    正文在 load_all() 解析时就已渲染，此时还没有课程元数据，先留占位符，
+    由 build_lesson() 注入。
+    """
+    return MAINLINE_TOKEN
+
+
+def mainline_html():
+    by_id = _CTX.get("by_id") or {}
+    plan = _CTX.get("plan") or {}
+    mods = plan.get("modules") or []
+
+    def link(lid, label=""):
+        L = by_id.get(lid)
+        if not L:
+            return ""
+        return (f'<a href="/lesson/{lid}/">{esc(label or L.get("title", ""))}</a>')
+
+    rows = []
+    for m in mods:
+        name, hours = m["name"], m["hours"]
+        if m["main"]:
+            # 课表里「使用」是两个课时，同一份课件两段；其余模块直接指向主课
+            if m["main"] == ["03-02-innovus-start"]:
+                main = ('<a href="/lesson/03-02-innovus-start/#period-1">第 1 课时：启动与界面</a>、'
+                        '<a href="/lesson/03-02-innovus-start/#period-2">第 2 课时：导入与验证</a>')
+            else:
+                main = "、".join(link(i) for i in m["main"])
+        else:
+            main = '<b class="ml-todo">待补：暂无已核实的独立课程，不用 CTS 课件代替。</b>'
+        refs = "、".join(link(i, f'{by_id[i].get("no", "")} {by_id[i].get("title", "")}')
+                         for i in m["refs"]) or "—"
+        rows.append(f'<tr><td>{esc(name)}</td><td class="ml-h">{hours}</td>'
+                    f'<td>{main}</td><td>{refs}</td></tr>')
+    return ('<div class="ml-table"><table><thead><tr><th>模块</th><th>课表学时</th>'
+            '<th>主课（按顺序学）</th><th>选学（参考，不计入路线）</th></tr></thead>'
+            '<tbody>' + "".join(rows) + '</tbody></table></div>')
 
 
 def render_fig(arg):
@@ -485,9 +658,6 @@ def load_all():
         if L.get("status", "live") == "draft":
             continue
         lessons.append(L)
-    def _no_key(x):
-        m = re.match(r"\d+", str(x.get("no", "")))
-        return int(m.group()) if m else 9999
     lessons.sort(key=lambda x: (int(x.get("stage", 9)), _no_key(x)))
     return lessons
 
@@ -507,8 +677,14 @@ def build_data(lessons):
                 arg = (m.group(2) or "").split("|")
                 en = plain_line(arg[0]) if arg else ""
                 zh = plain_line(arg[1]) if len(arg) > 1 else en
+                # 第三段是别名（用 / 分隔）：同一概念在不同课里的叫法。
+                # 术语表要能靠任一叫法搜到，否则「打 PG」查不到 PowerPlan。
+                alias = []
+                if len(arg) > 2:
+                    alias = [plain_line(a) for a in re.split(r"[/、]", arg[2]) if plain_line(a)]
                 gloss.append({
-                    "en": en, "zh": zh, "def": strip_md(m.group(3))[:400],
+                    "en": en, "zh": zh, "alias": alias,
+                    "def": strip_md(m.group(3))[:400],
                     "lesson": L["id"], "lessonTitle": title, "no": no,
                     "stage": stage, "stageName": STAGE_SHORT.get(stage, ""),
                     "ch": ch["id"], "chTitle": ch["title"],
@@ -600,7 +776,7 @@ PAGE = HEAD + """
     </div>
   </aside>
   <main class="main">
-    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#{stageAnchor}">{stageName}</a><span>/</span><b>{title}</b></div>
+    <div class="crumb"><a href="/">课程总览</a><span>/</span><a href="/#{stageAnchor}">{stageName}</a><span>/</span><b>{title}</b></div>{refbar}
     <div class="hero">
       <div class="hero-no">{lessonNo}</div>
       <h1>{title}</h1>
@@ -695,12 +871,6 @@ HOME = HEAD + """
   </div>
 </section>
 
-<section class="plan" id="plan">
-  <h2 class="sec-h">学习路线</h2>
-  <p class="sec-p">按顺序学，不要跳。前一阶段是后一阶段的地基 —— 这也是很多人"看了很多教程还是不会做项目"的真正原因。</p>
-  <div class="stages">{stages}</div>
-</section>
-
 <section class="faq" id="faq">
   <h2 class="sec-h">常见问题</h2>
   <div class="faq-grid">
@@ -720,32 +890,66 @@ HOME = HEAD + """
 </html>"""
 
 
-def build_lesson(L, idx, all_lessons):
+def build_lesson(L, plan, by_id):
     chs = L["chapters"]
     lest = sum(int(c.get("est", 1)) for c in chs)   # 本课总预计学习时长（分钟）
+    nb = (plan.get("neighbors") or {}).get(L["id"]) or {}
+    kind = nb.get("kind") or "main"
+    mod_main = by_id.get(INNOVUS_MODULE_MAIN.get(nb.get("module") or "") or "")
+    # 末节按钮：主线课跳「下一课」（走 /api/next 续学位置）；参考页固定回本模块主课，
+    # 否则从参考页点下去会被主线续学位置带离当前模块。
+    last_html = ('<div class="ch-next"><button class="ch-next-btn" type="button" data-last="1"'
+                 f' data-go="/lesson/{mod_main["id"]}/">读完本篇 · 回本模块主课 →</button></div>'
+                 if kind == "ref" and mod_main else
+                 '<div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">'
+                 '学完本课 · 下一课 →</button></div>')
     art = []
     for i, c in enumerate(chs):
         is_last = (i == len(chs) - 1)
-        # 每章底部的「学完这章，继续下一章」按钮已移除；仅最后一章保留「学完本课」跳转
-        next_html = (f'<div class="ch-next"><button class="ch-next-btn" type="button" data-last="1">学完本课 · 下一课 →</button></div>'
-                     if is_last else '')
+        # 每章底部的「学完这章，继续下一章」按钮已移除；仅最后一章保留跳转按钮
         art.append(f"""<section class="ch" id="{c['id']}" data-ch="{c['id']}">
   <div class="ch-h"><span class="ch-n">{i+1:02d}</span><h2>{esc(c['title'])}</h2></div>
   {c['html']}
-  {next_html}
+  {last_html if is_last else ''}
 </section>""")
+
     prev_next = ""
-    if idx > 0:
-        p = all_lessons[idx - 1]
-        prev_next += f'<a class="nav-btn" href="/lesson/{p["id"]}/">← {esc(p["title"])}</a>'
-    if idx + 1 < len(all_lessons):
-        n = all_lessons[idx + 1]
-        prev_next += f'<a class="nav-btn" href="/lesson/{n["id"]}/">{esc(n["title"])} →</a>'
+    p, n = by_id.get(nb.get("prev") or ""), by_id.get(nb.get("next") or "")
+    if p:
+        if kind == "ref" and mod_main and p["id"] == mod_main["id"]:
+            plabel = "回本模块主课"
+        elif kind == "ref":
+            plabel = "参考上一篇"
+        else:
+            plabel = "上一课"
+        prev_next += (f'<a class="nav-btn" href="/lesson/{p["id"]}/">← {plabel}'
+                      f'<i>{esc(p["title"])}</i></a>')
+    if n:
+        if kind == "ref" and mod_main and n["id"] == mod_main["id"]:
+            plabel, nlabel = "回本模块主课", "回本模块主课"
+        elif kind == "ref":
+            nlabel = "参考下一篇"
+        else:
+            nlabel = "下一课"
+        prev_next += (f'<a class="nav-btn next" href="/lesson/{n["id"]}/">{nlabel} →'
+                      f'<i>{esc(n["title"])}</i></a>')
     tags = L.get("tags", [])
     if isinstance(tags, str):
         tags = [t.strip() for t in tags.split(",") if t.strip()]
     tagPills = "".join(f'<span class="pill tag">{esc(t)}</span>' for t in tags)
     stage = int(L.get("stage", 0))
+    module = (plan.get("module_of") or {}).get(L["id"], "")
+    main_id = INNOVUS_MODULE_MAIN.get(module)
+    backlink = ""
+    if stage == 3 and L["id"] != INNOVUS_GUIDE:
+        if nb.get("kind") == "ref" and main_id:
+            backlink = (f'<div class="lesson-refbar">本页是「{esc(module)}」模块的参考阅读，'
+                        f'不计入自动学习路线。<a href="/lesson/{main_id}/">回本模块主课 →</a>'
+                        f'<a href="/lesson/{INNOVUS_GUIDE}/#course-mainline">看阶段三课表</a></div>')
+        elif module:
+            backlink = (f'<div class="lesson-refbar">阶段三课表模块：{esc(module)}'
+                        f'（{next((h for nm, h, _ in INNOVUS_MAINLINE if nm == module), "")} 课时）'
+                        f'<a href="/lesson/{INNOVUS_GUIDE}/#course-mainline">看完整课表</a></div>')
     html = PAGE.format(
         doctitle=f"{L.get('title','')} · {L.get('no','')} | IC 后端学院", title=L.get('title',''),
         desc=re.sub(r"[`*]", "", L.get("summary", "")),
@@ -758,25 +962,13 @@ def build_lesson(L, idx, all_lessons):
         summary=inline(L.get("summary", "")), minutes=L.get("minutes", 40),
         estMin=lest,
         hours=L.get("hours", "—"), tagPills=tagPills, article="\n".join(art),
-        prevNext=prev_next,
+        prevNext=prev_next, refbar=backlink,
     ).replace("%%AUTHCHIP%%", AUTH_CHIP)
+    if MAINLINE_TOKEN in html:
+        html = html.replace(MAINLINE_TOKEN, mainline_html())
     out = os.path.join(LESSONS, L["id"])
     os.makedirs(out, exist_ok=True)
     open(os.path.join(out, "index.html"), "w", encoding="utf-8").write(bust(html))
-
-
-# Homepage teaching order only. Keep catalog IDs, course numbering and progress intact.
-INNOVUS_HOME = (
-    ("Innovus 的使用", 2, "03-02-innovus-start"),
-    ("Floorplan", 10, "03-05-floorplan"),
-    ("PowerPlan", 2, "03-06-powerplan"),
-    ("Placement / Setup 与 Hold", 4, "03-07-place"),
-    ("CTS", 14, "03-08-cts"),
-    ("OptCTS", 2, None),
-    ("Route", 4, "03-09-route"),
-    ("OptRoute", 1, "03-10-optroute"),
-    ("ChipFinish", 2, "03-14-chipfinish-handoff"),
-)
 
 
 def home_lesson_row(lesson, label=None, hours=None):
@@ -792,25 +984,36 @@ def home_lesson_row(lesson, label=None, hours=None):
             f'<span class="lh">{duration}</span>{minutes}</a>')
 
 
-def innovus_home_rows(items):
-    index = {lesson['id']: lesson for lesson in items}
-    primary = {slug for _, _, slug in INNOVUS_HOME if slug}
-    refs = [lesson for lesson in items if lesson['id'] not in primary]
+def innovus_home_rows(plan, by_id):
+    """阶段三首页：课表模块为主，选学参考收在每个模块下面，不再混成一堆。"""
+    guide = by_id.get(INNOVUS_GUIDE)
     rows = []
-    for label, hours, slug in INNOVUS_HOME:
-        if slug is None:
+    if guide:
+        rows.append(f'<a class="lrow guide" href="/lesson/{guide["id"]}/">'
+                    f'<span class="lno">{esc(str(guide.get("no", "")))}</span>'
+                    f'<span class="lt">阶段导读：课表 9 个模块 + 钉钉资料索引 20 项'
+                    f'<i>先看这一页，知道哪门是主课、哪门是选学</i></span>'
+                    f'<span class="lh">导读</span></a>')
+    total_refs = 0
+    for m in plan["modules"]:
+        name, hours, main, refs = m["name"], m["hours"], m["main"], m["refs"]
+        total_refs += len(refs)
+        if not main:
             rows.append(f'<div class="lrow"><span class="lno">—</span>'
-                        f'<span class="lt">{esc(label)}<i>独立课件待补</i></span>'
+                        f'<span class="lt">{esc(name)}<i>独立课件待补</i></span>'
                         f'<span class="lh">{hours} 课时</span></div>')
-        else:
-            rows.append(home_lesson_row(index[slug], label, hours))
-    rows.append('<details class="stage-reference"><summary>参考与进阶'
-                f'（{len(refs)} 项）</summary>'
-                + ''.join(home_lesson_row(lesson) for lesson in refs) + '</details>')
-    return ''.join(rows)
+            continue
+        rows.append(home_lesson_row(by_id[main[0]], name, hours))
+        if refs:
+            links = ''.join(
+                f'<a href="/lesson/{rid}/">{esc(by_id[rid].get("no", ""))} '
+                f'{esc(by_id[rid].get("title", ""))}</a>' for rid in refs)
+            rows.append(f'<div class="lref"><span>本模块选学</span>{links}</div>')
+    return ''.join(rows), total_refs
 
 
-def build_home(lessons, nquiz, nterm):
+def build_home(lessons, nquiz, nterm, plan):
+    by_id = {L["id"]: L for L in lessons}
     by_stage = {}
     for L in lessons:
         by_stage.setdefault(int(L.get("stage", 0)), []).append(L)
@@ -819,8 +1022,11 @@ def build_home(lessons, nquiz, nterm):
         items = by_stage.get(num, [])
         if not items:
             continue
-        rows = innovus_home_rows(items) if num == 3 else ''.join(home_lesson_row(L) for L in items)
-        count = f'（{len(INNOVUS_HOME)} 个课表模块）' if num == 3 else f'({len(items)} 课)'
+        if num == 3:
+            rows, nref = innovus_home_rows(plan, by_id)
+            count = f'（{len(plan["modules"])} 个课表模块 · {nref} 篇选学）'
+        else:
+            rows, count = ''.join(home_lesson_row(L) for L in items), f'({len(items)} 课)'
         stages_html.append(f"""<div class="stage" id="stage-{num}" style="--c:{color}">
   <div class="stage-l"><span class="stage-n">{num}</span></div>
   <div class="stage-r"><h3 class="stage-toggle" data-stage="{num}" data-count="{count}" role="button" tabindex="0" aria-expanded="true"><span class="st-t">{esc(name)}</span><span class="st-chev">▾</span></h3><p>{esc(desc)}</p>
@@ -920,8 +1126,8 @@ LEADERBOARD_BODY = """
 PROGRESS_BODY = """
 <div class="pwrap">
   <div class="pstats">
-    <div><b id="p-pct">0%</b><span>总完成度</span></div>
-    <div><b id="p-ch">0/0</b><span>已完成章节</span></div>
+    <div><b id="p-pct">0%</b><span>主线完成度</span></div>
+    <div><b id="p-ch">0/0</b><span>主线章节（选学不计）</span></div>
     <div class="pnext"><b id="p-next">—</b><span>下一课</span><i id="p-next-sub">—</i></div>
   </div>
   <div class="pbar"><i id="p-fill"></i></div>
@@ -1020,10 +1226,13 @@ def main():
     for d in (LESSONS, DATA):
         os.makedirs(d, exist_ok=True)
     lessons = load_all()
+    by_id = {L["id"]: L for L in lessons}
+    plan = study_plan(lessons)
+    _CTX["by_id"], _CTX["plan"] = by_id, plan
     gloss, quiz, index = build_data(lessons)
-    for i, L in enumerate(lessons):
-        build_lesson(L, i, lessons)
-    build_home(lessons, len(quiz), len(gloss))
+    for L in lessons:
+        build_lesson(L, plan, by_id)
+    build_home(lessons, len(quiz), len(gloss), plan)
     build_subpages(lessons, len(quiz), len(gloss))
 
     cat = {
@@ -1041,6 +1250,12 @@ def main():
         } for L in lessons],
         "counts": {"lessons": len(lessons), "chapters": sum(len(L["chapters"]) for L in lessons),
                    "quizzes": len(quiz), "terms": len(gloss)},
+        # 自动学习路线（课表顺序）+ 每课上下课。前端「继续学习」「上一课/下一课」
+        # 和服务端 /api/next 都读这两项，避免首页、课页各处各走一套顺序。
+        "route": plan["route"],
+        "neighbors": plan["neighbors"],
+        "modules": [{"name": m["name"], "hours": m["hours"],
+                     "main": m["main"], "refs": m["refs"]} for m in plan["modules"]],
     }
     dump = lambda name, obj: open(os.path.join(DATA, name), "w", encoding="utf-8").write(
         json.dumps(obj, ensure_ascii=False, separators=(",", ":")))
