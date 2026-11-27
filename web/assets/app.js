@@ -182,9 +182,17 @@
     (document.body.getAttribute('data-page') === 'playground' ? '_playground' : '');
   if (studyKey) {
     (function studyTimer() {
-      var acc = 0;                      // 未上报的秒数
+      var IDLE_MS = 120000;
+      var accMs = 0;
       var last = performance.now();
       var tickAt = last;
+      var away = false;
+      var stopped = false;
+      var foreground = active();
+      var batches = [];
+      var posted = false;
+      var hasServerTotal = false;
+      var projected = 0;
       var timeEl = document.getElementById('lp-time');
       function fmt(sec) {
         if (!sec) return '';
@@ -195,54 +203,124 @@
       }
       function paintTime() {
         if (!timeEl) return;
-        var t = known + Math.floor(acc);
+        // 服务端课时可能已包含其他待回执批次，取较大值而不是相加。
+        var t = (batches.length ? Math.max(known, projected) : known) + Math.floor(accMs / 1000);
         timeEl.textContent = t > 0 ? '⏱ ' + fmt(t) : '';
       }
-      /* 读取本课已有累计时长（重学也保留；防刷分校验用同一口径） */
-      fetch(API + '/study-time').then(function (r) { return r.json(); }).then(function (d) {
+      fetch(API + '/study-time').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+        // 旧版 POST 只返回增量，不能与可能已包含该批次的 GET 快照混算。
+        if (!d || (posted && !hasServerTotal)) return;
         known = Math.max(known, (d.by_lesson || {})[studyKey] || 0);
         paintTime();
       }).catch(function () { });
-      function active() { return !document.hidden && document.hasFocus(); }
+      function active() { return !away && !document.hidden && document.hasFocus(); }
       function sample(now) {
-        if (active()) acc += Math.max(0, Math.min(now - tickAt, last + 120000 - tickAt, 1000)) / 1000;
+        // 先用切换前的状态结算，再更新前台状态；迟到的采样只受空闲截止时间限制。
+        if (foreground && !stopped) accMs += Math.max(0, Math.min(now, last + IDLE_MS) - tickAt);
         tickAt = now;
       }
       ['scroll', 'keydown', 'input', 'pointerdown', 'touchstart', 'wheel'].forEach(function (ev) {
         window.addEventListener(ev, function (e) {
-          if (!e.isTrusted || !active()) return;
+          if (!e.isTrusted || !foreground || !active()) return;
           var now = performance.now();
           sample(now);
           last = now;
         }, { passive: true, capture: true });
       });
-      function flush() {
-        var s = Math.min(60, Math.floor(acc + 1e-6));
-        if (s <= 0) return;
-        acc -= s;
+      function batchId() {
+        if (window.crypto.randomUUID) return window.crypto.randomUUID();
+        var bytes = window.crypto.getRandomValues(new Uint8Array(16));
+        bytes[6] = (bytes[6] & 15) | 64;
+        bytes[8] = (bytes[8] & 63) | 128;
+        return Array.from(bytes, function (b) { return ('0' + b.toString(16)).slice(-2); })
+          .join('').replace(/^(........)(....)(....)(....)/, '$1-$2-$3-$4-');
+      }
+      function send(batch, drain) {
+        batch.sending = true;
+        posted = true;
         fetch(API + '/study-time', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
-          body: JSON.stringify({ lesson: studyKey, seconds: s })
+          body: JSON.stringify({ lesson: studyKey, seconds: batch.seconds, batch_id: batch.id })
         }).then(function (r) {
-          if (r.ok) { known += s; paintTime(); } else { acc += s; }
-        }).catch(function () { acc += s; });     // 失败下次补报
+          if (r.ok) return r.json();
+          if (r.status >= 400 && r.status < 500 && r.status !== 408 && r.status !== 425 && r.status !== 429) {
+            return { rejected: r.status };
+          }
+          throw new Error('学习时长上报暂时失败');
+        }).then(function (d) {
+          if (stopped) return;
+          if (!d) throw new Error('缺少学习时长回执');
+          batches.splice(batches.indexOf(batch), 1);
+          if (d.rejected) {
+            projected -= batch.seconds;
+            if (d.rejected === 401 || d.rejected === 403) {
+              stopped = true;
+              batches.length = 0;
+              accMs = 0;
+            }
+          } else if (Number.isFinite(d.lesson_seconds)) {
+            hasServerTotal = true;
+            known = Math.max(known, d.lesson_seconds);
+          } else if (!hasServerTotal) {
+            var added = Number.isFinite(d.added) ? d.added : batch.seconds;
+            known += added;
+            projected -= batch.seconds - added;
+          }
+          paintTime();
+          if (drain) sendNext();
+        }).catch(function () { batch.sending = false; }); // 保留同一个批次及 UUID，下次重试。
+      }
+      function sendNext() {
+        if (!away && batches.length && !batches[0].sending) send(batches[0], true);
+      }
+      function flush(leaving) {
+        if (stopped) return;
+        if (!batches.length) projected = known;
+        var s;
+        while ((s = Math.min(60, Math.floor(accMs / 1000))) > 0) {
+          batches.push({ id: batchId(), seconds: s, sending: false });
+          accMs -= s * 1000;
+          projected += s;
+        }
+        if (leaving) {
+          // 用 keepalive 发出新尾数，不等较早的批次返回。
+          batches.forEach(function (batch) { if (!batch.sending) send(batch, false); });
+        } else {
+          sendNext();
+        }
+        paintTime();
+      }
+      function setForeground(next) {
+        sample(performance.now());
+        var leaving = foreground && !next;
+        foreground = next;
+        if (leaving) flush(true);
       }
       setInterval(function () {
+        if (away || stopped) return;
         sample(performance.now());
         paintTime();
-        if (acc >= 30) flush();
       }, 1000);
-      setInterval(flush, 60000);
-      window.addEventListener('pagehide', flush);
-      ['focus', 'blur'].forEach(function (ev) {
-        window.addEventListener(ev, function () {
-          tickAt = performance.now();
-          if (ev === 'blur') flush();
-        });
+      setInterval(function () {
+        if (away || stopped) return;
+        sample(performance.now());
+        flush(false);
+      }, 15000);
+      window.addEventListener('blur', function () { setForeground(false); });
+      window.addEventListener('focus', function () { setForeground(active()); });
+      document.addEventListener('visibilitychange', function () { setForeground(active()); });
+      window.addEventListener('pagehide', function () {
+        sample(performance.now());
+        away = true;
+        foreground = false;
+        flush(true);
       });
-      document.addEventListener('visibilitychange', function () {
+      window.addEventListener('pageshow', function () {
+        if (!away) return;
+        away = false;
         tickAt = performance.now();
-        if (document.hidden) flush();
+        foreground = active();
+        flush(false);
       });
     })();
   }
@@ -452,13 +530,18 @@
       var list = document.getElementById('hlb-list');
       var me = document.getElementById('hlb-me');
       if (!list) return;
-      fetch(API + '/leaderboard').then(function (r) {
+      var loading = false, loaded = false;
+      function refresh() {
+        if (document.hidden || loading) return;
+        loading = true;
+        fetch(API + '/leaderboard', { cache: 'no-store' }).then(function (r) {
         return r.json().then(function (j) { return { ok: r.ok, j: j }; });
       }).then(function (res) {
         if (!res.ok) {
           list.innerHTML = '<div class="hlb-empty">登录后查看排行榜</div>';
           return;
         }
+        loaded = true;
         var rows = res.j.rows || [];
         if (!rows.length) { list.innerHTML = '<div class="hlb-empty">还没有数据</div>'; return; }
         var medal = ['🥇', '🥈', '🥉'];
@@ -476,9 +559,15 @@
             ' 人 · 学习时长 <b>' + formatStudyTime(mine.seconds) + '</b>';
         }
       }).catch(function (e) {
-        list.innerHTML = '<div class="hlb-empty">排行榜加载失败，请刷新页面重试</div>';
+        if (!loaded) list.innerHTML = '<div class="hlb-empty">排行榜加载失败，稍后自动重试</div>';
         if (window.console) console.warn('[排行榜]', e);
-      });
+      }).finally(function () { loading = false; });
+      }
+      refresh();
+      window.addEventListener('focus', refresh);
+      window.addEventListener('pageshow', refresh);
+      document.addEventListener('visibilitychange', refresh);
+      setInterval(refresh, 15000);
     })();
 
     /* 首页主按钮改为「继续学习」：按账号真实进度决定去哪 */

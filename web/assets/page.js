@@ -537,7 +537,11 @@
       var h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60;
       return h ? h + ' 小时' + (m ? ' ' + m + ' 分钟' : '') : m + ' 分钟';
     }
-    fetch('/api/leaderboard', { credentials: 'same-origin' })
+    var loading = false, loaded = false;
+    function refresh() {
+      if (document.hidden || loading) return;
+      loading = true;
+      fetch('/api/leaderboard', { credentials: 'same-origin', cache: 'no-store' })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {
         if (!res.ok) {
@@ -545,6 +549,7 @@
             ? '登录后查看排行榜' : '数据加载失败') + '</p>';
           return;
         }
+        loaded = true;
         var rows = res.j.rows || [];
         if (!rows.length) { box.innerHTML = '<p class="qempty">还没有数据</p>'; return; }
         var medal = ['🥇', '🥈', '🥉'];
@@ -565,7 +570,14 @@
             ' 人 · 学习时长 <b>' + fmtTime(mine.seconds) + '</b>';
         }
       })
-      .catch(function () { box.innerHTML = '<p class="qempty">数据没加载出来，刷新试试。</p>'; });
+      .catch(function () { if (!loaded) box.innerHTML = '<p class="qempty">数据没加载出来，稍后自动重试。</p>'; })
+      .finally(function () { loading = false; });
+    }
+    refresh();
+    window.addEventListener('focus', refresh);
+    window.addEventListener('pageshow', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    setInterval(refresh, 15000);
   }
 
   if (page === 'quiz') initQuiz();

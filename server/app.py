@@ -26,6 +26,7 @@ from urllib.parse import quote
 from contextlib import closing
 from pathlib import Path
 from typing import List, Optional, Dict
+from uuid import UUID
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.gzip import GZipMiddleware
@@ -158,6 +159,10 @@ def init_db():
             seconds INTEGER NOT NULL DEFAULT 0,
             updated_at INTEGER NOT NULL,
             PRIMARY KEY(user_id, lesson, chapter))""")
+        c.execute("""CREATE TABLE IF NOT EXISTS study_time_receipts(
+            user_id INTEGER NOT NULL,
+            batch_id TEXT NOT NULL,
+            PRIMARY KEY(user_id, batch_id)) WITHOUT ROWID""")
         c.execute("""CREATE TABLE IF NOT EXISTS user_uids(
             user_id INTEGER NOT NULL,
             uid TEXT NOT NULL,
@@ -916,10 +921,15 @@ def quiz_stats_get(request: Request):
 PRACTICE_TIME_KEY = "_playground"
 
 
+def _study_pages() -> tuple:
+    return (*_lesson_catalog(), PRACTICE_TIME_KEY)
+
+
 class StudyTimeIn(BaseModel):
     lesson: str = Field(..., max_length=64)
     seconds: int = Field(..., ge=0, le=60)
     by_chapter: Dict[str, int] = Field(default_factory=dict)  # 章级秒数（防刷分校验用）
+    batch_id: Optional[UUID] = None
 
 
 @app.post("/api/study-time")
@@ -928,29 +938,40 @@ def study_time_add(r: StudyTimeIn, request: Request):
     u = current_user(request)
     if not u:
         raise HTTPException(401, "not logged in")
-    if not r.seconds:
+    if not r.seconds and r.batch_id is None:
         return {"ok": True, "added": 0}
     lesson = (r.lesson or "").strip()
-    if lesson != PRACTICE_TIME_KEY and lesson not in _lesson_catalog():
-        raise HTTPException(400, "unknown study page")
-    now = int(time.time())
-    with closing(db()) as c:
-        c.execute(
-            "INSERT INTO study_time(user_id,lesson,seconds,updated_at) VALUES(?,?,?,?) "
-            "ON CONFLICT(user_id,lesson) DO UPDATE SET seconds=seconds+excluded.seconds, "
-            "updated_at=excluded.updated_at",
-            (u["id"], lesson, int(r.seconds), now))
-        # 章级计时（防刷分校验依据）：只接受本课的章，单章单次上限同 2 小时
-        for ch, s in (r.by_chapter or {}).items():
-            if not (KEY_RE.match(ch) and isinstance(s, int) and s > 0):
-                continue
+    user_id = u["id"]
+    with closing(db()) as c, c:
+        duplicate = False
+        if r.batch_id is not None:
+            receipt = c.execute(
+                "INSERT INTO study_time_receipts(user_id,batch_id) VALUES(?,?) "
+                "ON CONFLICT(user_id,batch_id) DO NOTHING",
+                (user_id, str(r.batch_id)))
+            duplicate = receipt.rowcount == 0
+        if not duplicate and lesson != PRACTICE_TIME_KEY and lesson not in _lesson_catalog():
+            raise HTTPException(400, "unknown study page")
+        added = 0 if duplicate else r.seconds
+        if added:
+            now = int(time.time())
             c.execute(
-                "INSERT INTO study_time_ch(user_id,lesson,chapter,seconds,updated_at) VALUES(?,?,?,?,?) "
-                "ON CONFLICT(user_id,lesson,chapter) DO UPDATE SET seconds=seconds+excluded.seconds, "
+                "INSERT INTO study_time(user_id,lesson,seconds,updated_at) VALUES(?,?,?,?) "
+                "ON CONFLICT(user_id,lesson) DO UPDATE SET seconds=seconds+excluded.seconds, "
                 "updated_at=excluded.updated_at",
-                (u["id"], lesson, ch, min(int(s), 7200), now))
-        c.commit()
-    return {"ok": True, "added": int(r.seconds)}
+                (user_id, lesson, added, now))
+            # 章级计时（防刷分校验依据）：只接受本课的章，单章单次上限同 2 小时
+            for ch, s in (r.by_chapter or {}).items():
+                if not (KEY_RE.match(ch) and isinstance(s, int) and s > 0):
+                    continue
+                c.execute(
+                    "INSERT INTO study_time_ch(user_id,lesson,chapter,seconds,updated_at) VALUES(?,?,?,?,?) "
+                    "ON CONFLICT(user_id,lesson,chapter) DO UPDATE SET seconds=seconds+excluded.seconds, "
+                    "updated_at=excluded.updated_at",
+                    (user_id, lesson, ch, min(int(s), 7200), now))
+        row = c.execute("SELECT seconds FROM study_time WHERE user_id=? AND lesson=?",
+                        (user_id, lesson)).fetchone()
+    return {"ok": True, "added": added, "lesson_seconds": row["seconds"] if row else 0}
 
 
 @app.get("/api/study-time")
@@ -962,7 +983,8 @@ def study_time_mine(request: Request):
         rows = c.execute("SELECT lesson,seconds FROM study_time WHERE user_id=?", (u["id"],)).fetchall()
         rows_ch = c.execute(
             "SELECT lesson,chapter,seconds FROM study_time_ch WHERE user_id=?", (u["id"],)).fetchall()
-    total = sum(r["seconds"] for r in rows)
+    study_pages = set(_study_pages())
+    total = sum(r["seconds"] for r in rows if r["lesson"] in study_pages)
     by_ch: Dict[str, Dict[str, int]] = {}
     for r in rows_ch:
         by_ch.setdefault(r["lesson"], {})[r["chapter"]] = r["seconds"]
@@ -975,7 +997,7 @@ def leaderboard(request: Request):
     u = current_user(request)
     if not u:
         raise HTTPException(401, "not logged in")
-    study_pages = (*_lesson_catalog(), PRACTICE_TIME_KEY)
+    study_pages = _study_pages()
     slots = ",".join("?" for _ in study_pages)
     with closing(db()) as c:
         ranked = c.execute(f"""
@@ -1763,7 +1785,9 @@ async def cache_control(request: Request, call_next):
     静态资源反过来要长缓存——URL 里已有版本号，内容变了 URL 一定变。"""
     resp = await call_next(request)
     path = request.url.path
-    if resp.status_code < 400:
+    if path == "/api/leaderboard":
+        resp.headers["Cache-Control"] = "private, no-store"
+    elif resp.status_code < 400:
         ctype = resp.headers.get("content-type", "")
         if path.startswith("/assets/"):
             resp.headers["Cache-Control"] = "public, max-age=604800"
