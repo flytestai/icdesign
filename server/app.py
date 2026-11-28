@@ -1322,16 +1322,28 @@ def _strip_html(html: str) -> str:
     return re.sub(r"\s{2,}", " ", html).strip()
 
 
-def _lesson_context(lesson_id: str, limit: int = 6000) -> str:
+def _lesson_context(lesson_id: str, limit: int = 8000) -> str:
+    """取本课的正文（只取 <article>，不要导航和目录）。
+
+    早期版本直接 strip 整页再截前 6000 字，结果开头六七百字都是导航栏、
+    面包屑和本课目录，真正的课程内容被挤掉大半；用户点「AI 讲解」时
+    正文又已经在消息里，等于同一段内容占了两份上下文。
+    """
     if not KEY_RE.match(lesson_id):
         return ""
     p = WEB / "lesson" / lesson_id / "index.html"
     if not p.exists():
         return ""
     try:
-        return _strip_html(p.read_text(encoding="utf-8"))[:limit]
+        html = p.read_text(encoding="utf-8")
     except Exception:
         return ""
+    m = re.search(r'<article[^>]*id="article"[^>]*>(.*?)</article>', html, re.S | re.I)
+    body = m.group(1) if m else html
+    # 去掉按钮等交互件，它们对问答没有意义
+    body = re.sub(r'<button\b.*?</button>', " ", body, flags=re.S | re.I)
+    body = re.sub(r'<svg\b.*?</svg>', " ", body, flags=re.S | re.I)
+    return _strip_html(body)[:limit]
 
 
 def _chat_key(lesson: str) -> str:
@@ -1440,9 +1452,16 @@ def ai_chat(r: AIChatIn, request: Request):
         ctx = _lesson_context(r.lesson)
         if ctx:
             sys_parts.append(
-                "你是「IC 后端学院」的课程助教。下面是用户正在学习的课程《%s》的页面内容，"
-                "回答时优先依据这份内容，用中文、面向初学者讲清楚；课程里没讲到的可以补充通识。\n\n"
-                "---- 课程内容开始 ----\n%s\n---- 课程内容结束 ----" % (r.lesson, ctx))
+                "你是「IC 后端学院」的课程助教，读者是零基础学数字 IC 后端的在职工程师或转行者。\n"
+                "回答要求：\n"
+                "1. 优先依据下面的课程内容作答；课程里没讲的可以补通识，但要说明「这部分课程没细讲」。\n"
+                "2. 用中文，口语化，不要写成报告。英文缩写第一次出现先给中文全称。\n"
+                "3. 涉及流程和判据时，落到「看哪份报告、哪个数字、下什么命令」这种可操作的程度，"
+                "不要停在概念层面。\n"
+                "4. 不确定的地方直接说不确定，不要编造命令、参数或项目数据。\n"
+                "5. 不要重复用户已经贴给你的原文，直接讲重点。\n\n"
+                "---- 本课内容开始（标题为《%s》）----\n%s\n---- 本课内容结束 ----"
+                % (r.lesson, ctx))
     if r.digest:
         sys_parts.append("用户在这节课早前问过（供你保持上下文连贯，不必复述）：" + r.digest)
     if sys_parts:
