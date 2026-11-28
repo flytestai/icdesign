@@ -369,7 +369,10 @@
       // leader 每 10 秒续约，超过 25 秒没续约就允许别的 tab 接管。
       var tabId = batchId();
       var isLeader = true;
-      (function electLeader() {
+      // 命名函数声明（不是 IIFE）：后面 flush 定时器里要再调用它来重新选主。
+      // 之前写成 (function electLeader(){...})() 具名函数表达式，名字只在
+      // 函数体内可见，外部调用会抛 ReferenceError，每 15 秒报错一次。
+      function electLeader() {
         try {
           var cur = localStorage.getItem(LS_LEADER);
           var now = Date.now();
@@ -382,7 +385,8 @@
             isLeader = false;
           }
         } catch (e) { isLeader = true; }
-      })();
+      }
+      electLeader();
 
       function send(batch, drain) {
         batch.sending = true;

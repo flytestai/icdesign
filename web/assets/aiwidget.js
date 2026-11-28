@@ -767,6 +767,30 @@
     if (panel) closePanel(); else openPanel();
   });
 
+  /* ---------------- 点浮窗外部自动收起 ----------------
+   * 行为与点「缩小」按钮一致（都是 closePanel），区别只是触发方式。
+   *
+   * 为什么用 pointerdown 而不是 click：
+   *   click 在「按下在面板内、松开在面板外」时也会触发 —— 用户只是在
+   *   面板里拖选一段文字，松手到外面就会把面板关掉，体验很差。
+   *   pointerdown 只在真正按下时判断，拖选不会误关。
+   *
+   * 排除范围：
+   *   - 面板自身及其内部（panel.contains）
+   *   - 悬浮球（点它是「关/开」切换，已有自己的处理）
+   *   - 触屏键盘弹出时可能产生的空白点击（用 isTrusted 过滤合成事件）
+   */
+  document.addEventListener("pointerdown", function (e) {
+    if (!panel) return;
+    if (!e.isTrusted) return;
+    var t = e.target;
+    if (panel.contains(t) || ball.contains(t)) return;
+    // 「AI 讲解」按钮要排除：它是 pointerdown 之后才在 click 里开面板。
+    // 不排除的话会先收起再打开，出现「闪一下」。
+    if (t.closest && t.closest(".ch-ai-btn")) return;
+    closePanel();
+  }, true);
+
   /* ---------------- 气泡与发送 ---------------- */
   /* 把 AI 问答追加写入当前课程的「课程笔记」（笔记按登录账号存储） */
   function appendLessonNote(lesson, q, a) {
