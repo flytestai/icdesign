@@ -133,6 +133,9 @@
     ".aiw-typing s{width:6px;height:6px;border-radius:50%;background:#a5b0d0;display:block;",
     "animation:aiwb 1.2s infinite}",
     ".aiw-typing s:nth-child(2){animation-delay:.15s}.aiw-typing s:nth-child(3){animation-delay:.3s}",
+    /* 等待态：跳动点 + 一句文字，让用户确认「已经发出去了，正在生成」 */
+    ".aiw-wait{display:flex;align-items:center;gap:9px}",
+    ".aiw-wait-t{font-size:12.5px;color:#7a8798}",
     "@keyframes aiwb{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}",
     /* ---- 输入区 ---- */
     ".aiw-foot{flex:0 0 auto;display:flex;gap:9px;align-items:flex-end;padding:11px 13px;",
@@ -270,6 +273,7 @@
   var HISTORY = [];                      // [{role, content}]
   var DIGEST = "";                       // 早期对话压缩摘要（上下文超长后由服务端生成）
   var HISTORY_LOADED = false;            // 是否已尝试从服务端加载本课历史
+  var HISTORY_PROMISE = null;            // 历史加载中的 Promise（等它完成再追加新消息）
   /* 对话按「用户 + 每节课」隔离：课程页用 lesson id，其它页面用空串（全局会话） */
   var LESSON = (document.body.dataset && document.body.dataset.lesson &&
     document.body.dataset.lesson !== "home") ? document.body.dataset.lesson : "";
@@ -681,7 +685,9 @@
     });
     if (!HISTORY.length && !HISTORY_LOADED) {
       bodyEl.innerHTML = '<div class="aiw-hint">正在加载本课对话记录…</div>';
-      loadHistory();
+      // 存下这个 Promise：外部（如「AI 讲解」）要等历史渲染完再追加消息，
+      // 否则刚插入的提问气泡会被 renderHistory() 的 innerHTML="" 清掉。
+      HISTORY_PROMISE = loadHistory();
     } else if (!HISTORY.length) {
       showWelcome();
     } else {
@@ -712,7 +718,10 @@
     }
     var lastQ = "";
     HISTORY.forEach(function (m) {
-      if (m.role === "user") { lastQ = m.content; bubble("u", m.content); }
+      if (m.role === "user") {
+        lastQ = m.content;
+        bubble("u", m.label || m.content);
+      }
       else bubble("b", m.content, false, lastQ);
     });
     bodyEl.scrollTop = bodyEl.scrollHeight;
@@ -721,7 +730,7 @@
   /* 读取该用户在本课的对话历史 */
   function loadHistory() {
     HISTORY_LOADED = true;
-    fetch("/api/ai/chat/history?lesson=" + encodeURIComponent(LESSON), { credentials: "same-origin" })
+    return fetch("/api/ai/chat/history?lesson=" + encodeURIComponent(LESSON), { credentials: "same-origin" })
       .then(function (r) { return r.json(); })
       .then(function (j) {
         HISTORY = (j && j.messages) || [];
@@ -1074,13 +1083,19 @@
     opts = opts || {};
     if (!q) return;
     if (configured === false) { openConfig("请先配置你自己的大模型接口，配置好就能提问了。"); return; }
-    bubble("u", opts.label || q);
-    HISTORY.push({ role: "user", content: q });
+    // label 是给界面看的短标题，content 才是真正发给模型的内容。
+    // 两者分开存，否则历史重绘时会把几百字提示词铺满屏幕。
+    var userLabel = opts.label || q;
+    bubble("u", userLabel);
+    HISTORY.push({ role: "user", content: q, label: userLabel });
     saveHistory();                     // 先落盘，刷新也不丢这次提问
     var tip = document.createElement("div");
     tip.className = "aiw-row b";
+    // 只有三个跳动的点，用户不知道在等什么；补一句明确的进度说明。
+    var waitTxt = opts.waiting || "正在生成回答";
     tip.innerHTML = '<div class="aiw-mava">' + ROBOT + "</div>" +
-      '<div class="aiw-typing"><s></s><s></s><s></s></div>';
+      '<div class="aiw-wait"><div class="aiw-typing"><s></s><s></s><s></s></div>' +
+      '<span class="aiw-wait-t">' + esc(waitTxt) + '…</span></div>';
     bodyEl.appendChild(tip);
     bodyEl.scrollTop = bodyEl.scrollHeight;
     sendEl.disabled = true;
@@ -1381,7 +1396,23 @@
       // 和「真正发给模型的内容」是否一致（气泡只显示 label，容易误判）
       window.ICL_AI.lastPrompt = q;
       window.ICL_AI.lastMode = mode;
-      askText(q, { label: m.label + "：" + title });
+      var opts = {
+        label: m.label + "：" + title,
+        waiting: m.label.replace(/^[^\u4e00-\u9fa5]*/, "") + "生成中"
+      };
+      // 关键：必须等历史渲染完再发。
+      // openPanel() 会异步 loadHistory()，回来后 renderHistory() 执行
+      // bodyEl.innerHTML="" 重绘，会把刚插入的提问气泡和加载动画一起清掉
+      // —— 这就是「点了没反应、过一会直接蹦出答案」的原因。
+      if (HISTORY_PROMISE) {
+        // 先给个即时反馈，让人知道点击已生效（历史通常很快，来不及看到）
+        var pend = HISTORY_PROMISE;
+        HISTORY_PROMISE = null;
+        pend.then(function () { askText(q, opts); })
+            .catch(function () { askText(q, opts); });
+      } else {
+        askText(q, opts);
+      }
     }
   };
 

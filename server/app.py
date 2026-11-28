@@ -1360,7 +1360,13 @@ def _clean_msgs(raw) -> List[dict]:
         role = m.get("role")
         content = str(m.get("content", "")).strip()
         if role in ("user", "assistant") and content:
-            out.append({"role": role, "content": content[:8000]})
+            item = {"role": role, "content": content[:8000]}
+            # label 是界面短标题（用于气泡显示），不参与发给模型的消息；
+            # 保存下来是为了刷新页面后气泡仍显示短标题而不是几百字提示词。
+            label = str(m.get("label", "")).strip()
+            if role == "user" and label:
+                item["label"] = label[:200]
+            out.append(item)
     return out
 
 
