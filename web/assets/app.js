@@ -260,7 +260,14 @@
           paused === 'idle' ? '已暂停：10 分钟无操作，动一下鼠标或滚动继续' :
           batches.some(function (b) { return b.failed; }) ? '上报未成功，正在重试' :
           pending ? '计时中，待同步' : '计时中';
-        timeEl.textContent = '⏱ ' + (known ? '已记录 ' + fmt(known) + ' · ' : '') + state;
+        // 窄屏顶栏放不下「已记录 1 分钟 · 计时中，待同步」这种长句，
+        // 会挤成一条竖排看不见。窄屏只显示时长（没有时长就显示一个点），
+        // 完整状态放进 title，鼠标悬停/长按可看。
+        var narrow = window.matchMedia('(max-width:900px)').matches;
+        timeEl.textContent = narrow
+          ? '⏱ ' + (known ? fmt(known) : (stopped ? '—' : ''))
+          : '⏱ ' + (known ? '已记录 ' + fmt(known) + ' · ' : '') + state;
+        timeEl.title = '本页累计学习时长' + (known ? '：' + fmt(known) : '') + '（' + state + '）';
       }
 
       fetch(API + '/study-time').then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {

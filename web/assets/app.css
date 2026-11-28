@@ -307,6 +307,9 @@ td code{font-size:12.5px}
 .sbx{margin:18px 0;border-radius:12px;overflow:hidden;background:#0f1720;box-shadow:0 6px 22px rgba(8,20,32,.22);border:1px solid #1d2b3a}
 .sbx-h{display:flex;align-items:center;gap:9px;padding:7px 12px;background:#0a121a;border-bottom:1px solid #1b2836;color:#8fa6bd;font-size:12px}
 .sbx-h b{color:#cddced;font-weight:600;letter-spacing:.3px;white-space:nowrap;flex:0 0 auto}
+/* 终端头部按钮：窄屏时标题被压扁会把「清空」挤成竖排，强制单行且不收缩 */
+.sbx-h button{white-space:nowrap;flex:0 0 auto}
+.sbx-h .sbx-tip{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sbx-dots{display:flex;gap:5px;flex:0 0 auto}
 .sbx-dots i{width:9px;height:9px;border-radius:50%;background:#33475c}
 .sbx-dots i:nth-child(1){background:#e05c5c}.sbx-dots i:nth-child(2){background:#e0a63c}.sbx-dots i:nth-child(3){background:#3fa86a}
@@ -606,7 +609,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .tsbx .sbx-ps1{color:#34d399;font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:nowrap}
 .tsbx .sbx-in{flex:1;background:transparent;border:none;outline:none;color:#f1f5f9;font-family:ui-monospace,Consolas,monospace;font-size:13.5px}
 .tsbx .sbx-f{padding:8px 14px 12px;color:#8fa3b8;font-size:12px;line-height:1.75;white-space:normal;word-break:break-word;background:#0b1420;border-top:1px solid #1b2836}
-.tsbx .sbx-clr{background:#334155;color:#cbd5e1;border:none;border-radius:7px;padding:4px 12px;font-size:12px;cursor:pointer;flex:0 0 auto}
+.tsbx .sbx-clr{background:#334155;color:#cbd5e1;border:none;border-radius:7px;padding:4px 12px;font-size:12px;cursor:pointer;flex:0 0 auto;white-space:nowrap}
 .tsbx .sbx-clr:hover{background:#475569}
 
 /* ==================== 练习场 /playground/ ==================== */
@@ -716,10 +719,19 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .hh-sub{margin-left:12px;font-size:12.5px;color:var(--muted);align-self:center}
 @media (max-width:620px){.hh-sub{margin-left:0;flex-basis:100%}}
 
-/* 课程页本课累计学习时长 */
+/* 课程页/练习场本页累计学习时长
+ *
+ * 这里不能用 white-space:normal：顶栏是 flex 布局，一旦允许换行，
+ * 这段文字会被挤成一条 20 多像素宽的竖排，跑到屏幕外（实测 top:-42px，
+ * 宽度 23px），用户完全看不到，会误以为「没有计时」。
+ * 所以：始终单行 + 限制最大宽度 + 超长省略。 */
 .lp-time{font-size:11.5px;color:var(--muted);white-space:nowrap;margin-left:8px;
-  font-variant-numeric:tabular-nums}
-@media (max-width:900px){.lp-time{white-space:normal;margin-left:0;line-height:1.35}}
+  font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;
+  max-width:280px;flex:0 1 auto;min-width:0}
+@media (max-width:900px){
+  /* 窄屏只保留「⏱ 12 分钟」这种短形式，状态细节靠 title 提示 */
+  .lp-time{margin-left:0;max-width:150px}
+}
 
 /* ==================== 首页两栏：正文 + 右侧排行榜 ==================== */
 .home-main{max-width:1280px;margin:0 auto;padding:34px 24px 0;
