@@ -195,7 +195,11 @@ def asset_ver():
     for n in names:
         p = os.path.join(d, n)
         try:
-            h.update(open(p, "rb").read())
+            # 统一换行符再算哈希。
+            # Windows 工作区是 CRLF，git 提交后是 LF，服务器上是 LF；
+            # 不归一化的话同一份代码在本地和服务器会算出不同版本号，
+            # 版本号就失去了「内容指纹」的意义（实测踩过。
+            h.update(open(p, "rb").read().replace(b"\r\n", b"\n"))
         except OSError:
             h.update(b"-")
     return h.hexdigest()[:12]

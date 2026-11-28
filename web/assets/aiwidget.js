@@ -1377,6 +1377,10 @@
       var q = m.head + title + "\n\n"
             + (body || "（本节暂无正文，请按标题讲解）")
             + "\n\n" + m.tail.replace(/^\s+/, "");
+      // 暴露最近一次实际发出的提示词，方便核对「界面看到的短标签」
+      // 和「真正发给模型的内容」是否一致（气泡只显示 label，容易误判）
+      window.ICL_AI.lastPrompt = q;
+      window.ICL_AI.lastMode = mode;
       askText(q, { label: m.label + "：" + title });
     }
   };
